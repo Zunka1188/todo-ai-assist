@@ -1,7 +1,19 @@
 
 import React, { useState } from 'react';
-import { File, Image, FileText, Folder } from 'lucide-react';
+import { File, Image, FileText, Folder, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Document {
   id: string;
@@ -11,7 +23,12 @@ interface Document {
   date: Date;
 }
 
-// Sample documents without receipts
+interface FolderType {
+  id: string;
+  name: string;
+}
+
+// Sample documents
 const initialDocuments: Document[] = [
   {
     id: '2',
@@ -40,29 +57,61 @@ const initialDocuments: Document[] = [
     type: 'note',
     category: 'Work',
     date: new Date(2025, 3, 5)
+  },
+  {
+    id: '7',
+    name: 'Vacation Photos',
+    type: 'image',
+    category: 'Travel',
+    date: new Date(2025, 3, 10)
+  },
+  {
+    id: '8',
+    name: 'Cooking Recipe',
+    type: 'note',
+    category: 'Cooking',
+    date: new Date(2025, 3, 15)
   }
 ];
 
-const categories = [
-  'All',
-  'Personal',
-  'Work',
-  'Travel',
-  'Images',
-  'Notes'
+// Initial folders plus the default categories
+const initialFolders: FolderType[] = [
+  { id: 'all', name: 'All' },
+  { id: 'personal', name: 'Personal' },
+  { id: 'work', name: 'Work' },
+  { id: 'travel', name: 'Travel' },
+  { id: 'images', name: 'Images' },
+  { id: 'notes', name: 'Notes' },
+  { id: 'cooking', name: 'Cooking' }
 ];
 
 const DocumentList: React.FC = () => {
   const [documents] = useState<Document[]>(initialDocuments);
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [folders, setFolders] = useState<FolderType[]>(initialFolders);
+  const [selectedFolder, setSelectedFolder] = useState('all');
+  const [newFolderName, setNewFolderName] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const filteredDocuments = selectedCategory === 'All'
+  const createFolder = () => {
+    if (newFolderName.trim() === '') return;
+    
+    const newFolder: FolderType = {
+      id: newFolderName.toLowerCase().replace(/\s+/g, '-'),
+      name: newFolderName.trim()
+    };
+    
+    setFolders([...folders, newFolder]);
+    setNewFolderName('');
+    setIsDialogOpen(false);
+  };
+
+  const filteredDocuments = selectedFolder === 'all'
     ? documents
-    : selectedCategory === 'Images'
+    : selectedFolder === 'images'
       ? documents.filter(doc => doc.type === 'image')
-      : selectedCategory === 'Notes'
+      : selectedFolder === 'notes'
         ? documents.filter(doc => doc.type === 'note')
-        : documents.filter(doc => doc.category === selectedCategory);
+        : documents.filter(doc => doc.category.toLowerCase() === selectedFolder.toLowerCase());
 
   const getDocumentIcon = (type: string) => {
     switch (type) {
@@ -78,20 +127,54 @@ const DocumentList: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-        {categories.map((category) => (
+        {folders.map((folder) => (
           <button
-            key={category}
-            onClick={() => setSelectedCategory(category)}
+            key={folder.id}
+            onClick={() => setSelectedFolder(folder.id)}
             className={cn(
               "py-1.5 px-3 rounded-full text-sm whitespace-nowrap",
-              selectedCategory === category
+              selectedFolder === folder.id
                 ? "bg-todo-purple text-white"
                 : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
             )}
           >
-            {category}
+            {folder.name}
           </button>
         ))}
+        
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <button className="py-1.5 px-3 rounded-full text-sm whitespace-nowrap bg-secondary/50 text-secondary-foreground hover:bg-secondary/80 flex items-center gap-1">
+              <Plus size={14} />
+              New Folder
+            </button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Create a new folder</DialogTitle>
+              <DialogDescription>
+                Enter a name for your new folder to organize your documents.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="folder-name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="folder-name"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  className="col-span-3"
+                  placeholder="e.g., Recipes, Projects, etc."
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={createFolder} type="submit">Create Folder</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid gap-4">
