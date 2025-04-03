@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, addDays, subDays, isSameDay, isToday } from 'date-fns';
@@ -71,12 +70,10 @@ const DayView: React.FC<DayViewProps> = ({
   const allDayEvents = dayEvents.filter(event => event.allDay);
   const timeEvents = dayEvents.filter(event => !event.allDay);
   
-  // Function to get formatted time from date
   const getFormattedTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
   
-  // Create hours array for the time column based on current time range settings
   const hours = showAllHours 
     ? Array.from({ length: 24 }, (_, i) => i) 
     : Array.from({ length: (endHour - startHour) + 1 }, (_, i) => i + startHour);
@@ -84,12 +81,10 @@ const DayView: React.FC<DayViewProps> = ({
   const isCurrentDate = isToday(date);
 
   const checkForHiddenEvents = (start: number, end: number) => {
-    // Only consider time events (not all-day events)
     const hidden = timeEvents.filter(event => {
       const eventStartHour = event.startDate.getHours();
       const eventEndHour = event.endDate.getHours();
       
-      // Event is hidden if it starts or ends outside the visible range
       return (eventStartHour < start && eventEndHour < start) || 
              (eventStartHour > end && eventEndHour > end);
     });
@@ -108,8 +103,18 @@ const DayView: React.FC<DayViewProps> = ({
   };
 
   const handleTimeRangeChange = (type: 'start' | 'end', value: string) => {
+    if (value === '') {
+      if (type === 'start') {
+        return;
+      } else {
+        return;
+      }
+    }
+    
     const hour = parseInt(value, 10);
-    if (isNaN(hour) || hour < 0 || hour > 23) return;
+    if (isNaN(hour)) return;
+    
+    if (hour < 0 || hour > 23) return;
     
     let newStart = startHour;
     let newEnd = endHour;
@@ -122,10 +127,8 @@ const DayView: React.FC<DayViewProps> = ({
       else return;
     }
     
-    // Check if this change would hide any events
     checkForHiddenEvents(newStart, newEnd);
     
-    // Update the state
     if (type === 'start') setStartHour(newStart);
     else setEndHour(newEnd);
     
@@ -172,7 +175,6 @@ const DayView: React.FC<DayViewProps> = ({
         </div>
       </div>
       
-      {/* Time range selector */}
       <div className={cn(
         "flex items-center gap-4",
         isMobile ? "flex-col items-start" : "flex-wrap"
@@ -225,7 +227,6 @@ const DayView: React.FC<DayViewProps> = ({
         </div>
       </div>
       
-      {/* Warning for hidden events */}
       {hiddenEvents.length > 0 && (
         <Alert variant="destructive" className="py-2">
           <AlertDescription className="text-sm">
@@ -234,7 +235,6 @@ const DayView: React.FC<DayViewProps> = ({
         </Alert>
       )}
       
-      {/* All-day events section */}
       {allDayEvents.length > 0 && (
         <div className="border rounded-lg overflow-hidden mb-4">
           <div className="grid grid-cols-[1fr] bg-muted/30 p-2 border-b">
@@ -264,7 +264,6 @@ const DayView: React.FC<DayViewProps> = ({
         </div>
       )}
       
-      {/* Time-based events section */}
       <div className="border rounded-lg overflow-hidden">
         <div className="grid grid-cols-[4rem_1fr] bg-muted/30 p-2 border-b">
           <div className="text-sm font-medium">Time</div>
