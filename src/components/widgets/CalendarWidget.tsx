@@ -154,11 +154,11 @@ const CalendarWidget = () => {
         <div className="flex items-center space-x-2">
           <CalendarIcon className="h-5 w-5 text-todo-purple" />
           <h3 className={cn(
-            "font-medium",
+            "font-medium text-base sm:text-lg",
             theme === 'light' ? "text-foreground" : "text-white"
           )}>Calendar</h3>
         </div>
-        <Link to="/calendar" className="text-sm text-todo-purple flex items-center">
+        <Link to="/calendar" className="text-xs sm:text-sm text-todo-purple flex items-center min-h-[44px] min-w-[44px] touch-manipulation">
           View all <ChevronRight className="h-4 w-4 ml-1" />
         </Link>
       </CardHeader>
@@ -185,21 +185,21 @@ const CalendarWidget = () => {
               />
             </div>
           </PopoverTrigger>
-          <PopoverContent className="w-80 p-0">
+          <PopoverContent className="w-[280px] sm:w-80 p-0">
             {selectedDay && (
-              <div className="p-4">
-                <h4 className="font-medium mb-2 text-todo-purple">
+              <div className="p-3 sm:p-4">
+                <h4 className="font-medium mb-2 text-todo-purple text-sm sm:text-base">
                   {selectedDay?.toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'long',
                     day: 'numeric'
                   })}
                 </h4>
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {selectedDayEvents.map((event) => (
                     <div 
                       key={event.id}
-                      className="p-3 rounded-lg border border-border bg-white dark:bg-gray-800 shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                      className="p-2 sm:p-3 rounded-lg border border-border bg-white dark:bg-gray-800 shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 touch-manipulation"
                       onClick={() => handleEventClick(event)}
                     >
                       <div className="flex items-center gap-2">
@@ -208,13 +208,13 @@ const CalendarWidget = () => {
                           style={{ backgroundColor: event.color }}
                         />
                         <h5 className={cn(
-                          "font-medium flex-1",
+                          "font-medium flex-1 text-xs sm:text-sm",
                           theme === 'light' ? "text-todo-black" : "text-white"
                         )}>
                           {event.title}
                         </h5>
                       </div>
-                      <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                      <div className="mt-1 sm:mt-2 space-y-1 text-xs sm:text-sm text-muted-foreground">
                         <p className="flex items-center">
                           <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
                           {event.allDay 
@@ -245,36 +245,36 @@ const CalendarWidget = () => {
         {/* Event View Dialog */}
         <Dialog open={viewEventDialogOpen} onOpenChange={setViewEventDialogOpen}>
           {selectedEvent && (
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-[320px] sm:max-w-md">
               <DialogHeader>
                 <div className="flex items-center gap-2">
                   <div 
                     className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: selectedEvent.color }}
                   />
-                  <DialogTitle>
+                  <DialogTitle className="text-sm sm:text-base">
                     {selectedEvent.title}
                   </DialogTitle>
                 </div>
               </DialogHeader>
               
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground mt-0.5" />
                   <div>
-                    <p className="font-medium">
+                    <p className="font-medium text-xs sm:text-sm">
                       {selectedEvent.allDay 
                         ? 'All day' 
                         : `${getFormattedTime(selectedEvent.startDate)} - ${getFormattedTime(selectedEvent.endDate)}`}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {format(selectedEvent.startDate, 'EEEE, MMMM d, yyyy')}
                       {!isSameDay(selectedEvent.startDate, selectedEvent.endDate) && (
                         <> - {format(selectedEvent.endDate, 'EEEE, MMMM d, yyyy')}</>
                       )}
                     </p>
                     {selectedEvent.recurring && (
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                         <span className="font-medium">Recurring: </span>
                         {selectedEvent.recurring.frequency.charAt(0).toUpperCase() + selectedEvent.recurring.frequency.slice(1)}
                       </p>
@@ -284,35 +284,35 @@ const CalendarWidget = () => {
                 
                 {selectedEvent.location && (
                   <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground mt-0.5" />
                     <div>
-                      <p>{selectedEvent.location}</p>
+                      <p className="text-xs sm:text-sm">{selectedEvent.location}</p>
                     </div>
                   </div>
                 )}
                 
                 {selectedEvent.reminder && selectedEvent.reminder !== 'none' && (
                   <div className="flex items-start gap-3">
-                    <Bell className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground mt-0.5" />
                     <div>
-                      <p>{getReminderLabel(selectedEvent.reminder)}</p>
+                      <p className="text-xs sm:text-sm">{getReminderLabel(selectedEvent.reminder)}</p>
                     </div>
                   </div>
                 )}
                 
                 {selectedEvent.description && (
-                  <div className="mt-4">
-                    <h4 className="text-sm font-medium mb-1">Description</h4>
-                    <p className="text-sm text-muted-foreground whitespace-pre-line">{selectedEvent.description}</p>
+                  <div className="mt-3 sm:mt-4">
+                    <h4 className="text-xs sm:text-sm font-medium mb-1">Description</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-line">{selectedEvent.description}</p>
                   </div>
                 )}
               </div>
               
               <DialogFooter>
                 <DialogClose asChild>
-                  <Button variant="outline">Close</Button>
+                  <Button variant="outline" className="text-xs sm:text-sm min-h-[44px] touch-manipulation">Close</Button>
                 </DialogClose>
-                <Button asChild>
+                <Button asChild className="text-xs sm:text-sm min-h-[44px] touch-manipulation">
                   <Link to="/calendar">View in Calendar</Link>
                 </Button>
               </DialogFooter>
