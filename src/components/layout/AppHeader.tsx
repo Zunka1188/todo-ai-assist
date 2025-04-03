@@ -11,11 +11,11 @@ interface AppHeaderProps {
 const AppHeader: React.FC<AppHeaderProps> = ({ title, subtitle, className }) => {
   return (
     <header className={cn("flex flex-col space-y-1 py-6", className)}>
-      <h1 className="text-2xl font-bold text-todo-black">
+      <h1 className="text-2xl font-bold text-todo-black sm:text-3xl">
         {title}
       </h1>
       {subtitle && (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground sm:text-base">
           {subtitle}
         </p>
       )}
