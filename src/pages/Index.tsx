@@ -1,10 +1,12 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera, List, Calendar, File, Upload } from 'lucide-react';
 import AppHeader from '@/components/layout/AppHeader';
 import ScanButton from '@/components/features/ScanButton';
 import FeatureCard from '@/components/features/FeatureCard';
+import CalendarWidget from '@/components/widgets/CalendarWidget';
+import TaskWidget from '@/components/widgets/TaskWidget';
+import SpendingWidget from '@/components/widgets/SpendingWidget';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -41,7 +43,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="space-y-8 py-4">
+    <div className="space-y-6 py-4">
       {/* Header */}
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold text-todo-black">ToDo</h1>
@@ -49,11 +51,25 @@ const Index = () => {
       </div>
 
       {/* Main scan button */}
-      <div className="flex justify-center my-10">
+      <div className="flex justify-center my-6 sm:my-8">
         <ScanButton 
           className="transform hover:scale-105 transition-transform" 
           onScan={handleScan}
         />
+      </div>
+
+      {/* Widgets section */}
+      <div className="space-y-4">
+        <AppHeader 
+          title="Widgets" 
+          subtitle="Quick access to your information"
+        />
+        
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
+          <CalendarWidget />
+          <TaskWidget />
+          <SpendingWidget />
+        </div>
       </div>
 
       {/* Feature cards */}

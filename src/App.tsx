@@ -11,6 +11,7 @@ import CalendarPage from "./pages/CalendarPage";
 import ScanPage from "./pages/ScanPage";
 import DocumentsPage from "./pages/DocumentsPage";
 import UploadPage from "./pages/UploadPage";
+import TasksPage from "./pages/TasksPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/scan" element={<ScanPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/upload" element={<UploadPage />} />
+            <Route path="/tasks" element={<TasksPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
