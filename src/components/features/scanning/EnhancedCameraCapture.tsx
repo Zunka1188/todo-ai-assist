@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, X, CameraOff, Settings, Image, Loader2, AlertCircle } from 'lucide-react';
+import { Camera, X, CameraOff, Settings, Image, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
@@ -12,11 +11,13 @@ import DataRecognition, { RecognizedItem, RecognizedItemType } from './DataRecog
 interface EnhancedCameraCaptureProps {
   onClose: () => void;
   onSaveSuccess?: (data: any) => void;
+  preferredMode?: string;
 }
 
 const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({ 
   onClose,
-  onSaveSuccess
+  onSaveSuccess,
+  preferredMode
 }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -33,6 +34,9 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [progressValue, setProgressValue] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [preferredScanMode, setPreferredScanMode] = useState<RecognizedItemType | null>(
+    preferredMode as RecognizedItemType || null
+  );
   
   const startCamera = async () => {
     try {
@@ -261,63 +265,60 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         }
         return prev + 5;
       });
-    }, 100);
+    }, 80); // Made faster for better UX
     
     // In a real app, this would send the image to an AI service for analysis
-    // For this demo, we'll simulate AI detection with random results
+    // For this demo, we'll simulate AI detection with more intelligent results
+    
+    // Mock OCR extraction (simulating the text that would be extracted)
+    const mockExtractedText = generateMockExtractedText(preferredScanMode);
+    
     setTimeout(() => {
       clearInterval(interval);
       setProgressValue(100);
       
-      // Simulate AI processing
-      const types: Array<RecognizedItemType> = ['invitation', 'receipt', 'product', 'document', 'unknown'];
-      const randomType = types[Math.floor(Math.random() * types.length)];
-      const confidence = 0.7 + (Math.random() * 0.25); // Random confidence between 70% and 95%
-      
-      let mockData = {};
-      
-      // Create realistic mock data based on the type
-      if (randomType === 'invitation') {
-        mockData = {
-          title: "Team Offsite Meeting",
-          date: "2025-05-15",
-          time: "10:00 AM",
-          location: "Conference Room A, Building 2",
-          organizer: "Sarah Johnson",
-          notes: "Quarterly team meeting. Bring your presentation materials."
-        };
-      } else if (randomType === 'receipt') {
-        mockData = {
-          store: "Green Grocers",
-          date: "2025-04-03",
-          total: "$67.89",
-          items: [
-            { name: "Apples", price: "$4.99" },
-            { name: "Bread", price: "$3.50" },
-            { name: "Milk", price: "$2.99" }
-          ]
-        };
-      } else if (randomType === 'product') {
-        mockData = {
-          name: "Organic Avocados",
-          price: "$5.99",
-          category: "Groceries",
-          description: "Fresh organic avocados, perfect for guacamole."
-        };
-      } else if (randomType === 'document') {
-        mockData = {
-          title: "Meeting Minutes",
-          date: "2025-04-10",
-          content: "Discussion about upcoming product launch and marketing strategy.",
-          author: "John Smith"
-        };
+      // If we have a preferred scan mode, prioritize that
+      let determinedType: RecognizedItemType;
+      if (preferredScanMode) {
+        determinedType = preferredScanMode;
+      } else {
+        // Otherwise simulate AI-based type detection
+        const types: Array<RecognizedItemType> = ['invitation', 'receipt', 'product', 'document', 'unknown'];
+        
+        // Bias toward more reasonable options
+        const typeWeights = [0.3, 0.3, 0.2, 0.15, 0.05]; // Weights for each type
+        
+        // Weighted random selection
+        const random = Math.random();
+        let cumulativeWeight = 0;
+        let selectedIndex = types.length - 1; // Default to last option
+        
+        for (let i = 0; i < typeWeights.length; i++) {
+          cumulativeWeight += typeWeights[i];
+          if (random < cumulativeWeight) {
+            selectedIndex = i;
+            break;
+          }
+        }
+        
+        determinedType = types[selectedIndex];
       }
       
+      const confidence = 0.75 + (Math.random() * 0.2); // Random confidence between 75% and 95%
+      
+      // Generate more realistic mock data based on the determined type
+      const mockData = generateTypeSpecificMockData(determinedType);
+      
+      // Generate simulated detected objects
+      const detectedObjects = generateDetectedObjects(determinedType);
+      
       const result: RecognizedItem = {
-        type: randomType,
+        type: determinedType,
         confidence,
         data: mockData,
-        imageData: imageDataURL
+        imageData: imageDataURL,
+        extractedText: mockExtractedText,
+        detectedObjects
       };
       
       setRecognizedItem(result);
@@ -327,7 +328,130 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         title: "Analysis Complete",
         description: `Detected: ${result.type} (${Math.round(result.confidence * 100)}% confidence)`,
       });
-    }, 2000);
+    }, 1500);
+  };
+  
+  // Generate mock extracted text based on the preferred scan mode
+  const generateMockExtractedText = (scanMode: RecognizedItemType | null): string => {
+    switch (scanMode) {
+      case 'invitation':
+        return `TEAM OFFSITE MEETING\n\nDate: May 15, 2025\nTime: 10:00 AM - 4:00 PM\nLocation: Conference Room A, Building 2\n\nOrganizer: Sarah Johnson\nsarah.j@company.com\n\nQuarterly team meeting. Bring your presentation materials.`;
+      
+      case 'receipt':
+        return `GREEN GROCERS\n123 Main Street\nCity, State 12345\n\nDate: 04/03/2025\nTime: 14:35\n\nApples      $4.99\nBread       $3.50\nMilk        $2.99\n\nSubtotal    $11.48\nTax (8%)     $0.92\n\nTOTAL       $12.40\n\nTHANK YOU FOR SHOPPING!`;
+      
+      case 'product':
+        return `Organic Avocados\n2 count package\n\nPrice: $5.99\nCategory: Groceries\n\nFresh organic avocados, perfect for guacamole.\n\nNutrition Facts:\nServing Size: 1 avocado\nCalories: 240\nTotal Fat: 22g`;
+      
+      case 'document':
+        return `MEETING MINUTES\n\nDate: April 10, 2025\nSubject: Product Launch Planning\n\nAttendees:\n- John Smith (Chair)\n- Jane Doe\n- Alex Johnson\n\nDiscussion Items:\n1. Marketing strategy for Q2\n2. Budget allocation\n3. Timeline for upcoming product launch`;
+      
+      default:
+        // Generate generic text if no specific mode is selected
+        const textOptions = [
+          `TEXT DETECTION\nThis is a sample of detected text\nThe AI system would extract\nall visible text from the image\nand format it appropriately.`,
+          `PRODUCT DETAILS\nModern Desk Lamp\nAdjustable brightness\nEnergy efficient\nPrice: $45.99\nIn stock: Yes`,
+          `NOTES\nPick up dry cleaning\nCall dentist for appointment\nBuy groceries for dinner\n- Chicken\n- Vegetables\n- Rice`
+        ];
+        return textOptions[Math.floor(Math.random() * textOptions.length)];
+    }
+  };
+  
+  // Generate type-specific mock data
+  const generateTypeSpecificMockData = (type: RecognizedItemType) => {
+    switch (type) {
+      case 'invitation':
+        return {
+          title: "Team Offsite Meeting",
+          date: "2025-05-15",
+          time: "10:00 AM",
+          location: "Conference Room A, Building 2",
+          organizer: "Sarah Johnson",
+          notes: "Quarterly team meeting. Bring your presentation materials."
+        };
+      
+      case 'receipt':
+        return {
+          store: "Green Grocers",
+          date: "2025-04-03",
+          total: "$12.40",
+          items: [
+            { name: "Apples", price: "$4.99" },
+            { name: "Bread", price: "$3.50" },
+            { name: "Milk", price: "$2.99" }
+          ]
+        };
+      
+      case 'product':
+        return {
+          name: "Organic Avocados",
+          price: "$5.99",
+          category: "Groceries",
+          brand: "Nature's Best",
+          description: "Fresh organic avocados, perfect for guacamole."
+        };
+      
+      case 'document':
+        return {
+          title: "Meeting Minutes",
+          date: "2025-04-10",
+          content: "Discussion about upcoming product launch and marketing strategy.",
+          author: "John Smith"
+        };
+      
+      default:
+        return {
+          title: "Unidentified Item",
+          description: "This item couldn't be clearly categorized. Please provide additional details manually."
+        };
+    }
+  };
+  
+  // Generate mock detected objects
+  const generateDetectedObjects = (type: RecognizedItemType) => {
+    const objects = [];
+    
+    switch (type) {
+      case 'product':
+        objects.push(
+          { name: "Avocado", confidence: 0.96 },
+          { name: "Fruit", confidence: 0.92 },
+          { name: "Food item", confidence: 0.88 }
+        );
+        break;
+      
+      case 'receipt':
+        objects.push(
+          { name: "Receipt", confidence: 0.97 },
+          { name: "Document", confidence: 0.88 },
+          { name: "Printed text", confidence: 0.95 }
+        );
+        break;
+      
+      case 'invitation':
+        objects.push(
+          { name: "Document", confidence: 0.92 },
+          { name: "Calendar", confidence: 0.84 },
+          { name: "Text", confidence: 0.96 }
+        );
+        break;
+      
+      case 'document':
+        objects.push(
+          { name: "Document", confidence: 0.98 },
+          { name: "Paper", confidence: 0.93 },
+          { name: "Text", confidence: 0.97 }
+        );
+        break;
+      
+      default:
+        objects.push(
+          { name: "Document", confidence: 0.82 },
+          { name: "Object", confidence: 0.78 }
+        );
+    }
+    
+    return objects;
   };
   
   const requestCameraPermission = async () => {
@@ -395,28 +519,40 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         
         // Close the component or navigate based on the type
         setTimeout(() => {
-          navigateBasedOnType(originalItem.type);
+          navigateBasedOnType(formData);
         }, 500);
       }
     }, 100);
   };
   
-  const navigateBasedOnType = (type: RecognizedItemType) => {
-    switch (type) {
-      case 'invitation':
-        navigate('/calendar');
-        break;
-      case 'receipt':
-        navigate('/spending');
-        break;
-      case 'product':
-        navigate('/shopping');
-        break;
-      case 'document':
-        navigate('/documents');
-        break;
-      default:
-        onClose();
+  const navigateBasedOnType = (formData: any) => {
+    // Navigate based on form data choices
+    if (formData.addToShoppingList) {
+      navigate('/shopping');
+    } else if (formData.addToCalendar) {
+      navigate('/calendar');
+    } else if (formData.saveToSpending) {
+      navigate('/spending');
+    } else if (formData.saveToDocuments) {
+      navigate('/documents');
+    } else {
+      // Default navigation based on item type
+      switch (formData.itemType) {
+        case 'invitation':
+          navigate('/calendar');
+          break;
+        case 'receipt':
+          navigate('/spending');
+          break;
+        case 'product':
+          navigate('/shopping');
+          break;
+        case 'document':
+          navigate('/documents');
+          break;
+        default:
+          onClose();
+      }
     }
   };
   
@@ -430,6 +566,10 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
   
   useEffect(() => {
     console.log("Component mounted, starting camera");
+    // Clear any previous preferred scan mode stored in session
+    if (!preferredMode) {
+      sessionStorage.removeItem('preferredScanMode');
+    }
     requestCameraPermission();
     
     // Cleanup function to stop camera when component unmounts
@@ -457,7 +597,9 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
               : recognizedItem 
                 ? "Review & Save" 
                 : "Smart Scan"
-            : "Smart Scanner"
+            : preferredScanMode 
+              ? `${preferredScanMode.charAt(0).toUpperCase() + preferredScanMode.slice(1)} Scanner` 
+              : "Smart Scanner"
           }
         </h2>
         <div className="w-8" />
@@ -473,6 +615,22 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
               muted
               className="w-full h-full object-cover"
             />
+            
+            {preferredScanMode && (
+              <div className="absolute top-0 left-0 p-2">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-todo-purple text-white">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  {preferredScanMode.charAt(0).toUpperCase() + preferredScanMode.slice(1)} Mode
+                </span>
+              </div>
+            )}
+            
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="w-full h-full border-2 border-dashed border-white/40 rounded-lg"></div>
+              {/* Scan effect animation */}
+              <div className="absolute left-0 right-0 h-1 bg-todo-purple opacity-50 animate-scan"></div>
+            </div>
+            
             <Button
               onClick={captureImage}
               className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white text-black hover:bg-gray-200 rounded-full w-16 h-16 flex items-center justify-center"
@@ -589,6 +747,17 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
           </Button>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes scan {
+          0% { top: 0; }
+          50% { top: calc(100% - 4px); }
+          100% { top: 0; }
+        }
+        .animate-scan {
+          animation: scan 3s infinite ease-in-out;
+        }
+      `}</style>
     </div>
   );
 };

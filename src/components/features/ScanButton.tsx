@@ -1,37 +1,52 @@
 
 import React from 'react';
-import { Camera } from 'lucide-react';
+import { Camera, Scan } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 interface ScanButtonProps {
   className?: string;
   onScan?: () => void;
   isProcessing?: boolean;
   label?: string;
+  scanMode?: 'product' | 'receipt' | 'invitation' | 'document';
 }
 
 const ScanButton: React.FC<ScanButtonProps> = ({ 
   className, 
   onScan, 
   isProcessing = false,
-  label
+  label,
+  scanMode
 }) => {
   const { toast } = useToast();
   const { isMobile } = useIsMobile();
+  const navigate = useNavigate();
 
   const handleScan = () => {
     if (isProcessing) return;
     
-    // In a real app, this would trigger the camera
-    toast({
-      title: "Camera Activated",
-      description: "Scanning for items...",
-    });
+    // If a specific scan mode is specified, store it in sessionStorage
+    if (scanMode) {
+      sessionStorage.setItem('preferredScanMode', scanMode);
+      toast({
+        title: `${scanMode.charAt(0).toUpperCase() + scanMode.slice(1)} Scan Mode`,
+        description: `Activating scanner in ${scanMode} detection mode...`,
+      });
+    } else {
+      toast({
+        title: "Camera Activated",
+        description: "Scanning for items...",
+      });
+    }
     
     if (onScan) {
       onScan();
+    } else {
+      // Navigate to the scan page by default
+      navigate('/scan');
     }
   };
 
@@ -50,8 +65,17 @@ const ScanButton: React.FC<ScanButtonProps> = ({
       )}
       aria-label={label || "Scan with camera"}
     >
-      <Camera size={isMobile ? 24 : 32} />
-      {label && <span className="ml-2">{label}</span>}
+      {scanMode ? (
+        <div className="flex items-center">
+          <Scan size={isMobile ? 22 : 28} className="mr-2" />
+          {label || (scanMode.charAt(0).toUpperCase() + scanMode.slice(1))}
+        </div>
+      ) : (
+        <>
+          <Camera size={isMobile ? 24 : 32} />
+          {label && <span className="ml-2">{label}</span>}
+        </>
+      )}
     </button>
   );
 };
