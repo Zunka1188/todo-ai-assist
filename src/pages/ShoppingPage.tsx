@@ -1,6 +1,6 @@
 
 import React, { useRef, useEffect, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import AppHeader from '@/components/layout/AppHeader';
@@ -86,7 +86,7 @@ const ShoppingPage = () => {
       
       <div 
         ref={contentRef}
-        className="flex flex-col pb-20 sm:pb-0 py-1 sm:py-4 px-2 sm:px-6 md:px-8 container mx-auto max-w-4xl overflow-y-auto hide-scrollbar"
+        className="flex flex-col pb-20 sm:pb-0 py-1 sm:py-4 px-2 sm:px-6 md:px-8 container mx-auto max-w-4xl overflow-y-auto hide-scrollbar smooth-scroll"
       >
         <div className="flex items-center justify-between mb-1 md:mb-4 sticky top-0 z-10 bg-background/80 backdrop-blur-sm py-2">
           <div className="flex items-center">

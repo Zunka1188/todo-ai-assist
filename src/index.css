@@ -76,4 +76,19 @@
   .smooth-scroll {
     scroll-behavior: smooth;
   }
+  
+  .responsive-button {
+    @apply flex items-center justify-between w-auto max-w-full rounded-lg px-4 py-2.5 min-h-10;
+    @apply transition-colors hover:cursor-pointer;
+    @apply overflow-hidden;
+  }
+  
+  .responsive-button-text {
+    @apply truncate text-sm font-medium;
+  }
+  
+  .responsive-button-icon {
+    @apply flex items-center justify-center ml-2;
+    @apply hover:bg-black/10 dark:hover:bg-white/10 rounded-full p-0.5 transition-colors;
+  }
 }
