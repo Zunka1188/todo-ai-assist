@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
   Plus,
@@ -10,7 +10,9 @@ import {
   SortAsc,
   SortDesc,
   MoreHorizontal,
-  CircleCheck
+  CircleCheck,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +32,15 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from '@/components/ui/carousel';
 
 interface ShoppingItem {
   id: string;
@@ -74,6 +85,8 @@ const ShoppingList: React.FC = () => {
   const [newItemDate, setNewItemDate] = useState('');
   const [newItemPrice, setNewItemPrice] = useState('');
   const [isMultiSelectActive, setIsMultiSelectActive] = useState(false);
+  const { isMobile } = useIsMobile();
+  const carouselRef = useRef(null);
 
   const addItem = () => {
     if (newItemName.trim() === '') return;
@@ -189,99 +202,127 @@ const ShoppingList: React.FC = () => {
   const sortedItems = getSortedItems();
   const allCategories = ['All', ...categories];
 
+  // Scroll to active category when it changes
+  useEffect(() => {
+    // This would be handled by the carousel API in a real implementation
+  }, [activeCategory]);
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-2">
-        {allCategories.map((category) => (
-          <Button
-            key={category}
-            variant="outline"
-            size="sm"
-            onClick={() => setActiveCategory(category)}
-            className={cn(
-              "rounded-full",
-              activeCategory === category && "bg-todo-purple text-white hover:bg-todo-purple-dark"
-            )}
-          >
-            {category}
-          </Button>
-        ))}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsAddCategoryDialogOpen(true)}
-          className="rounded-full"
-        >
-          <Plus size={16} className="mr-1" /> New Category
-        </Button>
-      </div>
-
-      <div className="flex flex-col space-y-2">
-        <div className="flex space-x-2">
-          <Input
-            placeholder="Add new item..."
-            value={newItemName}
-            onChange={(e) => setNewItemName(e.target.value)}
-            className="flex-1"
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && !showDetailedEntry) addItem();
+      <div className="sticky top-0 z-10 pt-2 pb-4 bg-background">
+        <div className="mb-4">
+          <Carousel
+            className="w-full"
+            opts={{
+              align: "start",
+              loop: false,
             }}
-          />
-          <Button 
-            variant="outline" 
-            onClick={() => setShowDetailedEntry(!showDetailedEntry)}
-            className="min-w-[44px]"
           >
-            <MoreHorizontal size={18} />
-          </Button>
-          <Button onClick={addItem} className="bg-todo-purple hover:bg-todo-purple-dark text-white">
-            <Plus size={18} />
-          </Button>
-        </div>
-        
-        {showDetailedEntry && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <div className="flex space-x-2">
-              <select
-                value={newItemCategory}
-                onChange={(e) => setNewItemCategory(e.target.value)}
-                className="rounded-md border border-input bg-background px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white flex-1"
-              >
-                {categories.map((category) => (
-                  <option key={category} value={category}>
+            <CarouselContent className="-ml-1">
+              {allCategories.map((category) => (
+                <CarouselItem key={category} className="pl-1 basis-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setActiveCategory(category)}
+                    className={cn(
+                      "rounded-full whitespace-nowrap h-9",
+                      activeCategory === category && "bg-todo-purple text-white hover:bg-todo-purple-dark"
+                    )}
+                  >
                     {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex space-x-2">
-              <Input
-                placeholder="Amount (optional)"
-                value={newItemAmount}
-                onChange={(e) => setNewItemAmount(e.target.value)}
-                className="flex-1"
-              />
-            </div>
-            <div className="flex space-x-2">
-              <Input
-                type="date"
-                placeholder="Date to purchase"
-                value={newItemDate}
-                onChange={(e) => setNewItemDate(e.target.value)}
-                className="flex-1"
-              />
-            </div>
-            <div className="flex space-x-2">
-              <Input
-                type="number"
-                placeholder="Price (optional)"
-                value={newItemPrice}
-                onChange={(e) => setNewItemPrice(e.target.value)}
-                className="flex-1"
-              />
-            </div>
+                  </Button>
+                </CarouselItem>
+              ))}
+              <CarouselItem className="pl-1 basis-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAddCategoryDialogOpen(true)}
+                  className="rounded-full whitespace-nowrap h-9"
+                >
+                  <Plus size={16} className="mr-1" /> New Category
+                </Button>
+              </CarouselItem>
+            </CarouselContent>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 bg-gradient-to-l from-background to-transparent w-12 h-9 pointer-events-none" />
+            <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-8" />
+            <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8" />
+          </Carousel>
+        </div>
+
+        <div className="flex flex-col space-y-2">
+          <div className="flex space-x-2">
+            <Input
+              placeholder="Add new item..."
+              value={newItemName}
+              onChange={(e) => setNewItemName(e.target.value)}
+              className="flex-1"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !showDetailedEntry) addItem();
+              }}
+            />
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDetailedEntry(!showDetailedEntry)}
+              className="min-w-[44px]"
+              aria-label={showDetailedEntry ? "Hide details" : "Show details"}
+            >
+              <MoreHorizontal size={18} />
+            </Button>
+            <Button 
+              onClick={addItem} 
+              className="bg-todo-purple hover:bg-todo-purple-dark text-white min-w-[44px]"
+              aria-label="Add item"
+            >
+              <Plus size={18} />
+            </Button>
           </div>
-        )}
+          
+          {showDetailedEntry && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="flex space-x-2">
+                <select
+                  value={newItemCategory}
+                  onChange={(e) => setNewItemCategory(e.target.value)}
+                  className="rounded-md border border-input bg-background px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white flex-1"
+                >
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex space-x-2">
+                <Input
+                  placeholder="Amount (optional)"
+                  value={newItemAmount}
+                  onChange={(e) => setNewItemAmount(e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+              <div className="flex space-x-2">
+                <Input
+                  type="date"
+                  placeholder="Date to purchase"
+                  value={newItemDate}
+                  onChange={(e) => setNewItemDate(e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+              <div className="flex space-x-2">
+                <Input
+                  type="number"
+                  placeholder="Price (optional)"
+                  value={newItemPrice}
+                  onChange={(e) => setNewItemPrice(e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center justify-between">
@@ -344,83 +385,86 @@ const ShoppingList: React.FC = () => {
         </DropdownMenu>
       </div>
 
-      <ul className="space-y-2">
-        {sortedItems.length === 0 ? (
-          <li className="text-center py-6 text-muted-foreground">
-            No items in this category. Add some new items!
-          </li>
-        ) : (
-          sortedItems.map((item) => (
-            <li 
-              key={item.id}
-              className={cn(
-                "flex items-center justify-between p-3 rounded-lg border transition-colors",
-                item.completed 
-                  ? "bg-muted border-muted" 
-                  : "bg-card border-border dark:bg-gray-800 dark:border-gray-700"
-              )}
-            >
-              <div className="flex items-center space-x-3">
-                {isMultiSelectActive ? (
-                  <Checkbox
-                    checked={selectedItems.includes(item.id)}
-                    onCheckedChange={() => handleItemSelect(item.id)}
-                  />
-                ) : (
-                  <button
-                    onClick={() => toggleItem(item.id)}
-                    className={cn(
-                      "flex items-center justify-center w-6 h-6 rounded-full border",
-                      item.completed 
-                        ? "bg-todo-purple border-todo-purple text-white" 
-                        : "border-gray-300 dark:border-gray-500"
-                    )}
-                  >
-                    {item.completed && <Check size={14} />}
-                  </button>
+      <ScrollArea className="h-[calc(100vh-350px)] pr-4">
+        <ul className="space-y-2">
+          {sortedItems.length === 0 ? (
+            <li className="text-center py-6 text-muted-foreground">
+              No items in this category. Add some new items!
+            </li>
+          ) : (
+            sortedItems.map((item) => (
+              <li 
+                key={item.id}
+                className={cn(
+                  "flex items-center justify-between p-3 rounded-lg border transition-colors",
+                  item.completed 
+                    ? "bg-muted border-muted" 
+                    : "bg-card border-border dark:bg-gray-800 dark:border-gray-700"
                 )}
-                
-                <div className="flex flex-col">
-                  <span className={cn(
-                    "dark:text-white",
-                    item.completed && "line-through text-muted-foreground"
-                  )}>
-                    {item.name}
-                  </span>
+              >
+                <div className="flex items-center space-x-3">
+                  {isMultiSelectActive ? (
+                    <Checkbox
+                      checked={selectedItems.includes(item.id)}
+                      onCheckedChange={() => handleItemSelect(item.id)}
+                    />
+                  ) : (
+                    <button
+                      onClick={() => toggleItem(item.id)}
+                      className={cn(
+                        "flex items-center justify-center w-6 h-6 rounded-full border min-h-[44px] min-w-[44px]",
+                        item.completed 
+                          ? "bg-todo-purple border-todo-purple text-white" 
+                          : "border-gray-300 dark:border-gray-500"
+                      )}
+                    >
+                      {item.completed && <Check size={14} />}
+                    </button>
+                  )}
                   
-                  <div className="flex items-center text-xs text-muted-foreground mt-1 space-x-2">
-                    {item.amount && (
-                      <span>Qty: {item.amount}</span>
-                    )}
+                  <div className="flex flex-col">
+                    <span className={cn(
+                      "dark:text-white",
+                      item.completed && "line-through text-muted-foreground"
+                    )}>
+                      {item.name}
+                    </span>
                     
-                    {item.price && (
-                      <span>Price: ${item.price}</span>
-                    )}
-                    
-                    {item.dateToPurchase && (
-                      <span className="flex items-center">
-                        <Calendar size={12} className="mr-1" /> 
-                        {new Date(item.dateToPurchase).toLocaleDateString()}
-                      </span>
-                    )}
+                    <div className="flex flex-wrap items-center text-xs text-muted-foreground mt-1 gap-2">
+                      {item.amount && (
+                        <span>Qty: {item.amount}</span>
+                      )}
+                      
+                      {item.price && (
+                        <span>Price: ${item.price}</span>
+                      )}
+                      
+                      {item.dateToPurchase && (
+                        <span className="flex items-center">
+                          <Calendar size={12} className="mr-1" /> 
+                          {new Date(item.dateToPurchase).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-100">
-                  {item.category}
-                </span>
-                <button
-                  onClick={() => removeItem(item.id)}
-                  className="text-gray-400 hover:text-red-500 transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            </li>
-          ))
-        )}
-      </ul>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-100">
+                    {item.category}
+                  </span>
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    className="text-gray-400 hover:text-red-500 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    aria-label={`Remove ${item.name}`}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </li>
+            ))
+          )}
+        </ul>
+      </ScrollArea>
 
       <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
         <DialogContent>
