@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
@@ -730,9 +729,10 @@ const ShoppingList: React.FC = () => {
                         exit={{ opacity: 0, y: 10 }}
                         transition={{ duration: 0.2 }}
                         className={cn(
-                          "flex items-center justify-between p-1 rounded-lg border transition-colors",
+                          "flex items-center justify-between p-1 rounded-lg border transition-colors cursor-pointer",
                           "bg-gray-100 border-gray-200 dark:bg-gray-800/50 dark:border-gray-700/50"
                         )}
+                        onClick={() => isMultiSelectActive ? null : toggleItem(item.id)}
                       >
                         <div className="flex items-center space-x-1.5">
                           {isMultiSelectActive ? (
@@ -742,15 +742,14 @@ const ShoppingList: React.FC = () => {
                               className="h-3 w-3"
                             />
                           ) : (
-                            <button
-                              onClick={() => toggleItem(item.id)}
+                            <div
                               className={cn(
                                 "flex items-center justify-center w-3 h-3 rounded-full border",
                                 "bg-gray-300 border-gray-300 text-white dark:bg-gray-500 dark:border-gray-500"
                               )}
                             >
                               <Check size={8} />
-                            </button>
+                            </div>
                           )}
                           
                           <div className="flex flex-col">
@@ -776,7 +775,7 @@ const ShoppingList: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
                           <span className="text-[8px] px-1 py-0.5 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-200">
                             {item.category}
                           </span>
