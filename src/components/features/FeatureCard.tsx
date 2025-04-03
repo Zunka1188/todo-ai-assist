@@ -20,7 +20,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   to,
   className,
 }) => {
-  const isMobile = useIsMobile();
+  const { isMobile } = useIsMobile();
   
   return (
     <Link

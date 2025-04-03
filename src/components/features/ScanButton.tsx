@@ -12,7 +12,7 @@ interface ScanButtonProps {
 
 const ScanButton: React.FC<ScanButtonProps> = ({ className, onScan }) => {
   const { toast } = useToast();
-  const isMobile = useIsMobile();
+  const { isMobile } = useIsMobile();
 
   const handleScan = () => {
     // In a real app, this would trigger the camera

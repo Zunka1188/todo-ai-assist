@@ -20,7 +20,7 @@ interface AppLayoutProps {
 
 const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
   const { toast } = useToast();
-  const isMobile = useIsMobile();
+  const { isMobile } = useIsMobile();
 
   return (
     <div className="min-h-screen bg-background text-foreground">

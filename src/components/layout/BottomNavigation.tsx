@@ -3,11 +3,12 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, ShoppingCart, Calendar, Camera, Settings } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 const BottomNavigation = () => {
   const location = useLocation();
   const currentPath = location.pathname;
-  const isMobile = useIsMobile();
+  const { isMobile } = useIsMobile();
 
   const isActive = (path: string) => currentPath === path;
 
@@ -31,13 +32,14 @@ const BottomNavigation = () => {
           <Link 
             key={path}
             to={path} 
-            className={`flex flex-col items-center justify-center min-w-[60px] p-2 rounded-md transition-colors ${
+            className={cn(
+              "flex flex-col items-center justify-center min-w-[60px] p-2 rounded-md transition-colors",
               isActive(path) 
-                ? 'text-primary font-medium' 
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
+                ? "text-primary font-medium" 
+                : "text-muted-foreground hover:text-foreground"
+            )}
           >
-            <Icon className={`h-5 w-5 ${isActive(path) ? 'text-primary' : ''}`} />
+            <Icon className={cn("h-5 w-5", isActive(path) ? "text-primary" : "")} />
             <span className="text-[10px] mt-1 leading-tight text-center">{label}</span>
           </Link>
         ))}

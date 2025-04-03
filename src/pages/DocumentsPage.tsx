@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Upload, Plus, FileText } from 'lucide-react';
+import { ArrowLeft, Upload, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import AppHeader from '@/components/layout/AppHeader';
 import DocumentList from '@/components/features/documents/DocumentList';
 import {
@@ -32,7 +33,7 @@ const DocumentsPage = () => {
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
   const [noteCategory, setNoteCategory] = useState('');
-  const isMobile = useIsMobile();
+  const { isMobile } = useIsMobile();
   
   const goBack = () => {
     navigate('/');
