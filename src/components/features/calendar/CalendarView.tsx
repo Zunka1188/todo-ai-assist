@@ -62,59 +62,63 @@ const CalendarView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Calendar
-        mode="single"
-        selected={date}
-        onSelect={setDate}
-        className="rounded-lg border shadow bg-white"
-        modifiers={{
-          event: (date) => isDayWithEvent(date),
-        }}
-        modifiersStyles={{
-          event: { 
-            fontWeight: 'bold', 
-            backgroundColor: 'rgba(155, 135, 245, 0.1)',
-            color: '#7E69AB',
-            borderColor: '#9b87f5' 
-          }
-        }}
-      />
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="md:w-1/2">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            className="rounded-lg border shadow bg-white dark:bg-gray-800 dark:border-gray-700 w-full mx-auto"
+            modifiers={{
+              event: (date) => isDayWithEvent(date),
+            }}
+            modifiersStyles={{
+              event: { 
+                fontWeight: 'bold', 
+                backgroundColor: 'rgba(155, 135, 245, 0.1)',
+                color: '#7E69AB',
+                borderColor: '#9b87f5' 
+              }
+            }}
+          />
+        </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium flex items-center">
-          <CalendarIcon className="mr-2 h-5 w-5 text-todo-purple" />
-          {date ? (
-            <span>
-              Events for {date.toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </span>
-          ) : 'No date selected'}
-        </h3>
+        <div className="md:w-1/2 space-y-4">
+          <h3 className="text-lg font-medium flex items-center">
+            <CalendarIcon className="mr-2 h-5 w-5 text-todo-purple" />
+            {date ? (
+              <span>
+                Events for {date.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </span>
+            ) : 'No date selected'}
+          </h3>
 
-        {selectedDateEvents.length > 0 ? (
-          <div className="space-y-3">
-            {selectedDateEvents.map((event) => (
-              <div 
-                key={event.id}
-                className={cn(
-                  "p-4 rounded-lg border border-border",
-                  "bg-white shadow-sm hover:shadow transition-shadow"
-                )}
-              >
-                <h4 className="font-medium text-todo-black">{event.title}</h4>
-                <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-                  {event.time && <p>⏰ {event.time}</p>}
-                  {event.location && <p>📍 {event.location}</p>}
+          {selectedDateEvents.length > 0 ? (
+            <div className="space-y-3">
+              {selectedDateEvents.map((event) => (
+                <div 
+                  key={event.id}
+                  className={cn(
+                    "p-4 rounded-lg border border-border",
+                    "bg-white dark:bg-gray-800 shadow-sm hover:shadow transition-shadow"
+                  )}
+                >
+                  <h4 className="font-medium text-todo-black dark:text-white">{event.title}</h4>
+                  <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                    {event.time && <p>⏰ {event.time}</p>}
+                    {event.location && <p>📍 {event.location}</p>}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-muted-foreground text-sm">No events scheduled for this day</p>
-        )}
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">No events scheduled for this day</p>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -59,7 +59,7 @@ const CalendarWidget = () => {
               mode="single"
               selected={date}
               onSelect={setDate}
-              className="rounded-md border w-full max-w-[250px] mx-auto bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 pointer-events-auto"
+              className="rounded-md border bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 pointer-events-auto max-w-[250px] mx-auto"
               modifiers={{
                 event: (date) => isDayWithEvent(date),
               }}
