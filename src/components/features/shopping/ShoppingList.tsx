@@ -492,6 +492,13 @@ const ShoppingList: React.FC = () => {
     });
   };
 
+  const handleImagePreview = (imageUrl: string, event?: React.MouseEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
+    setPreviewImage(imageUrl);
+  };
+
   const filteredItems = getFilteredItems();
   const notPurchasedItems = getSortedItems(filteredItems.filter(item => !item.completed));
   const purchasedItems = getSortedItems(filteredItems.filter(item => item.completed));
