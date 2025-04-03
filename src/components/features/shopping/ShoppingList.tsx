@@ -519,48 +519,52 @@ const ShoppingList: React.FC = () => {
             <CarouselContent className="-ml-0.5 md:-ml-1">
               {allCategories.map((category) => (
                 <CarouselItem key={category} className="pl-0.5 md:pl-1 basis-auto">
-                  <div className="flex items-center space-x-0.5 md:space-x-1">
+                  <div className="relative group">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setActiveCategory(category)}
                       className={cn(
-                        "rounded-full whitespace-nowrap h-6 px-2 md:px-3",
+                        "rounded-full whitespace-nowrap h-6 px-2 md:px-3 pr-7",
                         activeCategory === category && "bg-todo-purple text-white hover:bg-todo-purple-dark"
                       )}
                     >
                       <span className="text-[10px]">{category}</span>
+                      
+                      {category !== 'All' && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={cn(
+                                "h-5 w-5 p-0 rounded-full absolute right-0.5 top-0.5",
+                                activeCategory === category ? "text-white" : "text-gray-400"
+                              )}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical size={10} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-32">
+                            <DropdownMenuItem 
+                              onClick={() => handleEditCategory(category)}
+                              className="cursor-pointer"
+                            >
+                              <Edit size={12} className="mr-2" />
+                              <span className="text-[10px]">Edit</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteCategory(category)}
+                              className="cursor-pointer text-red-500 hover:text-red-600"
+                            >
+                              <Trash2 size={12} className="mr-2" />
+                              <span className="text-[10px]">Delete</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                     </Button>
-                    
-                    {category !== 'All' && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 rounded-full"
-                          >
-                            <MoreVertical size={10} className="text-gray-400" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-32">
-                          <DropdownMenuItem 
-                            onClick={() => handleEditCategory(category)}
-                            className="cursor-pointer"
-                          >
-                            <Edit size={12} className="mr-2" />
-                            <span className="text-[10px]">Edit</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteCategory(category)}
-                            className="cursor-pointer text-red-500 hover:text-red-600"
-                          >
-                            <Trash2 size={12} className="mr-2" />
-                            <span className="text-[10px]">Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
                   </div>
                 </CarouselItem>
               ))}
