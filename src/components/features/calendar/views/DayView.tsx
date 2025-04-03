@@ -276,9 +276,9 @@ const DayView: React.FC<DayViewProps> = ({
       </div>
       
       {hiddenEvents.length > 0 && (
-        <Alert variant="destructive" className="py-2 bg-white border border-red-400 dark:bg-white dark:text-foreground">
-          <AlertDescription className="text-sm">
-            Warning: {hiddenEvents.length} {hiddenEvents.length === 1 ? 'event is' : 'events are'} hidden with the current time range.
+        <Alert variant="destructive" className="py-2 bg-white border border-red-400 dark:bg-white">
+          <AlertDescription className="text-sm text-red-600 dark:text-red-600 font-medium">
+            Warning! Not all task events are visible
           </AlertDescription>
         </Alert>
       )}
