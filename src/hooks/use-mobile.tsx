@@ -6,17 +6,38 @@ const MOBILE_BREAKPOINT = 768
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean>(false)
   const [windowWidth, setWindowWidth] = React.useState<number>(0)
+  const [windowHeight, setWindowHeight] = React.useState<number>(0)
   const [orientation, setOrientation] = React.useState<"portrait" | "landscape">("portrait")
   const [hasCamera, setHasCamera] = React.useState<boolean>(false)
+  const [isIOS, setIsIOS] = React.useState<boolean>(false)
+  const [isAndroid, setIsAndroid] = React.useState<boolean>(false)
+  const [isTouchDevice, setIsTouchDevice] = React.useState<boolean>(false)
 
   React.useEffect(() => {
-    // Function to update state based on window width
-    const checkMobile = () => {
+    // Function to update state based on window dimensions
+    const checkDimensions = () => {
       const width = window.innerWidth
       const height = window.innerHeight
       setWindowWidth(width)
+      setWindowHeight(height)
       setIsMobile(width < MOBILE_BREAKPOINT)
       setOrientation(width < height ? "portrait" : "landscape")
+    }
+
+    // Check if the device is a touch device
+    const checkTouchDevice = () => {
+      setIsTouchDevice(
+        'ontouchstart' in window || 
+        navigator.maxTouchPoints > 0 || 
+        (navigator as any).msMaxTouchPoints > 0
+      )
+    }
+    
+    // Check platform
+    const checkPlatform = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera || '';
+      setIsIOS(/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream);
+      setIsAndroid(/android/i.test(userAgent));
     }
     
     // Check if the device has a camera
@@ -37,28 +58,44 @@ export function useIsMobile() {
     };
     
     // Run once on initial mount (after DOM is available)
-    checkMobile()
+    checkDimensions()
+    checkTouchDevice()
+    checkPlatform()
     checkCameraAvailability()
     
     // Add event listener with debounce for performance
     let timeoutId: ReturnType<typeof setTimeout>
     const handleResize = () => {
       clearTimeout(timeoutId)
-      timeoutId = setTimeout(checkMobile, 100)
+      timeoutId = setTimeout(() => {
+        checkDimensions()
+      }, 100)
     }
     
     window.addEventListener("resize", handleResize)
     
     // Add orientation change listener for mobile devices
-    window.addEventListener("orientationchange", checkMobile)
+    window.addEventListener("orientationchange", () => {
+      // Delay slightly as dimensions may not update immediately
+      setTimeout(checkDimensions, 100)
+    })
     
     // Cleanup
     return () => {
       clearTimeout(timeoutId)
       window.removeEventListener("resize", handleResize)
-      window.removeEventListener("orientationchange", checkMobile)
+      window.removeEventListener("orientationchange", checkDimensions)
     }
   }, [])
 
-  return { isMobile, windowWidth, orientation, hasCamera }
+  return { 
+    isMobile, 
+    windowWidth, 
+    windowHeight,
+    orientation, 
+    hasCamera,
+    isIOS,
+    isAndroid,
+    isTouchDevice
+  }
 }
