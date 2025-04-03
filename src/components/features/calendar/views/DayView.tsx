@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, addDays, subDays, isSameDay, isToday } from 'date-fns';
@@ -47,6 +48,8 @@ const DayView: React.FC<DayViewProps> = ({
   const [endHour, setEndHour] = useState(23);
   const [showAllHours, setShowAllHours] = useState(true);
   const [hiddenEvents, setHiddenEvents] = useState<Event[]>([]);
+  const [startInputValue, setStartInputValue] = useState("0");
+  const [endInputValue, setEndInputValue] = useState("23");
   const { toast } = useToast();
   const { isMobile } = useIsMobile();
 
@@ -103,18 +106,20 @@ const DayView: React.FC<DayViewProps> = ({
   };
 
   const handleTimeRangeChange = (type: 'start' | 'end', value: string) => {
+    // Update the input field value regardless of validation
+    if (type === 'start') {
+      setStartInputValue(value);
+    } else {
+      setEndInputValue(value);
+    }
+    
+    // If input is empty, don't process further
     if (value === '') {
-      if (type === 'start') {
-        return;
-      } else {
-        return;
-      }
+      return;
     }
     
     const hour = parseInt(value, 10);
-    if (isNaN(hour)) return;
-    
-    if (hour < 0 || hour > 23) return;
+    if (isNaN(hour) || hour < 0 || hour > 23) return;
     
     let newStart = startHour;
     let newEnd = endHour;
@@ -133,6 +138,19 @@ const DayView: React.FC<DayViewProps> = ({
     else setEndHour(newEnd);
     
     setShowAllHours(newStart === 0 && newEnd === 23);
+  };
+
+  const handleInputBlur = (type: 'start' | 'end') => {
+    // If field is left empty, restore the last valid value
+    if (type === 'start') {
+      if (startInputValue === '') {
+        setStartInputValue(startHour.toString());
+      }
+    } else {
+      if (endInputValue === '') {
+        setEndInputValue(endHour.toString());
+      }
+    }
   };
 
   return (
@@ -186,6 +204,8 @@ const DayView: React.FC<DayViewProps> = ({
             onClick={() => {
               setStartHour(0);
               setEndHour(23);
+              setStartInputValue("0");
+              setEndInputValue("23");
               setShowAllHours(true);
               setHiddenEvents([]);
             }}
@@ -206,8 +226,9 @@ const DayView: React.FC<DayViewProps> = ({
               type="number"
               min="0"
               max="23"
-              value={startHour}
+              value={startInputValue}
               onChange={(e) => handleTimeRangeChange('start', e.target.value)}
+              onBlur={() => handleInputBlur('start')}
               className={cn("h-8 text-sm", isMobile ? "w-20" : "w-16")}
             />
           </div>
@@ -219,8 +240,9 @@ const DayView: React.FC<DayViewProps> = ({
               type="number"
               min="0"
               max="23"
-              value={endHour}
+              value={endInputValue}
               onChange={(e) => handleTimeRangeChange('end', e.target.value)}
+              onBlur={() => handleInputBlur('end')}
               className={cn("h-8 text-sm", isMobile ? "w-20" : "w-16")}
             />
           </div>
