@@ -467,9 +467,16 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
       if (progress >= 100) {
         clearInterval(interval);
         
+        let savedLocation = "";
+        if (formData.addToShoppingList) savedLocation = "Shopping List";
+        else if (formData.addToCalendar) savedLocation = "Calendar";
+        else if (formData.saveToSpending) savedLocation = "Receipts & Expenses";
+        else if (formData.saveToDocuments) savedLocation = "Documents";
+        else savedLocation = "your collection";
+        
         toast({
           title: "Item Saved Successfully",
-          description: `"${formData.title}" has been saved.`,
+          description: `"${formData.title}" has been saved to ${savedLocation}.`,
           variant: "default",
         });
         
@@ -479,20 +486,20 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
           const savedData = {
             ...formData,
             originalType: originalItem.type,
-            imageData: originalItem.imageData,
+            imageData: formData.keepImage ? originalItem.imageData : null,
             savedAt: new Date().toISOString()
           };
           onSaveSuccess(savedData);
         }
         
         setTimeout(() => {
-          navigateBasedOnType(formData);
+          navigateBasedOnFormData(formData);
         }, 500);
       }
     }, 100);
   };
   
-  const navigateBasedOnType = (formData: any) => {
+  const navigateBasedOnFormData = (formData: any) => {
     if (formData.addToShoppingList) {
       navigate('/shopping');
     } else if (formData.addToCalendar) {

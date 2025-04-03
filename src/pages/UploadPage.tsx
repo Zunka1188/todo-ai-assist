@@ -129,11 +129,19 @@ const UploadPage = () => {
         };
       }
       
+      // Create mock extracted text
+      const mockExtractedText = generateMockExtractedText(randomType);
+      
+      // Create mock detected objects
+      const mockDetectedObjects = generateMockDetectedObjects(randomType);
+      
       const result: RecognizedItem = {
         type: randomType,
         confidence,
         data: mockData,
-        imageData: imageDataURL
+        imageData: imageDataURL,
+        extractedText: mockExtractedText,
+        detectedObjects: mockDetectedObjects
       };
       
       setRecognizedItem(result);
@@ -146,44 +154,120 @@ const UploadPage = () => {
     }, 2000);
   };
   
+  const generateMockExtractedText = (type: typeof types[number]): string => {
+    switch (type) {
+      case 'invitation':
+        return `TEAM OFFSITE MEETING\nDate: May 15, 2025\nTime: 10:00 AM - 4:00 PM\nLocation: Conference Room A, Building 2\n\nOrganizer: Sarah Johnson\nsarah.j@company.com\n\nQuarterly team meeting. Bring your presentation materials.`;
+      case 'receipt':
+        return `GREEN GROCERS\n123 Main Street\nCity, State 12345\n\nDate: 04/03/2025\nTime: 14:35\n\nApples      $4.99\nBread       $3.50\nMilk        $2.99\n\nSubtotal    $11.48\nTax (8%)     $0.92\n\nTOTAL       $12.40\n\nTHANK YOU FOR SHOPPING!`;
+      case 'product':
+        return `Organic Avocados\n2 count package\n\nPrice: $5.99\nCategory: Groceries\n\nFresh organic avocados, perfect for guacamole.\n\nNutrition Facts:\nServing Size: 1 avocado\nCalories: 240\nTotal Fat: 22g`;
+      case 'document':
+        return `MEETING MINUTES\n\nDate: April 10, 2025\nSubject: Product Launch Planning\n\nAttendees:\n- John Smith (Chair)\n- Jane Doe\n- Alex Johnson\n\nDiscussion Items:\n1. Marketing strategy for Q2\n2. Budget allocation\n3. Timeline for upcoming product launch`;
+      default:
+        return `TEXT DETECTION\nThis is a sample of detected text\nThe AI system would extract\nall visible text from the image\nand format it appropriately.`;
+    }
+  };
+  
+  const generateMockDetectedObjects = (type: typeof types[number]) => {
+    const objects = [];
+    
+    switch (type) {
+      case 'product':
+        objects.push(
+          { name: "Avocado", confidence: 0.96 },
+          { name: "Fruit", confidence: 0.92 },
+          { name: "Food item", confidence: 0.88 }
+        );
+        break;
+      case 'receipt':
+        objects.push(
+          { name: "Receipt", confidence: 0.97 },
+          { name: "Document", confidence: 0.88 },
+          { name: "Printed text", confidence: 0.95 }
+        );
+        break;
+      case 'invitation':
+        objects.push(
+          { name: "Document", confidence: 0.92 },
+          { name: "Calendar", confidence: 0.84 },
+          { name: "Text", confidence: 0.96 }
+        );
+        break;
+      case 'document':
+        objects.push(
+          { name: "Document", confidence: 0.98 },
+          { name: "Paper", confidence: 0.93 },
+          { name: "Text", confidence: 0.97 }
+        );
+        break;
+      default:
+        objects.push(
+          { name: "Document", confidence: 0.82 },
+          { name: "Object", confidence: 0.78 }
+        );
+    }
+    
+    return objects;
+  };
+  
   const handleSaveItem = (formData: any, originalItem: RecognizedItem) => {
     setIsSaving(true);
     
     // Simulate saving process
     setTimeout(() => {
+      // Show appropriate message based on where it's being saved
+      let savedLocation = "";
+      if (formData.addToShoppingList) savedLocation = "Shopping List";
+      else if (formData.addToCalendar) savedLocation = "Calendar";
+      else if (formData.saveToSpending) savedLocation = "Receipts & Expenses";
+      else if (formData.saveToDocuments) savedLocation = "Documents";
+      else savedLocation = "your collection";
+      
       // Show success message
       toast({
         title: "Item Saved Successfully",
-        description: `"${formData.title}" has been saved.`,
+        description: `"${formData.title}" has been saved to ${savedLocation}.`,
         variant: "default",
       });
       
       setIsSaving(false);
       
-      // Navigate based on the type
-      navigateBasedOnType(originalItem.type);
+      // Navigate based on user selection
+      navigateBasedOnFormData(formData);
     }, 1000);
   };
   
-  const navigateBasedOnType = (type: string) => {
-    switch (type) {
-      case 'invitation':
-        navigate('/calendar');
-        break;
-      case 'receipt':
-        navigate('/spending');
-        break;
-      case 'product':
-        navigate('/shopping');
-        break;
-      case 'document':
-        navigate('/documents');
-        break;
-      default:
-        // Reset the page for another upload
-        setUploadedImage(null);
-        setRecognizedItem(null);
-        break;
+  const navigateBasedOnFormData = (formData: any) => {
+    if (formData.addToShoppingList) {
+      navigate('/shopping');
+    } else if (formData.addToCalendar) {
+      navigate('/calendar');
+    } else if (formData.saveToSpending) {
+      navigate('/spending');
+    } else if (formData.saveToDocuments) {
+      navigate('/documents');
+    } else {
+      // Default navigation based on item type
+      switch (formData.itemType) {
+        case 'invitation':
+          navigate('/calendar');
+          break;
+        case 'receipt':
+          navigate('/spending');
+          break;
+        case 'product':
+          navigate('/shopping');
+          break;
+        case 'document':
+          navigate('/documents');
+          break;
+        default:
+          // Reset the page for another upload
+          setUploadedImage(null);
+          setRecognizedItem(null);
+          break;
+      }
     }
   };
 
@@ -196,6 +280,9 @@ const UploadPage = () => {
     setRecognizedItem(null);
     setProcessing(false);
   };
+
+  // TypeScript definition for the types array - needed for the mock functions
+  const types = ['invitation', 'receipt', 'product', 'document', 'unknown'] as const;
 
   return (
     <div className="space-y-6 py-4">
@@ -267,7 +354,7 @@ const UploadPage = () => {
               </p>
             </div>
           ) : recognizedItem ? (
-            <div className="bg-white rounded-lg border p-4 space-y-3">
+            <div className="space-y-3">
               <DataRecognition
                 recognizedItem={recognizedItem}
                 isProcessing={isSaving}
