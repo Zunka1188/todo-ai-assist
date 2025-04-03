@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
@@ -118,7 +117,7 @@
   }
   
   /* Captions/Labels */
-  .text-caption, figcaption, small, .text-xs {
+  .text-caption, figcaption, small {
     @apply text-xs; /* 12px */
     line-height: 1.4;
   }
