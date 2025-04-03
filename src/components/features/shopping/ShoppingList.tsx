@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
@@ -890,4 +891,350 @@ const ShoppingList: React.FC = () => {
           <AnimatePresence>
             {!isPurchasedSectionCollapsed && (
               <motion.div
-                initial={{ height: 0, opacity:
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {purchasedItems.length === 0 ? (
+                  <div className="text-center py-3 text-muted-foreground text-[10px]">
+                    No items purchased yet.
+                  </div>
+                ) : (
+                  <ul className="space-y-1">
+                    {purchasedItems.map((item) => (
+                      <motion.li 
+                        key={`purchased-${item.id}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        onClick={() => !isMultiSelectActive && toggleItem(item.id)}
+                        className={cn(
+                          "flex flex-col p-1 rounded-lg border transition-colors cursor-pointer",
+                          "bg-gray-50 border-gray-100 dark:bg-gray-800/30 dark:border-gray-700/50"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-1.5">
+                            {isMultiSelectActive ? (
+                              <Checkbox
+                                checked={selectedItems.includes(item.id)}
+                                onCheckedChange={() => handleItemSelect(item.id)}
+                                className="h-3 w-3"
+                              />
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleItem(item.id);
+                                }}
+                                className={cn(
+                                  "flex items-center justify-center w-3 h-3 rounded-full border",
+                                  "bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500"
+                                )}
+                              >
+                                <Check size={8} className="text-white" />
+                              </button>
+                            )}
+                            
+                            <div className="flex flex-col">
+                              <span className="text-[11px] text-gray-500 dark:text-gray-400 line-through">
+                                {item.name}
+                              </span>
+                              
+                              <div className="flex flex-wrap items-center text-[8px] text-muted-foreground mt-0.5 gap-1">
+                                {item.amount && (
+                                  <span className="text-[8px] text-gray-400">Qty: {item.amount}</span>
+                                )}
+                                
+                                {item.price && (
+                                  <span className="text-[8px] text-gray-400">Price: ${item.price}</span>
+                                )}
+                                
+                                {item.dateToPurchase && (
+                                  <span className="flex items-center text-[8px] text-gray-400">
+                                    <Calendar size={7} className="mr-0.5" /> 
+                                    {new Date(item.dateToPurchase).toLocaleDateString()}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <span className="text-[8px] px-1 py-0.5 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                              {item.category}
+                            </span>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-5 w-5 p-0"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <MoreVertical size={10} />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-32">
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditItem(item);
+                                }} className="cursor-pointer">
+                                  <Edit size={12} className="mr-1" />
+                                  <span className="text-[10px]">Edit</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeItem(item.id);
+                                }} className="cursor-pointer text-red-500">
+                                  <Trash2 size={12} className="mr-1" />
+                                  <span className="text-[10px]">Delete</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+                        {item.imageUrl && (
+                          <div className="mt-1 flex justify-center">
+                            <img 
+                              src={item.imageUrl} 
+                              alt={item.name} 
+                              className="max-h-24 rounded-md object-contain opacity-60"
+                            />
+                          </div>
+                        )}
+                      </motion.li>
+                    ))}
+                  </ul>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </ScrollArea>
+
+      {/* Edit Category Dialog */}
+      <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Input
+                id="edit-category"
+                value={editedCategoryName}
+                onChange={(e) => setEditedCategoryName(e.target.value)}
+                className="col-span-3"
+                placeholder="Category name"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsEditCategoryDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={confirmEditCategory}
+              className="bg-todo-purple hover:bg-todo-purple-dark text-white"
+              disabled={!editedCategoryName.trim() || editedCategoryName === categoryToEdit}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Category Dialog */}
+      <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Category</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Input
+                id="new-category"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                className="col-span-3"
+                placeholder="Category name"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsAddCategoryDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={addCategory}
+              className="bg-todo-purple hover:bg-todo-purple-dark text-white"
+              disabled={!newCategory.trim() || categories.includes(newCategory.trim())}
+            >
+              Add Category
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Category Dialog */}
+      <Dialog open={isDeleteCategoryDialogOpen} onOpenChange={setIsDeleteCategoryDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Delete Category</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to delete the category "{categoryToDelete}"? All items in this category will be moved to "Other".
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsDeleteCategoryDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              variant="destructive"
+              onClick={confirmDeleteCategory}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Item Dialog */}
+      <Dialog open={isEditItemDialogOpen} onOpenChange={setIsEditItemDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Item</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <div className="grid grid-cols-4 items-center gap-2">
+                <label className="text-sm col-span-1">Name</label>
+                <Input
+                  id="edit-item-name"
+                  value={editItemName}
+                  onChange={(e) => setEditItemName(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Item name"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <label className="text-sm col-span-1">Category</label>
+                <select
+                  value={editItemCategory}
+                  onChange={(e) => setEditItemCategory(e.target.value)}
+                  className="rounded-md border border-input bg-background px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white col-span-3"
+                >
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <label className="text-sm col-span-1">Amount</label>
+                <Input
+                  id="edit-item-amount"
+                  value={editItemAmount}
+                  onChange={(e) => setEditItemAmount(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Optional"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <label className="text-sm col-span-1">Date</label>
+                <Input
+                  id="edit-item-date"
+                  type="date"
+                  value={editItemDate}
+                  onChange={(e) => setEditItemDate(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Optional"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <label className="text-sm col-span-1">Price</label>
+                <Input
+                  id="edit-item-price"
+                  type="number"
+                  value={editItemPrice}
+                  onChange={(e) => setEditItemPrice(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Optional"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <label className="text-sm col-span-1">Image</label>
+                <div className="col-span-3">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="edit-item-image"
+                  />
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Image className="mr-2 h-4 w-4" />
+                    {editItemImageUrl ? 'Change Image' : 'Add Image'}
+                  </Button>
+                </div>
+              </div>
+              {editItemImageUrl && (
+                <div className="col-span-4 flex justify-center mt-2">
+                  <img 
+                    src={editItemImageUrl} 
+                    alt="Preview" 
+                    className="max-h-40 rounded-md object-contain border p-1"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsEditItemDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={saveEditedItem}
+              className="bg-todo-purple hover:bg-todo-purple-dark text-white"
+              disabled={!editItemName.trim()}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default ShoppingList;
