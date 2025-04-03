@@ -1,25 +1,18 @@
 
 import React, { useState } from 'react';
-import { File, Receipt, Folder } from 'lucide-react';
+import { File, Image, FileText, Folder } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Document {
   id: string;
   name: string;
-  type: 'receipt' | 'document' | 'image';
+  type: 'document' | 'image' | 'note';
   category: string;
   date: Date;
 }
 
-// Sample documents
+// Sample documents without receipts
 const initialDocuments: Document[] = [
-  {
-    id: '1',
-    name: 'Grocery Receipt',
-    type: 'receipt',
-    category: 'Finance',
-    date: new Date(2025, 3, 1)
-  },
   {
     id: '2',
     name: 'Flight Ticket',
@@ -28,28 +21,35 @@ const initialDocuments: Document[] = [
     date: new Date(2025, 2, 28)
   },
   {
-    id: '3',
-    name: 'Phone Bill',
-    type: 'receipt',
-    category: 'Finance',
-    date: new Date(2025, 3, 2)
-  },
-  {
     id: '4',
     name: 'Product Manual',
     type: 'document',
     category: 'Work',
     date: new Date(2025, 3, 3)
+  },
+  {
+    id: '5',
+    name: 'Family Photo',
+    type: 'image',
+    category: 'Personal',
+    date: new Date(2025, 3, 4)
+  },
+  {
+    id: '6',
+    name: 'Meeting Notes',
+    type: 'note',
+    category: 'Work',
+    date: new Date(2025, 3, 5)
   }
 ];
 
 const categories = [
   'All',
-  'Finance',
-  'Travel',
+  'Personal',
   'Work',
-  'Fashion',
-  'Receipts'
+  'Travel',
+  'Images',
+  'Notes'
 ];
 
 const DocumentList: React.FC = () => {
@@ -58,14 +58,18 @@ const DocumentList: React.FC = () => {
 
   const filteredDocuments = selectedCategory === 'All'
     ? documents
-    : selectedCategory === 'Receipts'
-      ? documents.filter(doc => doc.type === 'receipt')
-      : documents.filter(doc => doc.category === selectedCategory);
+    : selectedCategory === 'Images'
+      ? documents.filter(doc => doc.type === 'image')
+      : selectedCategory === 'Notes'
+        ? documents.filter(doc => doc.type === 'note')
+        : documents.filter(doc => doc.category === selectedCategory);
 
   const getDocumentIcon = (type: string) => {
     switch (type) {
-      case 'receipt':
-        return <Receipt className="text-todo-purple-dark" size={20} />;
+      case 'image':
+        return <Image className="text-blue-500" size={20} />;
+      case 'note':
+        return <FileText className="text-green-500" size={20} />;
       default:
         return <File className="text-todo-purple" size={20} />;
     }
@@ -121,7 +125,7 @@ const DocumentList: React.FC = () => {
             <Folder className="mx-auto h-12 w-12 text-muted-foreground/50" />
             <h3 className="mt-4 text-lg font-medium">No documents found</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Scan or upload documents to see them here
+              Upload or create documents to see them here
             </p>
           </div>
         )}
