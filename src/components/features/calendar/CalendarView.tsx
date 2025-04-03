@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List, Image, Camera, Paperclip } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List, Image, Paperclip } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -225,11 +224,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [showCamera, setShowCamera] = useState(false);
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const filteredEvents = events.filter(event => 
     searchTerm ? 
@@ -350,12 +347,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       title: "File attached",
       description: "The file has been attached to this event."
     });
-  };
-
-  const handleImageCapture = () => {
-    if (imageInputRef.current) {
-      imageInputRef.current.click();
-    }
   };
 
   const handleAttachments = () => {
@@ -480,15 +471,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                     ref={fileInputRef}
                     onChange={handleFileChange}
                     accept="*/*"
-                    style={{ display: 'none' }}
-                    multiple
-                  />
-                  
-                  <input 
-                    type="file" 
-                    ref={imageInputRef}
-                    onChange={handleFileChange}
-                    accept="image/*"
                     style={{ display: 'none' }}
                     multiple
                   />
@@ -815,19 +797,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                         <Paperclip className="h-4 w-4 mr-2" />
                         <span>Add Files</span>
                       </Button>
-                      
-                      {isMobile && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleImageCapture}
-                          className="flex items-center min-h-[44px] min-w-[44px] touch-manipulation"
-                        >
-                          <Camera className="h-4 w-4 mr-2" />
-                          <span>Take Photo</span>
-                        </Button>
-                      )}
                     </div>
                     
                     <FormField
