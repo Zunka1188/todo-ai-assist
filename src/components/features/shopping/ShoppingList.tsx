@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
@@ -79,10 +80,27 @@ const initialItems: ShoppingItem[] = [
   { id: '4', name: 'Toothpaste', completed: false, category: 'Household', dateAdded: new Date('2023-04-03') },
 ];
 
+// Helper function to parse dates from localStorage
+const parseStoredItems = (items: any[]): ShoppingItem[] => {
+  return items.map(item => ({
+    ...item,
+    dateAdded: new Date(item.dateAdded)
+  }));
+};
+
 const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
   try {
     const storedValue = localStorage.getItem(key);
-    return storedValue ? JSON.parse(storedValue) : defaultValue;
+    if (!storedValue) return defaultValue;
+    
+    const parsedValue = JSON.parse(storedValue);
+    
+    // Handle special case for shopping items to convert dates
+    if (key === 'shoppingItems' && Array.isArray(parsedValue)) {
+      return parseStoredItems(parsedValue) as unknown as T;
+    }
+    
+    return parsedValue;
   } catch (error) {
     console.error("Error loading from localStorage:", error);
     return defaultValue;
