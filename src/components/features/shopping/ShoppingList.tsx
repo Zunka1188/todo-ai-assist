@@ -508,7 +508,7 @@ const ShoppingList: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="sticky top-0 z-10 pt-1 pb-3 bg-background">
-        <div className="mb-3">
+        <div className="mb-3 relative">
           <Carousel
             className="w-full"
             opts={{
@@ -576,9 +576,12 @@ const ShoppingList: React.FC = () => {
               </CarouselItem>
             </CarouselContent>
             <div className="absolute right-0 top-1/2 -translate-y-1/2 bg-gradient-to-l from-background to-transparent w-12 h-8 pointer-events-none" />
-            <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-6" />
-            <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 h-6 w-6" />
           </Carousel>
+          
+          <div className="flex justify-center items-center mt-2 gap-2">
+            <CarouselPrevious className="static translate-y-0 h-6 w-6 transform-none" />
+            <CarouselNext className="static translate-y-0 h-6 w-6 transform-none" />
+          </div>
         </div>
 
         <div className="flex flex-col space-y-2">
