@@ -174,9 +174,9 @@ const SettingsPage = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="space-y-0.5">
                 <Label>Dark Mode</Label>
-                <FormDescription className="text-xs sm:text-sm">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Switch between light and dark themes
-                </FormDescription>
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <Sun className={`h-5 w-5 ${theme === 'light' ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -191,9 +191,9 @@ const SettingsPage = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="space-y-0.5">
                 <Label>Language</Label>
-                <FormDescription className="text-xs sm:text-sm">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Select your preferred language
-                </FormDescription>
+                </p>
               </div>
               <select className="bg-background border rounded px-3 py-2 w-full sm:w-auto text-base">
                 <option>English</option>
