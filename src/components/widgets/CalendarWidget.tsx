@@ -59,7 +59,7 @@ const CalendarWidget = () => {
               mode="single"
               selected={date}
               onSelect={setDate}
-              className="rounded-md border bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 pointer-events-auto max-w-[250px] mx-auto"
+              className="rounded-lg border bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 shadow pointer-events-auto w-full mx-auto"
               modifiers={{
                 event: (date) => isDayWithEvent(date),
               }}
@@ -75,7 +75,8 @@ const CalendarWidget = () => {
             />
           </div>
           <div>
-            <h4 className="text-sm font-medium mb-2">
+            <h4 className="text-sm font-medium mb-2 flex items-center">
+              <CalendarIcon className="mr-2 h-4 w-4 text-todo-purple" />
               {date ? format(date, 'MMMM d, yyyy') : 'Select a date'}
             </h4>
             {selectedDateEvents.length > 0 ? (
@@ -84,13 +85,13 @@ const CalendarWidget = () => {
                   <div 
                     key={event.id} 
                     className={cn(
-                      "p-2 rounded-md bg-white dark:bg-gray-700",
-                      "border dark:border-gray-600",
-                      "hover:shadow-sm transition-shadow"
+                      "p-3 rounded-lg bg-white dark:bg-gray-800",
+                      "border dark:border-gray-700",
+                      "shadow-sm hover:shadow transition-shadow"
                     )}
                   >
                     <p className="font-medium text-sm dark:text-gray-100">{event.title}</p>
-                    <p className="text-xs text-muted-foreground">{event.time}</p>
+                    <p className="text-xs text-muted-foreground mt-1">⏰ {event.time}</p>
                   </div>
                 ))}
               </div>
