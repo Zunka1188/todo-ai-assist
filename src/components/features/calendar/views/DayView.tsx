@@ -106,8 +106,8 @@ const DayView: React.FC<DayViewProps> = ({
       {/* All-day events section */}
       {allDayEvents.length > 0 && (
         <div className="border rounded-lg overflow-hidden mb-4">
-          <div className="grid grid-cols-4 bg-muted/30 p-2 border-b">
-            <div className="col-span-4 text-sm font-medium">All day events</div>
+          <div className="grid grid-cols-[1fr] bg-muted/30 p-2 border-b">
+            <div className="text-sm font-medium">All day events</div>
           </div>
           
           <div className="p-2 space-y-2">
@@ -135,9 +135,9 @@ const DayView: React.FC<DayViewProps> = ({
       
       {/* Time-based events section */}
       <div className="border rounded-lg overflow-hidden">
-        <div className="grid grid-cols-4 bg-muted/30 p-2 border-b">
+        <div className="grid grid-cols-[4rem_1fr] bg-muted/30 p-2 border-b">
           <div className="text-sm font-medium">Time</div>
-          <div className="col-span-3 text-sm font-medium">Events</div>
+          <div className="text-sm font-medium">Events</div>
         </div>
         
         <div className="overflow-y-auto max-h-[600px]">
@@ -161,7 +161,7 @@ const DayView: React.FC<DayViewProps> = ({
               <div 
                 key={hour} 
                 className={cn(
-                  "grid grid-cols-4 border-b min-h-[80px]",
+                  "grid grid-cols-[4rem_1fr] border-b min-h-[80px]",
                   isCurrentHour && "bg-accent/20"
                 )}
               >
@@ -169,7 +169,7 @@ const DayView: React.FC<DayViewProps> = ({
                   {format(hourDate, 'h a')}
                 </div>
                 
-                <div className="col-span-3 p-2 space-y-2">
+                <div className="p-2 space-y-2">
                   {hourEvents.map(event => (
                     <div 
                       key={event.id}

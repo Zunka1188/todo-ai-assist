@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -198,9 +197,10 @@ const initialEvents: Event[] = [
 interface CalendarViewProps {
   viewMode: 'month' | 'week' | 'day' | 'agenda';
   searchTerm?: string;
+  weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }
 
-const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }) => {
+const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '', weekStartsOn = 1 }) => {
   const [date, setDate] = useState<Date>(new Date());
   const [events, setEvents] = useState<Event[]>(initialEvents);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -845,6 +845,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
           events={filteredEvents}
           handleViewEvent={handleViewEvent}
           theme={theme}
+          weekStartsOn={weekStartsOn}
         />
       )}
       
@@ -855,6 +856,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
           events={filteredEvents}
           handleViewEvent={handleViewEvent}
           theme={theme}
+          weekStartsOn={weekStartsOn}
         />
       )}
       
