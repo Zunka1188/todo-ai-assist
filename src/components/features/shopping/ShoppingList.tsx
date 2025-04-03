@@ -12,7 +12,8 @@ import {
   MoreHorizontal,
   CircleCheck,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +47,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { toast } from "@/components/ui/use-toast";
 
 interface ShoppingItem {
   id: string;
@@ -75,12 +77,36 @@ const initialItems: ShoppingItem[] = [
   { id: '4', name: 'Toothpaste', completed: false, category: 'Household', dateAdded: new Date('2023-04-03') },
 ];
 
+// Load data from localStorage
+const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
+  try {
+    const storedValue = localStorage.getItem(key);
+    return storedValue ? JSON.parse(storedValue) : defaultValue;
+  } catch (error) {
+    console.error("Error loading from localStorage:", error);
+    return defaultValue;
+  }
+};
+
+// Save data to localStorage
+const saveToLocalStorage = (key: string, value: any): void => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error("Error saving to localStorage:", error);
+  }
+};
+
 const ShoppingList: React.FC = () => {
-  const [items, setItems] = useState<ShoppingItem[]>(initialItems);
+  const [items, setItems] = useState<ShoppingItem[]>(() => 
+    loadFromLocalStorage<ShoppingItem[]>('shoppingItems', initialItems)
+  );
   const [newItemName, setNewItemName] = useState('');
   const [newItemCategory, setNewItemCategory] = useState('Groceries');
   const [activeCategory, setActiveCategory] = useState('All');
-  const [categories, setCategories] = useState<string[]>(defaultCategories);
+  const [categories, setCategories] = useState<string[]>(() => 
+    loadFromLocalStorage<string[]>('shoppingCategories', defaultCategories)
+  );
   const [newCategory, setNewCategory] = useState('');
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -90,8 +116,19 @@ const ShoppingList: React.FC = () => {
   const [newItemDate, setNewItemDate] = useState('');
   const [newItemPrice, setNewItemPrice] = useState('');
   const [isMultiSelectActive, setIsMultiSelectActive] = useState(false);
+  const [isDeleteCategoryDialogOpen, setIsDeleteCategoryDialogOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState('');
   const { isMobile } = useIsMobile();
   const carouselRef = useRef(null);
+
+  // Save to localStorage whenever items or categories change
+  useEffect(() => {
+    saveToLocalStorage('shoppingItems', items);
+  }, [items]);
+
+  useEffect(() => {
+    saveToLocalStorage('shoppingCategories', categories);
+  }, [categories]);
 
   const addItem = () => {
     if (newItemName.trim() === '') return;
@@ -116,6 +153,10 @@ const ShoppingList: React.FC = () => {
     if (!showDetailedEntry) {
       setShowDetailedEntry(false);
     }
+
+    toast({
+      description: `Added ${newItem.name} to ${newItem.category}`,
+    });
   };
 
   const toggleItem = (id: string) => {
@@ -132,7 +173,14 @@ const ShoppingList: React.FC = () => {
   };
 
   const removeItem = (id: string) => {
+    const itemToRemove = items.find(item => item.id === id);
     setItems(items.filter((item) => item.id !== id));
+    
+    if (itemToRemove) {
+      toast({
+        description: `Removed ${itemToRemove.name}`,
+      });
+    }
   };
   
   const addCategory = () => {
@@ -140,9 +188,47 @@ const ShoppingList: React.FC = () => {
       return;
     }
     
-    setCategories([...categories, newCategory.trim()]);
+    const updatedCategories = [...categories, newCategory.trim()];
+    setCategories(updatedCategories);
     setNewCategory('');
     setIsAddCategoryDialogOpen(false);
+    setActiveCategory(newCategory.trim());
+    
+    toast({
+      description: `Added category: ${newCategory.trim()}`,
+    });
+  };
+
+  const handleDeleteCategory = (category: string) => {
+    setCategoryToDelete(category);
+    setIsDeleteCategoryDialogOpen(true);
+  };
+  
+  const confirmDeleteCategory = () => {
+    if (!categoryToDelete || categoryToDelete === 'All') return;
+    
+    // Move items from this category to "Other"
+    const updatedItems = items.map(item => 
+      item.category === categoryToDelete ? {...item, category: 'Other'} : item
+    );
+    
+    // Remove the category
+    const updatedCategories = categories.filter(c => c !== categoryToDelete);
+    
+    setItems(updatedItems);
+    setCategories(updatedCategories);
+    
+    // If the active category is the one being deleted, switch to "All"
+    if (activeCategory === categoryToDelete) {
+      setActiveCategory('All');
+    }
+    
+    setIsDeleteCategoryDialogOpen(false);
+    setCategoryToDelete('');
+    
+    toast({
+      description: `Deleted category: ${categoryToDelete}. Items moved to "Other"`,
+    });
   };
   
   const handleItemSelect = (id: string) => {
@@ -154,9 +240,14 @@ const ShoppingList: React.FC = () => {
   };
   
   const deleteSelectedItems = () => {
+    const count = selectedItems.length;
     setItems(items.filter(item => !selectedItems.includes(item.id)));
     setSelectedItems([]);
     setIsMultiSelectActive(false);
+    
+    toast({
+      description: `Deleted ${count} item${count !== 1 ? 's' : ''}`,
+    });
   };
   
   const handleSort = (option: SortOption) => {
@@ -207,15 +298,6 @@ const ShoppingList: React.FC = () => {
   const sortedItems = getSortedItems();
   const allCategories = ['All', ...categories];
 
-  // Scroll to active category when it changes
-  useEffect(() => {
-    if (isAddCategoryDialogOpen === false && newCategory !== '') {
-      // When a new category is added, select it
-      setActiveCategory(newCategory);
-      setNewCategory('');
-    }
-  }, [categories, isAddCategoryDialogOpen]);
-
   // Reset scroll position when new items are added
   useEffect(() => {
     const scrollArea = document.querySelector('.shopping-items-scroll-area');
@@ -238,17 +320,30 @@ const ShoppingList: React.FC = () => {
             <CarouselContent className="-ml-1">
               {allCategories.map((category) => (
                 <CarouselItem key={category} className="pl-1 basis-auto">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setActiveCategory(category)}
-                    className={cn(
-                      "rounded-full whitespace-nowrap h-7",
-                      activeCategory === category && "bg-todo-purple text-white hover:bg-todo-purple-dark"
+                  <div className="flex items-center space-x-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setActiveCategory(category)}
+                      className={cn(
+                        "rounded-full whitespace-nowrap h-6",
+                        activeCategory === category && "bg-todo-purple text-white hover:bg-todo-purple-dark"
+                      )}
+                    >
+                      <span className="text-[10px]">{category}</span>
+                    </Button>
+                    
+                    {category !== 'All' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteCategory(category)}
+                        className="h-6 w-6 p-0 rounded-full"
+                      >
+                        <Trash2 size={10} className="text-gray-400 hover:text-red-500" />
+                      </Button>
                     )}
-                  >
-                    <span className="text-xs">{category}</span>
-                  </Button>
+                  </div>
                 </CarouselItem>
               ))}
               <CarouselItem className="pl-1 basis-auto">
@@ -256,9 +351,9 @@ const ShoppingList: React.FC = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsAddCategoryDialogOpen(true)}
-                  className="rounded-full whitespace-nowrap h-7"
+                  className="rounded-full whitespace-nowrap h-6"
                 >
-                  <Plus size={12} className="mr-1" /> <span className="text-xs">New Category</span>
+                  <Plus size={10} className="mr-1" /> <span className="text-[10px]">New Category</span>
                 </Button>
               </CarouselItem>
             </CarouselContent>
@@ -274,7 +369,7 @@ const ShoppingList: React.FC = () => {
               placeholder="Add new item..."
               value={newItemName}
               onChange={(e) => setNewItemName(e.target.value)}
-              className="flex-1 h-8 text-sm"
+              className="flex-1 h-7 text-xs"
               onKeyPress={(e) => {
                 if (e.key === 'Enter' && !showDetailedEntry) addItem();
               }}
@@ -283,10 +378,10 @@ const ShoppingList: React.FC = () => {
               <PopoverTrigger asChild>
                 <Button 
                   variant="outline" 
-                  className="min-w-[40px] h-8"
+                  className="min-w-[32px] h-7"
                   aria-label={showDetailedEntry ? "Hide details" : "Show details"}
                 >
-                  <MoreHorizontal size={14} />
+                  <MoreHorizontal size={12} />
                 </Button>
               </PopoverTrigger>
               <PopoverContent align="end" className="w-60">
@@ -349,10 +444,10 @@ const ShoppingList: React.FC = () => {
             </Popover>
             <Button 
               onClick={addItem} 
-              className="bg-todo-purple hover:bg-todo-purple-dark text-white min-w-[40px] h-8"
+              className="bg-todo-purple hover:bg-todo-purple-dark text-white min-w-[32px] h-7"
               aria-label="Add item"
             >
-              <Plus size={14} />
+              <Plus size={12} />
             </Button>
           </div>
         </div>
@@ -365,19 +460,19 @@ const ShoppingList: React.FC = () => {
             size="sm" 
             onClick={() => setIsMultiSelectActive(!isMultiSelectActive)}
             className={cn(
-              "h-7",
+              "h-6",
               isMultiSelectActive && "bg-accent"
             )}
           >
             <Checkbox checked={isMultiSelectActive} className="mr-1 h-3 w-3" /> 
-            <span className="text-xs">Select</span>
+            <span className="text-[10px]">Select</span>
           </Button>
           
           {isMultiSelectActive && selectedItems.length > 0 && (
             <Button 
               variant="destructive" 
               size="sm"
-              className="h-7 text-xs"
+              className="h-6 text-[10px]"
               onClick={deleteSelectedItems}
             >
               Delete Selected ({selectedItems.length})
@@ -387,43 +482,43 @@ const ShoppingList: React.FC = () => {
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-7">
-              <SortAsc size={12} className="mr-1" /> <span className="text-xs">Sort</span>
+            <Button variant="outline" size="sm" className="h-6">
+              <SortAsc size={10} className="mr-1" /> <span className="text-[10px]">Sort</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => handleSort('nameAsc')}>
-              <span className="text-xs">Name (A-Z)</span>
+              <span className="text-[10px]">Name (A-Z)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('nameDesc')}>
-              <span className="text-xs">Name (Z-A)</span>
+              <span className="text-[10px]">Name (Z-A)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('dateAsc')}>
-              <span className="text-xs">Date (Earliest First)</span>
+              <span className="text-[10px]">Date (Earliest First)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('dateDesc')}>
-              <span className="text-xs">Date (Latest First)</span>
+              <span className="text-[10px]">Date (Latest First)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('priceAsc')}>
-              <span className="text-xs">Price (Low to High)</span>
+              <span className="text-[10px]">Price (Low to High)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('priceDesc')}>
-              <span className="text-xs">Price (High to Low)</span>
+              <span className="text-[10px]">Price (High to Low)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('newest')}>
-              <span className="text-xs">Recently Added</span>
+              <span className="text-[10px]">Recently Added</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('oldest')}>
-              <span className="text-xs">Oldest Added</span>
+              <span className="text-[10px]">Oldest Added</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-300px)] pr-4 shopping-items-scroll-area">
+      <ScrollArea className="h-[calc(100vh-280px)] pr-4 shopping-items-scroll-area">
         <ul className="space-y-1">
           {sortedItems.length === 0 ? (
-            <li className="text-center py-3 text-muted-foreground text-xs">
+            <li className="text-center py-3 text-muted-foreground text-[10px]">
               No items in this category. Add some new items!
             </li>
           ) : (
@@ -431,13 +526,13 @@ const ShoppingList: React.FC = () => {
               <li 
                 key={item.id}
                 className={cn(
-                  "flex items-center justify-between p-1.5 rounded-lg border transition-colors",
+                  "flex items-center justify-between p-1 rounded-lg border transition-colors",
                   item.completed 
                     ? "bg-muted border-muted" 
                     : "bg-card border-border dark:bg-gray-800 dark:border-gray-700"
                 )}
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1.5">
                   {isMultiSelectActive ? (
                     <Checkbox
                       checked={selectedItems.includes(item.id)}
@@ -448,36 +543,36 @@ const ShoppingList: React.FC = () => {
                     <button
                       onClick={() => toggleItem(item.id)}
                       className={cn(
-                        "flex items-center justify-center w-4 h-4 rounded-full border",
+                        "flex items-center justify-center w-3 h-3 rounded-full border",
                         item.completed 
                           ? "bg-todo-purple border-todo-purple text-white" 
                           : "border-gray-300 dark:border-gray-500"
                       )}
                     >
-                      {item.completed && <Check size={10} />}
+                      {item.completed && <Check size={8} />}
                     </button>
                   )}
                   
                   <div className="flex flex-col">
                     <span className={cn(
-                      "text-xs dark:text-white",
+                      "text-[11px] dark:text-white",
                       item.completed && "line-through text-muted-foreground"
                     )}>
                       {item.name}
                     </span>
                     
-                    <div className="flex flex-wrap items-center text-[9px] text-muted-foreground mt-0.5 gap-1">
+                    <div className="flex flex-wrap items-center text-[8px] text-muted-foreground mt-0.5 gap-1">
                       {item.amount && (
-                        <span className="text-[9px]">Qty: {item.amount}</span>
+                        <span className="text-[8px]">Qty: {item.amount}</span>
                       )}
                       
                       {item.price && (
-                        <span className="text-[9px]">Price: ${item.price}</span>
+                        <span className="text-[8px]">Price: ${item.price}</span>
                       )}
                       
                       {item.dateToPurchase && (
-                        <span className="flex items-center text-[9px]">
-                          <Calendar size={8} className="mr-0.5" /> 
+                        <span className="flex items-center text-[8px]">
+                          <Calendar size={7} className="mr-0.5" /> 
                           {new Date(item.dateToPurchase).toLocaleDateString()}
                         </span>
                       )}
@@ -485,7 +580,7 @@ const ShoppingList: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <span className="text-[9px] px-1 py-0.5 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-100">
+                  <span className="text-[8px] px-1 py-0.5 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-100">
                     {item.category}
                   </span>
                   <button
@@ -493,7 +588,7 @@ const ShoppingList: React.FC = () => {
                     className="text-gray-400 hover:text-red-500 transition-colors"
                     aria-label={`Remove ${item.name}`}
                   >
-                    <X size={12} />
+                    <X size={10} />
                   </button>
                 </div>
               </li>
@@ -523,6 +618,26 @@ const ShoppingList: React.FC = () => {
               <Button variant="outline">Cancel</Button>
             </DialogClose>
             <Button onClick={addCategory}>Add Category</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteCategoryDialogOpen} onOpenChange={setIsDeleteCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Category</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm">
+              Are you sure you want to delete the category "{categoryToDelete}"? 
+              All items in this category will be moved to "Other".
+            </p>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button variant="destructive" onClick={confirmDeleteCategory}>Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
