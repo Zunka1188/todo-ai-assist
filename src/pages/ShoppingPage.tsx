@@ -65,12 +65,12 @@ const ShoppingPage = () => {
     }
   };
 
-  // Only show slider if content exceeds viewport
-  const showSlider = contentHeight > viewportHeight;
+  // Only show slider if content exceeds viewport AND not on mobile
+  const showSlider = contentHeight > viewportHeight && !isMobile;
 
   return (
     <div className="flex h-screen">
-      {showSlider && !isMobile && (
+      {showSlider && (
         <div className="flex flex-col justify-center px-2 py-8">
           <Slider
             value={[scrollPercentage]}
