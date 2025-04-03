@@ -17,17 +17,17 @@ const ShoppingPage = () => {
   };
 
   return (
-    <div className="space-y-4 py-2 sm:py-4 px-4 sm:px-4 container mx-auto max-w-4xl">
-      <div className="flex items-center justify-between mb-2">
+    <div className="space-y-4 py-2 sm:py-4 px-4 sm:px-6 md:px-8 container mx-auto max-w-4xl">
+      <div className="flex items-center justify-between mb-2 md:mb-4">
         <div className="flex items-center">
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={goBack} 
-            className="mr-2"
+            className="mr-2 md:mr-3"
             aria-label="Go back to home"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5 md:h-6 md:w-6" />
           </Button>
           <AppHeader 
             title="Shopping List" 
