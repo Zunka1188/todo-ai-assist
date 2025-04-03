@@ -36,8 +36,8 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
           <Icon className="text-todo-purple dark:text-todo-purple-light" size={isMobile ? 20 : 24} />
         </div>
         <div className="space-y-1 min-w-0">
-          <h3 className="font-medium dark:text-white text-sm sm:text-base truncate">{title}</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{description}</p>
+          <h3 className="font-medium text-foreground dark:text-white text-sm sm:text-base truncate">{title}</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground dark:text-gray-300 line-clamp-2">{description}</p>
         </div>
       </div>
     </Link>

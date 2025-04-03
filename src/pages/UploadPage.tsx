@@ -68,8 +68,8 @@ const UploadPage = () => {
             <Upload className="h-10 w-10 text-todo-purple" />
           </div>
           <div className="space-y-2">
-            <h3 className="font-medium text-todo-black">Upload Files</h3>
-            <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+            <h3 className="font-medium text-foreground dark:text-white">Upload Files</h3>
+            <p className="text-sm text-muted-foreground dark:text-gray-300 max-w-xs mx-auto">
               Drag and drop files here, or click to select files to upload for AI processing
             </p>
           </div>
@@ -85,14 +85,14 @@ const UploadPage = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-sm border">
-        <h3 className="font-medium text-todo-black mb-4">Supported File Types</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border dark:border-gray-700">
+        <h3 className="font-medium text-foreground dark:text-white mb-4">Supported File Types</h3>
         <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="space-y-2">
+          <div className="space-y-2 text-foreground dark:text-gray-300">
             <p>• Images (JPG, PNG, HEIC)</p>
             <p>• Documents (PDF)</p>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 text-foreground dark:text-gray-300">
             <p>• Screenshots</p>
             <p>• Receipts</p>
           </div>

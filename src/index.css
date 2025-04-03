@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
@@ -48,32 +49,32 @@
 
   .dark {
     --background: 260 15% 12%;
-    --foreground: 260 10% 95%;
+    --foreground: 260 10% 98%;
 
     --card: 260 15% 18%;
-    --card-foreground: 260 10% 95%;
+    --card-foreground: 260 10% 98%;
 
     --popover: 260 15% 18%;
-    --popover-foreground: 260 10% 95%;
+    --popover-foreground: 260 10% 98%;
 
-    --primary: 260 50% 65%;
+    --primary: 260 50% 75%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 260 15% 25%;
-    --secondary-foreground: 260 10% 95%;
+    --secondary-foreground: 260 10% 98%;
 
     --muted: 260 15% 25%;
-    --muted-foreground: 260 15% 70%;
+    --muted-foreground: 260 15% 80%;
 
     --accent: 260 15% 25%;
-    --accent-foreground: 260 10% 95%;
+    --accent-foreground: 260 10% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 260 15% 25%;
     --input: 260 15% 25%;
-    --ring: 260 50% 65%;
+    --ring: 260 50% 75%;
   }
 }
 
@@ -144,4 +145,27 @@
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
   }
+  
+  /* Enhanced dark mode text visibility */
+  .dark h1, 
+  .dark h2, 
+  .dark h3, 
+  .dark h4, 
+  .dark h5, 
+  .dark h6, 
+  .dark p,
+  .dark span,
+  .dark label,
+  .dark .text-todo-black {
+    @apply text-white;
+  }
+  
+  .dark .bg-white {
+    @apply bg-gray-800;
+  }
+  
+  .dark .section-header {
+    @apply text-white;
+  }
 }
+

@@ -91,13 +91,13 @@ const TasksPage = () => {
               </button>
               <div>
                 <span className={cn(
-                  "text-sm font-medium dark:text-white",
+                  "text-sm font-medium text-foreground dark:text-white",
                   task.completed && "line-through text-muted-foreground"
                 )}>
                   {task.title}
                 </span>
                 {task.dueDate && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground dark:text-gray-400">
                     Due: {new Date(task.dueDate).toLocaleDateString()}
                   </p>
                 )}

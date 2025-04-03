@@ -18,7 +18,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
   const isMobile = useIsMobile();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="container mx-auto px-2 sm:px-4 pt-4 flex justify-end items-center gap-2 h-14">
         <Link to="/settings" className="p-2 rounded-md hover:bg-secondary">
           <Settings className="h-5 w-5" />

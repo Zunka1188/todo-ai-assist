@@ -47,8 +47,8 @@ const Index = () => {
     <div className="space-y-6 py-4">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">ToDo</h1>
-        <p className="text-muted-foreground">Your All-in-One AI-Powered Assistant</p>
+        <h1 className="text-3xl font-bold text-foreground dark:text-white">ToDo</h1>
+        <p className="text-muted-foreground dark:text-gray-300">Your All-in-One AI-Powered Assistant</p>
       </div>
 
       {/* Main scan button */}
@@ -64,7 +64,7 @@ const Index = () => {
         <AppHeader 
           title="Widgets" 
           subtitle="Quick access to your information"
-          className="text-primary font-semibold"
+          className="text-primary font-semibold section-header"
         />
         
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
@@ -79,7 +79,7 @@ const Index = () => {
         <AppHeader 
           title="Features" 
           subtitle="Organize your life with AI-powered tools"
-          className="text-primary font-semibold"
+          className="text-primary font-semibold section-header"
         />
         
         <div className="dashboard-grid">
@@ -100,7 +100,7 @@ const Index = () => {
         <h3 className="font-medium text-todo-purple-dark dark:text-todo-purple-light mb-2">
           Your AI-Powered Assistant
         </h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground dark:text-gray-300">
           ToDo helps you scan, organize, and manage everything in your life. 
           Use the camera to scan items, documents, or receipts, and let AI do the rest.
         </p>
