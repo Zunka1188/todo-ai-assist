@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Event {
   id: string;
@@ -48,6 +49,7 @@ const DayView: React.FC<DayViewProps> = ({
   const [showAllHours, setShowAllHours] = useState(true);
   const [hiddenEvents, setHiddenEvents] = useState<Event[]>([]);
   const { toast } = useToast();
+  const { isMobile } = useIsMobile();
 
   const prevDay = () => {
     setDate(subDays(date, 1));
@@ -132,10 +134,14 @@ const DayView: React.FC<DayViewProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className={cn(
+        "flex justify-between items-center",
+        isMobile ? "flex-col space-y-2" : ""
+      )}>
         <h2 className={cn(
           "text-xl font-semibold flex items-center",
-          theme === 'light' ? "text-foreground" : "text-white"
+          theme === 'light' ? "text-foreground" : "text-white",
+          isMobile ? "text-lg self-start" : ""
         )}>
           {format(date, 'EEEE, MMMM d, yyyy')}
           {isCurrentDate && (
@@ -150,6 +156,7 @@ const DayView: React.FC<DayViewProps> = ({
             size="icon" 
             onClick={prevDay}
             aria-label="Previous day"
+            className="tap-target"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -158,6 +165,7 @@ const DayView: React.FC<DayViewProps> = ({
             size="icon" 
             onClick={nextDay}
             aria-label="Next day"
+            className="tap-target"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -165,7 +173,10 @@ const DayView: React.FC<DayViewProps> = ({
       </div>
       
       {/* Time range selector */}
-      <div className="flex items-center gap-4 flex-wrap">
+      <div className={cn(
+        "flex items-center gap-4",
+        isMobile ? "flex-col items-start" : "flex-wrap"
+      )}>
         <div className="flex items-center gap-2">
           <Button 
             variant={showAllHours ? "default" : "outline"} 
@@ -176,12 +187,16 @@ const DayView: React.FC<DayViewProps> = ({
               setShowAllHours(true);
               setHiddenEvents([]);
             }}
+            className="tap-target"
           >
             Full 24h
           </Button>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className={cn(
+          "flex items-center gap-3",
+          isMobile ? "w-full" : ""
+        )}>
           <div className="flex items-center gap-1">
             <Label htmlFor="startHour" className="text-sm whitespace-nowrap">From:</Label>
             <Input
@@ -191,7 +206,7 @@ const DayView: React.FC<DayViewProps> = ({
               max="23"
               value={startHour}
               onChange={(e) => handleTimeRangeChange('start', e.target.value)}
-              className="w-16 h-8 text-sm"
+              className={cn("h-8 text-sm", isMobile ? "w-20" : "w-16")}
             />
           </div>
           
@@ -204,7 +219,7 @@ const DayView: React.FC<DayViewProps> = ({
               max="23"
               value={endHour}
               onChange={(e) => handleTimeRangeChange('end', e.target.value)}
-              className="w-16 h-8 text-sm"
+              className={cn("h-8 text-sm", isMobile ? "w-20" : "w-16")}
             />
           </div>
         </div>
@@ -230,7 +245,7 @@ const DayView: React.FC<DayViewProps> = ({
             {allDayEvents.map(event => (
               <div 
                 key={event.id}
-                className="rounded p-3 cursor-pointer hover:opacity-90 flex items-center"
+                className="rounded p-3 cursor-pointer hover:opacity-90 flex items-center touch-manipulation"
                 style={{ backgroundColor: event.color || '#4285F4' }}
                 onClick={() => handleViewEvent(event)}
               >
@@ -256,7 +271,10 @@ const DayView: React.FC<DayViewProps> = ({
           <div className="text-sm font-medium">Events</div>
         </div>
         
-        <div className="overflow-y-auto max-h-[600px]">
+        <div className={cn(
+          "overflow-y-auto",
+          isMobile ? "max-h-[calc(100vh-320px)]" : "max-h-[600px]"
+        )}>
           {hours.map(hour => {
             const hourDate = new Date(date);
             hourDate.setHours(hour, 0, 0, 0);
@@ -289,7 +307,7 @@ const DayView: React.FC<DayViewProps> = ({
                   {hourEvents.map(event => (
                     <div 
                       key={event.id}
-                      className="rounded p-2 cursor-pointer hover:opacity-90"
+                      className="rounded p-2 cursor-pointer hover:opacity-90 touch-manipulation"
                       style={{ backgroundColor: event.color || '#4285F4' }}
                       onClick={() => handleViewEvent(event)}
                     >
