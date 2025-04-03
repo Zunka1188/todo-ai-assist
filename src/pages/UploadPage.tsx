@@ -5,7 +5,11 @@ import AppHeader from '@/components/layout/AppHeader';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import DataRecognition, { RecognizedItem } from '@/components/features/scanning/DataRecognition';
+import CategorySelection from '@/components/features/scanning/CategorySelection';
+
+type CategoryOption = 'invitation' | 'receipt' | 'product' | 'document' | 'unknown' | 'general';
 
 const UploadPage = () => {
   const { toast } = useToast();
@@ -16,16 +20,25 @@ const UploadPage = () => {
   const [recognizedItem, setRecognizedItem] = useState<RecognizedItem | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   
+  const [currentTab, setCurrentTab] = useState<'category' | 'details'>('category');
+  const [suggestedCategory, setSuggestedCategory] = useState<CategoryOption | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryOption>('unknown');
+  const [categoryConfirmed, setCategoryConfirmed] = useState(false);
+  const [aiConfidence, setAiConfidence] = useState(0);
+  
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       
-      // Create a preview of the uploaded image
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
           setUploadedImage(event.target.result as string);
-          processImage(event.target.result as string);
+          
+          setCurrentTab('category');
+          setCategoryConfirmed(false);
+          
+          analyzeImageCategory(event.target.result as string);
         }
       };
       reader.readAsDataURL(file);
@@ -42,12 +55,15 @@ const UploadPage = () => {
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
       
-      // Create a preview of the uploaded image
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
           setUploadedImage(event.target.result as string);
-          processImage(event.target.result as string);
+          
+          setCurrentTab('category');
+          setCategoryConfirmed(false);
+          
+          analyzeImageCategory(event.target.result as string);
         }
       };
       reader.readAsDataURL(file);
@@ -63,11 +79,54 @@ const UploadPage = () => {
     e.preventDefault();
   };
   
-  const processImage = async (imageDataURL: string) => {
+  const analyzeImageCategory = async (imageDataURL: string) => {
     setProcessing(true);
     setProgressValue(0);
     
-    // Simulate progress updates
+    const interval = setInterval(() => {
+      setProgressValue(prev => {
+        if (prev >= 95) {
+          clearInterval(interval);
+          return 95;
+        }
+        return prev + 10;
+      });
+    }, 100);
+    
+    setTimeout(() => {
+      clearInterval(interval);
+      setProgressValue(100);
+      
+      const types: CategoryOption[] = ['invitation', 'receipt', 'product', 'document', 'general'];
+      const randomType = types[Math.floor(Math.random() * types.length)];
+      const confidence = 0.6 + (Math.random() * 0.35);
+      
+      setSuggestedCategory(randomType);
+      setSelectedCategory(randomType);
+      setAiConfidence(confidence);
+      setProcessing(false);
+      
+      if (confidence < 0.3) {
+        setSelectedCategory('unknown');
+      }
+      
+      toast({
+        title: "Image Analysis Complete",
+        description: `Suggested category: ${randomType}`,
+      });
+    }, 1500);
+  };
+  
+  const confirmCategory = () => {
+    setCategoryConfirmed(true);
+    setCurrentTab('details');
+    processImage(uploadedImage as string, selectedCategory as any);
+  };
+  
+  const processImage = async (imageDataURL: string, category: CategoryOption) => {
+    setProcessing(true);
+    setProgressValue(0);
+    
     const interval = setInterval(() => {
       setProgressValue(prev => {
         if (prev >= 95) {
@@ -78,64 +137,19 @@ const UploadPage = () => {
       });
     }, 100);
     
-    // In a real app, this would send the image to an AI service for analysis
-    // For this demo, we'll simulate AI detection with random results
     setTimeout(() => {
       clearInterval(interval);
       setProgressValue(100);
       
-      // Simulate AI processing
-      const types = ['invitation', 'receipt', 'product', 'document', 'unknown'] as const;
-      const randomType = types[Math.floor(Math.random() * types.length)];
-      const confidence = 0.7 + (Math.random() * 0.25); // Random confidence between 70% and 95%
+      const confidence = 0.7 + (Math.random() * 0.25);
+      let mockData = generateTypeSpecificMockData(category as any);
       
-      let mockData = {};
+      const mockExtractedText = generateMockExtractedText(category as any);
       
-      // Create realistic mock data based on the type
-      if (randomType === 'invitation') {
-        mockData = {
-          title: "Team Offsite Meeting",
-          date: "2025-05-15",
-          time: "10:00 AM",
-          location: "Conference Room A, Building 2",
-          organizer: "Sarah Johnson",
-          notes: "Quarterly team meeting. Bring your presentation materials."
-        };
-      } else if (randomType === 'receipt') {
-        mockData = {
-          store: "Green Grocers",
-          date: "2025-04-03",
-          total: "$67.89",
-          items: [
-            { name: "Apples", price: "$4.99" },
-            { name: "Bread", price: "$3.50" },
-            { name: "Milk", price: "$2.99" }
-          ]
-        };
-      } else if (randomType === 'product') {
-        mockData = {
-          name: "Organic Avocados",
-          price: "$5.99",
-          category: "Groceries",
-          description: "Fresh organic avocados, perfect for guacamole."
-        };
-      } else if (randomType === 'document') {
-        mockData = {
-          title: "Meeting Minutes",
-          date: "2025-04-10",
-          content: "Discussion about upcoming product launch and marketing strategy.",
-          author: "John Smith"
-        };
-      }
-      
-      // Create mock extracted text
-      const mockExtractedText = generateMockExtractedText(randomType);
-      
-      // Create mock detected objects
-      const mockDetectedObjects = generateMockDetectedObjects(randomType);
+      const mockDetectedObjects = generateMockDetectedObjects(category as any);
       
       const result: RecognizedItem = {
-        type: randomType,
+        type: category === 'general' ? 'unknown' : category as any,
         confidence,
         data: mockData,
         imageData: imageDataURL,
@@ -148,12 +162,12 @@ const UploadPage = () => {
       
       toast({
         title: "Analysis Complete",
-        description: `Detected: ${result.type} (${Math.round(result.confidence * 100)}% confidence)`,
+        description: `Details extracted (${Math.round(confidence * 100)}% confidence)`,
       });
     }, 2000);
   };
   
-  const generateMockExtractedText = (type: typeof types[number]): string => {
+  const generateMockExtractedText = (type: CategoryOption): string => {
     switch (type) {
       case 'invitation':
         return `TEAM OFFSITE MEETING\nDate: May 15, 2025\nTime: 10:00 AM - 4:00 PM\nLocation: Conference Room A, Building 2\n\nOrganizer: Sarah Johnson\nsarah.j@company.com\n\nQuarterly team meeting. Bring your presentation materials.`;
@@ -168,7 +182,61 @@ const UploadPage = () => {
     }
   };
   
-  const generateMockDetectedObjects = (type: typeof types[number]) => {
+  const generateTypeSpecificMockData = (type: CategoryOption) => {
+    switch (type) {
+      case 'invitation':
+        return {
+          title: "Team Offsite Meeting",
+          date: "2025-05-15",
+          time: "10:00 AM",
+          location: "Conference Room A, Building 2",
+          organizer: "Sarah Johnson",
+          notes: "Quarterly team meeting. Bring your presentation materials."
+        };
+      
+      case 'receipt':
+        return {
+          store: "Green Grocers",
+          date: "2025-04-03",
+          total: "$12.40",
+          category: "Groceries",
+          items: [
+            { name: "Apples", price: "$4.99" },
+            { name: "Bread", price: "$3.50" },
+            { name: "Milk", price: "$2.99" }
+          ]
+        };
+      
+      case 'product':
+        return {
+          name: "Organic Avocados",
+          price: "$5.99",
+          category: "Groceries",
+          brand: "Nature's Best",
+          store: "Green Grocers",
+          description: "Fresh organic avocados, perfect for guacamole."
+        };
+      
+      case 'document':
+        return {
+          title: "Meeting Minutes",
+          date: "2025-04-10",
+          type: "Work",
+          content: "Discussion about upcoming product launch and marketing strategy.",
+          author: "John Smith"
+        };
+      
+      case 'general':
+      default:
+        return {
+          title: "Uploaded Image",
+          description: "This is a general image with no specific category.",
+          tags: ["photo", "image"]
+        };
+    }
+  };
+  
+  const generateMockDetectedObjects = (type: CategoryOption) => {
     const objects = [];
     
     switch (type) {
@@ -179,6 +247,7 @@ const UploadPage = () => {
           { name: "Food item", confidence: 0.88 }
         );
         break;
+      
       case 'receipt':
         objects.push(
           { name: "Receipt", confidence: 0.97 },
@@ -186,6 +255,7 @@ const UploadPage = () => {
           { name: "Printed text", confidence: 0.95 }
         );
         break;
+      
       case 'invitation':
         objects.push(
           { name: "Document", confidence: 0.92 },
@@ -193,6 +263,7 @@ const UploadPage = () => {
           { name: "Text", confidence: 0.96 }
         );
         break;
+      
       case 'document':
         objects.push(
           { name: "Document", confidence: 0.98 },
@@ -200,9 +271,10 @@ const UploadPage = () => {
           { name: "Text", confidence: 0.97 }
         );
         break;
+      
       default:
         objects.push(
-          { name: "Document", confidence: 0.82 },
+          { name: "Image", confidence: 0.92 },
           { name: "Object", confidence: 0.78 }
         );
     }
@@ -213,9 +285,7 @@ const UploadPage = () => {
   const handleSaveItem = (formData: any, originalItem: RecognizedItem) => {
     setIsSaving(true);
     
-    // Simulate saving process
     setTimeout(() => {
-      // Show appropriate message based on where it's being saved
       let savedLocation = "";
       if (formData.addToShoppingList) savedLocation = "Shopping List";
       else if (formData.addToCalendar) savedLocation = "Calendar";
@@ -223,7 +293,6 @@ const UploadPage = () => {
       else if (formData.saveToDocuments) savedLocation = "Documents";
       else savedLocation = "your collection";
       
-      // Show success message
       toast({
         title: "Item Saved Successfully",
         description: `"${formData.title}" has been saved to ${savedLocation}.`,
@@ -232,7 +301,6 @@ const UploadPage = () => {
       
       setIsSaving(false);
       
-      // Navigate based on user selection
       navigateBasedOnFormData(formData);
     }, 1000);
   };
@@ -247,7 +315,6 @@ const UploadPage = () => {
     } else if (formData.saveToDocuments) {
       navigate('/documents');
     } else {
-      // Default navigation based on item type
       switch (formData.itemType) {
         case 'invitation':
           navigate('/calendar');
@@ -262,7 +329,6 @@ const UploadPage = () => {
           navigate('/documents');
           break;
         default:
-          // Reset the page for another upload
           setUploadedImage(null);
           setRecognizedItem(null);
           break;
@@ -278,9 +344,15 @@ const UploadPage = () => {
     setUploadedImage(null);
     setRecognizedItem(null);
     setProcessing(false);
+    setCategoryConfirmed(false);
+    setCurrentTab('category');
+  };
+  
+  const handleChangeCategory = () => {
+    setCategoryConfirmed(false);
+    setCurrentTab('category');
   };
 
-  // TypeScript definition for the types array - needed for the mock functions
   const types = ['invitation', 'receipt', 'product', 'document', 'unknown'] as const;
 
   return (
@@ -337,7 +409,9 @@ const UploadPage = () => {
             {processing && (
               <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-4">
                 <Loader2 className="h-10 w-10 text-white animate-spin mb-4" />
-                <p className="text-white mb-2">Analyzing image...</p>
+                <p className="text-white mb-2">
+                  {categoryConfirmed ? "Analyzing details..." : "Identifying image..."}
+                </p>
                 <div className="w-full max-w-xs">
                   <Progress value={progressValue} className="h-2 bg-gray-700" />
                 </div>
@@ -349,17 +423,46 @@ const UploadPage = () => {
             <div className="flex flex-col items-center justify-center p-6">
               <Loader2 className="h-8 w-8 text-todo-purple animate-spin mb-2" />
               <p className="text-center text-muted-foreground">
-                Analyzing image with AI...
+                {categoryConfirmed ? "Analyzing details with AI..." : "Identifying image type..."}
               </p>
+            </div>
+          ) : uploadedImage && !categoryConfirmed ? (
+            <div className="space-y-3">
+              <CategorySelection
+                suggestedCategory={suggestedCategory}
+                selectedCategory={selectedCategory}
+                aiConfidence={aiConfidence}
+                onSelectCategory={setSelectedCategory}
+                onConfirm={confirmCategory}
+              />
             </div>
           ) : recognizedItem ? (
             <div className="space-y-3">
-              <DataRecognition
-                recognizedItem={recognizedItem}
-                isProcessing={isSaving}
-                onSave={handleSaveItem}
-                onCancel={resetUpload}
-              />
+              <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as 'category' | 'details')}>
+                <TabsList className="grid grid-cols-2 w-full">
+                  <TabsTrigger value="category" onClick={handleChangeCategory}>Category</TabsTrigger>
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="category" className="pt-4">
+                  <CategorySelection
+                    suggestedCategory={suggestedCategory}
+                    selectedCategory={selectedCategory}
+                    aiConfidence={aiConfidence}
+                    onSelectCategory={setSelectedCategory}
+                    onConfirm={confirmCategory}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="details" className="pt-4">
+                  <DataRecognition
+                    recognizedItem={recognizedItem}
+                    isProcessing={isSaving}
+                    onSave={handleSaveItem}
+                    onCancel={resetUpload}
+                  />
+                </TabsContent>
+              </Tabs>
             </div>
           ) : null}
         </div>

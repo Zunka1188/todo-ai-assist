@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, Receipt, List, FileText, Check, Edit, ArrowRight, Loader2 } from 'lucide-react';
+import { Calendar, Receipt, List, FileText, Image as ImageIcon, Check, Edit, ArrowRight, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -72,7 +72,7 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
     if (!recognizedItem || recognizedItem.confidence >= 0.8) return null;
     
     return (
-      <div className="text-sm text-amber-600 font-normal mt-1 bg-amber-50 p-2 rounded-md">
+      <div className="text-sm text-amber-600 font-normal mt-1 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-md">
         <p>AI confidence is low. Please review the detected information.</p>
       </div>
     );
@@ -89,7 +89,7 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
       case 'document':
         return <FileText className="h-5 w-5 text-amber-600" />;
       default:
-        return <FileText className="h-5 w-5 text-gray-600" />;
+        return <ImageIcon className="h-5 w-5 text-gray-600" />;
     }
   };
 
@@ -153,10 +153,10 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
           <div className={cn(
             "mr-3 p-2 rounded-full",
             currentItemType === 'invitation' && "bg-todo-purple/10",
-            currentItemType === 'receipt' && "bg-green-100",
-            currentItemType === 'product' && "bg-blue-100",
-            currentItemType === 'document' && "bg-amber-100",
-            currentItemType === 'unknown' && "bg-gray-100",
+            currentItemType === 'receipt' && "bg-green-100 dark:bg-green-900/30",
+            currentItemType === 'product' && "bg-blue-100 dark:bg-blue-900/30",
+            currentItemType === 'document' && "bg-amber-100 dark:bg-amber-900/30",
+            currentItemType === 'unknown' && "bg-gray-100 dark:bg-gray-700",
           )}>
             {getCategoryIcon(currentItemType)}
           </div>
