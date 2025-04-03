@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, addDays, subDays, isSameDay, isToday } from 'date-fns';
@@ -277,7 +278,7 @@ const DayView: React.FC<DayViewProps> = ({
       {hiddenEvents.length > 0 && (
         <Alert variant="destructive" className="py-2 bg-white border border-red-400 dark:bg-white dark:text-foreground">
           <AlertDescription className="text-sm">
-            Warning: {hiddenEvents.length} event{hiddenEvents.length === 1 ? '' : 's'} {hiddenEvents.length === 1 ? 'is' : 'are'} hidden with the current time range.
+            Warning: {hiddenEvents.length} {hiddenEvents.length === 1 ? 'event is' : 'events are'} hidden with the current time range.
           </AlertDescription>
         </Alert>
       )}
