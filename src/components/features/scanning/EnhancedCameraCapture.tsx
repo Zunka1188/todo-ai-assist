@@ -557,7 +557,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
                 ? "Review & Save" 
                 : "Smart Scan"
             : preferredScanMode 
-              ? `${preferredScanMode.charAt(0).toUpperCase() + preferredScanMode.slice(1)} Scanner` 
+              ? (preferredScanMode.charAt(0).toUpperCase() + preferredScanMode.slice(1)) + " Scanner"
               : "Smart Scanner"
           }
         </h2>
@@ -706,16 +706,18 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         </div>
       )}
 
-      <style jsx>{`
-        @keyframes scan {
-          0% { top: 0; }
-          50% { top: calc(100% - 4px); }
-          100% { top: 0; }
-        }
-        .animate-scan {
-          animation: scan 3s infinite ease-in-out;
-        }
-      `}</style>
+      <style>
+        {`
+          @keyframes scan {
+            0% { top: 0; }
+            50% { top: calc(100% - 4px); }
+            100% { top: 0; }
+          }
+          .animate-scan {
+            animation: scan 3s infinite ease-in-out;
+          }
+        `}
+      </style>
     </div>
   );
 };
