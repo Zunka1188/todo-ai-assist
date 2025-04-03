@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, ShoppingCart, Calendar, Camera, FileText, CheckSquare, Settings } from 'lucide-react';
+import { Home, ShoppingCart, Calendar, Camera, Settings } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const BottomNavigation = () => {
@@ -16,8 +16,6 @@ const BottomNavigation = () => {
     { path: '/shopping', icon: ShoppingCart, label: 'Shopping' },
     { path: '/calendar', icon: Calendar, label: 'Calendar' },
     { path: '/scan', icon: Camera, label: 'Scan' },
-    { path: '/documents', icon: FileText, label: 'Documents' },
-    { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 
