@@ -48,7 +48,7 @@ const TaskWidget = () => {
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="flex items-center space-x-2">
           <CheckSquare className="h-5 w-5 text-todo-purple" />
-          <h3 className="font-medium text-todo-black">Tasks</h3>
+          <h3 className="font-medium">Tasks</h3>
         </div>
         <Link to="/tasks" className="text-sm text-todo-purple flex items-center">
           View all <ChevronRight className="h-4 w-4 ml-1" />
@@ -60,14 +60,14 @@ const TaskWidget = () => {
             <div 
               key={task.id} 
               className={cn(
-                "flex items-center p-2 border rounded-md bg-white",
+                "flex items-center p-2 rounded-md bg-white dark:bg-gray-700 border dark:border-gray-600",
                 task.completed && "opacity-60"
               )}
             >
               <button 
                 className={cn(
                   "w-5 h-5 rounded-md border mr-3 flex-shrink-0",
-                  task.completed ? "bg-todo-purple border-todo-purple" : "border-gray-300",
+                  task.completed ? "bg-todo-purple border-todo-purple" : "border-gray-300 dark:border-gray-500",
                   {
                     "border-red-400": !task.completed && task.priority === 'high',
                     "border-yellow-400": !task.completed && task.priority === 'medium',
@@ -81,7 +81,7 @@ const TaskWidget = () => {
                 )}
               </button>
               <span className={cn(
-                "text-sm",
+                "text-sm dark:text-gray-100",
                 task.completed && "line-through text-muted-foreground"
               )}>
                 {task.title}

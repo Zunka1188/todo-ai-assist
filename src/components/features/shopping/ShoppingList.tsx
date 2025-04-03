@@ -110,7 +110,7 @@ const ShoppingList: React.FC = () => {
         <select
           value={newItemCategory}
           onChange={(e) => setNewItemCategory(e.target.value)}
-          className="rounded-md border border-input bg-background px-3"
+          className="rounded-md border border-input bg-background px-3 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
         >
           {categories.map((category) => (
             <option key={category} value={category}>
@@ -118,7 +118,7 @@ const ShoppingList: React.FC = () => {
             </option>
           ))}
         </select>
-        <Button onClick={addItem} className="bg-todo-purple hover:bg-todo-purple-dark">
+        <Button onClick={addItem} className="bg-todo-purple hover:bg-todo-purple-dark text-white">
           <Plus size={18} />
         </Button>
       </div>
@@ -131,7 +131,7 @@ const ShoppingList: React.FC = () => {
               "flex items-center justify-between p-3 rounded-lg border transition-colors",
               item.completed 
                 ? "bg-muted border-muted" 
-                : "bg-card border-border"
+                : "bg-card border-border dark:bg-gray-800 dark:border-gray-700"
             )}
           >
             <div className="flex items-center space-x-3">
@@ -141,19 +141,20 @@ const ShoppingList: React.FC = () => {
                   "flex items-center justify-center w-6 h-6 rounded-full border",
                   item.completed 
                     ? "bg-todo-purple border-todo-purple text-white" 
-                    : "border-gray-300"
+                    : "border-gray-300 dark:border-gray-500"
                 )}
               >
                 {item.completed && <Check size={14} />}
               </button>
               <span className={cn(
+                "dark:text-white",
                 item.completed && "line-through text-muted-foreground"
               )}>
                 {item.name}
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground">
+              <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-100">
                 {item.category}
               </span>
               <button

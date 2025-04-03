@@ -68,7 +68,7 @@ const TasksPage = () => {
           <div 
             key={task.id} 
             className={cn(
-              "flex items-center justify-between p-3 border rounded-lg bg-white",
+              "flex items-center justify-between p-3 border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-700",
               task.completed && "opacity-60"
             )}
           >
@@ -76,7 +76,7 @@ const TasksPage = () => {
               <button 
                 className={cn(
                   "w-5 h-5 rounded-md border mr-3 flex-shrink-0",
-                  task.completed ? "bg-todo-purple border-todo-purple" : "border-gray-300",
+                  task.completed ? "bg-todo-purple border-todo-purple" : "border-gray-300 dark:border-gray-500",
                   {
                     "border-red-400": !task.completed && task.priority === 'high',
                     "border-yellow-400": !task.completed && task.priority === 'medium',
@@ -91,7 +91,7 @@ const TasksPage = () => {
               </button>
               <div>
                 <span className={cn(
-                  "text-sm font-medium",
+                  "text-sm font-medium dark:text-white",
                   task.completed && "line-through text-muted-foreground"
                 )}>
                   {task.title}
@@ -111,7 +111,7 @@ const TasksPage = () => {
       </div>
       
       <Button 
-        className="w-full bg-todo-purple text-white"
+        className="w-full bg-todo-purple text-white hover:bg-todo-purple-dark"
       >
         <Plus className="h-4 w-4 mr-2" /> Add New Task
       </Button>

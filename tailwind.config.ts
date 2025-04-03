@@ -65,8 +65,8 @@ export default {
 				},
 				todo: {
 					purple: {
-						light: '#9b87f5',
-						DEFAULT: '#7E69AB',
+						light: '#b19dff', // Brightened for dark mode
+						DEFAULT: '#9b87f5',
 						dark: '#6E59A5',
 					},
 					black: '#1A1F2C',

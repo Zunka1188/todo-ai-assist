@@ -29,11 +29,11 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
       )}
     >
       <div className="flex items-start space-x-4">
-        <div className="bg-todo-purple bg-opacity-10 p-3 rounded-lg">
-          <Icon className="text-todo-purple" size={24} />
+        <div className="bg-todo-purple bg-opacity-10 dark:bg-opacity-20 p-3 rounded-lg">
+          <Icon className="text-todo-purple dark:text-todo-purple-light" size={24} />
         </div>
         <div className="space-y-1">
-          <h3 className="font-medium text-todo-black">{title}</h3>
+          <h3 className="font-medium dark:text-white">{title}</h3>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
       </div>

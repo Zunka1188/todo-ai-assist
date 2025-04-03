@@ -47,7 +47,7 @@ const Index = () => {
     <div className="space-y-6 py-4">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-foreground dark:text-foreground">ToDo</h1>
+        <h1 className="text-3xl font-bold">ToDo</h1>
         <p className="text-muted-foreground">Your All-in-One AI-Powered Assistant</p>
       </div>
 
@@ -64,7 +64,7 @@ const Index = () => {
         <AppHeader 
           title="Widgets" 
           subtitle="Quick access to your information"
-          className="text-foreground dark:text-foreground"
+          className="text-primary font-semibold"
         />
         
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
@@ -79,7 +79,7 @@ const Index = () => {
         <AppHeader 
           title="Features" 
           subtitle="Organize your life with AI-powered tools"
-          className="text-foreground dark:text-foreground"
+          className="text-primary font-semibold"
         />
         
         <div className="dashboard-grid">
@@ -96,7 +96,7 @@ const Index = () => {
       </div>
 
       {/* Quick info */}
-      <div className="bg-todo-purple/5 dark:bg-todo-purple/10 p-6 rounded-xl border border-todo-purple/10 dark:border-todo-purple/20">
+      <div className="bg-todo-purple/5 dark:bg-todo-purple/20 p-6 rounded-xl border border-todo-purple/10 dark:border-todo-purple/30">
         <h3 className="font-medium text-todo-purple-dark dark:text-todo-purple-light mb-2">
           Your AI-Powered Assistant
         </h3>

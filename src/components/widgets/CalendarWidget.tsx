@@ -34,7 +34,7 @@ const CalendarWidget = () => {
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="flex items-center space-x-2">
           <CalendarIcon className="h-5 w-5 text-todo-purple" />
-          <h3 className="font-medium text-todo-black dark:text-white">Calendar</h3>
+          <h3 className="font-medium">Calendar</h3>
         </div>
         <Link to="/calendar" className="text-sm text-todo-purple flex items-center">
           View all <ChevronRight className="h-4 w-4 ml-1" />
@@ -47,7 +47,7 @@ const CalendarWidget = () => {
               mode="single"
               selected={date}
               onSelect={setDate}
-              className="rounded-md border w-full max-w-[250px] mx-auto"
+              className="rounded-md border w-full max-w-[250px] mx-auto bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
               classNames={{
                 months: "w-full",
                 month: "space-y-2",
@@ -59,17 +59,19 @@ const CalendarWidget = () => {
                 head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
                 row: "flex w-full mt-1",
                 cell: "h-8 w-8 text-center text-sm relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100"
+                day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100 dark:text-gray-100",
+                day_selected: "bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground",
+                day_today: "bg-accent text-accent-foreground dark:bg-accent dark:text-accent-foreground",
               }}
             />
           </div>
           <div>
-            <h4 className="text-sm font-medium mb-2 dark:text-white">Today's Events</h4>
+            <h4 className="text-sm font-medium mb-2">Today's Events</h4>
             {todayEvents.length > 0 ? (
               <div className="space-y-2">
                 {todayEvents.map(event => (
-                  <div key={event.id} className="p-2 border rounded-md bg-white dark:bg-gray-800 dark:border-gray-700">
-                    <p className="font-medium text-sm dark:text-white">{event.title}</p>
+                  <div key={event.id} className="p-2 rounded-md bg-white dark:bg-gray-700 border dark:border-gray-600">
+                    <p className="font-medium text-sm dark:text-gray-100">{event.title}</p>
                     <p className="text-xs text-muted-foreground">{event.time}</p>
                   </div>
                 ))}

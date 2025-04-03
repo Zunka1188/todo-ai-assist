@@ -57,7 +57,7 @@
     --popover: 260 15% 18%;
     --popover-foreground: 260 10% 95%;
 
-    --primary: 260 50% 55%;
+    --primary: 260 50% 65%; /* Brighter in dark mode */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 260 15% 25%;
@@ -74,7 +74,7 @@
 
     --border: 260 15% 25%;
     --input: 260 15% 25%;
-    --ring: 260 50% 55%;
+    --ring: 260 50% 65%; /* Brighter in dark mode */
   }
 }
 
@@ -89,12 +89,12 @@
   }
   
   .metallic-card {
-    @apply bg-white dark:bg-gray-800 bg-opacity-60 dark:bg-opacity-60 backdrop-blur-sm border border-white dark:border-gray-700 border-opacity-30 dark:border-opacity-30 shadow-lg;
+    @apply bg-white dark:bg-gray-800 bg-opacity-60 dark:bg-opacity-80 backdrop-blur-sm border border-white dark:border-gray-700 border-opacity-30 dark:border-opacity-30 shadow-lg;
     background-image: linear-gradient(to bottom right, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.3));
   }
   
   .dark .metallic-card {
-    background-image: linear-gradient(to bottom right, rgba(50, 50, 70, 0.7), rgba(30, 30, 40, 0.3));
+    background-image: linear-gradient(to bottom right, rgba(50, 50, 70, 0.8), rgba(30, 30, 40, 0.5));
   }
   
   .metallic-button {

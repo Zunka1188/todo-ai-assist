@@ -40,7 +40,7 @@ const SpendingWidget = () => {
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="flex items-center space-x-2">
           <Wallet className="h-5 w-5 text-todo-purple" />
-          <h3 className="font-medium text-todo-black">Spending</h3>
+          <h3 className="font-medium">Spending</h3>
         </div>
         <Link to="/spending" className="text-sm text-todo-purple flex items-center">
           View all <ChevronRight className="h-4 w-4 ml-1" />
@@ -50,7 +50,7 @@ const SpendingWidget = () => {
         <div className="grid grid-cols-2 gap-4 mb-3">
           <div>
             <p className="text-xs text-muted-foreground">This Month</p>
-            <h3 className="text-xl font-bold">${totalSpending}</h3>
+            <h3 className="text-xl font-bold dark:text-white">${totalSpending}</h3>
             <div className={cn(
               "text-xs flex items-center mt-1",
               isIncrease ? "text-red-500" : "text-green-500"
@@ -71,7 +71,7 @@ const SpendingWidget = () => {
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Highest Spending</p>
-            <h3 className="text-xl font-bold">Week 4</h3>
+            <h3 className="text-xl font-bold dark:text-white">Week 4</h3>
             <p className="text-xs text-muted-foreground mt-1">
               $320 in last week
             </p>
@@ -85,7 +85,7 @@ const SpendingWidget = () => {
                 label: "Spending",
                 theme: {
                   light: "#9b87f5",
-                  dark: "#9b87f5"
+                  dark: "#b19dff" // Brighter in dark mode for better visibility
                 }
               }
             }}
@@ -97,21 +97,23 @@ const SpendingWidget = () => {
                   tickLine={false}
                   axisLine={false}
                   fontSize={10}
+                  tick={{ fill: 'var(--foreground)' }}
                 />
                 <YAxis 
                   tickLine={false}
                   axisLine={false}
                   fontSize={10}
                   tickFormatter={(value) => `$${value}`}
+                  tick={{ fill: 'var(--foreground)' }}
                 />
                 <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       return (
-                        <div className="rounded-lg border bg-background p-2 shadow-sm">
+                        <div className="rounded-lg border bg-background p-2 shadow-sm dark:bg-gray-800 dark:border-gray-700">
                           <div className="grid grid-cols-2 gap-2">
                             <div className="flex flex-col">
-                              <span className="text-xs font-medium">
+                              <span className="text-xs font-medium dark:text-white">
                                 {payload[0].payload.name}
                               </span>
                               <span className="text-xs text-muted-foreground">
@@ -119,7 +121,7 @@ const SpendingWidget = () => {
                               </span>
                             </div>
                             <div className="flex items-center justify-end">
-                              <span className="font-bold text-xs">
+                              <span className="font-bold text-xs dark:text-white">
                                 ${payload[0].value}
                               </span>
                             </div>
