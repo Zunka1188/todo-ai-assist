@@ -14,7 +14,7 @@ const ShoppingPage = () => {
   };
 
   return (
-    <div className="space-y-6 py-4">
+    <div className="space-y-6 py-4 container px-4 mx-auto max-w-4xl">
       <div className="flex items-center mb-2">
         <Button 
           variant="ghost" 
