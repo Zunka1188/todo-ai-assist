@@ -14,7 +14,9 @@ import {
   ChevronRight,
   Trash2,
   Edit,
-  MoreVertical
+  MoreVertical,
+  Image,
+  Upload
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,6 +62,7 @@ interface ShoppingItem {
   dateToPurchase?: string;
   price?: string;
   dateAdded: Date;
+  imageUrl?: string;
 }
 
 type SortOption = 'nameAsc' | 'nameDesc' | 'dateAsc' | 'dateDesc' | 'priceAsc' | 'priceDesc' | 'newest' | 'oldest';
@@ -139,9 +142,21 @@ const ShoppingList: React.FC = () => {
   const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
   const [categoryToEdit, setCategoryToEdit] = useState('');
   const [editedCategoryName, setEditedCategoryName] = useState('');
+  const [isEditItemDialogOpen, setIsEditItemDialogOpen] = useState(false);
+  const [itemToEdit, setItemToEdit] = useState<ShoppingItem | null>(null);
+  const [editItemName, setEditItemName] = useState('');
+  const [editItemCategory, setEditItemCategory] = useState('');
+  const [editItemAmount, setEditItemAmount] = useState('');
+  const [editItemDate, setEditItemDate] = useState('');
+  const [editItemPrice, setEditItemPrice] = useState('');
+  const [editItemImage, setEditItemImage] = useState<File | null>(null);
+  const [editItemImageUrl, setEditItemImageUrl] = useState('');
+  const [newItemImage, setNewItemImage] = useState<File | null>(null);
   const { isMobile } = useIsMobile();
   const carouselRef = useRef(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const newItemFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     saveToLocalStorage('shoppingItems', items);
@@ -151,39 +166,152 @@ const ShoppingList: React.FC = () => {
     saveToLocalStorage('shoppingCategories', categories);
   }, [categories]);
 
+  const handleEditItem = (item: ShoppingItem) => {
+    setItemToEdit(item);
+    setEditItemName(item.name);
+    setEditItemCategory(item.category);
+    setEditItemAmount(item.amount || '');
+    setEditItemDate(item.dateToPurchase || '');
+    setEditItemPrice(item.price || '');
+    setEditItemImageUrl(item.imageUrl || '');
+    setIsEditItemDialogOpen(true);
+  };
+
+  const saveEditedItem = () => {
+    if (!itemToEdit || editItemName.trim() === '') return;
+
+    let imageUrl = editItemImageUrl;
+
+    // If a new image was uploaded and we have a file reader
+    if (editItemImage) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          const newImageUrl = e.target.result as string;
+          
+          // Update the item with the new image URL
+          const updatedItems = items.map(item => 
+            item.id === itemToEdit.id 
+              ? { 
+                  ...item, 
+                  name: editItemName,
+                  category: editItemCategory,
+                  amount: editItemAmount || undefined,
+                  dateToPurchase: editItemDate || undefined,
+                  price: editItemPrice || undefined,
+                  imageUrl: newImageUrl
+                } 
+              : item
+          );
+          
+          setItems(updatedItems);
+          setIsEditItemDialogOpen(false);
+          
+          toast({
+            description: `Updated "${editItemName}"`,
+          });
+        }
+      };
+      reader.readAsDataURL(editItemImage);
+    } else {
+      // Update without changing the image
+      const updatedItems = items.map(item => 
+        item.id === itemToEdit.id 
+          ? { 
+              ...item, 
+              name: editItemName,
+              category: editItemCategory,
+              amount: editItemAmount || undefined,
+              dateToPurchase: editItemDate || undefined,
+              price: editItemPrice || undefined,
+              imageUrl: imageUrl
+            } 
+          : item
+      );
+      
+      setItems(updatedItems);
+      setIsEditItemDialogOpen(false);
+      
+      toast({
+        description: `Updated "${editItemName}"`,
+      });
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, isNew: boolean = false) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      
+      if (isNew) {
+        setNewItemImage(file);
+      } else {
+        setEditItemImage(file);
+        // Create a preview URL
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            setEditItemImageUrl(event.target.result as string);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
+
   const addItem = () => {
     if (newItemName.trim() === '') return;
     
-    const newItem: ShoppingItem = {
-      id: Date.now().toString(),
-      name: newItemName,
-      completed: false,
-      category: newItemCategory,
-      amount: newItemAmount || undefined,
-      dateToPurchase: newItemDate || undefined,
-      price: newItemPrice || undefined,
-      dateAdded: new Date(),
-    };
-    
-    setItems([...items, newItem]);
-    setNewItemName('');
-    setNewItemAmount('');
-    setNewItemDate('');
-    setNewItemPrice('');
-    
-    if (!showDetailedEntry) {
-      setShowDetailedEntry(false);
-    }
-
-    toast({
-      description: `Added ${newItem.name} to ${newItem.category}`,
-    });
-
-    setTimeout(() => {
-      if (scrollAreaRef.current) {
-        scrollAreaRef.current.scrollTop = 0;
+    const createNewItem = (imageUrl?: string) => {
+      const newItem: ShoppingItem = {
+        id: Date.now().toString(),
+        name: newItemName,
+        completed: false,
+        category: newItemCategory,
+        amount: newItemAmount || undefined,
+        dateToPurchase: newItemDate || undefined,
+        price: newItemPrice || undefined,
+        imageUrl: imageUrl,
+        dateAdded: new Date(),
+      };
+      
+      setItems([...items, newItem]);
+      setNewItemName('');
+      setNewItemAmount('');
+      setNewItemDate('');
+      setNewItemPrice('');
+      setNewItemImage(null);
+      
+      if (newItemFileInputRef.current) {
+        newItemFileInputRef.current.value = '';
       }
-    }, 100);
+      
+      if (!showDetailedEntry) {
+        setShowDetailedEntry(false);
+      }
+
+      toast({
+        description: `Added ${newItem.name} to ${newItem.category}`,
+      });
+
+      setTimeout(() => {
+        if (scrollAreaRef.current) {
+          scrollAreaRef.current.scrollTop = 0;
+        }
+      }, 100);
+    };
+
+    // If we have an image, process it first
+    if (newItemImage) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          createNewItem(e.target.result as string);
+        }
+      };
+      reader.readAsDataURL(newItemImage);
+    } else {
+      createNewItem();
+    }
   };
 
   const toggleItem = (id: string) => {
@@ -330,12 +458,6 @@ const ShoppingList: React.FC = () => {
     });
   };
   
-  const filteredItems = getFilteredItems();
-  const notPurchasedItems = getSortedItems(filteredItems.filter(item => !item.completed));
-  const purchasedItems = getSortedItems(filteredItems.filter(item => item.completed));
-  
-  const allCategories = ['All', ...categories];
-
   const togglePurchasedSection = () => {
     setIsPurchasedSectionCollapsed(!isPurchasedSectionCollapsed);
   };
@@ -375,6 +497,12 @@ const ShoppingList: React.FC = () => {
       description: `Updated category from "${categoryToEdit}" to "${editedCategoryName}"`,
     });
   };
+
+  const filteredItems = getFilteredItems();
+  const notPurchasedItems = getSortedItems(filteredItems.filter(item => !item.completed));
+  const purchasedItems = getSortedItems(filteredItems.filter(item => item.completed));
+  
+  const allCategories = ['All', ...categories];
 
   return (
     <div className="space-y-4">
@@ -520,6 +648,33 @@ const ShoppingList: React.FC = () => {
                         className="col-span-3 h-6 text-xs"
                       />
                     </div>
+                    <div className="grid grid-cols-4 items-center gap-2">
+                      <label className="text-xs col-span-1">Image</label>
+                      <div className="col-span-3 flex items-center">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          ref={newItemFileInputRef}
+                          onChange={(e) => handleFileChange(e, true)}
+                          className="hidden"
+                          id="new-item-image"
+                        />
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-6 w-full text-xs flex justify-center"
+                          onClick={() => newItemFileInputRef.current?.click()}
+                        >
+                          <Image size={12} className="mr-1" />
+                          {newItemImage ? 'Change Image' : 'Add Image'}
+                        </Button>
+                      </div>
+                    </div>
+                    {newItemImage && (
+                      <div className="text-[10px] text-center text-muted-foreground">
+                        Image selected: {newItemImage.name}
+                      </div>
+                    )}
                     <Button 
                       size="sm" 
                       onClick={addItem} 
@@ -623,64 +778,89 @@ const ShoppingList: React.FC = () => {
                     exit={{ opacity: 0, y: 10 }}
                     transition={{ duration: 0.2 }}
                     className={cn(
-                      "flex items-center justify-between p-1 rounded-lg border transition-colors",
+                      "flex flex-col p-1 rounded-lg border transition-colors",
                       "bg-green-50 border-green-100 dark:bg-green-900/20 dark:border-green-800/50"
                     )}
                   >
-                    <div className="flex items-center space-x-1.5">
-                      {isMultiSelectActive ? (
-                        <Checkbox
-                          checked={selectedItems.includes(item.id)}
-                          onCheckedChange={() => handleItemSelect(item.id)}
-                          className="h-3 w-3"
-                        />
-                      ) : (
-                        <button
-                          onClick={() => toggleItem(item.id)}
-                          className={cn(
-                            "flex items-center justify-center w-3 h-3 rounded-full border",
-                            "border-green-300 dark:border-green-700"
-                          )}
-                        >
-                          {item.completed && <Check size={8} />}
-                        </button>
-                      )}
-                      
-                      <div className="flex flex-col">
-                        <span className="text-[11px] dark:text-white">
-                          {item.name}
-                        </span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-1.5">
+                        {isMultiSelectActive ? (
+                          <Checkbox
+                            checked={selectedItems.includes(item.id)}
+                            onCheckedChange={() => handleItemSelect(item.id)}
+                            className="h-3 w-3"
+                          />
+                        ) : (
+                          <button
+                            onClick={() => toggleItem(item.id)}
+                            className={cn(
+                              "flex items-center justify-center w-3 h-3 rounded-full border",
+                              "border-green-300 dark:border-green-700"
+                            )}
+                          >
+                            {item.completed && <Check size={8} />}
+                          </button>
+                        )}
                         
-                        <div className="flex flex-wrap items-center text-[8px] text-muted-foreground mt-0.5 gap-1">
-                          {item.amount && (
-                            <span className="text-[8px]">Qty: {item.amount}</span>
-                          )}
+                        <div className="flex flex-col">
+                          <span className="text-[11px] dark:text-white">
+                            {item.name}
+                          </span>
                           
-                          {item.price && (
-                            <span className="text-[8px]">Price: ${item.price}</span>
-                          )}
-                          
-                          {item.dateToPurchase && (
-                            <span className="flex items-center text-[8px]">
-                              <Calendar size={7} className="mr-0.5" /> 
-                              {new Date(item.dateToPurchase).toLocaleDateString()}
-                            </span>
-                          )}
+                          <div className="flex flex-wrap items-center text-[8px] text-muted-foreground mt-0.5 gap-1">
+                            {item.amount && (
+                              <span className="text-[8px]">Qty: {item.amount}</span>
+                            )}
+                            
+                            {item.price && (
+                              <span className="text-[8px]">Price: ${item.price}</span>
+                            )}
+                            
+                            {item.dateToPurchase && (
+                              <span className="flex items-center text-[8px]">
+                                <Calendar size={7} className="mr-0.5" /> 
+                                {new Date(item.dateToPurchase).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
+                      <div className="flex items-center space-x-1">
+                        <span className="text-[8px] px-1 py-0.5 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-100">
+                          {item.category}
+                        </span>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-5 w-5 p-0"
+                            >
+                              <MoreVertical size={10} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-32">
+                            <DropdownMenuItem onClick={() => handleEditItem(item)} className="cursor-pointer">
+                              <Edit size={12} className="mr-1" />
+                              <span className="text-[10px]">Edit</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => removeItem(item.id)} className="cursor-pointer text-red-500">
+                              <Trash2 size={12} className="mr-1" />
+                              <span className="text-[10px]">Delete</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <span className="text-[8px] px-1 py-0.5 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-100">
-                        {item.category}
-                      </span>
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        className="text-gray-400 hover:text-red-500 transition-colors"
-                        aria-label={`Remove ${item.name}`}
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
+                    {item.imageUrl && (
+                      <div className="mt-1 flex justify-center">
+                        <img 
+                          src={item.imageUrl} 
+                          alt={item.name} 
+                          className="max-h-24 rounded-md object-contain"
+                        />
+                      </div>
+                    )}
                   </motion.li>
                 ))}
               </ul>
@@ -710,164 +890,4 @@ const ShoppingList: React.FC = () => {
           <AnimatePresence>
             {!isPurchasedSectionCollapsed && (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                {purchasedItems.length === 0 ? (
-                  <div className="text-center py-3 text-muted-foreground text-[10px]">
-                    No purchased items yet.
-                  </div>
-                ) : (
-                  <ul className="space-y-1">
-                    {purchasedItems.map((item) => (
-                      <motion.li 
-                        key={`purchased-${item.id}`}
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.2 }}
-                        className={cn(
-                          "flex items-center justify-between p-1 rounded-lg border transition-colors cursor-pointer",
-                          "bg-gray-100 border-gray-200 dark:bg-gray-800/50 dark:border-gray-700/50"
-                        )}
-                        onClick={() => isMultiSelectActive ? null : toggleItem(item.id)}
-                      >
-                        <div className="flex items-center space-x-1.5">
-                          {isMultiSelectActive ? (
-                            <Checkbox
-                              checked={selectedItems.includes(item.id)}
-                              onCheckedChange={() => handleItemSelect(item.id)}
-                              className="h-3 w-3"
-                            />
-                          ) : (
-                            <div
-                              className={cn(
-                                "flex items-center justify-center w-3 h-3 rounded-full border",
-                                "bg-gray-300 border-gray-300 text-white dark:bg-gray-500 dark:border-gray-500"
-                              )}
-                            >
-                              <Check size={8} />
-                            </div>
-                          )}
-                          
-                          <div className="flex flex-col">
-                            <span className="text-[11px] line-through text-muted-foreground">
-                              {item.name}
-                            </span>
-                            
-                            <div className="flex flex-wrap items-center text-[8px] text-muted-foreground mt-0.5 gap-1">
-                              {item.amount && (
-                                <span className="text-[8px]">Qty: {item.amount}</span>
-                              )}
-                              
-                              {item.price && (
-                                <span className="text-[8px]">Price: ${item.price}</span>
-                              )}
-                              
-                              {item.dateToPurchase && (
-                                <span className="flex items-center text-[8px]">
-                                  <Calendar size={7} className="mr-0.5" /> 
-                                  {new Date(item.dateToPurchase).toLocaleDateString()}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                          <span className="text-[8px] px-1 py-0.5 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-200">
-                            {item.category}
-                          </span>
-                          <button
-                            onClick={() => removeItem(item.id)}
-                            className="text-gray-400 hover:text-red-500 transition-colors"
-                            aria-label={`Remove ${item.name}`}
-                          >
-                            <X size={10} />
-                          </button>
-                        </div>
-                      </motion.li>
-                    ))}
-                  </ul>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </ScrollArea>
-
-      <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Category</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <Input
-              placeholder="Category name"
-              value={newCategory}
-              onChange={(e) => setNewCategory(e.target.value)}
-              className="w-full"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') addCategory();
-              }}
-            />
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={addCategory}>Add Category</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isDeleteCategoryDialogOpen} onOpenChange={setIsDeleteCategoryDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Category</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm">
-              Are you sure you want to delete the category "{categoryToDelete}"? 
-              All items in this category will be moved to "Other".
-            </p>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button variant="destructive" onClick={confirmDeleteCategory}>Delete</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <Input
-              placeholder="Category name"
-              value={editedCategoryName}
-              onChange={(e) => setEditedCategoryName(e.target.value)}
-              className="w-full"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') confirmEditCategory();
-              }}
-            />
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={confirmEditCategory}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
-
-export default ShoppingList;
+                initial={{ height: 0, opacity:
