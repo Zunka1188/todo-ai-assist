@@ -17,7 +17,7 @@ const ShoppingPage = () => {
   };
 
   return (
-    <div className="space-y-3 py-1 sm:py-4 px-2 sm:px-6 md:px-8 container mx-auto max-w-4xl">
+    <div className="flex flex-col pb-12 sm:pb-0 py-1 sm:py-4 px-2 sm:px-6 md:px-8 container mx-auto max-w-4xl min-h-screen">
       <div className="flex items-center justify-between mb-1 md:mb-4">
         <div className="flex items-center">
           <Button 
@@ -37,7 +37,9 @@ const ShoppingPage = () => {
         </div>
         {!isMobile && <ThemeToggle />}
       </div>
-      <ShoppingList />
+      <div className="w-full flex-1">
+        <ShoppingList />
+      </div>
     </div>
   );
 };
