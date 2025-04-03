@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowLeft, CheckSquare, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import AppHeader from '@/components/layout/AppHeader';
+import { Input } from '@/components/ui/input';
 
 type Task = {
   id: number;
@@ -28,12 +29,49 @@ const TasksPage = () => {
     { id: 7, title: 'Clean garage', completed: true, priority: 'low', dueDate: '2025-04-02' },
   ]);
 
+  const [isAddingTask, setIsAddingTask] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+
   const toggleTaskStatus = (taskId: number) => {
     setTasks(
       tasks.map(task =>
         task.id === taskId ? { ...task, completed: !task.completed } : task
       )
     );
+  };
+
+  const deleteTask = (taskId: number) => {
+    setTasks(tasks.filter(task => task.id !== taskId));
+  };
+
+  const handleAddTask = () => {
+    if (!isAddingTask) {
+      setIsAddingTask(true);
+      return;
+    }
+    
+    if (newTaskTitle.trim()) {
+      const newId = Math.max(0, ...tasks.map(t => t.id)) + 1;
+      const today = new Date();
+      const formattedToday = today.toISOString().split('T')[0];
+      
+      const newTask: Task = {
+        id: newId,
+        title: newTaskTitle.trim(),
+        completed: false,
+        priority: 'medium', // Default priority
+        dueDate: formattedToday,
+      };
+      
+      setTasks([...tasks, newTask]);
+      setNewTaskTitle('');
+      setIsAddingTask(false);
+    }
+  };
+
+  const cancelAddTask = () => {
+    setNewTaskTitle('');
+    setIsAddingTask(false);
   };
 
   // Filter to show incomplete tasks first, then by priority
@@ -103,18 +141,59 @@ const TasksPage = () => {
                 )}
               </div>
             </div>
-            <Button variant="ghost" size="icon" className="text-muted-foreground h-8 w-8">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-muted-foreground h-8 w-8"
+              onClick={() => deleteTask(task.id)}
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         ))}
       </div>
       
-      <Button 
-        className="w-full bg-todo-purple text-white hover:bg-todo-purple-dark"
-      >
-        <Plus className="h-4 w-4 mr-2" /> Add New Task
-      </Button>
+      {isAddingTask ? (
+        <div className="space-y-2 p-3 border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-700">
+          <Input
+            type="text"
+            placeholder="New task..."
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            className="text-sm"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleAddTask();
+              if (e.key === 'Escape') cancelAddTask();
+            }}
+          />
+          <div className="flex gap-2">
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="flex-1 bg-todo-purple hover:bg-todo-purple/90"
+              onClick={handleAddTask}
+            >
+              Add
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="flex-1"
+              onClick={cancelAddTask}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button 
+          className="w-full bg-todo-purple text-white hover:bg-todo-purple-dark"
+          onClick={handleAddTask}
+        >
+          <Plus className="h-4 w-4 mr-2" /> Add New Task
+        </Button>
+      )}
     </div>
   );
 };

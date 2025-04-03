@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CheckSquare, ChevronRight, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { Input } from '@/components/ui/input';
 
 type Task = {
   id: number;
@@ -27,6 +28,9 @@ const TaskWidget = () => {
     { id: 4, title: 'Schedule meeting', completed: false, priority: 'medium', dueDate: format(new Date(today.getTime() + 24 * 60 * 60 * 1000), 'yyyy-MM-dd') },
     { id: 5, title: 'Pay bills', completed: false, priority: 'high', dueDate: format(new Date(today.getTime() - 24 * 60 * 60 * 1000), 'yyyy-MM-dd') },
   ]);
+  
+  const [isAddingTask, setIsAddingTask] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
 
   const toggleTaskStatus = (taskId: number) => {
     setTasks(
@@ -34,6 +38,33 @@ const TaskWidget = () => {
         task.id === taskId ? { ...task, completed: !task.completed } : task
       )
     );
+  };
+
+  const handleAddTask = () => {
+    if (!isAddingTask) {
+      setIsAddingTask(true);
+      return;
+    }
+    
+    if (newTaskTitle.trim()) {
+      const newId = Math.max(0, ...tasks.map(t => t.id)) + 1;
+      const newTask: Task = {
+        id: newId,
+        title: newTaskTitle.trim(),
+        completed: false,
+        priority: 'medium', // Default priority
+        dueDate: formattedToday,
+      };
+      
+      setTasks([...tasks, newTask]);
+      setNewTaskTitle('');
+      setIsAddingTask(false);
+    }
+  };
+
+  const cancelAddTask = () => {
+    setNewTaskTitle('');
+    setIsAddingTask(false);
   };
 
   // Filter to show only today's tasks, incomplete tasks first, then by priority
@@ -106,13 +137,49 @@ const TaskWidget = () => {
           </div>
         )}
         
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full mt-3 border-dashed border-todo-purple/30 text-todo-purple"
-        >
-          <Plus className="h-4 w-4 mr-1" /> Add Task
-        </Button>
+        {isAddingTask ? (
+          <div className="mt-3 space-y-2">
+            <Input
+              type="text"
+              placeholder="New task..."
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              className="text-sm"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAddTask();
+                if (e.key === 'Escape') cancelAddTask();
+              }}
+            />
+            <div className="flex gap-2">
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="flex-1 bg-todo-purple hover:bg-todo-purple/90"
+                onClick={handleAddTask}
+              >
+                Add
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex-1"
+                onClick={cancelAddTask}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full mt-3 border-dashed border-todo-purple/30 text-todo-purple"
+            onClick={handleAddTask}
+          >
+            <Plus className="h-4 w-4 mr-1" /> Add Task
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
