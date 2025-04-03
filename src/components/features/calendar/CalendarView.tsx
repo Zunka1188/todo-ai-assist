@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List, Image, Paperclip } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -51,14 +52,6 @@ import WeekView from './views/WeekView';
 import MonthView from './views/MonthView';
 import AgendaView from './views/AgendaView';
 
-type AttachmentType = {
-  id: string;
-  type: 'image' | 'document';
-  name: string;
-  url: string;
-  thumbnailUrl?: string;
-};
-
 interface Event {
   id: string;
   title: string;
@@ -76,7 +69,6 @@ interface Event {
     daysOfWeek?: number[];
   };
   reminder?: string;
-  attachments?: AttachmentType[];
 }
 
 const reminderOptions = [
@@ -128,15 +120,6 @@ const formSchema = z.object({
   recurringOccurrences: z.string().optional(),
   recurringDaysOfWeek: z.array(z.string()).optional(),
   reminder: z.string().default("30"),
-  attachments: z.array(
-    z.object({
-      id: z.string(),
-      type: z.enum(['image', 'document']),
-      name: z.string(),
-      url: z.string(),
-      thumbnailUrl: z.string().optional(),
-    })
-  ).default([]),
 });
 
 const initialEvents: Event[] = [
@@ -226,7 +209,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
   const [isEditMode, setIsEditMode] = useState(false);
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredEvents = events.filter(event => 
     searchTerm ? 
@@ -251,7 +233,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       recurringType: 'none',
       recurringDaysOfWeek: [],
       reminder: '30',
-      attachments: [],
     },
   });
 
@@ -277,7 +258,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
         recurringOccurrences: selectedEvent.recurring?.occurrences?.toString(),
         recurringDaysOfWeek: selectedEvent.recurring?.daysOfWeek?.map(day => day.toString()) || [],
         reminder: selectedEvent.reminder || '30',
-        attachments: selectedEvent.attachments || [],
       });
     }
   }, [selectedEvent, isEditMode, form]);
@@ -296,7 +276,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       recurringType: 'none',
       recurringDaysOfWeek: [],
       reminder: '30',
-      attachments: [],
     });
     setIsEditMode(false);
     setIsCreateDialogOpen(true);
@@ -319,59 +298,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       setIsViewDialogOpen(false);
       toast({
         title: "Event deleted",
-        description: `"${selectedEvent.title}" has been removed from your calendar."
+        description: `"${selectedEvent.title}" has been removed from your calendar.`
       });
       setSelectedEvent(null);
     }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    const currentAttachments = form.getValues("attachments") || [];
-    
-    const newAttachments: AttachmentType[] = Array.from(files).map((file) => {
-      const fileUrl = URL.createObjectURL(file);
-      const isImage = file.type.startsWith('image/');
-      
-      return {
-        id: `attachment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        type: isImage ? 'image' : 'document',
-        name: file.name,
-        url: fileUrl,
-        ...(isImage ? { thumbnailUrl: fileUrl } : {})
-      };
-    });
-    
-    form.setValue("attachments", [...currentAttachments, ...newAttachments]);
-    
-    e.target.value = '';
-    
-    toast({
-      title: "File attached",
-      description: "The file has been attached to this event."
-    });
-  };
-
-  const handleAttachments = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleRemoveAttachment = (attachmentId: string) => {
-    const currentAttachments = form.getValues("attachments") || [];
-    const updatedAttachments = currentAttachments.filter(
-      attachment => attachment.id !== attachmentId
-    );
-    
-    form.setValue("attachments", updatedAttachments);
-    
-    toast({
-      title: "Attachment removed",
-      description: "The attachment has been removed from this event."
-    });
   };
 
   const onCreateSubmit = (values: z.infer<typeof formSchema>) => {
@@ -407,7 +337,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
         color: values.color,
         recurring,
         reminder: values.reminder,
-        attachments: values.attachments,
       };
       
       if (selectedEvent && isEditMode) {
@@ -422,7 +351,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
         setEvents([...events, newEvent]);
         toast({
           title: "Event created",
-          description: `"${newEvent.title}" has been added to your calendar."
+          description: `"${newEvent.title}" has been added to your calendar.`
         });
       }
       
@@ -471,15 +400,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
             <div className="p-1">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onCreateSubmit)} className="space-y-4">
-                  <input 
-                    type="file" 
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    accept="*/*"
-                    style={{ display: 'none' }}
-                    multiple
-                  />
-                  
                   <FormField
                     control={form.control}
                     name="title"
@@ -785,69 +705,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                     )}
                   />
                   
-                  <div>
-                    <FormLabel className="flex items-center mb-2">
-                      <Paperclip className="h-4 w-4 mr-2 text-muted-foreground" />
-                      Attachments
-                    </FormLabel>
-                    
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAttachments}
-                        className="flex items-center min-h-[44px] min-w-[44px] touch-manipulation"
-                      >
-                        <Paperclip className="h-4 w-4 mr-2" />
-                        <span>Add Files</span>
-                      </Button>
-                    </div>
-                    
-                    <FormField
-                      control={form.control}
-                      name="attachments"
-                      render={({ field }) => (
-                        <>
-                          {field.value && field.value.length > 0 ? (
-                            <div className="space-y-2 max-h-40 overflow-y-auto p-2 border rounded-md">
-                              {field.value.map((attachment) => (
-                                <div 
-                                  key={attachment.id} 
-                                  className="flex items-center justify-between bg-muted/30 p-2 rounded"
-                                >
-                                  <div className="flex items-center space-x-2 truncate">
-                                    {attachment.type === 'image' ? (
-                                      <div className="h-8 w-8 rounded overflow-hidden flex-shrink-0">
-                                        <img 
-                                          src={attachment.thumbnailUrl || attachment.url} 
-                                          alt={attachment.name} 
-                                          className="h-full w-full object-cover"
-                                        />
-                                      </div>
-                                    ) : (
-                                      <FileText className="h-6 w-6 text-muted-foreground" />
-                                    )}
-                                    <span className="text-sm truncate max-w-[180px]">{attachment.name}</span>
-                                  </div>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 text-destructive"
-                                    onClick={() => handleRemoveAttachment(attachment.id)}
-                                  >
-                                    <Trash className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              ))}
-                            </div>
-                          ) : null}
-                        </>
-                      )}
-                    />
-                  </div>
-                  
                   <DialogFooter className="pt-4">
                     <Button 
                       type="button" 
@@ -957,41 +814,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                     <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div>
                       <p className="whitespace-pre-line">{selectedEvent.description}</p>
-                    </div>
-                  </div>
-                )}
-                
-                {selectedEvent.attachments && selectedEvent.attachments.length > 0 && (
-                  <div className="flex items-start gap-3">
-                    <Paperclip className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div className="space-y-2 flex-1">
-                      <p className="font-medium">Attachments ({selectedEvent.attachments.length})</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {selectedEvent.attachments.map((attachment) => (
-                          <a 
-                            key={attachment.id}
-                            href={attachment.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex flex-col border rounded-md p-2 hover:bg-muted/30 transition-colors"
-                          >
-                            {attachment.type === 'image' ? (
-                              <div className="h-24 w-full rounded overflow-hidden mb-2">
-                                <img 
-                                  src={attachment.thumbnailUrl || attachment.url} 
-                                  alt={attachment.name} 
-                                  className="h-full w-full object-cover"
-                                />
-                              </div>
-                            ) : (
-                              <div className="h-24 w-full rounded bg-muted/20 flex items-center justify-center mb-2">
-                                <FileText className="h-12 w-12 text-muted-foreground" />
-                              </div>
-                            )}
-                            <p className="text-xs truncate">{attachment.name}</p>
-                          </a>
-                        ))}
-                      </div>
                     </div>
                   </div>
                 )}
