@@ -331,7 +331,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
     
     const currentAttachments = form.getValues("attachments") || [];
     
-    const newAttachments = Array.from(files).map((file): AttachmentType => {
+    const newAttachments: AttachmentType[] = Array.from(files).map((file) => {
       const fileUrl = URL.createObjectURL(file);
       const isImage = file.type.startsWith('image/');
       
