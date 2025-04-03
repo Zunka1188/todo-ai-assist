@@ -50,12 +50,6 @@ import DayView from './views/DayView';
 import WeekView from './views/WeekView';
 import MonthView from './views/MonthView';
 import AgendaView from './views/AgendaView';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 type AttachmentType = {
   id: string;
@@ -543,6 +537,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                     ref={imageInputRef}
                     onChange={(e) => handleFileChange(e, 'image')}
                     accept="image/*"
+                    capture={isMobile ? "environment" : undefined}
                     style={{ display: 'none' }}
                     multiple
                   />
@@ -859,33 +854,27 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                     </FormLabel>
                     
                     <div className="flex flex-wrap gap-2 mb-3">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center"
-                          >
-                            <Paperclip className="h-4 w-4 mr-1" />
-                            Attachment
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="bg-background">
-                          <DropdownMenuItem onClick={handleAttachDocument}>
-                            <FileText className="h-4 w-4 mr-2" />
-                            <span>Document</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={handleAttachImage}>
-                            <Image className="h-4 w-4 mr-2" />
-                            <span>Image</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={handleTakePicture}>
-                            <Camera className="h-4 w-4 mr-2" />
-                            <span>Take Picture</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={isMobile ? handleTakePicture : handleAttachImage}
+                        className="flex items-center min-h-[44px] min-w-[44px] touch-manipulation"
+                      >
+                        <Camera className="h-4 w-4 mr-2" />
+                        <span>{isMobile ? "Take Photo" : "Add Images"}</span>
+                      </Button>
+                      
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAttachDocument}
+                        className="flex items-center min-h-[44px] min-w-[44px] touch-manipulation"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        <span>Add Files</span>
+                      </Button>
                     </div>
                     
                     <FormField
