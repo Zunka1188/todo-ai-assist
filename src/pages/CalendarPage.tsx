@@ -19,7 +19,7 @@ const CalendarPage = () => {
   };
 
   return (
-    <div className="space-y-4 py-4">
+    <div className="space-y-4 py-4 h-full flex flex-col">
       <div className="flex items-center mb-2">
         <Button 
           variant="ghost" 
@@ -68,10 +68,12 @@ const CalendarPage = () => {
 
       <Separator className="my-2" />
       
-      <CalendarView 
-        viewMode={viewMode} 
-        searchTerm={searchTerm}
-      />
+      <div className="flex-1 overflow-hidden">
+        <CalendarView 
+          viewMode={viewMode} 
+          searchTerm={searchTerm}
+        />
+      </div>
     </div>
   );
 };

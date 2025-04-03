@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -14,7 +13,8 @@ import {
   DialogTitle,
   DialogFooter,
   DialogTrigger,
-  DialogClose
+  DialogClose,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -45,6 +45,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import DayView from './views/DayView';
 import WeekView from './views/WeekView';
 import MonthView from './views/MonthView';
@@ -219,7 +220,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
 
-  // Filter events based on search term
   const filteredEvents = events.filter(event => 
     searchTerm ? 
       event.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -350,7 +350,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       };
       
       if (selectedEvent && isEditMode) {
-        // Update existing event
         setEvents(events.map(event => 
           event.id === selectedEvent.id ? newEvent : event
         ));
@@ -359,7 +358,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
           description: `Changes to "${newEvent.title}" have been saved.`,
         });
       } else {
-        // Create new event
         setEvents([...events, newEvent]);
         toast({
           title: "Event created",
@@ -382,19 +380,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
 
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   
-  // Function to determine if a day has events
   const isDayWithEvents = (day: Date) => {
     return filteredEvents.some(event => 
       isSameDay(event.startDate, day) || isSameDay(event.endDate, day)
     );
   };
 
-  // Function to get formatted time from date
   const getFormattedTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Function to get reminder label
   const getReminderLabel = (value: string) => {
     const option = reminderOptions.find(opt => opt.value === value);
     return option ? option.label : "No reminder";
@@ -402,341 +397,346 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
 
   return (
     <div className="space-y-4">
-      {/* Create/Edit Event Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-md md:max-w-lg">
           <DialogHeader>
             <DialogTitle>{isEditMode ? 'Edit Event' : 'Create New Event'}</DialogTitle>
+            <DialogDescription className="sr-only">
+              {isEditMode ? 'Edit your event details' : 'Fill in the details for your new event'}
+            </DialogDescription>
           </DialogHeader>
           
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onCreateSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title*</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter event title..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="startDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Start Date*</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
+          <ScrollArea className="max-h-[70vh]">
+            <div className="p-1">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onCreateSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title*</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter event title..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="startDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Start Date*</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                                className="pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="startTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Start Time</FormLabel>
                           <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
+                            <Input 
+                              type="time" 
+                              {...field} 
+                              disabled={form.watch('allDay')}
+                            />
                           </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                            className="pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="startTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start Time</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="time" 
-                          {...field} 
-                          disabled={form.watch('allDay')}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="endDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>End Date*</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="endDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>End Date*</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                                className="pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="endTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>End Time</FormLabel>
                           <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
+                            <Input 
+                              type="time" 
+                              {...field} 
+                              disabled={form.watch('allDay')}
+                            />
                           </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                            className="pointer-events-auto"
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="allDay"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
                           />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>All day event</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Enter event description..." 
+                            {...field} 
+                            className="resize-none h-20"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center">
+                          <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                          Location
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter location..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="color"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Event Color</FormLabel>
+                        <div className="flex flex-wrap gap-2">
+                          {colorOptions.map((color) => (
+                            <div 
+                              key={color.value}
+                              className={cn(
+                                "h-8 w-8 rounded-full cursor-pointer border-2",
+                                field.value === color.value ? "border-black dark:border-white" : "border-transparent"
+                              )}
+                              style={{ backgroundColor: color.value }}
+                              onClick={() => field.onChange(color.value)}
+                              title={color.label}
+                            />
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="recurringType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Recurrence</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select recurrence pattern" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {recurringOptions.map(option => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  {form.watch('recurringType') === 'weekly' && (
+                    <FormField
+                      control={form.control}
+                      name="recurringDaysOfWeek"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Repeat on</FormLabel>
+                          <div className="flex flex-wrap gap-2">
+                            {weekDays.map((day, index) => (
+                              <Button
+                                key={index}
+                                type="button"
+                                variant="outline"
+                                className={cn(
+                                  "h-8 w-8 p-0",
+                                  field.value?.includes(index.toString())
+                                    ? "bg-primary text-primary-foreground"
+                                    : ""
+                                )}
+                                onClick={() => {
+                                  const currentValue = field.value || [];
+                                  const dayStr = index.toString();
+                                  
+                                  if (currentValue.includes(dayStr)) {
+                                    field.onChange(currentValue.filter(d => d !== dayStr));
+                                  } else {
+                                    field.onChange([...currentValue, dayStr]);
+                                  }
+                                }}
+                              >
+                                {day[0]}
+                              </Button>
+                            ))}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="endTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>End Time</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="time" 
-                          {...field} 
-                          disabled={form.watch('allDay')}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <FormField
-                control={form.control}
-                name="allDay"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>All day event</FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Enter event description..." 
-                        {...field} 
-                        className="resize-none h-20"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                      Location
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter location..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="color"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Event Color</FormLabel>
-                    <div className="flex flex-wrap gap-2">
-                      {colorOptions.map((color) => (
-                        <div 
-                          key={color.value}
-                          className={cn(
-                            "h-8 w-8 rounded-full cursor-pointer border-2",
-                            field.value === color.value ? "border-black dark:border-white" : "border-transparent"
-                          )}
-                          style={{ backgroundColor: color.value }}
-                          onClick={() => field.onChange(color.value)}
-                          title={color.label}
-                        />
-                      ))}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="recurringType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Recurrence</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select recurrence pattern" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {recurringOptions.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {form.watch('recurringType') === 'weekly' && (
-                <FormField
-                  control={form.control}
-                  name="recurringDaysOfWeek"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Repeat on</FormLabel>
-                      <div className="flex flex-wrap gap-2">
-                        {weekDays.map((day, index) => (
-                          <Button
-                            key={index}
-                            type="button"
-                            variant="outline"
-                            className={cn(
-                              "h-8 w-8 p-0",
-                              field.value?.includes(index.toString())
-                                ? "bg-primary text-primary-foreground"
-                                : ""
-                            )}
-                            onClick={() => {
-                              const currentValue = field.value || [];
-                              const dayStr = index.toString();
-                              
-                              if (currentValue.includes(dayStr)) {
-                                field.onChange(currentValue.filter(d => d !== dayStr));
-                              } else {
-                                field.onChange([...currentValue, dayStr]);
-                              }
-                            }}
-                          >
-                            {day[0]}
-                          </Button>
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-              
-              <FormField
-                control={form.control}
-                name="reminder"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center">
-                      <Bell className="h-4 w-4 mr-2 text-muted-foreground" />
-                      Reminder
-                    </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a reminder time" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {reminderOptions.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => {
-                    setIsCreateDialogOpen(false);
-                    setIsEditMode(false);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" className="bg-todo-purple hover:bg-todo-purple/90">
-                  {isEditMode ? 'Save Changes' : 'Create Event'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
+                  
+                  <FormField
+                    control={form.control}
+                    name="reminder"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center">
+                          <Bell className="h-4 w-4 mr-2 text-muted-foreground" />
+                          Reminder
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a reminder time" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {reminderOptions.map(option => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <DialogFooter className="pt-4">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => {
+                        setIsCreateDialogOpen(false);
+                        setIsEditMode(false);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" className="bg-todo-purple hover:bg-todo-purple/90">
+                      {isEditMode ? 'Save Changes' : 'Create Event'}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
       
-      {/* View Event Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         {selectedEvent && (
           <DialogContent className="max-w-md">
@@ -749,6 +749,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                 <DialogTitle className="flex-1 text-left">
                   {selectedEvent.title}
                 </DialogTitle>
+                <DialogDescription className="sr-only">
+                  Event details for {selectedEvent.title}
+                </DialogDescription>
                 <div className="flex space-x-1">
                   <Button 
                     variant="outline" 
@@ -770,60 +773,62 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
               </div>
             </DialogHeader>
             
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="font-medium">
-                    {selectedEvent.allDay 
-                      ? 'All day' 
-                      : `${getFormattedTime(selectedEvent.startDate)} - ${getFormattedTime(selectedEvent.endDate)}`}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {format(selectedEvent.startDate, 'EEEE, MMMM d, yyyy')}
-                    {!isSameDay(selectedEvent.startDate, selectedEvent.endDate) && (
-                      <> - {format(selectedEvent.endDate, 'EEEE, MMMM d, yyyy')}</>
-                    )}
-                  </p>
-                  {selectedEvent.recurring && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      <span className="font-medium">Recurring: </span>
-                      {selectedEvent.recurring.frequency.charAt(0).toUpperCase() + selectedEvent.recurring.frequency.slice(1)}
-                      {selectedEvent.recurring.frequency === 'weekly' && selectedEvent.recurring.daysOfWeek && (
-                        <span> on {selectedEvent.recurring.daysOfWeek.map(day => weekDays[day]).join(', ')}</span>
+            <ScrollArea className="max-h-[70vh]">
+              <div className="space-y-4 p-1">
+                <div className="flex items-start gap-3">
+                  <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="font-medium">
+                      {selectedEvent.allDay 
+                        ? 'All day' 
+                        : `${getFormattedTime(selectedEvent.startDate)} - ${getFormattedTime(selectedEvent.endDate)}`}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {format(selectedEvent.startDate, 'EEEE, MMMM d, yyyy')}
+                      {!isSameDay(selectedEvent.startDate, selectedEvent.endDate) && (
+                        <> - {format(selectedEvent.endDate, 'EEEE, MMMM d, yyyy')}</>
                       )}
                     </p>
-                  )}
+                    {selectedEvent.recurring && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        <span className="font-medium">Recurring: </span>
+                        {selectedEvent.recurring.frequency.charAt(0).toUpperCase() + selectedEvent.recurring.frequency.slice(1)}
+                        {selectedEvent.recurring.frequency === 'weekly' && selectedEvent.recurring.daysOfWeek && (
+                          <span> on {selectedEvent.recurring.daysOfWeek.map(day => weekDays[day]).join(', ')}</span>
+                        )}
+                      </p>
+                    )}
+                  </div>
                 </div>
+                
+                {selectedEvent.location && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p>{selectedEvent.location}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedEvent.reminder && selectedEvent.reminder !== 'none' && (
+                  <div className="flex items-start gap-3">
+                    <Bell className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p>{getReminderLabel(selectedEvent.reminder)}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedEvent.description && (
+                  <div className="flex items-start gap-3">
+                    <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="whitespace-pre-line">{selectedEvent.description}</p>
+                    </div>
+                  </div>
+                )}
               </div>
-              
-              {selectedEvent.location && (
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p>{selectedEvent.location}</p>
-                  </div>
-                </div>
-              )}
-              
-              {selectedEvent.reminder && selectedEvent.reminder !== 'none' && (
-                <div className="flex items-start gap-3">
-                  <Bell className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p>{getReminderLabel(selectedEvent.reminder)}</p>
-                  </div>
-                </div>
-              )}
-              
-              {selectedEvent.description && (
-                <div className="flex items-start gap-3">
-                  <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="whitespace-pre-line">{selectedEvent.description}</p>
-                  </div>
-                </div>
-              )}
-            </div>
+            </ScrollArea>
             
             <DialogFooter>
               <DialogClose asChild>
@@ -834,7 +839,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
         )}
       </Dialog>
       
-      {/* Create Event Button */}
       <div className="flex justify-end mb-2">
         <Button 
           className="bg-todo-purple hover:bg-todo-purple/90"
@@ -844,7 +848,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
         </Button>
       </div>
       
-      {/* Display the appropriate view based on viewMode */}
       {viewMode === 'month' && (
         <MonthView 
           date={date} 
