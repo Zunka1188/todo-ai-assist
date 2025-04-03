@@ -1,11 +1,14 @@
 
 import React from 'react';
-import { Upload } from 'lucide-react';
+import { Upload, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import AppHeader from '@/components/layout/AppHeader';
 import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
 
 const UploadPage = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -32,12 +35,28 @@ const UploadPage = () => {
     e.preventDefault();
   };
 
+  const goBack = () => {
+    navigate('/');
+  };
+
   return (
     <div className="space-y-6 py-4">
-      <AppHeader 
-        title="Upload" 
-        subtitle="Import images for AI processing"
-      />
+      <div className="flex items-center mb-2">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={goBack} 
+          className="mr-2"
+          aria-label="Go back to home"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <AppHeader 
+          title="Upload" 
+          subtitle="Import images for AI processing"
+          className="py-0"
+        />
+      </div>
       
       <div
         className="border-2 border-dashed border-todo-purple/30 rounded-xl p-10 text-center"
