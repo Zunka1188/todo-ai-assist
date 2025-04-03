@@ -61,23 +61,6 @@ const CalendarWidget = () => {
           selected={date}
           onSelect={setDate}
           className="rounded-lg border bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 shadow pointer-events-auto w-full mx-auto"
-          modifiers={{
-            event: (date) => isDayWithEvent(date),
-            today: (date) => isToday(date),
-          }}
-          modifiersStyles={{
-            event: { 
-              fontWeight: 'bold', 
-              backgroundColor: 'rgba(155, 135, 245, 0.1)',
-              color: '#7E69AB',
-              borderColor: '#9b87f5' 
-            },
-            today: {
-              fontWeight: 'bold',
-              color: '#9b87f5',
-              textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
-            }
-          }}
           components={{
             DayContent: ({ date, displayMonth }) => {
               const isCurrentDay = isToday(date);
