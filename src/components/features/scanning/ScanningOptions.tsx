@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { Camera, Upload, List, Calendar, Receipt } from 'lucide-react';
+import { Camera, Upload, List, Calendar, Receipt, Crop, Image } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ScanOption {
   icon: React.ElementType;
@@ -13,6 +14,7 @@ interface ScanOption {
 
 const ScanningOptions: React.FC = () => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const showToast = (message: string) => {
     toast({
@@ -33,6 +35,18 @@ const ScanningOptions: React.FC = () => {
       label: "Upload Image",
       description: "Select an image from your gallery",
       action: () => showToast("Please select an image to upload...")
+    },
+    {
+      icon: Crop,
+      label: "Screen Selection",
+      description: "Select part of screen for processing",
+      action: () => showToast("Screen selection tool activated...")
+    },
+    {
+      icon: Image,
+      label: "Screenshot Detection",
+      description: "Auto-detect and process screenshots",
+      action: () => showToast("Screenshot detection activated...")
     },
     {
       icon: List,
