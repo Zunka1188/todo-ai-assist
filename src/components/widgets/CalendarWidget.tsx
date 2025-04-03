@@ -78,6 +78,28 @@ const CalendarWidget = () => {
               textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
             }
           }}
+          components={{
+            DayContent: ({ date, displayMonth }) => {
+              const isCurrentDay = isToday(date);
+              const hasEvent = isDayWithEvent(date);
+              
+              return (
+                <div 
+                  className={cn(
+                    "relative h-8 w-8 p-0 flex items-center justify-center", 
+                    {
+                      "font-bold": isCurrentDay || hasEvent,
+                      "text-[#9b87f5]": isCurrentDay,
+                      "bg-[rgba(155,135,245,0.1)] text-[#7E69AB] border-[#9b87f5]": hasEvent && !isCurrentDay,
+                    }
+                  )}
+                  style={isCurrentDay ? { textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)' } : {}}
+                >
+                  {date.getDate()}
+                </div>
+              );
+            }
+          }}
           showOutsideDays={true}
         />
       </CardContent>
