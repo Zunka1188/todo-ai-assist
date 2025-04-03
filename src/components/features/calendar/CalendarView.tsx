@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List, Image, Camera, PaperClip } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -317,7 +318,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       setIsViewDialogOpen(false);
       toast({
         title: "Event deleted",
-        description: `"${selectedEvent.title}" has been removed from your calendar.",
+        description: `"${selectedEvent.title}" has been removed from your calendar.`,
       });
       setSelectedEvent(null);
     }
