@@ -57,6 +57,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+type AttachmentType = {
+  id: string;
+  type: 'image' | 'document';
+  name: string;
+  url: string;
+  thumbnailUrl?: string;
+};
+
 interface Event {
   id: string;
   title: string;
@@ -74,13 +82,7 @@ interface Event {
     daysOfWeek?: number[];
   };
   reminder?: string;
-  attachments?: Array<{
-    id: string;
-    type: 'image' | 'document';
-    name: string;
-    url: string;
-    thumbnailUrl?: string;
-  }>;
+  attachments?: AttachmentType[];
 }
 
 const reminderOptions = [
@@ -335,6 +337,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
     
     const currentAttachments = form.getValues("attachments") || [];
     
+    const newAttachments: AttachmentType[] = [];
+    
     Array.from(files).forEach(file => {
       const fileId = `attachment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       const fileName = file.name;
@@ -346,16 +350,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
         thumbnailUrl = fileUrl;
       }
       
-      const newAttachment = {
+      newAttachments.push({
         id: fileId,
-        type: type as 'image' | 'document',
+        type: type,
         name: fileName,
         url: fileUrl,
         thumbnailUrl,
-      };
-      
-      form.setValue("attachments", [...currentAttachments, newAttachment]);
+      });
     });
+    
+    form.setValue("attachments", [...currentAttachments, ...newAttachments]);
     
     e.target.value = '';
     
@@ -372,16 +376,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
     
     const currentAttachments = form.getValues("attachments") || [];
     
-    form.setValue("attachments", [
-      ...currentAttachments, 
-      {
-        id: fileId,
-        type: 'image' as const,
-        name: fileName,
-        url: fileUrl,
-        thumbnailUrl: fileUrl,
-      }
-    ]);
+    const newAttachment: AttachmentType = {
+      id: fileId,
+      type: 'image',
+      name: fileName,
+      url: fileUrl,
+      thumbnailUrl: fileUrl,
+    };
+    
+    form.setValue("attachments", [...currentAttachments, newAttachment]);
     
     setShowCamera(false);
     
