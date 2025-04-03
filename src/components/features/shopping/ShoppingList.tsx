@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
@@ -13,7 +12,9 @@ import {
   CircleCheck,
   ChevronLeft,
   ChevronRight,
-  Trash2
+  Trash2,
+  Edit,
+  MoreVertical
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -78,7 +79,6 @@ const initialItems: ShoppingItem[] = [
   { id: '4', name: 'Toothpaste', completed: false, category: 'Household', dateAdded: new Date('2023-04-03') },
 ];
 
-// Load data from localStorage
 const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
   try {
     const storedValue = localStorage.getItem(key);
@@ -89,7 +89,6 @@ const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
   }
 };
 
-// Save data to localStorage
 const saveToLocalStorage = (key: string, value: any): void => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
@@ -120,11 +119,13 @@ const ShoppingList: React.FC = () => {
   const [isDeleteCategoryDialogOpen, setIsDeleteCategoryDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState('');
   const [isPurchasedSectionCollapsed, setIsPurchasedSectionCollapsed] = useState(false);
+  const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState('');
+  const [editedCategoryName, setEditedCategoryName] = useState('');
   const { isMobile } = useIsMobile();
   const carouselRef = useRef(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Save to localStorage whenever items or categories change
   useEffect(() => {
     saveToLocalStorage('shoppingItems', items);
   }, [items]);
@@ -161,7 +162,6 @@ const ShoppingList: React.FC = () => {
       description: `Added ${newItem.name} to ${newItem.category}`,
     });
 
-    // Scroll to the top to see the new item
     setTimeout(() => {
       if (scrollAreaRef.current) {
         scrollAreaRef.current.scrollTop = 0;
@@ -226,18 +226,15 @@ const ShoppingList: React.FC = () => {
   const confirmDeleteCategory = () => {
     if (!categoryToDelete || categoryToDelete === 'All') return;
     
-    // Move items from this category to "Other"
     const updatedItems = items.map(item => 
       item.category === categoryToDelete ? {...item, category: 'Other'} : item
     );
     
-    // Remove the category
     const updatedCategories = categories.filter(c => c !== categoryToDelete);
     
     setItems(updatedItems);
     setCategories(updatedCategories);
     
-    // If the active category is the one being deleted, switch to "All"
     if (activeCategory === categoryToDelete) {
       setActiveCategory('All');
     }
@@ -326,6 +323,42 @@ const ShoppingList: React.FC = () => {
     setIsPurchasedSectionCollapsed(!isPurchasedSectionCollapsed);
   };
 
+  const handleEditCategory = (category: string) => {
+    setCategoryToEdit(category);
+    setEditedCategoryName(category);
+    setIsEditCategoryDialogOpen(true);
+  };
+
+  const confirmEditCategory = () => {
+    if (!categoryToEdit || categoryToEdit === 'All' || editedCategoryName.trim() === '') return;
+    if (categories.includes(editedCategoryName.trim()) && editedCategoryName.trim() !== categoryToEdit) {
+      toast({
+        description: `Category "${editedCategoryName}" already exists.`,
+      });
+      return;
+    }
+
+    const updatedCategories = categories.map(c => 
+      c === categoryToEdit ? editedCategoryName.trim() : c
+    );
+    
+    const updatedItems = items.map(item => 
+      item.category === categoryToEdit ? {...item, category: editedCategoryName.trim()} : item
+    );
+    
+    if (activeCategory === categoryToEdit) {
+      setActiveCategory(editedCategoryName.trim());
+    }
+    
+    setCategories(updatedCategories);
+    setItems(updatedItems);
+    setIsEditCategoryDialogOpen(false);
+    
+    toast({
+      description: `Updated category from "${categoryToEdit}" to "${editedCategoryName}"`,
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="sticky top-0 z-10 pt-1 pb-3 bg-background">
@@ -354,14 +387,33 @@ const ShoppingList: React.FC = () => {
                     </Button>
                     
                     {category !== 'All' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteCategory(category)}
-                        className="h-6 w-6 p-0 rounded-full"
-                      >
-                        <Trash2 size={10} className="text-gray-400 hover:text-red-500" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 rounded-full"
+                          >
+                            <MoreVertical size={10} className="text-gray-400" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-32">
+                          <DropdownMenuItem 
+                            onClick={() => handleEditCategory(category)}
+                            className="cursor-pointer"
+                          >
+                            <Edit size={12} className="mr-2" />
+                            <span className="text-[10px]">Edit</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteCategory(category)}
+                            className="cursor-pointer text-red-500 hover:text-red-600"
+                          >
+                            <Trash2 size={12} className="mr-2" />
+                            <span className="text-[10px]">Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     )}
                   </div>
                 </CarouselItem>
@@ -536,7 +588,6 @@ const ShoppingList: React.FC = () => {
       </div>
 
       <ScrollArea className="h-[calc(100vh-280px)] pr-4 shopping-items-scroll-area" ref={scrollAreaRef}>
-        {/* Not Purchased Section */}
         <div className="mb-4">
           <h3 className="text-xs font-medium mb-2 text-muted-foreground">Not Purchased ({notPurchasedItems.length})</h3>
           
@@ -620,7 +671,6 @@ const ShoppingList: React.FC = () => {
           </AnimatePresence>
         </div>
         
-        {/* Purchased Section */}
         <div className="mb-2">
           <div 
             className="flex items-center justify-between cursor-pointer mb-2"
@@ -771,6 +821,31 @@ const ShoppingList: React.FC = () => {
               <Button variant="outline">Cancel</Button>
             </DialogClose>
             <Button variant="destructive" onClick={confirmDeleteCategory}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              placeholder="Category name"
+              value={editedCategoryName}
+              onChange={(e) => setEditedCategoryName(e.target.value)}
+              className="w-full"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') confirmEditCategory();
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={confirmEditCategory}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
