@@ -30,7 +30,7 @@ const ShoppingPage = () => {
             <ArrowLeft className="h-5 w-5 md:h-6 md:w-6" />
           </Button>
           <AppHeader 
-            title="Shopping List" 
+            title="Shopping" 
             subtitle="Track items you need to buy"
             className="py-0"
           />
