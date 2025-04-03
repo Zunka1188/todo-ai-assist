@@ -1,50 +1,43 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Camera, List, Calendar, File, Upload } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
-
-const navigationItems = [
-  { icon: List, label: 'Shopping', path: '/shopping' },
-  { icon: Calendar, label: 'Calendar', path: '/calendar' },
-  { icon: Camera, label: 'Scan', path: '/scan' },
-  { icon: File, label: 'Documents', path: '/documents' },
-  { icon: Upload, label: 'Upload', path: '/upload' },
-];
+import { Home, ShoppingCart, Calendar, Upload, FileText, Camera, CheckSquare, Settings } from 'lucide-react';
 
 const BottomNavigation = () => {
   const location = useLocation();
-  const isMobile = useIsMobile();
+  const currentPath = location.pathname;
+
+  const isActive = (path: string) => currentPath === path;
+
+  const navItems = [
+    { path: '/', icon: Home, label: 'Home' },
+    { path: '/shopping', icon: ShoppingCart, label: 'Shopping' },
+    { path: '/calendar', icon: Calendar, label: 'Calendar' },
+    { path: '/scan', icon: Camera, label: 'Scan' },
+    { path: '/documents', icon: FileText, label: 'Documents' },
+    { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
+    { path: '/settings', icon: Settings, label: 'Settings' },
+  ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-      <div className="flex justify-around items-center h-14 sm:h-16">
-        {navigationItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          const Icon = item.icon;
-          
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                "flex flex-col items-center justify-center w-full h-full transition-colors",
-                isActive ? "text-todo-purple-light" : "text-gray-500 hover:text-todo-purple"
-              )}
-            >
-              <div className={cn(
-                "flex items-center justify-center",
-                isActive && "animate-scale-in"
-              )}>
-                <Icon size={isActive ? 22 : 18} strokeWidth={isActive ? 2.5 : 2} />
-              </div>
-              <span className="text-xs mt-0.5">{item.label}</span>
-            </Link>
-          );
-        })}
+    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
+      <div className="container mx-auto px-2 py-2 flex justify-between items-center">
+        {navItems.map(({ path, icon: Icon, label }) => (
+          <Link 
+            key={path}
+            to={path} 
+            className={`flex flex-col items-center justify-center p-2 rounded-md transition-colors ${
+              isActive(path) 
+                ? 'text-primary font-medium' 
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Icon className={`h-5 w-5 ${isActive(path) ? 'text-primary' : ''}`} />
+            <span className="text-xs mt-1">{label}</span>
+          </Link>
+        ))}
       </div>
-    </div>
+    </nav>
   );
 };
 
