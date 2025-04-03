@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List, Image, Paperclip } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -320,7 +319,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       setIsViewDialogOpen(false);
       toast({
         title: "Event deleted",
-        description: `"${selectedEvent.title}" has been removed from your calendar.`
+        description: `"${selectedEvent.title}" has been removed from your calendar."
       });
       setSelectedEvent(null);
     }
@@ -332,22 +331,17 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
     
     const currentAttachments = form.getValues("attachments") || [];
     
-    // Ensure all required properties are explicitly set for each attachment
-    const newAttachments: AttachmentType[] = Array.from(files).map(file => {
-      // Create an attachment with all required properties defined
-      const attachment: AttachmentType = {
+    const newAttachments = Array.from(files).map((file): AttachmentType => {
+      const fileUrl = URL.createObjectURL(file);
+      const isImage = file.type.startsWith('image/');
+      
+      return {
         id: `attachment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        type: file.type.startsWith('image/') ? 'image' : 'document',
+        type: isImage ? 'image' : 'document',
         name: file.name,
-        url: URL.createObjectURL(file)
+        url: fileUrl,
+        ...(isImage ? { thumbnailUrl: fileUrl } : {})
       };
-      
-      // Add optional properties if applicable
-      if (file.type.startsWith('image/')) {
-        attachment.thumbnailUrl = URL.createObjectURL(file);
-      }
-      
-      return attachment;
     });
     
     form.setValue("attachments", [...currentAttachments, ...newAttachments]);
@@ -428,7 +422,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
         setEvents([...events, newEvent]);
         toast({
           title: "Event created",
-          description: `"${newEvent.title}" has been added to your calendar.`
+          description: `"${newEvent.title}" has been added to your calendar."
         });
       }
       
