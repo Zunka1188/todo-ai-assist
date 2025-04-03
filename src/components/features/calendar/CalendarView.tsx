@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List, Image, Camera, PaperClip } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List, Image, Camera, Paperclip } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -844,7 +843,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                   
                   <div>
                     <FormLabel className="flex items-center mb-2">
-                      <PaperClip className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <Paperclip className="h-4 w-4 mr-2 text-muted-foreground" />
                       Attachments
                     </FormLabel>
                     
@@ -1042,7 +1041,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                 
                 {selectedEvent.attachments && selectedEvent.attachments.length > 0 && (
                   <div className="flex items-start gap-3">
-                    <PaperClip className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <Paperclip className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div className="space-y-2 flex-1">
                       <p className="font-medium">Attachments ({selectedEvent.attachments.length})</p>
                       <div className="grid grid-cols-2 gap-2">
