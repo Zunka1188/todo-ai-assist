@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { CheckSquare, ChevronRight, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -20,7 +19,6 @@ const TaskWidget = () => {
   const today = new Date();
   const formattedToday = format(today, 'yyyy-MM-dd');
   
-  // Sample tasks data with dates
   const [tasks, setTasks] = React.useState<Task[]>([
     { id: 1, title: 'Buy groceries', completed: false, priority: 'high', dueDate: formattedToday },
     { id: 2, title: 'Call dentist', completed: false, priority: 'medium', dueDate: formattedToday },
@@ -52,7 +50,7 @@ const TaskWidget = () => {
         id: newId,
         title: newTaskTitle.trim(),
         completed: false,
-        priority: 'medium', // Default priority
+        priority: 'medium',
         dueDate: formattedToday,
       };
       
@@ -67,7 +65,6 @@ const TaskWidget = () => {
     setIsAddingTask(false);
   };
 
-  // Filter to show only today's tasks, incomplete tasks first, then by priority
   const todaysTasks = tasks
     .filter(task => task.dueDate === formattedToday)
     .sort((a, b) => {
@@ -86,7 +83,7 @@ const TaskWidget = () => {
           <CheckSquare className="h-5 w-5 text-todo-purple" />
           <h3 className="font-medium">Today's Tasks</h3>
         </div>
-        <Link to="/tasks" className="text-sm text-todo-purple flex items-center">
+        <Link to="/calendar" className="text-sm text-todo-purple flex items-center">
           View all <ChevronRight className="h-4 w-4 ml-1" />
         </Link>
       </CardHeader>
