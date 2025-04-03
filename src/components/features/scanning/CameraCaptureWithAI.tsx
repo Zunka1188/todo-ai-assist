@@ -1,6 +1,6 @@
 
-import React, { useState, useRef } from 'react';
-import { Camera, X, Calendar, List, FileText, Receipt, Loader2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Camera, X, Calendar, List, FileText, Receipt, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
@@ -25,22 +25,56 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [detectionResult, setDetectionResult] = useState<DetectionResult | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-      });
+      setCameraError(null);
+      
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera API not supported in this browser");
+      }
+      
+      // Try with basic constraints first for better mobile compatibility
+      const constraints = { 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      };
+      
+      console.log("Requesting camera access with constraints:", constraints);
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        setCameraActive(true);
+        videoRef.current.onloadedmetadata = () => {
+          console.log("Video metadata loaded");
+          if (videoRef.current) {
+            videoRef.current.play()
+              .then(() => {
+                console.log("Camera started successfully");
+                setCameraActive(true);
+              })
+              .catch(err => {
+                console.error("Error playing video:", err);
+                setCameraError("Error starting video playback");
+              });
+          }
+        };
+      } else {
+        console.error("Video reference not available");
+        setCameraError("Camera initialization failed");
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
+      setCameraError(error instanceof Error ? error.message : "Unknown camera error");
+      
       toast({
         title: "Camera Error",
-        description: "Could not access your camera. Please check permissions.",
+        description: "Could not access your camera. Please check permissions and try again.",
         variant: "destructive",
       });
     }
@@ -51,7 +85,11 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
       const stream = videoRef.current.srcObject as MediaStream;
       const tracks = stream.getTracks();
       
-      tracks.forEach(track => track.stop());
+      tracks.forEach(track => {
+        console.log("Stopping track:", track.kind);
+        track.stop();
+      });
+      
       videoRef.current.srcObject = null;
       setCameraActive(false);
     }
@@ -84,6 +122,7 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
   const retakeImage = () => {
     setCapturedImage(null);
     setDetectionResult(null);
+    setCameraError(null);
     startCamera();
   };
   
@@ -169,11 +208,13 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
   };
   
   // Start camera when component mounts
-  React.useEffect(() => {
+  useEffect(() => {
+    console.log("Starting camera on component mount");
     startCamera();
     
     // Cleanup function to stop camera when component unmounts
     return () => {
+      console.log("Stopping camera on component unmount");
       stopCamera();
     };
   }, []);
@@ -233,7 +274,8 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
             <video 
               ref={videoRef}
               autoPlay 
-              playsInline 
+              playsInline
+              muted
               className="w-full h-full object-cover"
             />
             <Button
@@ -245,10 +287,19 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
           </>
         ) : capturedImage ? (
           <img src={capturedImage} alt="Captured" className="w-full h-full object-contain" />
+        ) : cameraError ? (
+          <div className="text-white text-center p-4">
+            <AlertCircle className="mx-auto h-12 w-12 mb-2 text-red-500" />
+            <p className="text-red-300 mb-2">Camera Error</p>
+            <p className="text-sm text-gray-300 mb-4">{cameraError}</p>
+            <Button onClick={retakeImage} variant="outline" className="bg-white/10 hover:bg-white/20">
+              Try Again
+            </Button>
+          </div>
         ) : (
           <div className="text-white text-center p-4">
-            <Camera className="mx-auto h-12 w-12 mb-2" />
-            <p>Camera initializing...</p>
+            <Camera className="mx-auto h-12 w-12 mb-2 animate-pulse" />
+            <p>Initializing camera...</p>
           </div>
         )}
         

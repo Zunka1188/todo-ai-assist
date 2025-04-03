@@ -5,7 +5,11 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Image, AlertCircle } from 'lucide-react';
 
-const ScreenshotDetection: React.FC = () => {
+interface ScreenshotDetectionProps {
+  onClose: () => void;
+}
+
+const ScreenshotDetection: React.FC<ScreenshotDetectionProps> = ({ onClose }) => {
   const [isEnabled, setIsEnabled] = useState(false);
   const { toast } = useToast();
 
