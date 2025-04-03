@@ -1,9 +1,10 @@
+
 /* This file is kept for compatibility but most styles have been moved to index.css */
-/* We can remove most of the default styles as they're now handled by our tailwind classes */
 
 #root {
-  max-width: 1280px;
+  max-width: 100%;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 @media (prefers-reduced-motion: no-preference) {

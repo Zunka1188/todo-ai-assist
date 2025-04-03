@@ -23,7 +23,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
   const { isMobile } = useIsMobile();
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <div className="container mx-auto px-2 sm:px-4 pt-2 sm:pt-4 flex justify-end items-center gap-2 h-12 sm:h-14">
         <DropdownMenu>
           <DropdownMenuTrigger className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center">
@@ -86,8 +86,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
         <ThemeToggle />
       </div>
       <main className={cn(
-        "container mx-auto px-2 sm:px-4 pb-20", 
-        isMobile ? "pt-1" : "pt-4",
+        "container mx-auto px-2 sm:px-4 flex-1", 
+        isMobile ? "pb-20 pt-1" : "py-4",
         className
       )}>
         <Outlet />
