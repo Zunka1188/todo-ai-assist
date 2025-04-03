@@ -170,6 +170,7 @@ const CalendarWidget = () => {
                 mode="single"
                 selected={date}
                 onSelect={handleDaySelect}
+                weekStartsOn={1} // Start week on Monday
                 className="rounded-lg border bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 shadow w-full mx-auto pointer-events-auto"
                 modifiers={{
                   event: (date) => isDayWithEvent(date),

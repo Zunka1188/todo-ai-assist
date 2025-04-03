@@ -72,6 +72,7 @@ const CalendarPage = () => {
         <CalendarView 
           viewMode={viewMode} 
           searchTerm={searchTerm}
+          weekStartsOn={1} // Set to 1 for Monday (0 is Sunday)
         />
       </div>
     </div>

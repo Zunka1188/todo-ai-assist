@@ -30,6 +30,7 @@ interface WeekViewProps {
   events: Event[];
   handleViewEvent: (event: Event) => void;
   theme: string;
+  weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 const WeekView: React.FC<WeekViewProps> = ({
@@ -37,10 +38,11 @@ const WeekView: React.FC<WeekViewProps> = ({
   setDate,
   events,
   handleViewEvent,
-  theme
+  theme,
+  weekStartsOn = 1  // Default to Monday
 }) => {
-  const weekStart = startOfWeek(date);
-  const weekEnd = endOfWeek(date);
+  const weekStart = startOfWeek(date, { weekStartsOn });
+  const weekEnd = endOfWeek(date, { weekStartsOn });
   const daysInWeek = eachDayOfInterval({ start: weekStart, end: weekEnd });
   
   const prevWeek = () => {

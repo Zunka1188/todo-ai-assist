@@ -31,6 +31,7 @@ interface MonthViewProps {
   events: Event[];
   handleViewEvent: (event: Event) => void;
   theme: string;
+  weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 const MonthView: React.FC<MonthViewProps> = ({
@@ -38,13 +39,18 @@ const MonthView: React.FC<MonthViewProps> = ({
   setDate,
   events,
   handleViewEvent,
-  theme
+  theme,
+  weekStartsOn = 1  // Default to Monday
 }) => {
   const monthStart = startOfMonth(date);
   const monthEnd = endOfMonth(date);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
   
-  const dayOfWeek = monthStart.getDay();
+  // Calculate what day of the week the month starts on (0 = Sunday, 1 = Monday, etc.)
+  // Adjust for the weekStartsOn setting
+  let dayOfWeek = monthStart.getDay();
+  // Convert from Sunday-based (0-6) to custom week start (e.g., Monday-based)
+  dayOfWeek = ((dayOfWeek - weekStartsOn) + 7) % 7;
   
   // Calculate days from the previous month to display
   const leadingDays = Array.from({ length: dayOfWeek }, (_, i) => {
@@ -90,6 +96,11 @@ const MonthView: React.FC<MonthViewProps> = ({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Reorder the days of week to start with Monday
+  const daysOfWeek = weekStartsOn === 1 
+    ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] 
+    : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -121,7 +132,7 @@ const MonthView: React.FC<MonthViewProps> = ({
       
       <div className="bg-card border rounded-lg overflow-hidden">
         <div className="grid grid-cols-7 text-center">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+          {daysOfWeek.map(day => (
             <div 
               key={day} 
               className="py-2 font-medium text-sm border-b"
