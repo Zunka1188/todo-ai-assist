@@ -24,36 +24,41 @@ const CategorySelection: React.FC<CategorySelectionProps> = ({
   onSelectCategory,
   onConfirm
 }) => {
-  const categories: {value: CategoryOption; label: string; icon: React.ReactNode; description: string}[] = [
+  const categories: {value: CategoryOption; label: string; icon: React.ReactNode; description: string; savesTo: string}[] = [
     {
       value: 'product',
       label: 'Product',
       icon: <List className="h-5 w-5 text-blue-600" />,
-      description: 'Add to shopping list or product catalog'
+      description: 'Add to shopping list or product catalog',
+      savesTo: 'Shopping List'
     },
     {
       value: 'receipt',
       label: 'Receipt',
       icon: <Receipt className="h-5 w-5 text-green-600" />,
-      description: 'Store for expense tracking and budgeting'
+      description: 'Store for expense tracking and budgeting',
+      savesTo: 'Receipts & Expenses'
     },
     {
       value: 'invitation',
       label: 'Invitation/Event',
       icon: <Calendar className="h-5 w-5 text-todo-purple" />,
-      description: 'Save to calendar or events list'
+      description: 'Save to calendar or events list',
+      savesTo: 'Calendar'
     },
     {
       value: 'document',
       label: 'Document',
       icon: <FileText className="h-5 w-5 text-amber-600" />,
-      description: 'Store notes, files, or important information'
+      description: 'Store notes, files, or important information',
+      savesTo: 'Documents'
     },
     {
       value: 'general',
       label: 'General Picture',
       icon: <ImageIcon className="h-5 w-5 text-gray-600" />,
-      description: 'Save image with basic information'
+      description: 'Save image with basic information',
+      savesTo: 'General Images'
     }
   ];
 
@@ -128,6 +133,7 @@ const CategorySelection: React.FC<CategorySelectionProps> = ({
                 <div>
                   <p className="font-medium dark:text-white">{category.label}</p>
                   <p className="text-xs text-muted-foreground dark:text-gray-400">{category.description}</p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Saves to: {category.savesTo}</p>
                 </div>
               </Label>
             </div>

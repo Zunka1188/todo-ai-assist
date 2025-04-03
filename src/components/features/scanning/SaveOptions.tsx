@@ -3,7 +3,7 @@ import React from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar, List, Receipt, FileText } from 'lucide-react';
+import { Calendar, List, Receipt, FileText, Image as ImageIcon } from 'lucide-react';
 import { RecognizedItemType } from './DataRecognition';
 import { cn } from '@/lib/utils';
 
@@ -55,11 +55,18 @@ const SaveOptions: React.FC<SaveOptionsProps> = ({
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <h3 className="text-sm font-medium">Image Options</h3>
-        <div className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
-          <Label htmlFor="keep-image" className="cursor-pointer">
-            Keep image with saved data
-          </Label>
+        <h3 className="text-sm font-medium dark:text-white">Image Options</h3>
+        <div className="flex items-center justify-between bg-gray-50 p-3 rounded-md dark:bg-gray-700">
+          <div>
+            <Label htmlFor="keep-image" className="cursor-pointer">
+              Keep image with saved data
+            </Label>
+            <p className="text-xs text-muted-foreground dark:text-gray-400 mt-1">
+              {keepImage 
+                ? "Image will be stored alongside extracted data" 
+                : "Only extracted data will be saved, not the image"}
+            </p>
+          </div>
           <Switch
             id="keep-image"
             checked={keepImage}
@@ -69,8 +76,8 @@ const SaveOptions: React.FC<SaveOptionsProps> = ({
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-sm font-medium">Save Location</h3>
-        <p className="text-xs text-muted-foreground">
+        <h3 className="text-sm font-medium dark:text-white">Choose Where to Save</h3>
+        <p className="text-xs text-muted-foreground dark:text-gray-400">
           {recommendedOption ? (
             <>Recommended: <span className="font-medium">{recommendedOption}</span></>
           ) : (
@@ -78,10 +85,10 @@ const SaveOptions: React.FC<SaveOptionsProps> = ({
           )}
         </p>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className={cn(
             "flex items-center space-x-2 p-3 rounded-md",
-            itemType === 'product' ? "bg-blue-50" : "bg-gray-50"
+            itemType === 'product' ? "bg-blue-50 dark:bg-blue-900/20" : "bg-gray-50 dark:bg-gray-700"
           )}>
             <Checkbox 
               id="add-to-shopping"
@@ -96,14 +103,19 @@ const SaveOptions: React.FC<SaveOptionsProps> = ({
                 className="cursor-pointer flex items-center"
               >
                 <List className="mr-2 h-4 w-4 text-blue-600" />
-                Add to Shopping List
+                <div>
+                  <span className="dark:text-white">Add to Shopping List</span>
+                  <p className="text-xs text-muted-foreground dark:text-gray-400">
+                    Found in Shopping tab
+                  </p>
+                </div>
               </Label>
             </div>
           </div>
 
           <div className={cn(
             "flex items-center space-x-2 p-3 rounded-md",
-            itemType === 'invitation' ? "bg-todo-purple/10" : "bg-gray-50"
+            itemType === 'invitation' ? "bg-todo-purple/10 dark:bg-todo-purple/20" : "bg-gray-50 dark:bg-gray-700"
           )}>
             <Checkbox 
               id="add-to-calendar"
@@ -118,14 +130,19 @@ const SaveOptions: React.FC<SaveOptionsProps> = ({
                 className="cursor-pointer flex items-center"
               >
                 <Calendar className="mr-2 h-4 w-4 text-todo-purple" />
-                Add to Calendar
+                <div>
+                  <span className="dark:text-white">Add to Calendar</span>
+                  <p className="text-xs text-muted-foreground dark:text-gray-400">
+                    Found in Calendar tab
+                  </p>
+                </div>
               </Label>
             </div>
           </div>
 
           <div className={cn(
             "flex items-center space-x-2 p-3 rounded-md",
-            itemType === 'receipt' ? "bg-green-50" : "bg-gray-50"
+            itemType === 'receipt' ? "bg-green-50 dark:bg-green-900/20" : "bg-gray-50 dark:bg-gray-700"
           )}>
             <Checkbox 
               id="save-to-spending"
@@ -140,14 +157,19 @@ const SaveOptions: React.FC<SaveOptionsProps> = ({
                 className="cursor-pointer flex items-center"
               >
                 <Receipt className="mr-2 h-4 w-4 text-green-600" />
-                Save to Receipts & Expenses
+                <div>
+                  <span className="dark:text-white">Save to Receipts & Expenses</span>
+                  <p className="text-xs text-muted-foreground dark:text-gray-400">
+                    Found in Spending tab
+                  </p>
+                </div>
               </Label>
             </div>
           </div>
 
           <div className={cn(
             "flex items-center space-x-2 p-3 rounded-md",
-            itemType === 'document' ? "bg-amber-50" : "bg-gray-50"
+            itemType === 'document' ? "bg-amber-50 dark:bg-amber-900/20" : "bg-gray-50 dark:bg-gray-700"
           )}>
             <Checkbox 
               id="save-to-documents"
@@ -162,10 +184,24 @@ const SaveOptions: React.FC<SaveOptionsProps> = ({
                 className="cursor-pointer flex items-center"
               >
                 <FileText className="mr-2 h-4 w-4 text-amber-600" />
-                Save to Documents
+                <div>
+                  <span className="dark:text-white">Save to Documents</span>
+                  <p className="text-xs text-muted-foreground dark:text-gray-400">
+                    Found in Documents tab
+                  </p>
+                </div>
               </Label>
             </div>
           </div>
+          
+          {!saveLocations.addToShoppingList && 
+           !saveLocations.addToCalendar && 
+           !saveLocations.saveToSpending && 
+           !saveLocations.saveToDocuments && (
+            <div className="mt-2 p-3 bg-yellow-50 rounded-md text-sm dark:bg-yellow-900/20 dark:text-yellow-200">
+              <p>⚠️ No save location selected. Please select at least one location to save your item.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

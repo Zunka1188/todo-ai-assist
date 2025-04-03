@@ -1,11 +1,13 @@
+
 import React, { useState } from 'react';
-import { Upload, ArrowLeft, Image, Loader2 } from 'lucide-react';
+import { Upload, ArrowLeft, Image, Loader2, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AppHeader from '@/components/layout/AppHeader';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import DataRecognition, { RecognizedItem } from '@/components/features/scanning/DataRecognition';
 import CategorySelection from '@/components/features/scanning/CategorySelection';
 
@@ -25,6 +27,9 @@ const UploadPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryOption>('unknown');
   const [categoryConfirmed, setCategoryConfirmed] = useState(false);
   const [aiConfidence, setAiConfidence] = useState(0);
+  
+  const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
+  const [savedItemData, setSavedItemData] = useState<any>(null);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -285,24 +290,29 @@ const UploadPage = () => {
   const handleSaveItem = (formData: any, originalItem: RecognizedItem) => {
     setIsSaving(true);
     
+    // Save the data to be displayed in the confirmation dialog
+    setSavedItemData({
+      ...formData,
+      itemType: formData.itemType,
+      hasImage: formData.keepImage,
+      saveLocations: getSaveLocationsFromFormData(formData)
+    });
+    
     setTimeout(() => {
-      let savedLocation = "";
-      if (formData.addToShoppingList) savedLocation = "Shopping List";
-      else if (formData.addToCalendar) savedLocation = "Calendar";
-      else if (formData.saveToSpending) savedLocation = "Receipts & Expenses";
-      else if (formData.saveToDocuments) savedLocation = "Documents";
-      else savedLocation = "your collection";
-      
-      toast({
-        title: "Item Saved Successfully",
-        description: `"${formData.title}" has been saved to ${savedLocation}.`,
-        variant: "default",
-      });
-      
       setIsSaving(false);
-      
-      navigateBasedOnFormData(formData);
+      setShowConfirmationDialog(true);
     }, 1000);
+  };
+  
+  const getSaveLocationsFromFormData = (formData: any): string[] => {
+    const locations: string[] = [];
+    
+    if (formData.addToShoppingList) locations.push("Shopping List");
+    if (formData.addToCalendar) locations.push("Calendar");
+    if (formData.saveToDocuments) locations.push("Documents");
+    if (formData.saveToSpending) locations.push("Receipts & Expenses");
+    
+    return locations.length ? locations : ["General Storage"];
   };
   
   const navigateBasedOnFormData = (formData: any) => {
@@ -346,6 +356,8 @@ const UploadPage = () => {
     setProcessing(false);
     setCategoryConfirmed(false);
     setCurrentTab('category');
+    setShowConfirmationDialog(false);
+    setSavedItemData(null);
   };
   
   const handleChangeCategory = () => {
@@ -353,7 +365,23 @@ const UploadPage = () => {
     setCurrentTab('category');
   };
 
-  const types = ['invitation', 'receipt', 'product', 'document', 'unknown'] as const;
+  const getItemTypeDisplayName = (type: string): string => {
+    switch (type) {
+      case 'invitation': return 'Event/Invitation';
+      case 'receipt': return 'Receipt';
+      case 'product': return 'Product';
+      case 'document': return 'Document';
+      case 'general': return 'General Picture';
+      default: return 'Item';
+    }
+  };
+  
+  const closeConfirmationAndNavigate = () => {
+    setShowConfirmationDialog(false);
+    if (savedItemData) {
+      navigateBasedOnFormData(savedItemData);
+    }
+  };
 
   return (
     <div className="space-y-6 py-4">
@@ -483,6 +511,69 @@ const UploadPage = () => {
           </div>
         </div>
       </div>
+      
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmationDialog} onOpenChange={setShowConfirmationDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Item Saved Successfully</DialogTitle>
+            <DialogDescription>
+              Your item has been saved to the following locations:
+            </DialogDescription>
+          </DialogHeader>
+          
+          {savedItemData && (
+            <div className="py-4">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="bg-green-100 p-2 rounded-full dark:bg-green-900/30">
+                  <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+                </div>
+                <h3 className="font-medium">{savedItemData.title || 'Unnamed Item'}</h3>
+              </div>
+              
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Type:</span>
+                  <span className="font-medium">{getItemTypeDisplayName(savedItemData.itemType)}</span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Image:</span>
+                  <span className="font-medium">{savedItemData.hasImage ? 'Included' : 'Not included'}</span>
+                </div>
+                
+                <div>
+                  <span className="text-muted-foreground">Saved to:</span>
+                  <ul className="mt-1 space-y-1">
+                    {savedItemData.saveLocations.map((location: string, index: number) => (
+                      <li key={index} className="font-medium flex items-center">
+                        <Check className="h-3 w-3 text-green-600 mr-1" />
+                        {location}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              className="w-full sm:w-auto bg-todo-purple hover:bg-todo-purple/90"
+              onClick={closeConfirmationAndNavigate}
+            >
+              Go to saved location
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={resetUpload}
+            >
+              Upload another
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

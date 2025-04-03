@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, Receipt, List, FileText, Image as ImageIcon, Check, Edit, ArrowRight, Loader2 } from 'lucide-react';
+import { Calendar, Receipt, List, FileText, Image as ImageIcon, Check, Edit, ArrowRight, Loader2, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ManualDataEditor from './ManualDataEditor';
 import SaveOptions from './SaveOptions';
+import { useToast } from '@/components/ui/use-toast';
 
 export type RecognizedItemType = 'invitation' | 'receipt' | 'product' | 'document' | 'unknown';
 
@@ -43,12 +44,15 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
     saveToDocuments: false,
     saveToSpending: false
   });
+  const [editsSaved, setEditsSaved] = useState(false);
+  const { toast } = useToast();
   
   // Initialize data from recognized item
   useEffect(() => {
     if (recognizedItem) {
       setCurrentItemType(recognizedItem.type);
       setCurrentData(recognizedItem.data || {});
+      setEditsSaved(false);
       
       // Set default save location based on item type
       if (recognizedItem.type === 'invitation') {
@@ -93,6 +97,15 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
     }
   };
 
+  const handleSaveEdits = () => {
+    setEditsSaved(true);
+    setEditMode(false);
+    toast({
+      title: "Edits Saved",
+      description: "Your changes have been saved. You can now proceed to save the item.",
+    });
+  };
+
   const handleSave = () => {
     if (!recognizedItem) return;
     
@@ -111,6 +124,7 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
   
   const handleTypeChange = (newType: RecognizedItemType) => {
     setCurrentItemType(newType);
+    setEditsSaved(false);
     
     // Reset save locations when type changes
     setSaveLocations({
@@ -123,7 +137,20 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
   
   const handleEditButtonClick = () => {
     setEditMode(true);
+    setEditsSaved(false);
     setCurrentTab('data'); // Switch to data tab when edit is clicked
+  };
+
+  const handleSaveTabClick = () => {
+    if (editMode) {
+      toast({
+        title: "Save Edits First",
+        description: "Please save your edits before proceeding to save options.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setCurrentTab('save');
   };
   
   // If no recognized item, show empty state
@@ -189,18 +216,28 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
         <Tabs value={currentTab} onValueChange={setCurrentTab}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="data">Data</TabsTrigger>
-            <TabsTrigger value="save">Save Options</TabsTrigger>
+            <TabsTrigger value="save" onClick={handleSaveTabClick}>Save Options</TabsTrigger>
             <TabsTrigger value="raw">Raw Text</TabsTrigger>
           </TabsList>
           
           <TabsContent value="data" className="pt-4">
             {editMode ? (
-              <ManualDataEditor
-                initialData={currentData}
-                itemType={currentItemType}
-                onDataChange={setCurrentData}
-                onTypeChange={handleTypeChange}
-              />
+              <div className="space-y-4">
+                <ManualDataEditor
+                  initialData={currentData}
+                  itemType={currentItemType}
+                  onDataChange={setCurrentData}
+                  onTypeChange={handleTypeChange}
+                />
+                
+                <Button 
+                  onClick={handleSaveEdits} 
+                  className="w-full bg-todo-purple hover:bg-todo-purple/90"
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Edits
+                </Button>
+              </div>
             ) : (
               <div className="text-sm space-y-4 dark:text-gray-300">
                 {Object.entries(currentData).map(([key, value]) => {
@@ -227,6 +264,24 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
                     <p>No data extracted. Click Edit to enter data manually.</p>
                   </div>
                 )}
+
+                <div className="pt-4 flex justify-between items-center">
+                  <Button 
+                    variant="outline"
+                    onClick={handleEditButtonClick}
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Details
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => setCurrentTab('save')} 
+                    className="bg-todo-purple hover:bg-todo-purple/90"
+                  >
+                    Continue to Save Options
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             )}
           </TabsContent>
@@ -239,6 +294,10 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
               saveLocations={saveLocations}
               onSaveLocationsChange={setSaveLocations}
             />
+
+            <div className="mt-4 text-sm text-muted-foreground dark:text-gray-400">
+              <p>Your item will be saved to the selected locations with{keepImage ? '' : 'out'} the image.</p>
+            </div>
           </TabsContent>
           
           <TabsContent value="raw" className="pt-4">
@@ -274,9 +333,10 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
           <Button 
             className="flex-1 bg-todo-purple hover:bg-todo-purple/90"
             onClick={handleSave}
+            disabled={editMode}
           >
             <Check className="mr-2 h-4 w-4" />
-            Save
+            Save to Selected Locations
           </Button>
         )}
         <Button 
