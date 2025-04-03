@@ -335,14 +335,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       
       const fileUrl = URL.createObjectURL(file);
       
-      let thumbnailUrl;
+      let thumbnailUrl: string | undefined;
       if (type === 'image') {
         thumbnailUrl = fileUrl;
       }
       
       const newAttachment = {
         id: fileId,
-        type,
+        type: type,
         name: fileName,
         url: fileUrl,
         thumbnailUrl,
