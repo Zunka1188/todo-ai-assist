@@ -1,12 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Calendar as CalendarIcon, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const CalendarWidget = () => {
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [date, setDate] = useState<Date | undefined>(new Date());
   
   // Sample upcoming events for demo
   const upcomingEvents = [
@@ -24,9 +26,9 @@ const CalendarWidget = () => {
     }
   ];
 
-  // Get only events for today
-  const todayEvents = upcomingEvents.filter(
-    event => event.date.toDateString() === new Date().toDateString()
+  // Get only events for selected date
+  const selectedDateEvents = upcomingEvents.filter(
+    event => date && event.date.toDateString() === date.toDateString()
   );
 
   return (
@@ -47,7 +49,7 @@ const CalendarWidget = () => {
               mode="single"
               selected={date}
               onSelect={setDate}
-              className="rounded-md border w-full max-w-[250px] mx-auto bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
+              className="rounded-md border w-full max-w-[250px] mx-auto bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 pointer-events-auto"
               classNames={{
                 months: "w-full",
                 month: "space-y-2",
@@ -66,18 +68,27 @@ const CalendarWidget = () => {
             />
           </div>
           <div>
-            <h4 className="text-sm font-medium mb-2">Today's Events</h4>
-            {todayEvents.length > 0 ? (
+            <h4 className="text-sm font-medium mb-2">
+              {date ? format(date, 'MMMM d, yyyy') : 'Select a date'}
+            </h4>
+            {selectedDateEvents.length > 0 ? (
               <div className="space-y-2">
-                {todayEvents.map(event => (
-                  <div key={event.id} className="p-2 rounded-md bg-white dark:bg-gray-700 border dark:border-gray-600">
+                {selectedDateEvents.map(event => (
+                  <div 
+                    key={event.id} 
+                    className={cn(
+                      "p-2 rounded-md bg-white dark:bg-gray-700",
+                      "border dark:border-gray-600",
+                      "hover:shadow-sm transition-shadow"
+                    )}
+                  >
                     <p className="font-medium text-sm dark:text-gray-100">{event.title}</p>
                     <p className="text-xs text-muted-foreground">{event.time}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No events today</p>
+              <p className="text-sm text-muted-foreground">No events on this date</p>
             )}
           </div>
         </div>
