@@ -42,8 +42,6 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselPrevious,
-  CarouselNext,
 } from '@/components/ui/carousel';
 import { 
   Popover,
@@ -515,6 +513,7 @@ const ShoppingList: React.FC = () => {
               align: "start",
               loop: false,
             }}
+            showNavigation={false}
           >
             <CarouselContent className="-ml-0.5 md:-ml-1">
               {allCategories.map((category) => (
@@ -580,10 +579,6 @@ const ShoppingList: React.FC = () => {
               </CarouselItem>
             </CarouselContent>
             <div className="absolute right-0 top-1/2 -translate-y-1/2 bg-gradient-to-l from-background to-transparent w-12 h-8 pointer-events-none" />
-            <div className="flex justify-center items-center mt-2 gap-2">
-              <CarouselPrevious className="static translate-y-0 h-6 w-6 transform-none" />
-              <CarouselNext className="static translate-y-0 h-6 w-6 transform-none" />
-            </div>
           </Carousel>
         </div>
 
@@ -766,7 +761,7 @@ const ShoppingList: React.FC = () => {
         </DropdownMenu>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-280px)] pr-4 shopping-items-scroll-area" ref={scrollAreaRef}>
+      <ScrollArea className="h-[calc(100vh-280px)] pr-4 shopping-items-scroll-area smooth-scroll" ref={scrollAreaRef}>
         <div className="mb-4">
           <h3 className="text-xs font-medium mb-2 text-muted-foreground">Not Purchased ({notPurchasedItems.length})</h3>
           
