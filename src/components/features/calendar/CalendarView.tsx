@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List, Image, Camera, Paperclip } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -337,23 +336,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
     const newAttachments: AttachmentType[] = [];
     
     Array.from(files).forEach(file => {
-      // Ensure all required properties are defined (not optional)
-      const fileId = `attachment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-      const fileName = file.name;
-      const fileUrl = URL.createObjectURL(file);
+      const attachment: AttachmentType = {
+        id: `attachment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        type: file.type.startsWith('image/') ? 'image' : 'document',
+        name: file.name,
+        url: URL.createObjectURL(file),
+        thumbnailUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+      };
       
-      let thumbnailUrl: string | undefined;
-      if (type === 'image') {
-        thumbnailUrl = fileUrl;
-      }
-      
-      newAttachments.push({
-        id: fileId,
-        type: type,
-        name: fileName,
-        url: fileUrl,
-        thumbnailUrl,
-      });
+      newAttachments.push(attachment);
     });
     
     form.setValue("attachments", [...currentAttachments, ...newAttachments]);
@@ -511,9 +502,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                   <input 
                     type="file" 
                     ref={fileInputRef}
-                    onChange={(e) => handleFileChange(e, isMobile ? 'image' : 'document')}
-                    accept={isMobile ? "image/*" : "*/*"}
-                    capture={isMobile ? "environment" : undefined}
+                    onChange={(e) => handleFileChange(e, 'document')}
+                    accept="*/*"
                     style={{ display: 'none' }}
                     multiple
                   />
@@ -838,7 +828,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                         className="flex items-center min-h-[44px] min-w-[44px] touch-manipulation"
                       >
                         <Paperclip className="h-4 w-4 mr-2" />
-                        <span>{isMobile ? "Add Attachment" : "Add Attachment"}</span>
+                        <span>Add Attachment</span>
                       </Button>
                     </div>
                     
