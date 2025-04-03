@@ -200,21 +200,23 @@ const CarouselPrevious = React.forwardRef<
   const { orientation, scrollPrev, canScrollPrev } = useCarousel()
 
   return (
-    <Button
-      ref={ref}
-      variant={variant}
-      size={size}
-      className={cn(
-        "h-8 w-8 rounded-full",
-        className
-      )}
-      disabled={!canScrollPrev}
-      onClick={scrollPrev}
-      {...props}
-    >
-      <ArrowLeft className="h-4 w-4" />
-      <span className="sr-only">Previous slide</span>
-    </Button>
+    <div className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10">
+      <Button
+        ref={ref}
+        variant={variant}
+        size={size}
+        className={cn(
+          "h-8 w-8 rounded-full",
+          className
+        )}
+        disabled={!canScrollPrev}
+        onClick={scrollPrev}
+        {...props}
+      >
+        <ArrowLeft className="h-4 w-4" />
+        <span className="sr-only">Previous slide</span>
+      </Button>
+    </div>
   )
 })
 CarouselPrevious.displayName = "CarouselPrevious"
@@ -226,21 +228,23 @@ const CarouselNext = React.forwardRef<
   const { orientation, scrollNext, canScrollNext } = useCarousel()
 
   return (
-    <Button
-      ref={ref}
-      variant={variant}
-      size={size}
-      className={cn(
-        "h-8 w-8 rounded-full",
-        className
-      )}
-      disabled={!canScrollNext}
-      onClick={scrollNext}
-      {...props}
-    >
-      <ArrowRight className="h-4 w-4" />
-      <span className="sr-only">Next slide</span>
-    </Button>
+    <div className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10">
+      <Button
+        ref={ref}
+        variant={variant}
+        size={size}
+        className={cn(
+          "h-8 w-8 rounded-full",
+          className
+        )}
+        disabled={!canScrollNext}
+        onClick={scrollNext}
+        {...props}
+      >
+        <ArrowRight className="h-4 w-4" />
+        <span className="sr-only">Next slide</span>
+      </Button>
+    </div>
   )
 })
 CarouselNext.displayName = "CarouselNext"
