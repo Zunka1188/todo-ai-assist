@@ -1,20 +1,25 @@
 
-import React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Search, List, CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import AppHeader from '@/components/layout/AppHeader';
 import CalendarView from '@/components/features/calendar/CalendarView';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 
 const CalendarPage = () => {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day' | 'agenda'>('month');
 
   const goBack = () => {
     navigate('/');
   };
 
   return (
-    <div className="space-y-6 py-4">
+    <div className="space-y-4 py-4">
       <div className="flex items-center mb-2">
         <Button 
           variant="ghost" 
@@ -31,7 +36,42 @@ const CalendarPage = () => {
           className="py-0"
         />
       </div>
-      <CalendarView />
+
+      <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 sm:items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            type="search"
+            placeholder="Search events..."
+            className="pl-8"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        
+        <div className="flex">
+          <Tabs 
+            defaultValue="month" 
+            value={viewMode} 
+            onValueChange={(value) => setViewMode(value as 'month' | 'week' | 'day' | 'agenda')} 
+            className="w-full"
+          >
+            <TabsList className="grid grid-cols-4 w-full">
+              <TabsTrigger value="month">Month</TabsTrigger>
+              <TabsTrigger value="week">Week</TabsTrigger>
+              <TabsTrigger value="day">Day</TabsTrigger>
+              <TabsTrigger value="agenda">Agenda</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      </div>
+
+      <Separator className="my-2" />
+      
+      <CalendarView 
+        viewMode={viewMode} 
+        searchTerm={searchTerm}
+      />
     </div>
   );
 };

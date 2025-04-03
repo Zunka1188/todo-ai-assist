@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, ChevronRight, Bell } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronRight, Bell, Clock, MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
 import { 
@@ -11,30 +12,69 @@ import {
   PopoverContent, 
   PopoverTrigger 
 } from '@/components/ui/popover';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter,
+  DialogClose
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
-const upcomingEvents = [
+interface Event {
+  id: string;
+  title: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  allDay?: boolean;
+  location?: string;
+  color?: string;
+  recurring?: {
+    frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+    interval: number;
+    endDate?: Date;
+    occurrences?: number;
+    daysOfWeek?: number[];
+  };
+  reminder?: string;
+}
+
+const upcomingEvents: Event[] = [
   {
     id: '1',
     title: 'Team Meeting',
-    date: new Date(2025, 3, 5), // April 5, 2025
-    time: '10:00 AM',
+    description: 'Weekly team sync to discuss project progress',
+    startDate: new Date(2025, 3, 5, 10, 0), // April 5, 2025, 10:00 AM
+    endDate: new Date(2025, 3, 5, 11, 30), // April 5, 2025, 11:30 AM
     location: 'Conference Room A',
-    reminder: '30'
+    color: '#4285F4',
+    reminder: '30',
+    recurring: {
+      frequency: 'weekly',
+      interval: 1,
+      daysOfWeek: [1], // Monday
+    }
   },
   {
     id: '2',
     title: 'Dentist Appointment',
-    date: new Date(2025, 3, 8), // April 8, 2025
-    time: '2:30 PM',
+    description: 'Regular check-up with Dr. Smith',
+    startDate: new Date(2025, 3, 8, 14, 30), // April 8, 2025, 2:30 PM
+    endDate: new Date(2025, 3, 8, 15, 30), // April 8, 2025, 3:30 PM
     location: 'Dental Clinic',
+    color: '#EA4335',
     reminder: '60'
   },
   {
     id: '3',
     title: 'Grocery Shopping',
-    date: new Date(2025, 3, 3), // April 3, 2025 (today)
-    time: '6:00 PM',
+    description: 'Buy weekly groceries',
+    startDate: new Date(2025, 3, 3, 18, 0), // April 3, 2025, 6:00 PM
+    endDate: new Date(2025, 3, 3, 19, 0), // April 3, 2025, 7:00 PM
     location: 'Supermarket',
+    color: '#34A853',
     reminder: '15'
   }
 ];
@@ -57,14 +97,16 @@ const CalendarWidget = () => {
   const [selectedDayEvents, setSelectedDayEvents] = useState<typeof upcomingEvents>([]);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [open, setOpen] = useState(false);
+  const [viewEventDialogOpen, setViewEventDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const { theme } = useTheme();
   
   const isDayWithEvent = (day: Date) => {
     return upcomingEvents.some(
       (event) => 
-        event.date.getDate() === day.getDate() &&
-        event.date.getMonth() === day.getMonth() &&
-        event.date.getFullYear() === day.getFullYear()
+        isSameDay(event.startDate, day) || 
+        isSameDay(event.endDate, day) ||
+        (event.startDate <= day && event.endDate >= day)
     );
   };
 
@@ -74,9 +116,9 @@ const CalendarWidget = () => {
     if (day) {
       const dayEvents = upcomingEvents.filter(
         event => 
-          event.date.getDate() === day.getDate() &&
-          event.date.getMonth() === day.getMonth() &&
-          event.date.getFullYear() === day.getFullYear()
+          isSameDay(event.startDate, day) || 
+          isSameDay(event.endDate, day) ||
+          (event.startDate <= day && event.endDate >= day)
       );
       
       if (dayEvents.length > 0) {
@@ -90,9 +132,20 @@ const CalendarWidget = () => {
     }
   };
   
+  const handleEventClick = (event: Event) => {
+    setSelectedEvent(event);
+    setOpen(false);
+    setViewEventDialogOpen(true);
+  };
+  
   const getReminderLabel = (value: string) => {
     const option = reminderOptions.find(opt => opt.value === value);
     return option ? option.label : "No reminder";
+  };
+  
+  // Function to get formatted time from date
+  const getFormattedTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -117,7 +170,7 @@ const CalendarWidget = () => {
                 mode="single"
                 selected={date}
                 onSelect={handleDaySelect}
-                className="rounded-lg border bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 shadow w-full mx-auto"
+                className="rounded-lg border bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 shadow w-full mx-auto pointer-events-auto"
                 modifiers={{
                   event: (date) => isDayWithEvent(date),
                 }}
@@ -146,20 +199,34 @@ const CalendarWidget = () => {
                   {selectedDayEvents.map((event) => (
                     <div 
                       key={event.id}
-                      className="p-3 rounded-lg border border-border bg-white dark:bg-gray-800 shadow-sm"
+                      className="p-3 rounded-lg border border-border bg-white dark:bg-gray-800 shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                      onClick={() => handleEventClick(event)}
                     >
-                      <h5 className={cn(
-                        "font-medium",
-                        theme === 'light' ? "text-todo-black" : "text-white"
-                      )}>
-                        {event.title}
-                        <span className="ml-2 text-xs text-todo-purple bg-todo-purple/10 px-2 py-0.5 rounded">
-                          Event
-                        </span>
-                      </h5>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full flex-shrink-0" 
+                          style={{ backgroundColor: event.color }}
+                        />
+                        <h5 className={cn(
+                          "font-medium flex-1",
+                          theme === 'light' ? "text-todo-black" : "text-white"
+                        )}>
+                          {event.title}
+                        </h5>
+                      </div>
                       <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-                        {event.time && <p>⏰ {event.time}</p>}
-                        {event.location && <p>📍 {event.location}</p>}
+                        <p className="flex items-center">
+                          <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
+                          {event.allDay 
+                            ? 'All day' 
+                            : `${getFormattedTime(event.startDate)} - ${getFormattedTime(event.endDate)}`}
+                        </p>
+                        {event.location && (
+                          <p className="flex items-center">
+                            <MapPin className="h-3 w-3 mr-1 text-muted-foreground" />
+                            {event.location}
+                          </p>
+                        )}
                         {event.reminder && event.reminder !== 'none' && (
                           <p className="flex items-center">
                             <Bell className="h-3 w-3 mr-1 text-todo-purple" />
@@ -174,6 +241,84 @@ const CalendarWidget = () => {
             )}
           </PopoverContent>
         </Popover>
+        
+        {/* Event View Dialog */}
+        <Dialog open={viewEventDialogOpen} onOpenChange={setViewEventDialogOpen}>
+          {selectedEvent && (
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: selectedEvent.color }}
+                  />
+                  <DialogTitle>
+                    {selectedEvent.title}
+                  </DialogTitle>
+                </div>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="font-medium">
+                      {selectedEvent.allDay 
+                        ? 'All day' 
+                        : `${getFormattedTime(selectedEvent.startDate)} - ${getFormattedTime(selectedEvent.endDate)}`}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {format(selectedEvent.startDate, 'EEEE, MMMM d, yyyy')}
+                      {!isSameDay(selectedEvent.startDate, selectedEvent.endDate) && (
+                        <> - {format(selectedEvent.endDate, 'EEEE, MMMM d, yyyy')}</>
+                      )}
+                    </p>
+                    {selectedEvent.recurring && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        <span className="font-medium">Recurring: </span>
+                        {selectedEvent.recurring.frequency.charAt(0).toUpperCase() + selectedEvent.recurring.frequency.slice(1)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                
+                {selectedEvent.location && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p>{selectedEvent.location}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedEvent.reminder && selectedEvent.reminder !== 'none' && (
+                  <div className="flex items-start gap-3">
+                    <Bell className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p>{getReminderLabel(selectedEvent.reminder)}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedEvent.description && (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-medium mb-1">Description</h4>
+                    <p className="text-sm text-muted-foreground whitespace-pre-line">{selectedEvent.description}</p>
+                  </div>
+                )}
+              </div>
+              
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Close</Button>
+                </DialogClose>
+                <Button asChild>
+                  <Link to="/calendar">View in Calendar</Link>
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          )}
+        </Dialog>
       </CardContent>
     </Card>
   );

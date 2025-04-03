@@ -1,18 +1,23 @@
-import React, { useState } from 'react';
-import { Calendar as CalendarIcon, Plus, CheckSquare, Bell } from 'lucide-react';
+
+import React, { useState, useEffect } from 'react';
+import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
+import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, subMonths, isSameDay, isSameMonth } from 'date-fns';
+import { useTheme } from '@/hooks/use-theme';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle,
   DialogFooter,
-  DialogTrigger 
+  DialogTrigger,
+  DialogClose
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { 
   Form,
@@ -32,13 +37,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover";
+import { toast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import DayView from './views/DayView';
+import WeekView from './views/WeekView';
+import MonthView from './views/MonthView';
+import AgendaView from './views/AgendaView';
 
 interface Event {
   id: string;
   title: string;
-  date: Date;
-  time?: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  allDay?: boolean;
   location?: string;
+  color?: string;
+  recurring?: {
+    frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+    interval: number;
+    endDate?: Date;
+    occurrences?: number;
+    daysOfWeek?: number[];
+  };
   reminder?: string;
 }
 
@@ -66,13 +93,41 @@ const reminderOptions = [
   { value: "2880", label: "2 days before" },
 ];
 
+const colorOptions = [
+  { value: "#4285F4", label: "Blue" },
+  { value: "#EA4335", label: "Red" },
+  { value: "#FBBC05", label: "Yellow" },
+  { value: "#34A853", label: "Green" },
+  { value: "#8E24AA", label: "Purple" },
+  { value: "#F4511E", label: "Orange" },
+  { value: "#039BE5", label: "Light Blue" },
+  { value: "#0B8043", label: "Dark Green" },
+  { value: "#D50000", label: "Dark Red" },
+  { value: "#FF6D00", label: "Dark Orange" },
+];
+
+const recurringOptions = [
+  { value: "none", label: "Does not repeat" },
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+  { value: "yearly", label: "Yearly" },
+];
+
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  date: z.date(),
-  time: z.string().optional(),
+  description: z.string().optional(),
+  startDate: z.date(),
+  startTime: z.string().optional(),
+  endDate: z.date(),
+  endTime: z.string().optional(),
+  allDay: z.boolean().default(false),
   location: z.string().optional(),
-  type: z.enum(['event', 'task']),
-  priority: z.enum(['low', 'medium', 'high']).optional(),
+  color: z.string().default("#4285F4"),
+  recurringType: z.string().default("none"),
+  recurringEndDate: z.date().optional(),
+  recurringOccurrences: z.string().optional(),
+  recurringDaysOfWeek: z.array(z.string()).optional(),
   reminder: z.string().default("30"),
 });
 
@@ -80,430 +135,755 @@ const initialEvents: Event[] = [
   {
     id: '1',
     title: 'Team Meeting',
-    date: new Date(2025, 3, 5), // April 5, 2025
-    time: '10:00 AM',
+    description: 'Weekly team sync to discuss project progress',
+    startDate: new Date(2025, 3, 5, 10, 0), // April 5, 2025, 10:00 AM
+    endDate: new Date(2025, 3, 5, 11, 30), // April 5, 2025, 11:30 AM
     location: 'Conference Room A',
-    reminder: '30'
+    color: '#4285F4',
+    reminder: '30',
+    recurring: {
+      frequency: 'weekly',
+      interval: 1,
+      daysOfWeek: [1], // Monday
+    }
   },
   {
     id: '2',
     title: 'Dentist Appointment',
-    date: new Date(2025, 3, 8), // April 8, 2025
-    time: '2:30 PM',
+    description: 'Regular check-up with Dr. Smith',
+    startDate: new Date(2025, 3, 8, 14, 30), // April 8, 2025, 2:30 PM
+    endDate: new Date(2025, 3, 8, 15, 30), // April 8, 2025, 3:30 PM
     location: 'Dental Clinic',
+    color: '#EA4335',
     reminder: '60'
   },
   {
     id: '3',
     title: 'Grocery Shopping',
-    date: new Date(2025, 3, 3), // April 3, 2025 (today)
-    time: '6:00 PM',
+    description: 'Buy weekly groceries',
+    startDate: new Date(2025, 3, 3, 18, 0), // April 3, 2025, 6:00 PM
+    endDate: new Date(2025, 3, 3, 19, 0), // April 3, 2025, 7:00 PM
     location: 'Supermarket',
+    color: '#34A853',
     reminder: '15'
+  },
+  {
+    id: '4',
+    title: 'Birthday Party',
+    description: 'Sarah\'s birthday celebration',
+    startDate: new Date(2025, 3, 15, 19, 0), // April 15, 2025, 7:00 PM
+    endDate: new Date(2025, 3, 15, 22, 0), // April 15, 2025, 10:00 PM
+    location: 'Pizzeria Downtown',
+    color: '#FBBC05',
+    reminder: '1440' // 1 day before
+  },
+  {
+    id: '5',
+    title: 'Project Deadline',
+    description: 'Final submission for the Q2 project',
+    startDate: new Date(2025, 3, 30, 0, 0), // April 30, 2025, all day
+    endDate: new Date(2025, 3, 30, 23, 59), // April 30, 2025, end of day
+    allDay: true,
+    color: '#EA4335',
+    reminder: '2880' // 2 days before
+  },
+  {
+    id: '6',
+    title: 'Yoga Class',
+    description: 'Weekly yoga session',
+    startDate: new Date(2025, 3, 7, 8, 0), // April 7, 2025, 8:00 AM
+    endDate: new Date(2025, 3, 7, 9, 0), // April 7, 2025, 9:00 AM
+    location: 'Fitness Center',
+    color: '#8E24AA',
+    reminder: '30',
+    recurring: {
+      frequency: 'weekly',
+      interval: 1,
+      daysOfWeek: [1, 3, 5], // Monday, Wednesday, Friday
+    }
   }
 ];
 
-const initialTasks: Task[] = [
-  { id: 1, title: 'Buy groceries', completed: false, priority: 'high', dueDate: '2025-04-03', time: '5:00 PM', location: 'Grocery Store', reminder: '30' },
-  { id: 2, title: 'Call dentist', completed: false, priority: 'medium', dueDate: '2025-04-03', time: '2:00 PM', reminder: '15' },
-  { id: 3, title: 'Finish presentation', completed: true, priority: 'low', dueDate: '2025-04-03', reminder: 'none' },
-];
+interface CalendarViewProps {
+  viewMode: 'month' | 'week' | 'day' | 'agenda';
+  searchTerm?: string;
+}
 
-const CalendarView: React.FC = () => {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }) => {
+  const [date, setDate] = useState<Date>(new Date());
   const [events, setEvents] = useState<Event[]>(initialEvents);
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const { theme } = useTheme();
+  const { isMobile } = useIsMobile();
+
+  // Filter events based on search term
+  const filteredEvents = events.filter(event => 
+    searchTerm ? 
+      event.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (event.description && event.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (event.location && event.location.toLowerCase().includes(searchTerm.toLowerCase()))
+    : true
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
-      date: new Date(),
-      time: '',
+      description: '',
+      startDate: new Date(),
+      startTime: '09:00',
+      endDate: new Date(),
+      endTime: '10:00',
+      allDay: false,
       location: '',
-      type: 'event',
-      priority: 'medium',
+      color: '#4285F4',
+      recurringType: 'none',
+      recurringDaysOfWeek: [],
       reminder: '30',
     },
   });
 
-  const onOpenChange = (open: boolean) => {
-    setIsDialogOpen(open);
-    if (open) {
+  useEffect(() => {
+    if (selectedEvent && isEditMode) {
+      const startHours = selectedEvent.startDate.getHours().toString().padStart(2, '0');
+      const startMinutes = selectedEvent.startDate.getMinutes().toString().padStart(2, '0');
+      const endHours = selectedEvent.endDate.getHours().toString().padStart(2, '0');
+      const endMinutes = selectedEvent.endDate.getMinutes().toString().padStart(2, '0');
+      
       form.reset({
-        title: '',
-        date: date || new Date(),
-        time: '',
-        location: '',
-        type: 'event',
-        priority: 'medium',
-        reminder: '30',
+        title: selectedEvent.title,
+        description: selectedEvent.description || '',
+        startDate: selectedEvent.startDate,
+        startTime: `${startHours}:${startMinutes}`,
+        endDate: selectedEvent.endDate,
+        endTime: `${endHours}:${endMinutes}`,
+        allDay: selectedEvent.allDay || false,
+        location: selectedEvent.location || '',
+        color: selectedEvent.color || '#4285F4',
+        recurringType: selectedEvent.recurring ? selectedEvent.recurring.frequency : 'none',
+        recurringEndDate: selectedEvent.recurring?.endDate,
+        recurringOccurrences: selectedEvent.recurring?.occurrences?.toString(),
+        recurringDaysOfWeek: selectedEvent.recurring?.daysOfWeek?.map(day => day.toString()) || [],
+        reminder: selectedEvent.reminder || '30',
+      });
+    }
+  }, [selectedEvent, isEditMode, form]);
+
+  const handleCreateEvent = () => {
+    form.reset({
+      title: '',
+      description: '',
+      startDate: date,
+      startTime: '09:00',
+      endDate: date,
+      endTime: '10:00',
+      allDay: false,
+      location: '',
+      color: '#4285F4',
+      recurringType: 'none',
+      recurringDaysOfWeek: [],
+      reminder: '30',
+    });
+    setIsEditMode(false);
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleViewEvent = (event: Event) => {
+    setSelectedEvent(event);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleEditEvent = () => {
+    setIsEditMode(true);
+    setIsViewDialogOpen(false);
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleDeleteEvent = () => {
+    if (selectedEvent) {
+      setEvents(events.filter(event => event.id !== selectedEvent.id));
+      setIsViewDialogOpen(false);
+      toast({
+        title: "Event deleted",
+        description: `"${selectedEvent.title}" has been removed from your calendar.`,
+      });
+      setSelectedEvent(null);
+    }
+  };
+
+  const onCreateSubmit = (values: z.infer<typeof formSchema>) => {
+    try {
+      const startTimeParts = values.startTime ? values.startTime.split(':').map(Number) : [0, 0];
+      const endTimeParts = values.endTime ? values.endTime.split(':').map(Number) : [0, 0];
+      
+      const startDateTime = new Date(values.startDate);
+      startDateTime.setHours(startTimeParts[0], startTimeParts[1], 0);
+      
+      const endDateTime = new Date(values.endDate);
+      endDateTime.setHours(endTimeParts[0], endTimeParts[1], 0);
+      
+      let recurring = undefined;
+      if (values.recurringType && values.recurringType !== 'none') {
+        recurring = {
+          frequency: values.recurringType as 'daily' | 'weekly' | 'monthly' | 'yearly',
+          interval: 1,
+          endDate: values.recurringEndDate,
+          occurrences: values.recurringOccurrences ? parseInt(values.recurringOccurrences) : undefined,
+          daysOfWeek: values.recurringDaysOfWeek ? values.recurringDaysOfWeek.map(day => parseInt(day)) : undefined,
+        };
+      }
+      
+      const newEvent: Event = {
+        id: selectedEvent && isEditMode ? selectedEvent.id : Date.now().toString(),
+        title: values.title,
+        description: values.description,
+        startDate: startDateTime,
+        endDate: endDateTime,
+        allDay: values.allDay,
+        location: values.location,
+        color: values.color,
+        recurring,
+        reminder: values.reminder,
+      };
+      
+      if (selectedEvent && isEditMode) {
+        // Update existing event
+        setEvents(events.map(event => 
+          event.id === selectedEvent.id ? newEvent : event
+        ));
+        toast({
+          title: "Event updated",
+          description: `Changes to "${newEvent.title}" have been saved.`,
+        });
+      } else {
+        // Create new event
+        setEvents([...events, newEvent]);
+        toast({
+          title: "Event created",
+          description: `"${newEvent.title}" has been added to your calendar.`,
+        });
+      }
+      
+      setIsCreateDialogOpen(false);
+      setIsEditMode(false);
+      setSelectedEvent(null);
+    } catch (error) {
+      console.error('Error creating/updating event:', error);
+      toast({
+        title: "Error",
+        description: "There was a problem saving your event. Please try again.",
+        variant: "destructive",
       });
     }
   };
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    if (values.type === 'event') {
-      const newEvent: Event = {
-        id: (events.length + 1).toString(),
-        title: values.title,
-        date: values.date,
-        time: values.time,
-        location: values.location,
-        reminder: values.reminder,
-      };
-      setEvents([...events, newEvent]);
-    } else {
-      const formattedDate = format(values.date, 'yyyy-MM-dd');
-      const newTask: Task = {
-        id: Math.max(0, ...tasks.map(t => t.id)) + 1,
-        title: values.title,
-        completed: false,
-        priority: values.priority || 'medium',
-        dueDate: formattedDate,
-        time: values.time,
-        location: values.location,
-        reminder: values.reminder,
-      };
-      setTasks([...tasks, newTask]);
-    }
-    setIsDialogOpen(false);
-  };
-
-  const formattedToday = date ? format(date, 'yyyy-MM-dd') : '';
-
-  const selectedDateEvents = events.filter(
-    (event) => 
-      date && 
-      event.date.getDate() === date.getDate() &&
-      event.date.getMonth() === date.getMonth() &&
-      event.date.getFullYear() === date.getFullYear()
-  );
-
-  const selectedDateTasks = tasks.filter(
-    (task) => task.dueDate === formattedToday
-  );
-
-  const combinedItems = [
-    ...selectedDateEvents.map(event => ({
-      ...event,
-      itemType: 'event' as const,
-      completed: false,
-    })),
-    ...selectedDateTasks.map(task => ({
-      ...task,
-      itemType: 'task' as const,
-      date: new Date(task.dueDate),
-    })),
-  ];
-
-  const isDayWithItem = (day: Date) => {
-    const formattedDay = format(day, 'yyyy-MM-dd');
-    
-    return events.some(
-      (event) => 
-        event.date.getDate() === day.getDate() &&
-        event.date.getMonth() === day.getMonth() &&
-        event.date.getFullYear() === day.getFullYear()
-    ) || tasks.some(
-      (task) => task.dueDate === formattedDay
+  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  
+  // Function to determine if a day has events
+  const isDayWithEvents = (day: Date) => {
+    return filteredEvents.some(event => 
+      isSameDay(event.startDate, day) || isSameDay(event.endDate, day)
     );
   };
 
-  const toggleTaskStatus = (taskId: number) => {
-    setTasks(
-      tasks.map(task =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
-    );
+  // Function to get formatted time from date
+  const getFormattedTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Function to get reminder label
   const getReminderLabel = (value: string) => {
     const option = reminderOptions.find(opt => opt.value === value);
     return option ? option.label : "No reminder";
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="md:w-auto flex justify-center">
-          <div className="max-w-[350px]">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              className="rounded-lg border shadow bg-white dark:bg-gray-800 dark:border-gray-700 mx-auto pointer-events-auto"
-              modifiers={{
-                event: (date) => isDayWithItem(date),
-              }}
-              modifiersStyles={{
-                event: { 
-                  fontWeight: 'bold', 
-                  backgroundColor: 'rgba(155, 135, 245, 0.1)',
-                  color: '#7E69AB',
-                  borderColor: '#9b87f5' 
-                }
-              }}
-            />
-          </div>
-        </div>
-
-        <div className="md:flex-1 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium flex items-center">
-              <CalendarIcon className="mr-2 h-5 w-5 text-todo-purple" />
-              {date ? (
-                <span>
-                  {date.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </span>
-              ) : 'No date selected'}
-            </h3>
-            
-            <Dialog open={isDialogOpen} onOpenChange={onOpenChange}>
-              <DialogTrigger asChild>
-                <Button className="bg-todo-purple hover:bg-todo-purple/90">
-                  <Plus className="h-4 w-4 mr-1" /> Add Item
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New Event or Task</DialogTitle>
-                </DialogHeader>
-                
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="type"
-                      render={({ field }) => (
-                        <FormItem className="space-y-1">
-                          <FormLabel>Type</FormLabel>
-                          <div className="flex gap-4">
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                value="event"
-                                checked={field.value === 'event'}
-                                onChange={() => field.onChange('event')}
-                                className="h-4 w-4"
-                              />
-                              Event
-                            </label>
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                value="task"
-                                checked={field.value === 'task'}
-                                onChange={() => field.onChange('task')}
-                                className="h-4 w-4"
-                              />
-                              Task
-                            </label>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="title"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Title</FormLabel>
+    <div className="space-y-4">
+      {/* Create/Edit Event Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-md md:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{isEditMode ? 'Edit Event' : 'Create New Event'}</DialogTitle>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onCreateSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title*</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter event title..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="startDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Start Date*</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
                           <FormControl>
-                            <Input placeholder="Enter title..." {...field} />
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    {form.watch('type') === 'task' && (
-                      <FormField
-                        control={form.control}
-                        name="priority"
-                        render={({ field }) => (
-                          <FormItem className="space-y-1">
-                            <FormLabel>Priority</FormLabel>
-                            <div className="flex gap-4">
-                              <label className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  value="low"
-                                  checked={field.value === 'low'}
-                                  onChange={() => field.onChange('low')}
-                                  className="h-4 w-4"
-                                />
-                                Low
-                              </label>
-                              <label className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  value="medium"
-                                  checked={field.value === 'medium'}
-                                  onChange={() => field.onChange('medium')}
-                                  className="h-4 w-4"
-                                />
-                                Medium
-                              </label>
-                              <label className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  value="high"
-                                  checked={field.value === 'high'}
-                                  onChange={() => field.onChange('high')}
-                                  className="h-4 w-4"
-                                />
-                                High
-                              </label>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                    
-                    <FormField
-                      control={form.control}
-                      name="time"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Time (Optional)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., 3:00 PM" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="location"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Location (Optional)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter location..." {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="reminder"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center">
-                            <Bell className="h-4 w-4 mr-2 text-todo-purple" />
-                            Reminder
-                          </FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a reminder time" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {reminderOptions.map(option => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <DialogFooter>
-                      <Button type="submit" className="bg-todo-purple hover:bg-todo-purple/90">
-                        Add {form.watch('type') === 'event' ? 'Event' : 'Task'}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          {combinedItems.length > 0 ? (
-            <div className="space-y-3">
-              {combinedItems.map((item) => (
-                <div 
-                  key={`${item.itemType}-${item.id}`}
-                  className={cn(
-                    "p-4 rounded-lg border border-border",
-                    "bg-white dark:bg-gray-800 shadow-sm hover:shadow transition-shadow",
-                    item.itemType === 'task' && item.completed && "opacity-60"
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                >
-                  <div className="flex items-start gap-3">
-                    {item.itemType === 'task' && (
-                      <button 
-                        className={cn(
-                          "w-5 h-5 rounded-md border mr-1 flex-shrink-0 mt-1",
-                          item.completed ? "bg-todo-purple border-todo-purple" : "border-gray-300 dark:border-gray-500",
-                          {
-                            "border-red-400": !item.completed && item.priority === 'high',
-                            "border-yellow-400": !item.completed && item.priority === 'medium',
-                            "border-green-400": !item.completed && item.priority === 'low',
-                          }
-                        )}
-                        onClick={() => toggleTaskStatus(item.id as number)}
-                      >
-                        {item.completed && (
-                          <CheckSquare className="w-4 h-4 text-white" />
-                        )}
-                      </button>
-                    )}
-                    <div className="flex-1">
-                      <h4 className={cn(
-                        "font-medium text-todo-black dark:text-white",
-                        item.itemType === 'task' && item.completed && "line-through text-muted-foreground"
-                      )}>
-                        {item.title}
-                        <span className="ml-2 text-xs text-todo-purple bg-todo-purple/10 px-2 py-0.5 rounded">
-                          {item.itemType === 'event' ? 'Event' : 'Task'}
-                        </span>
-                      </h4>
-                      <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-                        {item.time && <p>⏰ {item.time}</p>}
-                        {item.location && <p>📍 {item.location}</p>}
-                        {item.reminder && item.reminder !== 'none' && (
-                          <p className="flex items-center">
-                            <Bell className="h-3 w-3 mr-1 text-todo-purple" />
-                            {getReminderLabel(item.reminder)}
-                          </p>
-                        )}
-                        {item.itemType === 'task' && item.priority && (
-                          <p>
-                            🔔 Priority: 
-                            <span className={cn(
-                              "ml-1 font-medium",
-                              item.priority === 'high' ? "text-red-500" : 
-                              item.priority === 'medium' ? "text-yellow-500" : 
-                              "text-green-500"
-                            )}>
-                              {item.priority.charAt(0).toUpperCase() + item.priority.slice(1)}
-                            </span>
-                          </p>
-                        )}
-                      </div>
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="startTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start Time</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="time" 
+                          {...field} 
+                          disabled={form.watch('allDay')}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>End Date*</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="endTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>End Time</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="time" 
+                          {...field} 
+                          disabled={form.watch('allDay')}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="allDay"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>All day event</FormLabel>
                     </div>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Enter event description..." 
+                        {...field} 
+                        className="resize-none h-20"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                      Location
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter location..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="color"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Event Color</FormLabel>
+                    <div className="flex flex-wrap gap-2">
+                      {colorOptions.map((color) => (
+                        <div 
+                          key={color.value}
+                          className={cn(
+                            "h-8 w-8 rounded-full cursor-pointer border-2",
+                            field.value === color.value ? "border-black dark:border-white" : "border-transparent"
+                          )}
+                          style={{ backgroundColor: color.value }}
+                          onClick={() => field.onChange(color.value)}
+                          title={color.label}
+                        />
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="recurringType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Recurrence</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select recurrence pattern" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {recurringOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {form.watch('recurringType') === 'weekly' && (
+                <FormField
+                  control={form.control}
+                  name="recurringDaysOfWeek"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Repeat on</FormLabel>
+                      <div className="flex flex-wrap gap-2">
+                        {weekDays.map((day, index) => (
+                          <Button
+                            key={index}
+                            type="button"
+                            variant="outline"
+                            className={cn(
+                              "h-8 w-8 p-0",
+                              field.value?.includes(index.toString())
+                                ? "bg-primary text-primary-foreground"
+                                : ""
+                            )}
+                            onClick={() => {
+                              const currentValue = field.value || [];
+                              const dayStr = index.toString();
+                              
+                              if (currentValue.includes(dayStr)) {
+                                field.onChange(currentValue.filter(d => d !== dayStr));
+                              } else {
+                                field.onChange([...currentValue, dayStr]);
+                              }
+                            }}
+                          >
+                            {day[0]}
+                          </Button>
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+              
+              <FormField
+                control={form.control}
+                name="reminder"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      <Bell className="h-4 w-4 mr-2 text-muted-foreground" />
+                      Reminder
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a reminder time" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {reminderOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsCreateDialogOpen(false);
+                    setIsEditMode(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-todo-purple hover:bg-todo-purple/90">
+                  {isEditMode ? 'Save Changes' : 'Create Event'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* View Event Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        {selectedEvent && (
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <div className="flex justify-between items-center mb-1">
+                <div 
+                  className="w-3 h-3 rounded-full mr-2" 
+                  style={{ backgroundColor: selectedEvent.color }}
+                />
+                <DialogTitle className="flex-1 text-left">
+                  {selectedEvent.title}
+                </DialogTitle>
+                <div className="flex space-x-1">
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={handleEditEvent}
+                    className="h-8 w-8"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={handleDeleteEvent}
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="font-medium">
+                    {selectedEvent.allDay 
+                      ? 'All day' 
+                      : `${getFormattedTime(selectedEvent.startDate)} - ${getFormattedTime(selectedEvent.endDate)}`}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {format(selectedEvent.startDate, 'EEEE, MMMM d, yyyy')}
+                    {!isSameDay(selectedEvent.startDate, selectedEvent.endDate) && (
+                      <> - {format(selectedEvent.endDate, 'EEEE, MMMM d, yyyy')}</>
+                    )}
+                  </p>
+                  {selectedEvent.recurring && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      <span className="font-medium">Recurring: </span>
+                      {selectedEvent.recurring.frequency.charAt(0).toUpperCase() + selectedEvent.recurring.frequency.slice(1)}
+                      {selectedEvent.recurring.frequency === 'weekly' && selectedEvent.recurring.daysOfWeek && (
+                        <span> on {selectedEvent.recurring.daysOfWeek.map(day => weekDays[day]).join(', ')}</span>
+                      )}
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              {selectedEvent.location && (
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p>{selectedEvent.location}</p>
                   </div>
                 </div>
-              ))}
+              )}
+              
+              {selectedEvent.reminder && selectedEvent.reminder !== 'none' && (
+                <div className="flex items-start gap-3">
+                  <Bell className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p>{getReminderLabel(selectedEvent.reminder)}</p>
+                  </div>
+                </div>
+              )}
+              
+              {selectedEvent.description && (
+                <div className="flex items-start gap-3">
+                  <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="whitespace-pre-line">{selectedEvent.description}</p>
+                  </div>
+                </div>
+              )}
             </div>
-          ) : (
-            <p className="text-muted-foreground text-sm">No events or tasks scheduled for this day</p>
-          )}
-        </div>
+            
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Close</Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
+      
+      {/* Create Event Button */}
+      <div className="flex justify-end mb-2">
+        <Button 
+          className="bg-todo-purple hover:bg-todo-purple/90"
+          onClick={handleCreateEvent}
+        >
+          <Plus className="h-4 w-4 mr-1" /> New Event
+        </Button>
       </div>
+      
+      {/* Display the appropriate view based on viewMode */}
+      {viewMode === 'month' && (
+        <MonthView 
+          date={date} 
+          setDate={setDate}
+          events={filteredEvents}
+          handleViewEvent={handleViewEvent}
+          theme={theme}
+        />
+      )}
+      
+      {viewMode === 'week' && (
+        <WeekView 
+          date={date} 
+          setDate={setDate}
+          events={filteredEvents}
+          handleViewEvent={handleViewEvent}
+          theme={theme}
+        />
+      )}
+      
+      {viewMode === 'day' && (
+        <DayView 
+          date={date} 
+          setDate={setDate}
+          events={filteredEvents}
+          handleViewEvent={handleViewEvent}
+          theme={theme}
+        />
+      )}
+      
+      {viewMode === 'agenda' && (
+        <AgendaView 
+          date={date}
+          setDate={setDate}
+          events={filteredEvents}
+          handleViewEvent={handleViewEvent}
+          theme={theme}
+        />
+      )}
     </div>
   );
 };
