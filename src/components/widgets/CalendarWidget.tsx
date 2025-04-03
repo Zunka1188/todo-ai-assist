@@ -62,7 +62,7 @@ const CalendarWidget = () => {
           onSelect={setDate}
           className="rounded-lg border bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 shadow pointer-events-auto w-full mx-auto"
           components={{
-            DayContent: ({ date, displayMonth }) => {
+            DayContent: ({ date }) => {
               const isCurrentDay = isToday(date);
               const hasEvent = isDayWithEvent(date);
               
@@ -76,9 +76,12 @@ const CalendarWidget = () => {
                       "bg-[rgba(155,135,245,0.1)] text-[#7E69AB] border-[#9b87f5]": hasEvent && !isCurrentDay,
                     }
                   )}
-                  style={isCurrentDay ? { textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)' } : {}}
                 >
-                  {date.getDate()}
+                  <span 
+                    style={isCurrentDay ? { textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)' } : undefined}
+                  >
+                    {date.getDate()}
+                  </span>
                 </div>
               );
             }
