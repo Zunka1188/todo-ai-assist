@@ -390,26 +390,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
     });
   };
 
-  const handleTakePicture = () => {
-    if (isMobile) {
-      if (imageInputRef.current) {
-        imageInputRef.current.capture = 'environment';
-        imageInputRef.current.click();
-      }
-    } else {
-      setShowCamera(true);
-    }
-  };
-
-  const handleAttachDocument = () => {
+  const handleAttachments = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
-    }
-  };
-
-  const handleAttachImage = () => {
-    if (imageInputRef.current) {
-      imageInputRef.current.click();
     }
   };
 
@@ -527,16 +510,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                   <input 
                     type="file" 
                     ref={fileInputRef}
-                    onChange={(e) => handleFileChange(e, 'document')}
-                    accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx"
-                    style={{ display: 'none' }}
-                    multiple
-                  />
-                  <input 
-                    type="file" 
-                    ref={imageInputRef}
-                    onChange={(e) => handleFileChange(e, 'image')}
-                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, isMobile ? 'image' : 'document')}
+                    accept={isMobile ? "image/*" : "*/*"}
                     capture={isMobile ? "environment" : undefined}
                     style={{ display: 'none' }}
                     multiple
@@ -858,22 +833,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={isMobile ? handleTakePicture : handleAttachImage}
+                        onClick={handleAttachments}
                         className="flex items-center min-h-[44px] min-w-[44px] touch-manipulation"
                       >
-                        <Camera className="h-4 w-4 mr-2" />
-                        <span>{isMobile ? "Take Photo" : "Add Images"}</span>
-                      </Button>
-                      
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAttachDocument}
-                        className="flex items-center min-h-[44px] min-w-[44px] touch-manipulation"
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        <span>Add Files</span>
+                        <Paperclip className="h-4 w-4 mr-2" />
+                        <span>{isMobile ? "Add Attachment" : "Add Attachment"}</span>
                       </Button>
                     </div>
                     
