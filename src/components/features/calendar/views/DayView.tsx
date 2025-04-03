@@ -275,7 +275,7 @@ const DayView: React.FC<DayViewProps> = ({
       </div>
       
       {hiddenEvents.length > 0 && (
-        <Alert variant="destructive" className="py-2 bg-white border border-red-400">
+        <Alert variant="destructive" className="py-2 bg-white border border-red-400 dark:bg-white dark:text-foreground">
           <AlertDescription className="text-sm">
             Warning: {hiddenEvents.length} event{hiddenEvents.length === 1 ? '' : 's'} {hiddenEvents.length === 1 ? 'is' : 'are'} hidden with the current time range.
           </AlertDescription>
