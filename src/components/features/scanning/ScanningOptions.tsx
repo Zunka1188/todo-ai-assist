@@ -109,7 +109,7 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClic
       ) : showScreenshotDetection ? (
         <ScreenshotDetection onClose={() => setShowScreenshotDetection(false)} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {scanOptions.map((option, index) => {
             const Icon = option.icon;
             return (
@@ -117,16 +117,16 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClic
                 key={index}
                 onClick={option.action}
                 className={cn(
-                  "metallic-card flex items-center p-3 sm:p-4 rounded-xl transition-all duration-300",
-                  "hover:shadow-lg hover:-translate-y-0.5"
+                  "metallic-card flex items-center p-4 rounded-xl transition-all duration-300",
+                  "hover:shadow-lg active:scale-95 touch-action-manipulation"
                 )}
               >
-                <div className="bg-todo-purple bg-opacity-10 p-2 sm:p-3 rounded-full mr-3 sm:mr-4 flex-shrink-0">
+                <div className="bg-todo-purple bg-opacity-10 p-3 rounded-full mr-4 flex-shrink-0 flex items-center justify-center" style={{minWidth: "46px", minHeight: "46px"}}>
                   <Icon className="text-todo-purple" size={isMobile ? 20 : 24} />
                 </div>
-                <div className="text-left min-w-0">
-                  <h3 className="font-medium text-todo-black text-sm sm:text-base truncate">{option.label}</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{option.description}</p>
+                <div className="text-left min-w-0 flex-1">
+                  <h3 className="font-medium text-todo-black text-base truncate">{option.label}</h3>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{option.description}</p>
                 </div>
               </button>
             );

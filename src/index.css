@@ -121,29 +121,64 @@
     }
   }
 
+  /* Improved mobile touch targets */
   @media (max-width: 640px) {
     button, 
     [role="button"],
-    a {
+    a,
+    input[type="checkbox"],
+    input[type="radio"] {
       @apply min-h-[44px] min-w-[44px];
+    }
+
+    label {
+      @apply py-1;
     }
 
     input, 
     select, 
     textarea {
-      @apply text-base;
+      @apply text-base p-3;
+    }
+    
+    /* Add spacing between stacked elements */
+    .stack-vertical > * + * {
+      @apply mt-4;
+    }
+    
+    /* Improve mobile form elements */
+    .form-field {
+      @apply mb-4;
+    }
+    
+    /* Better spacing for mobile lists */
+    .mobile-list > * {
+      @apply py-3;
     }
   }
 
+  /* Fix input zoom on iOS */
   @media screen and (max-width: 768px) {
     input, select, textarea {
       font-size: 16px !important;
     }
+    
+    /* Add tap states for mobile */
+    .tap-highlight {
+      -webkit-tap-highlight-color: rgba(155, 135, 245, 0.2);
+    }
   }
 
+  /* Improve mobile scrolling */
   .mobile-scroll {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
+    scrollbar-width: thin;
+  }
+  
+  /* Better touch feedback */
+  .touch-action-manipulation {
+    touch-action: manipulation;
   }
   
   /* Enhanced dark mode text visibility */
@@ -168,4 +203,3 @@
     @apply text-white;
   }
 }
-

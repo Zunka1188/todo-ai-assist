@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Settings, FileText, CheckSquare, MoreVertical, Menu, Home, Calendar, ShoppingBag, Camera, CreditCard } from 'lucide-react';
+import { Settings, FileText, CheckSquare, Menu, Home, Calendar, ShoppingBag, Camera, CreditCard } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,14 +24,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="container mx-auto px-2 sm:px-4 pt-4 flex justify-end items-center gap-2 h-14">
+      <div className="container mx-auto px-2 sm:px-4 pt-2 sm:pt-4 flex justify-end items-center gap-2 h-12 sm:h-14">
         <DropdownMenu>
-          <DropdownMenuTrigger className="p-2 rounded-md hover:bg-secondary">
+          <DropdownMenuTrigger className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center">
             <Menu className="h-5 w-5" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-background border border-border">
+          <DropdownMenuContent align="end" className="bg-background border border-border w-56">
             <DropdownMenuItem asChild>
-              <Link to="/" className="cursor-pointer flex items-center gap-2">
+              <Link to="/" className="cursor-pointer flex items-center gap-2 h-10">
                 <Home className="h-4 w-4" />
                 <span>Home</span>
               </Link>
@@ -80,14 +80,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Link to="/settings" className="p-2 rounded-md hover:bg-secondary">
+        <Link to="/settings" className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center">
           <Settings className="h-5 w-5" />
         </Link>
         <ThemeToggle />
       </div>
       <main className={cn(
         "container mx-auto px-2 sm:px-4 pb-20", 
-        isMobile ? "pt-2" : "pt-4",
+        isMobile ? "pt-1" : "pt-4",
         className
       )}>
         <Outlet />
