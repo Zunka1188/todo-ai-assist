@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Settings, FileText, CheckSquare, MoreVertical, Menu } from 'lucide-react';
+import { Settings, FileText, CheckSquare, MoreVertical, Menu, Home, Calendar, ShoppingBag, Camera, CreditCard } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +31,30 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="bg-background border border-border">
             <DropdownMenuItem asChild>
+              <Link to="/" className="cursor-pointer flex items-center gap-2">
+                <Home className="h-4 w-4" />
+                <span>Home</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/shopping" className="cursor-pointer flex items-center gap-2">
+                <ShoppingBag className="h-4 w-4" />
+                <span>Shopping</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/calendar" className="cursor-pointer flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>Calendar</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/scan" className="cursor-pointer flex items-center gap-2">
+                <Camera className="h-4 w-4" />
+                <span>Scan</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
               <Link to="/documents" className="cursor-pointer flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 <span>Documents</span>
@@ -46,6 +70,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
               <Link to="/upload" className="cursor-pointer flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 <span>Upload</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/spending" className="cursor-pointer flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                <span>Spending</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/settings" className="cursor-pointer flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                <span>Settings</span>
               </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
