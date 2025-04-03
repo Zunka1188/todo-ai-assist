@@ -41,6 +41,11 @@ import {
   CarouselPrevious,
   CarouselNext,
 } from '@/components/ui/carousel';
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 interface ShoppingItem {
   id: string;
@@ -262,14 +267,74 @@ const ShoppingList: React.FC = () => {
                 if (e.key === 'Enter' && !showDetailedEntry) addItem();
               }}
             />
-            <Button 
-              variant="outline" 
-              onClick={() => setShowDetailedEntry(!showDetailedEntry)}
-              className="min-w-[44px]"
-              aria-label={showDetailedEntry ? "Hide details" : "Show details"}
-            >
-              <MoreHorizontal size={18} />
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="min-w-[44px]"
+                  aria-label={showDetailedEntry ? "Hide details" : "Show details"}
+                >
+                  <MoreHorizontal size={18} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-60">
+                <div className="space-y-3">
+                  <div className="text-sm font-medium">Item Details</div>
+                  <div className="grid gap-2">
+                    <div className="grid grid-cols-4 items-center gap-2">
+                      <label className="text-sm col-span-1">Category</label>
+                      <select
+                        value={newItemCategory}
+                        onChange={(e) => setNewItemCategory(e.target.value)}
+                        className="rounded-md border border-input bg-background px-2 py-1 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white col-span-3"
+                      >
+                        {categories.map((category) => (
+                          <option key={category} value={category}>
+                            {category}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-2">
+                      <label className="text-sm col-span-1">Amount</label>
+                      <Input
+                        placeholder="Optional"
+                        value={newItemAmount}
+                        onChange={(e) => setNewItemAmount(e.target.value)}
+                        className="col-span-3 h-8"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-2">
+                      <label className="text-sm col-span-1">Date</label>
+                      <Input
+                        type="date"
+                        placeholder="Optional"
+                        value={newItemDate}
+                        onChange={(e) => setNewItemDate(e.target.value)}
+                        className="col-span-3 h-8"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-2">
+                      <label className="text-sm col-span-1">Price</label>
+                      <Input
+                        type="number"
+                        placeholder="Optional"
+                        value={newItemPrice}
+                        onChange={(e) => setNewItemPrice(e.target.value)}
+                        className="col-span-3 h-8"
+                      />
+                    </div>
+                    <Button 
+                      size="sm" 
+                      onClick={addItem} 
+                      className="mt-2 w-full bg-todo-purple hover:bg-todo-purple-dark text-white"
+                    >
+                      Add Item with Details
+                    </Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button 
               onClick={addItem} 
               className="bg-todo-purple hover:bg-todo-purple-dark text-white min-w-[44px]"
@@ -278,50 +343,6 @@ const ShoppingList: React.FC = () => {
               <Plus size={18} />
             </Button>
           </div>
-          
-          {showDetailedEntry && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div className="flex space-x-2">
-                <select
-                  value={newItemCategory}
-                  onChange={(e) => setNewItemCategory(e.target.value)}
-                  className="rounded-md border border-input bg-background px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white flex-1"
-                >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="Amount (optional)"
-                  value={newItemAmount}
-                  onChange={(e) => setNewItemAmount(e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-              <div className="flex space-x-2">
-                <Input
-                  type="date"
-                  placeholder="Date to purchase"
-                  value={newItemDate}
-                  onChange={(e) => setNewItemDate(e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-              <div className="flex space-x-2">
-                <Input
-                  type="number"
-                  placeholder="Price (optional)"
-                  value={newItemPrice}
-                  onChange={(e) => setNewItemPrice(e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
