@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List, Image, Camera, Paperclip } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -321,7 +322,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       setIsViewDialogOpen(false);
       toast({
         title: "Event deleted",
-        description: `"${selectedEvent.title}" has been removed from your calendar.",
+        description: `"${selectedEvent.title}" has been removed from your calendar.`
       });
       setSelectedEvent(null);
     }
@@ -338,7 +339,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       type: file.type.startsWith('image/') ? 'image' : 'document',
       name: file.name,
       url: URL.createObjectURL(file),
-      thumbnailUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+      thumbnailUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined
     }));
     
     form.setValue("attachments", [...currentAttachments, ...newAttachments]);
@@ -347,7 +348,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
     
     toast({
       title: "File attached",
-      description: "The file has been attached to this event.",
+      description: "The file has been attached to this event."
     });
   };
 
@@ -373,7 +374,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
     
     toast({
       title: "Attachment removed",
-      description: "The attachment has been removed from this event.",
+      description: "The attachment has been removed from this event."
     });
   };
 
@@ -419,13 +420,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
         ));
         toast({
           title: "Event updated",
-          description: `Changes to "${newEvent.title}" have been saved.`,
+          description: `Changes to "${newEvent.title}" have been saved.`
         });
       } else {
         setEvents([...events, newEvent]);
         toast({
           title: "Event created",
-          description: `"${newEvent.title}" has been added to your calendar.`,
+          description: `"${newEvent.title}" has been added to your calendar.`
         });
       }
       
@@ -437,7 +438,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       toast({
         title: "Error",
         description: "There was a problem saving your event. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
