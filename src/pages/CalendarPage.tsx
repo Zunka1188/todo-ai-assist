@@ -27,7 +27,7 @@ const CalendarPage = () => {
         </Button>
         <AppHeader 
           title="Calendar" 
-          subtitle="Manage your schedule and events"
+          subtitle="Manage your schedule, events and tasks"
           className="py-0"
         />
       </div>
