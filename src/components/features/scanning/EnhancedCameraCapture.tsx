@@ -52,7 +52,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         return;
       }
       
-      // First try with environment facing camera for mobile devices
       const constraints = { 
         video: { 
           facingMode: 'environment',
@@ -104,7 +103,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
       } catch (err: any) {
         console.error("Camera access error:", err);
         
-        // Check if this is a permission error
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
           console.error("Camera permission denied:", err);
           setPermissionDenied(true);
@@ -113,7 +111,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
           return;
         }
         
-        // Try fallback with simpler constraints
         console.error("First attempt failed, trying with different constraints", err);
         
         try {
@@ -152,7 +149,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         } catch (fallbackErr: any) {
           console.error("Both camera initialization attempts failed:", fallbackErr);
           
-          // Check if this is a permission error
           if (fallbackErr.name === 'NotAllowedError' || fallbackErr.name === 'PermissionDeniedError') {
             setPermissionDenied(true);
             setCameraError("Camera permission denied. Please allow camera access in your browser settings.");
@@ -166,7 +162,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     } catch (error: any) {
       console.error('Error in camera initialization:', error);
       
-      // Check if this is a permission error
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
         setPermissionDenied(true);
         setCameraError("Camera permission denied. Please allow camera access in your browser settings.");
@@ -214,10 +209,8 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         const imageDataURL = canvas.toDataURL('image/jpeg');
         setCapturedImage(imageDataURL);
         
-        // Stop the camera after capturing
         stopCamera();
         
-        // Process the image for recognition
         processImage(imageDataURL);
       }
     }
@@ -227,7 +220,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       
-      // Create a preview of the uploaded image
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
@@ -256,7 +248,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     setProcessing(true);
     setProgressValue(0);
     
-    // Simulate progress updates
     const interval = setInterval(() => {
       setProgressValue(prev => {
         if (prev >= 95) {
@@ -265,33 +256,23 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         }
         return prev + 5;
       });
-    }, 80); // Made faster for better UX
+    }, 80);
     
-    // In a real app, this would send the image to an AI service for analysis
-    // For this demo, we'll simulate AI detection with more intelligent results
-    
-    // Mock OCR extraction (simulating the text that would be extracted)
     const mockExtractedText = generateMockExtractedText(preferredScanMode);
     
     setTimeout(() => {
       clearInterval(interval);
       setProgressValue(100);
       
-      // If we have a preferred scan mode, prioritize that
       let determinedType: RecognizedItemType;
       if (preferredScanMode) {
         determinedType = preferredScanMode;
       } else {
-        // Otherwise simulate AI-based type detection
         const types: Array<RecognizedItemType> = ['invitation', 'receipt', 'product', 'document', 'unknown'];
-        
-        // Bias toward more reasonable options
-        const typeWeights = [0.3, 0.3, 0.2, 0.15, 0.05]; // Weights for each type
-        
-        // Weighted random selection
+        const typeWeights = [0.3, 0.3, 0.2, 0.15, 0.05];
         const random = Math.random();
         let cumulativeWeight = 0;
-        let selectedIndex = types.length - 1; // Default to last option
+        let selectedIndex = types.length - 1;
         
         for (let i = 0; i < typeWeights.length; i++) {
           cumulativeWeight += typeWeights[i];
@@ -304,12 +285,10 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         determinedType = types[selectedIndex];
       }
       
-      const confidence = 0.75 + (Math.random() * 0.2); // Random confidence between 75% and 95%
+      const confidence = 0.75 + (Math.random() * 0.2);
       
-      // Generate more realistic mock data based on the determined type
       const mockData = generateTypeSpecificMockData(determinedType);
       
-      // Generate simulated detected objects
       const detectedObjects = generateDetectedObjects(determinedType);
       
       const result: RecognizedItem = {
@@ -331,7 +310,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     }, 1500);
   };
   
-  // Generate mock extracted text based on the preferred scan mode
   const generateMockExtractedText = (scanMode: RecognizedItemType | null): string => {
     switch (scanMode) {
       case 'invitation':
@@ -347,7 +325,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         return `MEETING MINUTES\n\nDate: April 10, 2025\nSubject: Product Launch Planning\n\nAttendees:\n- John Smith (Chair)\n- Jane Doe\n- Alex Johnson\n\nDiscussion Items:\n1. Marketing strategy for Q2\n2. Budget allocation\n3. Timeline for upcoming product launch`;
       
       default:
-        // Generate generic text if no specific mode is selected
         const textOptions = [
           `TEXT DETECTION\nThis is a sample of detected text\nThe AI system would extract\nall visible text from the image\nand format it appropriately.`,
           `PRODUCT DETAILS\nModern Desk Lamp\nAdjustable brightness\nEnergy efficient\nPrice: $45.99\nIn stock: Yes`,
@@ -357,7 +334,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     }
   };
   
-  // Generate type-specific mock data
   const generateTypeSpecificMockData = (type: RecognizedItemType) => {
     switch (type) {
       case 'invitation':
@@ -407,7 +383,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     }
   };
   
-  // Generate mock detected objects
   const generateDetectedObjects = (type: RecognizedItemType) => {
     const objects = [];
     
@@ -456,27 +431,22 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
   
   const requestCameraPermission = async () => {
     try {
-      // On some browsers, we can request permission explicitly
       if (navigator.permissions && navigator.permissions.query) {
         const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
         
         if (result.state === 'granted') {
-          // Permission already granted, restart camera
           startCamera();
         } else if (result.state === 'prompt') {
-          // Will trigger the permission prompt
           startCamera();
         } else if (result.state === 'denied') {
           setCameraError("Camera permission is blocked. Please update your browser settings to allow camera access.");
           setPermissionDenied(true);
         }
       } else {
-        // Fallback to just trying to access the camera
         startCamera();
       }
     } catch (error) {
       console.error("Error requesting permission:", error);
-      // Just try starting the camera anyway
       startCamera();
     }
   };
@@ -490,23 +460,20 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
   const handleSaveItem = (formData: any, originalItem: RecognizedItem) => {
     setIsSaving(true);
     
-    // Simulate saving process with progress
     let progress = 0;
     const interval = setInterval(() => {
       progress += 10;
       if (progress >= 100) {
         clearInterval(interval);
         
-        // Show success message
         toast({
           title: "Item Saved Successfully",
-          description: `"${formData.title}" has been saved.`,
+          description: `"${formData.title}" has been saved.",
           variant: "default",
         });
         
         setIsSaving(false);
         
-        // Trigger the onSaveSuccess callback if provided
         if (onSaveSuccess) {
           const savedData = {
             ...formData,
@@ -517,7 +484,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
           onSaveSuccess(savedData);
         }
         
-        // Close the component or navigate based on the type
         setTimeout(() => {
           navigateBasedOnType(formData);
         }, 500);
@@ -526,7 +492,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
   };
   
   const navigateBasedOnType = (formData: any) => {
-    // Navigate based on form data choices
     if (formData.addToShoppingList) {
       navigate('/shopping');
     } else if (formData.addToCalendar) {
@@ -536,7 +501,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     } else if (formData.saveToDocuments) {
       navigate('/documents');
     } else {
-      // Default navigation based on item type
       switch (formData.itemType) {
         case 'invitation':
           navigate('/calendar');
@@ -557,7 +521,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
   };
   
   const openBrowserSettings = () => {
-    // We can't programmatically open browser settings, but we can give instructions
     toast({
       title: "Permission Required",
       description: "Please open your browser settings and allow camera access for this site.",
@@ -565,16 +528,12 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
   };
   
   useEffect(() => {
-    console.log("Component mounted, starting camera");
-    // Clear any previous preferred scan mode stored in session
     if (!preferredMode) {
       sessionStorage.removeItem('preferredScanMode');
     }
     requestCameraPermission();
     
-    // Cleanup function to stop camera when component unmounts
     return () => {
-      console.log("Component unmounting, stopping camera");
       stopCamera();
     };
   }, []);
@@ -627,7 +586,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
             
             <div className="absolute inset-0 pointer-events-none">
               <div className="w-full h-full border-2 border-dashed border-white/40 rounded-lg"></div>
-              {/* Scan effect animation */}
               <div className="absolute left-0 right-0 h-1 bg-todo-purple opacity-50 animate-scan"></div>
             </div>
             
