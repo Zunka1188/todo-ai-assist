@@ -31,6 +31,16 @@ const CalendarWidget = () => {
     event => date && event.date.toDateString() === date.toDateString()
   );
 
+  // Function to highlight dates with events
+  const isDayWithEvent = (day: Date) => {
+    return upcomingEvents.some(
+      (event) => 
+        event.date.getDate() === day.getDate() &&
+        event.date.getMonth() === day.getMonth() &&
+        event.date.getFullYear() === day.getFullYear()
+    );
+  };
+
   return (
     <Card className="metallic-card shadow-sm hover:shadow transition-shadow duration-300">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -50,21 +60,18 @@ const CalendarWidget = () => {
               selected={date}
               onSelect={setDate}
               className="rounded-md border w-full max-w-[250px] mx-auto bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 pointer-events-auto"
-              classNames={{
-                months: "w-full",
-                month: "space-y-2",
-                caption: "flex justify-center pt-1 relative items-center",
-                caption_label: "text-sm font-medium",
-                nav: "space-x-1 flex items-center",
-                table: "w-full border-collapse space-y-1",
-                head_row: "flex",
-                head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
-                row: "flex w-full mt-1",
-                cell: "h-8 w-8 text-center text-sm relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100 dark:text-gray-100",
-                day_selected: "bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground",
-                day_today: "bg-accent text-accent-foreground dark:bg-accent dark:text-accent-foreground",
+              modifiers={{
+                event: (date) => isDayWithEvent(date),
               }}
+              modifiersStyles={{
+                event: { 
+                  fontWeight: 'bold', 
+                  backgroundColor: 'rgba(155, 135, 245, 0.1)',
+                  color: '#7E69AB',
+                  borderColor: '#9b87f5' 
+                }
+              }}
+              showOutsideDays={true}
             />
           </div>
           <div>

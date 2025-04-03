@@ -21,7 +21,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
@@ -29,6 +28,7 @@ interface UserSettings {
   username: string;
   email: string;
   notifications: boolean;
+  language: string;
 }
 
 const SettingsPage = () => {
@@ -38,7 +38,8 @@ const SettingsPage = () => {
   const [settings, setSettings] = useState<UserSettings>({
     username: 'User',
     email: 'user@example.com',
-    notifications: true
+    notifications: true,
+    language: 'English'
   });
 
   const form = useForm<UserSettings>({
@@ -62,6 +63,26 @@ const SettingsPage = () => {
     toast({
       title: "Login functionality",
       description: "Login functionality will be implemented in future updates.",
+    });
+  };
+
+  const languages = [
+    { value: "English", label: "English" },
+    { value: "Polish", label: "Polski" },
+    { value: "Spanish", label: "Español" },
+    { value: "French", label: "Français" }
+  ];
+
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLang = e.target.value;
+    form.setValue('language', newLang);
+    
+    // Update settings immediately for the UI
+    setSettings(prev => ({...prev, language: newLang}));
+    
+    toast({
+      title: newLang === "Polish" ? "Zmieniono język" : "Language changed",
+      description: newLang === "Polish" ? "Język został zmieniony na Polski" : `Language has been changed to ${newLang}`,
     });
   };
 
@@ -135,6 +156,20 @@ const SettingsPage = () => {
                     />
                   </div>
                   
+                  <div className="space-y-2">
+                    <Label htmlFor="language">Language</Label>
+                    <select 
+                      id="language"
+                      className="bg-background w-full border rounded px-3 py-2 text-base"
+                      {...form.register('language')}
+                      defaultValue={settings.language}
+                    >
+                      {languages.map(lang => (
+                        <option key={lang.value} value={lang.value}>{lang.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
                   <div className="flex items-center justify-between">
                     <Label htmlFor="notifications">Notifications</Label>
                     <Switch 
@@ -195,10 +230,14 @@ const SettingsPage = () => {
                   Select your preferred language
                 </p>
               </div>
-              <select className="bg-background border rounded px-3 py-2 w-full sm:w-auto text-base">
-                <option>English</option>
-                <option>Spanish</option>
-                <option>French</option>
+              <select 
+                className="bg-background border rounded px-3 py-2 w-full sm:w-auto text-base"
+                value={settings.language}
+                onChange={handleLanguageChange}
+              >
+                {languages.map(lang => (
+                  <option key={lang.value} value={lang.value}>{lang.label}</option>
+                ))}
               </select>
             </div>
           </div>
