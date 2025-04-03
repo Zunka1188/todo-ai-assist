@@ -209,13 +209,25 @@ const ShoppingList: React.FC = () => {
 
   // Scroll to active category when it changes
   useEffect(() => {
-    // This would be handled by the carousel API in a real implementation
-  }, [activeCategory]);
+    if (isAddCategoryDialogOpen === false && newCategory !== '') {
+      // When a new category is added, select it
+      setActiveCategory(newCategory);
+      setNewCategory('');
+    }
+  }, [categories, isAddCategoryDialogOpen]);
+
+  // Reset scroll position when new items are added
+  useEffect(() => {
+    const scrollArea = document.querySelector('.shopping-items-scroll-area');
+    if (scrollArea) {
+      scrollArea.scrollTop = 0;
+    }
+  }, [items.length]);
 
   return (
-    <div className="space-y-6">
-      <div className="sticky top-0 z-10 pt-2 pb-4 bg-background">
-        <div className="mb-4">
+    <div className="space-y-4">
+      <div className="sticky top-0 z-10 pt-1 pb-3 bg-background">
+        <div className="mb-3">
           <Carousel
             className="w-full"
             opts={{
@@ -231,11 +243,11 @@ const ShoppingList: React.FC = () => {
                     size="sm"
                     onClick={() => setActiveCategory(category)}
                     className={cn(
-                      "rounded-full whitespace-nowrap h-8",
+                      "rounded-full whitespace-nowrap h-7",
                       activeCategory === category && "bg-todo-purple text-white hover:bg-todo-purple-dark"
                     )}
                   >
-                    {category}
+                    <span className="text-xs">{category}</span>
                   </Button>
                 </CarouselItem>
               ))}
@@ -244,15 +256,15 @@ const ShoppingList: React.FC = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsAddCategoryDialogOpen(true)}
-                  className="rounded-full whitespace-nowrap h-8"
+                  className="rounded-full whitespace-nowrap h-7"
                 >
-                  <Plus size={14} className="mr-1" /> New Category
+                  <Plus size={12} className="mr-1" /> <span className="text-xs">New Category</span>
                 </Button>
               </CarouselItem>
             </CarouselContent>
             <div className="absolute right-0 top-1/2 -translate-y-1/2 bg-gradient-to-l from-background to-transparent w-12 h-8 pointer-events-none" />
-            <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-7" />
-            <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 h-7 w-7" />
+            <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-6" />
+            <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 h-6 w-6" />
           </Carousel>
         </div>
 
@@ -262,7 +274,7 @@ const ShoppingList: React.FC = () => {
               placeholder="Add new item..."
               value={newItemName}
               onChange={(e) => setNewItemName(e.target.value)}
-              className="flex-1 h-9"
+              className="flex-1 h-8 text-sm"
               onKeyPress={(e) => {
                 if (e.key === 'Enter' && !showDetailedEntry) addItem();
               }}
@@ -271,22 +283,22 @@ const ShoppingList: React.FC = () => {
               <PopoverTrigger asChild>
                 <Button 
                   variant="outline" 
-                  className="min-w-[44px] h-9"
+                  className="min-w-[40px] h-8"
                   aria-label={showDetailedEntry ? "Hide details" : "Show details"}
                 >
-                  <MoreHorizontal size={16} />
+                  <MoreHorizontal size={14} />
                 </Button>
               </PopoverTrigger>
               <PopoverContent align="end" className="w-60">
-                <div className="space-y-3">
-                  <div className="text-sm font-medium">Item Details</div>
+                <div className="space-y-2">
+                  <div className="text-xs font-medium">Item Details</div>
                   <div className="grid gap-2">
                     <div className="grid grid-cols-4 items-center gap-2">
-                      <label className="text-sm col-span-1">Category</label>
+                      <label className="text-xs col-span-1">Category</label>
                       <select
                         value={newItemCategory}
                         onChange={(e) => setNewItemCategory(e.target.value)}
-                        className="rounded-md border border-input bg-background px-2 py-1 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white col-span-3"
+                        className="rounded-md border border-input bg-background px-2 py-1 text-xs dark:bg-gray-800 dark:border-gray-700 dark:text-white col-span-3"
                       >
                         {categories.map((category) => (
                           <option key={category} value={category}>
@@ -296,40 +308,40 @@ const ShoppingList: React.FC = () => {
                       </select>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-2">
-                      <label className="text-sm col-span-1">Amount</label>
+                      <label className="text-xs col-span-1">Amount</label>
                       <Input
                         placeholder="Optional"
                         value={newItemAmount}
                         onChange={(e) => setNewItemAmount(e.target.value)}
-                        className="col-span-3 h-7"
+                        className="col-span-3 h-6 text-xs"
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-2">
-                      <label className="text-sm col-span-1">Date</label>
+                      <label className="text-xs col-span-1">Date</label>
                       <Input
                         type="date"
                         placeholder="Optional"
                         value={newItemDate}
                         onChange={(e) => setNewItemDate(e.target.value)}
-                        className="col-span-3 h-7"
+                        className="col-span-3 h-6 text-xs"
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-2">
-                      <label className="text-sm col-span-1">Price</label>
+                      <label className="text-xs col-span-1">Price</label>
                       <Input
                         type="number"
                         placeholder="Optional"
                         value={newItemPrice}
                         onChange={(e) => setNewItemPrice(e.target.value)}
-                        className="col-span-3 h-7"
+                        className="col-span-3 h-6 text-xs"
                       />
                     </div>
                     <Button 
                       size="sm" 
                       onClick={addItem} 
-                      className="mt-2 w-full bg-todo-purple hover:bg-todo-purple-dark text-white h-8"
+                      className="mt-1 w-full bg-todo-purple hover:bg-todo-purple-dark text-white h-7"
                     >
-                      Add Item with Details
+                      <span className="text-xs">Add Item with Details</span>
                     </Button>
                   </div>
                 </div>
@@ -337,10 +349,10 @@ const ShoppingList: React.FC = () => {
             </Popover>
             <Button 
               onClick={addItem} 
-              className="bg-todo-purple hover:bg-todo-purple-dark text-white min-w-[44px] h-9"
+              className="bg-todo-purple hover:bg-todo-purple-dark text-white min-w-[40px] h-8"
               aria-label="Add item"
             >
-              <Plus size={16} />
+              <Plus size={14} />
             </Button>
           </div>
         </div>
@@ -353,11 +365,11 @@ const ShoppingList: React.FC = () => {
             size="sm" 
             onClick={() => setIsMultiSelectActive(!isMultiSelectActive)}
             className={cn(
-              "h-8",
+              "h-7",
               isMultiSelectActive && "bg-accent"
             )}
           >
-            <Checkbox checked={isMultiSelectActive} className="mr-1 h-3.5 w-3.5" /> 
+            <Checkbox checked={isMultiSelectActive} className="mr-1 h-3 w-3" /> 
             <span className="text-xs">Select</span>
           </Button>
           
@@ -365,7 +377,7 @@ const ShoppingList: React.FC = () => {
             <Button 
               variant="destructive" 
               size="sm"
-              className="h-8 text-xs"
+              className="h-7 text-xs"
               onClick={deleteSelectedItems}
             >
               Delete Selected ({selectedItems.length})
@@ -375,43 +387,43 @@ const ShoppingList: React.FC = () => {
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8">
-              <SortAsc size={14} className="mr-1" /> <span className="text-xs">Sort</span>
+            <Button variant="outline" size="sm" className="h-7">
+              <SortAsc size={12} className="mr-1" /> <span className="text-xs">Sort</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => handleSort('nameAsc')}>
-              Name (A-Z)
+              <span className="text-xs">Name (A-Z)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('nameDesc')}>
-              Name (Z-A)
+              <span className="text-xs">Name (Z-A)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('dateAsc')}>
-              Date (Earliest First)
+              <span className="text-xs">Date (Earliest First)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('dateDesc')}>
-              Date (Latest First)
+              <span className="text-xs">Date (Latest First)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('priceAsc')}>
-              Price (Low to High)
+              <span className="text-xs">Price (Low to High)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('priceDesc')}>
-              Price (High to Low)
+              <span className="text-xs">Price (High to Low)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('newest')}>
-              Recently Added
+              <span className="text-xs">Recently Added</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('oldest')}>
-              Oldest Added
+              <span className="text-xs">Oldest Added</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-350px)] pr-4">
-        <ul className="space-y-1.5">
+      <ScrollArea className="h-[calc(100vh-300px)] pr-4 shopping-items-scroll-area">
+        <ul className="space-y-1">
           {sortedItems.length === 0 ? (
-            <li className="text-center py-4 text-muted-foreground text-sm">
+            <li className="text-center py-3 text-muted-foreground text-xs">
               No items in this category. Add some new items!
             </li>
           ) : (
@@ -419,7 +431,7 @@ const ShoppingList: React.FC = () => {
               <li 
                 key={item.id}
                 className={cn(
-                  "flex items-center justify-between p-2 rounded-lg border transition-colors",
+                  "flex items-center justify-between p-1.5 rounded-lg border transition-colors",
                   item.completed 
                     ? "bg-muted border-muted" 
                     : "bg-card border-border dark:bg-gray-800 dark:border-gray-700"
@@ -430,58 +442,58 @@ const ShoppingList: React.FC = () => {
                     <Checkbox
                       checked={selectedItems.includes(item.id)}
                       onCheckedChange={() => handleItemSelect(item.id)}
-                      className="h-3.5 w-3.5"
+                      className="h-3 w-3"
                     />
                   ) : (
                     <button
                       onClick={() => toggleItem(item.id)}
                       className={cn(
-                        "flex items-center justify-center w-5 h-5 rounded-full border min-h-[44px] min-w-[44px]",
+                        "flex items-center justify-center w-4 h-4 rounded-full border",
                         item.completed 
                           ? "bg-todo-purple border-todo-purple text-white" 
                           : "border-gray-300 dark:border-gray-500"
                       )}
                     >
-                      {item.completed && <Check size={12} />}
+                      {item.completed && <Check size={10} />}
                     </button>
                   )}
                   
                   <div className="flex flex-col">
                     <span className={cn(
-                      "text-sm dark:text-white",
+                      "text-xs dark:text-white",
                       item.completed && "line-through text-muted-foreground"
                     )}>
                       {item.name}
                     </span>
                     
-                    <div className="flex flex-wrap items-center text-xs text-muted-foreground mt-0.5 gap-1.5">
+                    <div className="flex flex-wrap items-center text-[9px] text-muted-foreground mt-0.5 gap-1">
                       {item.amount && (
-                        <span className="text-[10px]">Qty: {item.amount}</span>
+                        <span className="text-[9px]">Qty: {item.amount}</span>
                       )}
                       
                       {item.price && (
-                        <span className="text-[10px]">Price: ${item.price}</span>
+                        <span className="text-[9px]">Price: ${item.price}</span>
                       )}
                       
                       {item.dateToPurchase && (
-                        <span className="flex items-center text-[10px]">
-                          <Calendar size={10} className="mr-0.5" /> 
+                        <span className="flex items-center text-[9px]">
+                          <Calendar size={8} className="mr-0.5" /> 
                           {new Date(item.dateToPurchase).toLocaleDateString()}
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center space-x-1.5">
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-100">
+                <div className="flex items-center space-x-1">
+                  <span className="text-[9px] px-1 py-0.5 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-100">
                     {item.category}
                   </span>
                   <button
                     onClick={() => removeItem(item.id)}
-                    className="text-gray-400 hover:text-red-500 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    className="text-gray-400 hover:text-red-500 transition-colors"
                     aria-label={`Remove ${item.name}`}
                   >
-                    <X size={14} />
+                    <X size={12} />
                   </button>
                 </div>
               </li>
