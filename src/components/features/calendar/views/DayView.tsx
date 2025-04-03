@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, addDays, subDays, isSameDay, isToday } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Clock, MapPin } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface Event {
   id: string;
@@ -39,6 +41,10 @@ const DayView: React.FC<DayViewProps> = ({
   handleViewEvent,
   theme
 }) => {
+  const [startHour, setStartHour] = useState(0);
+  const [endHour, setEndHour] = useState(23);
+  const [showAllHours, setShowAllHours] = useState(true);
+
   const prevDay = () => {
     setDate(subDays(date, 1));
   };
@@ -64,10 +70,25 @@ const DayView: React.FC<DayViewProps> = ({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
   
-  // Create hours array for the time column
-  const hours = Array.from({ length: 24 }, (_, i) => i);
+  // Create hours array for the time column based on current time range settings
+  const hours = showAllHours 
+    ? Array.from({ length: 24 }, (_, i) => i) 
+    : Array.from({ length: (endHour - startHour) + 1 }, (_, i) => i + startHour);
   
   const isCurrentDate = isToday(date);
+
+  const handleTimeRangeChange = (type: 'start' | 'end', value: string) => {
+    const hour = parseInt(value, 10);
+    if (isNaN(hour) || hour < 0 || hour > 23) return;
+    
+    if (type === 'start') {
+      if (hour <= endHour) setStartHour(hour);
+    } else {
+      if (hour >= startHour) setEndHour(hour);
+    }
+    
+    setShowAllHours(startHour === 0 && endHour === 23);
+  };
 
   return (
     <div className="space-y-4">
@@ -100,6 +121,51 @@ const DayView: React.FC<DayViewProps> = ({
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
+        </div>
+      </div>
+      
+      {/* Time range selector */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Button 
+            variant={showAllHours ? "default" : "outline"} 
+            size="sm"
+            onClick={() => {
+              setStartHour(0);
+              setEndHour(23);
+              setShowAllHours(true);
+            }}
+          >
+            Full 24h
+          </Button>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <Label htmlFor="startHour" className="text-sm whitespace-nowrap">From:</Label>
+            <Input
+              id="startHour"
+              type="number"
+              min="0"
+              max="23"
+              value={startHour}
+              onChange={(e) => handleTimeRangeChange('start', e.target.value)}
+              className="w-16 h-8 text-sm"
+            />
+          </div>
+          
+          <div className="flex items-center gap-1">
+            <Label htmlFor="endHour" className="text-sm whitespace-nowrap">To:</Label>
+            <Input
+              id="endHour"
+              type="number"
+              min="0"
+              max="23"
+              value={endHour}
+              onChange={(e) => handleTimeRangeChange('end', e.target.value)}
+              className="w-16 h-8 text-sm"
+            />
+          </div>
         </div>
       </div>
       
