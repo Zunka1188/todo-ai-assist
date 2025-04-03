@@ -514,7 +514,6 @@ const ShoppingList: React.FC = () => {
             opts={{
               align: "start",
               loop: false,
-              spacing: isMobile ? 2 : 8,
             }}
           >
             <CarouselContent className="-ml-0.5 md:-ml-1">
