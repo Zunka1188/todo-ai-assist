@@ -121,6 +121,11 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
     });
   };
   
+  const handleEditButtonClick = () => {
+    setEditMode(true);
+    setCurrentTab('data'); // Switch to data tab when edit is clicked
+  };
+  
   // If no recognized item, show empty state
   if (!recognizedItem) {
     return (
@@ -142,8 +147,8 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-lg border">
-      <div className="p-4 border-b">
+    <div className="bg-white rounded-lg border dark:bg-gray-800 dark:border-gray-700">
+      <div className="p-4 border-b dark:border-gray-700">
         <div className="flex items-center">
           <div className={cn(
             "mr-3 p-2 rounded-full",
@@ -156,11 +161,11 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
             {getCategoryIcon(currentItemType)}
           </div>
           <div className="flex-1">
-            <h3 className="font-medium">
+            <h3 className="font-medium dark:text-white">
               {currentItemType.charAt(0).toUpperCase() + currentItemType.slice(1)}
               {recognizedItem.confidence < 0.8 && " (Low Confidence)"}
             </h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground dark:text-gray-400">
               Confidence: {Math.round(recognizedItem.confidence * 100)}%
             </p>
             {getLowConfidenceMessage()}
@@ -170,7 +175,7 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => setEditMode(true)}
+              onClick={handleEditButtonClick}
               className="text-xs"
             >
               <Edit className="h-3.5 w-3.5 mr-1" />
@@ -197,7 +202,7 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
                 onTypeChange={handleTypeChange}
               />
             ) : (
-              <div className="text-sm space-y-4">
+              <div className="text-sm space-y-4 dark:text-gray-300">
                 {Object.entries(currentData).map(([key, value]) => {
                   // Skip rendering arrays like items
                   if (Array.isArray(value)) {
@@ -237,18 +242,18 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
           </TabsContent>
           
           <TabsContent value="raw" className="pt-4">
-            <div className="bg-gray-50 p-3 rounded-md">
-              <pre className="text-xs whitespace-pre-wrap overflow-auto max-h-[200px]">
+            <div className="bg-gray-50 p-3 rounded-md dark:bg-gray-900">
+              <pre className="text-xs whitespace-pre-wrap overflow-auto max-h-[200px] dark:text-gray-300">
                 {recognizedItem.extractedText || "No raw text extracted"}
               </pre>
             </div>
             
             {recognizedItem.detectedObjects && recognizedItem.detectedObjects.length > 0 && (
               <div className="mt-4">
-                <h4 className="text-sm font-medium mb-2">Detected Objects:</h4>
+                <h4 className="text-sm font-medium mb-2 dark:text-gray-200">Detected Objects:</h4>
                 <div className="flex flex-wrap gap-2">
                   {recognizedItem.detectedObjects.map((obj, index) => (
-                    <div key={index} className="bg-gray-100 px-2 py-1 rounded text-xs">
+                    <div key={index} className="bg-gray-100 px-2 py-1 rounded text-xs dark:bg-gray-700 dark:text-gray-300">
                       {obj.name} ({Math.round(obj.confidence * 100)}%)
                     </div>
                   ))}
@@ -259,7 +264,7 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
         </Tabs>
       </div>
       
-      <div className="border-t p-4 flex gap-3">
+      <div className="border-t p-4 flex gap-3 dark:border-gray-700">
         {isProcessing ? (
           <Button className="flex-1" disabled>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
