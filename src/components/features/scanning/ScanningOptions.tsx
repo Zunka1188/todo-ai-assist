@@ -7,6 +7,11 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import ScanToCalendar from './ScanToCalendar';
 import CameraCaptureWithAI from './CameraCaptureWithAI';
+import ScreenshotDetection from './ScreenshotDetection';
+
+interface ScanningOptionsProps {
+  onScreenSelectionClick?: () => void;
+}
 
 interface ScanOption {
   icon: React.ElementType;
@@ -15,12 +20,13 @@ interface ScanOption {
   action: () => void;
 }
 
-const ScanningOptions: React.FC = () => {
+const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClick }) => {
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [showScanToCalendar, setShowScanToCalendar] = React.useState(false);
   const [showSmartScan, setShowSmartScan] = React.useState(false);
+  const [showScreenshotDetection, setShowScreenshotDetection] = React.useState(false);
 
   const showToast = (message: string) => {
     toast({
@@ -35,6 +41,18 @@ const ScanningOptions: React.FC = () => {
 
   const handleSmartScan = () => {
     setShowSmartScan(true);
+  };
+
+  const handleScreenSelection = () => {
+    if (onScreenSelectionClick) {
+      onScreenSelectionClick();
+    } else {
+      showToast("Screen selection tool activated...");
+    }
+  };
+
+  const handleScreenshotDetection = () => {
+    setShowScreenshotDetection(true);
   };
 
   const scanOptions: ScanOption[] = [
@@ -60,13 +78,13 @@ const ScanningOptions: React.FC = () => {
       icon: Crop,
       label: "Screen Selection",
       description: "Select part of screen for processing",
-      action: () => showToast("Screen selection tool activated...")
+      action: handleScreenSelection
     },
     {
       icon: Image,
       label: "Screenshot Detection",
       description: "Auto-detect and process screenshots",
-      action: () => showToast("Screenshot detection activated...")
+      action: handleScreenshotDetection
     },
     {
       icon: List,
@@ -88,6 +106,8 @@ const ScanningOptions: React.FC = () => {
         <CameraCaptureWithAI onClose={() => setShowSmartScan(false)} />
       ) : showScanToCalendar ? (
         <ScanToCalendar onClose={() => setShowScanToCalendar(false)} />
+      ) : showScreenshotDetection ? (
+        <ScreenshotDetection onClose={() => setShowScreenshotDetection(false)} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {scanOptions.map((option, index) => {

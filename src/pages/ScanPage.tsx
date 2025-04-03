@@ -1,18 +1,22 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AppHeader from '@/components/layout/AppHeader';
 import ScanningOptions from '@/components/features/scanning/ScanningOptions';
 import { Button } from '@/components/ui/button';
-import { useIsMobile } from '@/hooks/use-mobile';
+import ScreenSelection from '@/components/features/scanning/ScreenSelection';
 
 const ScanPage = () => {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const [showScreenSelection, setShowScreenSelection] = useState(false);
 
   const goBack = () => {
-    navigate('/');
+    if (showScreenSelection) {
+      setShowScreenSelection(false);
+    } else {
+      navigate('/');
+    }
   };
 
   return (
@@ -28,12 +32,22 @@ const ScanPage = () => {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <AppHeader 
-          title="Smart Scanner" 
-          subtitle="Automatically recognize items and take action"
+          title={showScreenSelection ? "Screen Selection" : "Smart Scanner"} 
+          subtitle={showScreenSelection 
+            ? "Select any part of the screen for processing" 
+            : "Automatically recognize items and take action"
+          }
           className="py-0"
         />
       </div>
-      <ScanningOptions />
+      
+      {showScreenSelection ? (
+        <ScreenSelection onClose={() => setShowScreenSelection(false)} />
+      ) : (
+        <ScanningOptions 
+          onScreenSelectionClick={() => setShowScreenSelection(true)} 
+        />
+      )}
     </div>
   );
 };
