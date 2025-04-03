@@ -43,7 +43,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         className={cn(
           "w-auto max-w-[200px] h-[44px] px-4 flex items-center justify-between gap-2 transition-all duration-200",
           "rounded-lg overflow-hidden relative",
-          active && "bg-primary text-primary-foreground hover:bg-primary/90", 
+          active && "bg-primary text-primary-foreground hover:bg-primary/90",
           className
         )}
         {...props}
@@ -56,7 +56,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
           onClick={handleIconClick}
           className={cn(
             "flex items-center justify-center ml-2 rounded-full",
-            "hover:bg-black/10 dark:hover:bg-white/10",
+            "hover:bg-black/10 dark:hover:bg-white/20",
             "transition-colors p-0.5 cursor-pointer",
             iconClassName
           )}
@@ -64,7 +64,10 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
           role="button"
           tabIndex={0}
         >
-          <EllipsisVertical size={iconSize} />
+          <EllipsisVertical 
+            size={iconSize} 
+            className="text-current dark:text-primary-foreground" 
+          />
         </div>
       </Button>
     );

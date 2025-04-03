@@ -7,7 +7,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
-  const isMobile = useIsMobile();
+  const { isMobile } = useIsMobile();
 
   // On mobile, we don't need the tooltip
   if (isMobile) {
@@ -17,12 +17,12 @@ export function ThemeToggle() {
         size="icon" 
         onClick={toggleTheme} 
         aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-        className="hover:bg-secondary"
+        className="hover:bg-secondary transition-colors"
       >
         {theme === 'light' ? (
-          <Moon className="h-5 w-5" />
+          <Moon className="h-5 w-5 text-foreground" />
         ) : (
-          <Sun className="h-5 w-5 text-yellow-200" />
+          <Sun className="h-5 w-5 text-todo-purple-light" />
         )}
       </Button>
     );
@@ -36,16 +36,16 @@ export function ThemeToggle() {
           size="icon" 
           onClick={toggleTheme} 
           aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-          className="hover:bg-secondary"
+          className="hover:bg-secondary transition-colors"
         >
           {theme === 'light' ? (
-            <Moon className="h-5 w-5" />
+            <Moon className="h-5 w-5 text-foreground" />
           ) : (
-            <Sun className="h-5 w-5 text-yellow-200" />
+            <Sun className="h-5 w-5 text-todo-purple-light" />
           )}
         </Button>
       </TooltipTrigger>
-      <TooltipContent>
+      <TooltipContent className="bg-card text-card-foreground border-border">
         <p>Toggle {theme === 'light' ? 'dark' : 'light'} mode</p>
       </TooltipContent>
     </Tooltip>
