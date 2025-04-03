@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
@@ -83,7 +82,6 @@ const initialItems: ShoppingItem[] = [
   { id: '4', name: 'Toothpaste', completed: false, category: 'Household', dateAdded: new Date('2023-04-03') },
 ];
 
-// Helper function to parse dates from localStorage
 const parseStoredItems = (items: any[]): ShoppingItem[] => {
   return items.map(item => ({
     ...item,
@@ -98,7 +96,6 @@ const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
     
     const parsedValue = JSON.parse(storedValue);
     
-    // Handle special case for shopping items to convert dates
     if (key === 'shoppingItems' && Array.isArray(parsedValue)) {
       return parseStoredItems(parsedValue) as unknown as T;
     }
@@ -153,6 +150,7 @@ const ShoppingList: React.FC = () => {
   const [editItemImage, setEditItemImage] = useState<File | null>(null);
   const [editItemImageUrl, setEditItemImageUrl] = useState('');
   const [newItemImage, setNewItemImage] = useState<File | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const { isMobile } = useIsMobile();
   const carouselRef = useRef(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -183,14 +181,12 @@ const ShoppingList: React.FC = () => {
 
     let imageUrl = editItemImageUrl;
 
-    // If a new image was uploaded and we have a file reader
     if (editItemImage) {
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
           const newImageUrl = e.target.result as string;
           
-          // Update the item with the new image URL
           const updatedItems = items.map(item => 
             item.id === itemToEdit.id 
               ? { 
@@ -215,7 +211,6 @@ const ShoppingList: React.FC = () => {
       };
       reader.readAsDataURL(editItemImage);
     } else {
-      // Update without changing the image
       const updatedItems = items.map(item => 
         item.id === itemToEdit.id 
           ? { 
@@ -247,7 +242,6 @@ const ShoppingList: React.FC = () => {
         setNewItemImage(file);
       } else {
         setEditItemImage(file);
-        // Create a preview URL
         const reader = new FileReader();
         reader.onload = (event) => {
           if (event.target?.result) {
@@ -301,7 +295,6 @@ const ShoppingList: React.FC = () => {
       }, 100);
     };
 
-    // If we have an image, process it first
     if (newItemImage) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -783,7 +776,10 @@ const ShoppingList: React.FC = () => {
                       "bg-green-50 border-green-100 dark:bg-green-900/20 dark:border-green-800/50"
                     )}
                   >
-                    <div className="flex items-center justify-between">
+                    <div 
+                      className="flex items-center justify-between cursor-pointer"
+                      onClick={() => !isMultiSelectActive && toggleItem(item.id)}
+                    >
                       <div className="flex items-center space-x-1.5">
                         {isMultiSelectActive ? (
                           <Checkbox
@@ -793,7 +789,10 @@ const ShoppingList: React.FC = () => {
                           />
                         ) : (
                           <button
-                            onClick={() => toggleItem(item.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleItem(item.id);
+                            }}
                             className={cn(
                               "flex items-center justify-center w-3 h-3 rounded-full border",
                               "border-green-300 dark:border-green-700"
@@ -826,7 +825,7 @@ const ShoppingList: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-1">
+                      <div className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
                         <span className="text-[8px] px-1 py-0.5 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-100">
                           {item.category}
                         </span>
@@ -858,7 +857,8 @@ const ShoppingList: React.FC = () => {
                         <img 
                           src={item.imageUrl} 
                           alt={item.name} 
-                          className="max-h-24 rounded-md object-contain"
+                          className="max-h-24 rounded-md object-contain cursor-pointer hover:brightness-90 transition-all"
+                          onClick={(e) => handleImagePreview(item.imageUrl!, e)}
                         />
                       </div>
                     )}
@@ -961,7 +961,7 @@ const ShoppingList: React.FC = () => {
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-1">
+                          <div className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
                             <span className="text-[8px] px-1 py-0.5 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
                               {item.category}
                             </span>
@@ -971,23 +971,16 @@ const ShoppingList: React.FC = () => {
                                   variant="ghost" 
                                   size="sm" 
                                   className="h-5 w-5 p-0"
-                                  onClick={(e) => e.stopPropagation()}
                                 >
                                   <MoreVertical size={10} />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-32">
-                                <DropdownMenuItem onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditItem(item);
-                                }} className="cursor-pointer">
+                                <DropdownMenuItem onClick={() => handleEditItem(item)} className="cursor-pointer">
                                   <Edit size={12} className="mr-1" />
                                   <span className="text-[10px]">Edit</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeItem(item.id);
-                                }} className="cursor-pointer text-red-500">
+                                <DropdownMenuItem onClick={() => removeItem(item.id)} className="cursor-pointer text-red-500">
                                   <Trash2 size={12} className="mr-1" />
                                   <span className="text-[10px]">Delete</span>
                                 </DropdownMenuItem>
@@ -1000,7 +993,8 @@ const ShoppingList: React.FC = () => {
                             <img 
                               src={item.imageUrl} 
                               alt={item.name} 
-                              className="max-h-24 rounded-md object-contain opacity-60"
+                              className="max-h-24 rounded-md object-contain opacity-60 cursor-pointer hover:brightness-90 transition-all"
+                              onClick={(e) => handleImagePreview(item.imageUrl!, e)}
                             />
                           </div>
                         )}
@@ -1014,7 +1008,6 @@ const ShoppingList: React.FC = () => {
         </div>
       </ScrollArea>
 
-      {/* Edit Category Dialog */}
       <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -1051,7 +1044,6 @@ const ShoppingList: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Add Category Dialog */}
       <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -1088,7 +1080,6 @@ const ShoppingList: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Category Dialog */}
       <Dialog open={isDeleteCategoryDialogOpen} onOpenChange={setIsDeleteCategoryDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -1118,7 +1109,6 @@ const ShoppingList: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Item Dialog */}
       <Dialog open={isEditItemDialogOpen} onOpenChange={setIsEditItemDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -1231,6 +1221,25 @@ const ShoppingList: React.FC = () => {
               Save Changes
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
+        <DialogContent className="max-w-3xl p-1 bg-transparent border-none">
+          <div className="relative w-full rounded-lg overflow-hidden bg-background p-1 shadow-lg">
+            <DialogClose className="absolute right-2 top-2 z-10 rounded-full bg-background/80 p-1">
+              <X className="h-4 w-4" />
+            </DialogClose>
+            {previewImage && (
+              <div className="flex items-center justify-center max-h-[80vh]">
+                <img 
+                  src={previewImage} 
+                  alt="Preview" 
+                  className="object-contain max-h-[80vh] max-w-full rounded"
+                />
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
