@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import ScanToCalendar from './ScanToCalendar';
-import CameraCaptureWithAI from './CameraCaptureWithAI';
+import EnhancedCameraCapture from './EnhancedCameraCapture';
 import ScreenshotDetection from './ScreenshotDetection';
 
 interface ScanningOptionsProps {
@@ -22,7 +22,7 @@ interface ScanOption {
 
 const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClick }) => {
   const { toast } = useToast();
-  const isMobile = useIsMobile();
+  const { isMobile } = useIsMobile();
   const navigate = useNavigate();
   const [showScanToCalendar, setShowScanToCalendar] = React.useState(false);
   const [showSmartScan, setShowSmartScan] = React.useState(false);
@@ -53,6 +53,11 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClic
 
   const handleScreenshotDetection = () => {
     setShowScreenshotDetection(true);
+  };
+
+  const handleSaveSuccess = (data: any) => {
+    console.log("Item saved successfully:", data);
+    // Additional handling if needed
   };
 
   const scanOptions: ScanOption[] = [
@@ -103,7 +108,10 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClic
   return (
     <>
       {showSmartScan ? (
-        <CameraCaptureWithAI onClose={() => setShowSmartScan(false)} />
+        <EnhancedCameraCapture 
+          onClose={() => setShowSmartScan(false)} 
+          onSaveSuccess={handleSaveSuccess}
+        />
       ) : showScanToCalendar ? (
         <ScanToCalendar onClose={() => setShowScanToCalendar(false)} />
       ) : showScreenshotDetection ? (

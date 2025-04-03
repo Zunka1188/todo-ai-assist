@@ -1,37 +1,21 @@
+
 import React, { useState } from 'react';
-import { Upload, ArrowLeft, Calendar, List, FileText, Receipt, Loader2 } from 'lucide-react';
+import { Upload, ArrowLeft, Image, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AppHeader from '@/components/layout/AppHeader';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-
-type DetectionResult = {
-  type: 'invitation' | 'receipt' | 'product' | 'document' | 'unknown';
-  confidence: number;
-  data?: Record<string, any>;
-}
+import { Progress } from '@/components/ui/progress';
+import DataRecognition, { RecognizedItem } from '@/components/features/scanning/DataRecognition';
 
 const UploadPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
-  const [detectionResult, setDetectionResult] = useState<DetectionResult | null>(null);
-  const [showCorrectionOptions, setShowCorrectionOptions] = useState(false);
-  
-  const form = useForm({
-    defaultValues: {
-      detectedType: '',
-      title: '',
-      date: '',
-      time: '',
-      location: '',
-    }
-  });
+  const [progressValue, setProgressValue] = useState(0);
+  const [recognizedItem, setRecognizedItem] = useState<RecognizedItem | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -82,12 +66,27 @@ const UploadPage = () => {
   
   const processImage = async (imageDataURL: string) => {
     setProcessing(true);
+    setProgressValue(0);
+    
+    // Simulate progress updates
+    const interval = setInterval(() => {
+      setProgressValue(prev => {
+        if (prev >= 95) {
+          clearInterval(interval);
+          return 95;
+        }
+        return prev + 5;
+      });
+    }, 100);
     
     // In a real app, this would send the image to an AI service for analysis
     // For this demo, we'll simulate AI detection with random results
     setTimeout(() => {
+      clearInterval(interval);
+      setProgressValue(100);
+      
       // Simulate AI processing
-      const types: Array<DetectionResult['type']> = ['invitation', 'receipt', 'product', 'document', 'unknown'];
+      const types = ['invitation', 'receipt', 'product', 'document', 'unknown'] as const;
       const randomType = types[Math.floor(Math.random() * types.length)];
       const confidence = 0.7 + (Math.random() * 0.25); // Random confidence between 70% and 95%
       
@@ -100,17 +99,9 @@ const UploadPage = () => {
           date: "2025-05-15",
           time: "10:00 AM",
           location: "Conference Room A, Building 2",
-          organizer: "Sarah Johnson"
+          organizer: "Sarah Johnson",
+          notes: "Quarterly team meeting. Bring your presentation materials."
         };
-        
-        // Pre-fill the form with detected data
-        form.reset({
-          detectedType: randomType,
-          title: "Team Offsite Meeting",
-          date: "2025-05-15",
-          time: "10:00 AM",
-          location: "Conference Room A, Building 2",
-        });
       } else if (randomType === 'receipt') {
         mockData = {
           store: "Green Grocers",
@@ -126,77 +117,73 @@ const UploadPage = () => {
         mockData = {
           name: "Organic Avocados",
           price: "$5.99",
-          category: "Groceries"
+          category: "Groceries",
+          description: "Fresh organic avocados, perfect for guacamole."
+        };
+      } else if (randomType === 'document') {
+        mockData = {
+          title: "Meeting Minutes",
+          date: "2025-04-10",
+          content: "Discussion about upcoming product launch and marketing strategy.",
+          author: "John Smith"
         };
       }
       
-      const result: DetectionResult = {
+      const result: RecognizedItem = {
         type: randomType,
         confidence,
-        data: mockData
+        data: mockData,
+        imageData: imageDataURL
       };
       
-      setDetectionResult(result);
+      setRecognizedItem(result);
       setProcessing(false);
-      
-      // Low confidence for invitation type should show correction options
-      if (randomType === 'invitation' && confidence < 0.85) {
-        setShowCorrectionOptions(true);
-      }
       
       toast({
         title: "Analysis Complete",
         description: `Detected: ${result.type} (${Math.round(result.confidence * 100)}% confidence)`,
       });
-    }, 1500);
+    }, 2000);
   };
   
-  const handleSuggestedAction = () => {
-    if (!detectionResult) return;
+  const handleSaveItem = (formData: any, originalItem: RecognizedItem) => {
+    setIsSaving(true);
     
-    if (showCorrectionOptions && detectionResult.type === 'invitation') {
-      // If we're correcting an invitation, use the form data
-      const formData = form.getValues();
-      
+    // Simulate saving process
+    setTimeout(() => {
+      // Show success message
       toast({
-        title: "Adding to Calendar",
-        description: `Event: ${formData.title} on ${formData.date} at ${formData.time}`,
+        title: "Item Saved Successfully",
+        description: `"${formData.title}" has been saved.`,
+        variant: "default",
       });
       
-      setTimeout(() => navigate('/calendar'), 1000);
-    } else {
-      // Otherwise use the detected type to navigate
-      switch (detectionResult.type) {
-        case 'invitation':
-          navigate('/calendar');
-          break;
-        case 'receipt':
-          navigate('/spending');
-          break;
-        case 'product':
-          navigate('/shopping');
-          break;
-        case 'document':
-          navigate('/documents');
-          break;
-        default:
-          toast({
-            title: "No specific action",
-            description: "Could not determine appropriate action for this item.",
-          });
-      }
-    }
+      setIsSaving(false);
+      
+      // Navigate based on the type
+      navigateBasedOnType(originalItem.type);
+    }, 1000);
   };
   
-  const handleTypeChange = (value: string) => {
-    if (detectionResult) {
-      setDetectionResult({
-        ...detectionResult,
-        type: value as DetectionResult['type']
-      });
-      
-      // Show correction form for invitation
-      setShowCorrectionOptions(value === 'invitation');
+  const navigateBasedOnType = (type: string) => {
+    switch (type) {
+      case 'invitation':
+        navigate('/calendar');
+        break;
+      case 'receipt':
+        navigate('/spending');
+        break;
+      case 'product':
+        navigate('/shopping');
+        break;
+      case 'document':
+        navigate('/documents');
+        break;
+      default:
+        // Reset the page for another upload
+        setUploadedImage(null);
+        setRecognizedItem(null);
+        break;
     }
   };
 
@@ -204,38 +191,10 @@ const UploadPage = () => {
     navigate('/');
   };
   
-  const getActionText = () => {
-    if (!detectionResult) return "";
-    
-    switch (detectionResult.type) {
-      case 'invitation':
-        return "Add to Calendar";
-      case 'receipt':
-        return "Save to Receipts";
-      case 'product':
-        return "Add to Shopping List";
-      case 'document':
-        return "Save to Documents";
-      default:
-        return "Save Item";
-    }
-  };
-  
-  const getActionIcon = () => {
-    if (!detectionResult) return null;
-    
-    switch (detectionResult.type) {
-      case 'invitation':
-        return <Calendar className="mr-2 h-4 w-4" />;
-      case 'receipt':
-        return <Receipt className="mr-2 h-4 w-4" />;
-      case 'product':
-        return <List className="mr-2 h-4 w-4" />;
-      case 'document':
-        return <FileText className="mr-2 h-4 w-4" />;
-      default:
-        return null;
-    }
+  const resetUpload = () => {
+    setUploadedImage(null);
+    setRecognizedItem(null);
+    setProcessing(false);
   };
 
   return (
@@ -288,6 +247,16 @@ const UploadPage = () => {
         <div className="space-y-4">
           <div className="relative bg-black rounded-lg overflow-hidden aspect-[4/3] flex items-center justify-center">
             <img src={uploadedImage} alt="Uploaded" className="w-full h-full object-contain" />
+            
+            {processing && (
+              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-4">
+                <Loader2 className="h-10 w-10 text-white animate-spin mb-4" />
+                <p className="text-white mb-2">Analyzing image...</p>
+                <div className="w-full max-w-xs">
+                  <Progress value={progressValue} className="h-2 bg-gray-700" />
+                </div>
+              </div>
+            )}
           </div>
           
           {processing ? (
@@ -297,169 +266,31 @@ const UploadPage = () => {
                 Analyzing image with AI...
               </p>
             </div>
-          ) : detectionResult ? (
+          ) : recognizedItem ? (
             <div className="bg-white rounded-lg border p-4 space-y-3">
-              <div className="flex items-center">
-                <div className={cn(
-                  "mr-3 p-2 rounded-full",
-                  detectionResult.type === 'invitation' && "bg-todo-purple/10",
-                  detectionResult.type === 'receipt' && "bg-green-100",
-                  detectionResult.type === 'product' && "bg-blue-100",
-                  detectionResult.type === 'document' && "bg-amber-100",
-                  detectionResult.type === 'unknown' && "bg-gray-100",
-                )}>
-                  {detectionResult.type === 'invitation' && <Calendar className="h-5 w-5 text-todo-purple" />}
-                  {detectionResult.type === 'receipt' && <Receipt className="h-5 w-5 text-green-600" />}
-                  {detectionResult.type === 'product' && <List className="h-5 w-5 text-blue-600" />}
-                  {detectionResult.type === 'document' && <FileText className="h-5 w-5 text-amber-600" />}
-                  {detectionResult.type === 'unknown' && <FileText className="h-5 w-5 text-gray-600" />}
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-medium">Detected: {detectionResult.type.charAt(0).toUpperCase() + detectionResult.type.slice(1)}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Confidence: {Math.round(detectionResult.confidence * 100)}%
-                  </p>
-                </div>
-                
-                <Select defaultValue={detectionResult.type} onValueChange={handleTypeChange}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Change type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="invitation">Invitation</SelectItem>
-                    <SelectItem value="receipt">Receipt</SelectItem>
-                    <SelectItem value="product">Product</SelectItem>
-                    <SelectItem value="document">Document</SelectItem>
-                    <SelectItem value="unknown">Unknown</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {detectionResult.data && Object.keys(detectionResult.data).length > 0 && !showCorrectionOptions && (
-                <div className="text-sm bg-gray-50 rounded-md p-3 space-y-1">
-                  {Object.entries(detectionResult.data).map(([key, value]) => {
-                    // Handle nested objects like items array in receipt
-                    if (Array.isArray(value)) {
-                      return (
-                        <div key={key}>
-                          <span className="font-medium">{key}: </span>
-                          <span>{value.length} items</span>
-                        </div>
-                      );
-                    }
-                    
-                    return (
-                      <div key={key}>
-                        <span className="font-medium">{key}: </span>
-                        <span>{value as string}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              
-              {showCorrectionOptions && detectionResult.type === 'invitation' && (
-                <Form {...form}>
-                  <div className="space-y-3 bg-gray-50 rounded-md p-3">
-                    <FormField
-                      control={form.control}
-                      name="title"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Event Title</FormLabel>
-                          <FormControl>
-                            <input 
-                              {...field}
-                              className="w-full p-2 rounded border border-gray-300"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Date</FormLabel>
-                          <FormControl>
-                            <input 
-                              {...field}
-                              className="w-full p-2 rounded border border-gray-300"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="time"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Time</FormLabel>
-                          <FormControl>
-                            <input 
-                              {...field}
-                              className="w-full p-2 rounded border border-gray-300"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="location"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Location</FormLabel>
-                          <FormControl>
-                            <input 
-                              {...field}
-                              className="w-full p-2 rounded border border-gray-300"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </Form>
-              )}
-              
-              <div className="flex gap-3 pt-2">
-                <Button 
-                  onClick={handleSuggestedAction}
-                  className="flex-1 bg-todo-purple hover:bg-todo-purple/90"
-                >
-                  {getActionIcon()}
-                  {getActionText()}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setUploadedImage(null);
-                    setDetectionResult(null);
-                    setShowCorrectionOptions(false);
-                  }}
-                  className="flex-1"
-                >
-                  Upload Another
-                </Button>
-              </div>
+              <DataRecognition
+                recognizedItem={recognizedItem}
+                isProcessing={isSaving}
+                onSave={handleSaveItem}
+                onCancel={resetUpload}
+              />
             </div>
           ) : null}
         </div>
       )}
 
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border dark:border-gray-700">
-        <h3 className="font-medium text-foreground dark:text-white mb-4">Supported File Types</h3>
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <h3 className="font-medium text-foreground dark:text-white mb-4">Enhanced AI Recognition</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div className="space-y-2 text-foreground dark:text-gray-300">
-            <p>• Images (JPG, PNG, HEIC)</p>
-            <p>• Documents (PDF)</p>
+            <p>• Automatic text recognition (OCR)</p>
+            <p>• Product identification</p>
+            <p>• Document classification</p>
           </div>
           <div className="space-y-2 text-foreground dark:text-gray-300">
-            <p>• Screenshots</p>
-            <p>• Receipts</p>
+            <p>• Receipt analysis</p>
+            <p>• Event extraction</p>
+            <p>• Multi-item detection</p>
           </div>
         </div>
       </div>
