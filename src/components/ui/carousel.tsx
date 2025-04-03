@@ -206,7 +206,6 @@ const CarouselPrevious = React.forwardRef<
       size={size}
       className={cn(
         "h-8 w-8 rounded-full",
-        // Remove absolute positioning classes since we're explicitly positioning these
         className
       )}
       disabled={!canScrollPrev}
@@ -233,7 +232,6 @@ const CarouselNext = React.forwardRef<
       size={size}
       className={cn(
         "h-8 w-8 rounded-full",
-        // Remove absolute positioning classes since we're explicitly positioning these
         className
       )}
       disabled={!canScrollNext}

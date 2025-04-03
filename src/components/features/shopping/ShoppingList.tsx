@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
@@ -515,18 +514,19 @@ const ShoppingList: React.FC = () => {
             opts={{
               align: "start",
               loop: false,
+              spacing: isMobile ? 2 : 8,
             }}
           >
-            <CarouselContent className="-ml-1">
+            <CarouselContent className="-ml-0.5 md:-ml-1">
               {allCategories.map((category) => (
-                <CarouselItem key={category} className="pl-1 basis-auto">
-                  <div className="flex items-center space-x-1">
+                <CarouselItem key={category} className="pl-0.5 md:pl-1 basis-auto">
+                  <div className="flex items-center space-x-0.5 md:space-x-1">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setActiveCategory(category)}
                       className={cn(
-                        "rounded-full whitespace-nowrap h-6",
+                        "rounded-full whitespace-nowrap h-6 px-2 md:px-3",
                         activeCategory === category && "bg-todo-purple text-white hover:bg-todo-purple-dark"
                       )}
                     >
@@ -565,12 +565,12 @@ const ShoppingList: React.FC = () => {
                   </div>
                 </CarouselItem>
               ))}
-              <CarouselItem className="pl-1 basis-auto">
+              <CarouselItem className="pl-0.5 md:pl-1 basis-auto">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsAddCategoryDialogOpen(true)}
-                  className="rounded-full whitespace-nowrap h-6"
+                  className="rounded-full whitespace-nowrap h-6 px-2 md:px-3"
                 >
                   <Plus size={10} className="mr-1" /> <span className="text-[10px]">New Category</span>
                 </Button>
