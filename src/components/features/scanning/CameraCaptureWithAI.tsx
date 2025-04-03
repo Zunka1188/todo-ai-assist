@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, X, Calendar, List, FileText, Receipt, Loader2, AlertCircle, CameraOff } from 'lucide-react';
+import { Camera, X, Calendar, List, FileText, Receipt, Loader2, AlertCircle, CameraOff, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
@@ -28,11 +27,13 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
   const [detectionResult, setDetectionResult] = useState<DetectionResult | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [permissionDenied, setPermissionDenied] = useState(false);
   
   const startCamera = async () => {
     try {
       console.log("Starting camera...");
       setCameraError(null);
+      setPermissionDenied(false);
       setIsInitializing(true);
       
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -42,9 +43,13 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
         return;
       }
       
-      // First try with simpler constraints for wider compatibility
+      // First try with environment facing camera for mobile devices
       const constraints = { 
-        video: { facingMode: 'environment' },
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
         audio: false
       };
       
@@ -55,6 +60,8 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
         
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          videoRef.current.setAttribute('playsinline', 'true'); // Important for iOS
+          videoRef.current.setAttribute('muted', 'true');
           videoRef.current.muted = true;
           videoRef.current.playsInline = true;
           
@@ -85,16 +92,24 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
           setCameraError("Camera initialization failed - video element not found");
           setIsInitializing(false);
         }
-      } catch (err) {
+      } catch (err: any) {
+        console.error("Camera access error:", err);
+        
+        // Check if this is a permission error
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          console.error("Camera permission denied:", err);
+          setPermissionDenied(true);
+          setCameraError("Camera permission denied. Please allow camera access in your browser settings.");
+          setIsInitializing(false);
+          return;
+        }
+        
+        // Try fallback with simpler constraints
         console.error("First attempt failed, trying with different constraints", err);
         
-        // If the first attempt fails, try with more specific constraints
         try {
           const fallbackConstraints = {
-            video: {
-              width: { ideal: 1280 },
-              height: { ideal: 720 }
-            },
+            video: true,
             audio: false
           };
           
@@ -103,6 +118,8 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
           
           if (videoRef.current) {
             videoRef.current.srcObject = fallbackStream;
+            videoRef.current.setAttribute('playsinline', 'true'); // Important for iOS
+            videoRef.current.setAttribute('muted', 'true');
             videoRef.current.muted = true;
             videoRef.current.playsInline = true;
             
@@ -123,18 +140,31 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
               }
             };
           }
-        } catch (fallbackErr) {
+        } catch (fallbackErr: any) {
           console.error("Both camera initialization attempts failed:", fallbackErr);
-          const errorMessage = fallbackErr instanceof Error 
-            ? fallbackErr.message 
-            : "Unknown camera access error";
-          setCameraError(`Could not access camera: ${errorMessage}`);
+          
+          // Check if this is a permission error
+          if (fallbackErr.name === 'NotAllowedError' || fallbackErr.name === 'PermissionDeniedError') {
+            setPermissionDenied(true);
+            setCameraError("Camera permission denied. Please allow camera access in your browser settings.");
+          } else {
+            setCameraError(`Could not access camera: ${fallbackErr.message || "Unknown error"}`);
+          }
+          
           setIsInitializing(false);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in camera initialization:', error);
-      setCameraError(error instanceof Error ? error.message : "Unknown camera error");
+      
+      // Check if this is a permission error
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        setPermissionDenied(true);
+        setCameraError("Camera permission denied. Please allow camera access in your browser settings.");
+      } else {
+        setCameraError(error.message || "Unknown camera error");
+      }
+      
       setIsInitializing(false);
       
       toast({
@@ -248,6 +278,44 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
     }, 1500);
   };
   
+  const requestCameraPermission = async () => {
+    try {
+      // On some browsers, we can request permission explicitly
+      if (navigator.permissions && navigator.permissions.query) {
+        const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        
+        if (result.state === 'granted') {
+          // Permission already granted, restart camera
+          startCamera();
+        } else if (result.state === 'prompt') {
+          // Will trigger the permission prompt
+          startCamera();
+        } else if (result.state === 'denied') {
+          setCameraError("Camera permission is blocked. Please update your browser settings to allow camera access.");
+          setPermissionDenied(true);
+        }
+      } else {
+        // Fallback to just trying to access the camera
+        startCamera();
+      }
+    } catch (error) {
+      console.error("Error requesting permission:", error);
+      // Just try starting the camera anyway
+      startCamera();
+    }
+  };
+  
+  useEffect(() => {
+    console.log("Component mounted, starting camera");
+    requestCameraPermission();
+    
+    // Cleanup function to stop camera when component unmounts
+    return () => {
+      console.log("Component unmounting, stopping camera");
+      stopCamera();
+    };
+  }, []);
+  
   const handleSuggestedAction = () => {
     if (!detectionResult) return;
     
@@ -271,36 +339,6 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
         });
     }
   };
-  
-  // Start camera when component mounts
-  useEffect(() => {
-    console.log("Component mounted, starting camera");
-    startCamera();
-    
-    // Cleanup function to stop camera when component unmounts
-    return () => {
-      console.log("Component unmounting, stopping camera");
-      stopCamera();
-    };
-  }, []);
-  
-  const checkCameraPermission = async () => {
-    try {
-      // Check if we already have permission
-      const permissions = await navigator.permissions.query({ name: 'camera' as PermissionName });
-      if (permissions.state === 'denied') {
-        setCameraError("Camera permission denied. Please enable camera access in your browser settings.");
-        setIsInitializing(false);
-      }
-    } catch (error) {
-      console.log("Permissions API not supported, skipping permission check");
-      // Some browsers don't support the permissions API, so we'll just try to access the camera directly
-    }
-  };
-  
-  useEffect(() => {
-    checkCameraPermission();
-  }, []);
   
   const getActionText = () => {
     if (!detectionResult) return "";
@@ -334,6 +372,14 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
       default:
         return null;
     }
+  };
+  
+  const openBrowserSettings = () => {
+    // We can't programmatically open browser settings, but we can give instructions
+    toast({
+      title: "Permission Required",
+      description: "Please open your browser settings and allow camera access for this site.",
+    });
   };
   
   return (
@@ -370,12 +416,29 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
           </>
         ) : capturedImage ? (
           <img src={capturedImage} alt="Captured" className="w-full h-full object-contain" />
+        ) : permissionDenied ? (
+          <div className="text-white text-center p-4">
+            <CameraOff className="mx-auto h-12 w-12 mb-2 text-red-500" />
+            <p className="text-red-300 mb-2">Camera Permission Denied</p>
+            <p className="text-sm text-gray-300 mb-4">
+              This app needs camera access to scan items. Please allow camera access in your browser settings.
+            </p>
+            <div className="flex flex-col space-y-2">
+              <Button onClick={requestCameraPermission} variant="outline" className="bg-white/10 hover:bg-white/20">
+                Try Again
+              </Button>
+              <Button onClick={openBrowserSettings} variant="outline" className="bg-white/10 hover:bg-white/20">
+                <Settings className="mr-2 h-4 w-4" />
+                Open Settings Guide
+              </Button>
+            </div>
+          </div>
         ) : cameraError ? (
           <div className="text-white text-center p-4">
             <CameraOff className="mx-auto h-12 w-12 mb-2 text-red-500" />
             <p className="text-red-300 mb-2">Camera Error</p>
             <p className="text-sm text-gray-300 mb-4">{cameraError}</p>
-            <Button onClick={retakeImage} variant="outline" className="bg-white/10 hover:bg-white/20">
+            <Button onClick={requestCameraPermission} variant="outline" className="bg-white/10 hover:bg-white/20">
               Try Again
             </Button>
           </div>
@@ -395,12 +458,17 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
         <canvas ref={canvasRef} className="hidden" />
       </div>
       
-      {cameraError && (
+      {(cameraError || permissionDenied) && !capturedImage && (
         <Alert variant="destructive" className="mt-4">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Camera Access Error</AlertTitle>
+          <AlertTitle>
+            {permissionDenied ? "Camera Permission Denied" : "Camera Access Error"}
+          </AlertTitle>
           <AlertDescription>
-            {cameraError}. Please ensure your browser has permission to access the camera.
+            {permissionDenied 
+              ? "This application needs camera access to function properly. Please update your browser settings to allow camera access for this site."
+              : cameraError || "Could not access camera. Please check your device and try again."
+            }
           </AlertDescription>
         </Alert>
       )}
