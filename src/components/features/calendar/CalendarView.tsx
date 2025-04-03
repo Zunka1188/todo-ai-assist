@@ -76,7 +76,6 @@ const formSchema = z.object({
   reminder: z.string().default("30"),
 });
 
-// Sample events for the demo
 const initialEvents: Event[] = [
   {
     id: '1',
@@ -104,7 +103,6 @@ const initialEvents: Event[] = [
   }
 ];
 
-// Initial tasks
 const initialTasks: Task[] = [
   { id: 1, title: 'Buy groceries', completed: false, priority: 'high', dueDate: '2025-04-03', time: '5:00 PM', location: 'Grocery Store', reminder: '30' },
   { id: 2, title: 'Call dentist', completed: false, priority: 'medium', dueDate: '2025-04-03', time: '2:00 PM', reminder: '15' },
@@ -229,27 +227,29 @@ const CalendarView: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row gap-6">
-        <div className="md:w-1/2">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={setDate}
-            className="rounded-lg border shadow bg-white dark:bg-gray-800 dark:border-gray-700 w-full mx-auto pointer-events-auto"
-            modifiers={{
-              event: (date) => isDayWithItem(date),
-            }}
-            modifiersStyles={{
-              event: { 
-                fontWeight: 'bold', 
-                backgroundColor: 'rgba(155, 135, 245, 0.1)',
-                color: '#7E69AB',
-                borderColor: '#9b87f5' 
-              }
-            }}
-          />
+        <div className="md:w-auto flex justify-center">
+          <div className="max-w-[350px]">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              className="rounded-lg border shadow bg-white dark:bg-gray-800 dark:border-gray-700 mx-auto pointer-events-auto"
+              modifiers={{
+                event: (date) => isDayWithItem(date),
+              }}
+              modifiersStyles={{
+                event: { 
+                  fontWeight: 'bold', 
+                  backgroundColor: 'rgba(155, 135, 245, 0.1)',
+                  color: '#7E69AB',
+                  borderColor: '#9b87f5' 
+                }
+              }}
+            />
+          </div>
         </div>
 
-        <div className="md:w-1/2 space-y-4">
+        <div className="md:flex-1 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium flex items-center">
               <CalendarIcon className="mr-2 h-5 w-5 text-todo-purple" />
