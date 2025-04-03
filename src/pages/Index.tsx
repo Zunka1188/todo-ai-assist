@@ -18,7 +18,7 @@ const Index = () => {
 
   const featureCards = [
     {
-      title: 'Shopping List',
+      title: 'Shopping',
       description: 'Manage items to buy',
       icon: List,
       to: '/shopping'
