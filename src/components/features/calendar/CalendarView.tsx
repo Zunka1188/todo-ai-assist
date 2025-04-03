@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, Plus, CheckSquare } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, CheckSquare, Bell } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -26,6 +25,13 @@ import {
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Event {
   id: string;
@@ -33,6 +39,7 @@ interface Event {
   date: Date;
   time?: string;
   location?: string;
+  reminder?: string;
 }
 
 type Task = {
@@ -43,7 +50,21 @@ type Task = {
   dueDate: string;
   time?: string;
   location?: string;
+  reminder?: string;
 };
+
+const reminderOptions = [
+  { value: "none", label: "No reminder" },
+  { value: "0", label: "At time of event" },
+  { value: "5", label: "5 minutes before" },
+  { value: "10", label: "10 minutes before" },
+  { value: "15", label: "15 minutes before" },
+  { value: "30", label: "30 minutes before" },
+  { value: "60", label: "1 hour before" },
+  { value: "120", label: "2 hours before" },
+  { value: "1440", label: "1 day before" },
+  { value: "2880", label: "2 days before" },
+];
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -52,6 +73,7 @@ const formSchema = z.object({
   location: z.string().optional(),
   type: z.enum(['event', 'task']),
   priority: z.enum(['low', 'medium', 'high']).optional(),
+  reminder: z.string().default("30"),
 });
 
 // Sample events for the demo
@@ -61,29 +83,32 @@ const initialEvents: Event[] = [
     title: 'Team Meeting',
     date: new Date(2025, 3, 5), // April 5, 2025
     time: '10:00 AM',
-    location: 'Conference Room A'
+    location: 'Conference Room A',
+    reminder: '30'
   },
   {
     id: '2',
     title: 'Dentist Appointment',
     date: new Date(2025, 3, 8), // April 8, 2025
     time: '2:30 PM',
-    location: 'Dental Clinic'
+    location: 'Dental Clinic',
+    reminder: '60'
   },
   {
     id: '3',
     title: 'Grocery Shopping',
     date: new Date(2025, 3, 3), // April 3, 2025 (today)
     time: '6:00 PM',
-    location: 'Supermarket'
+    location: 'Supermarket',
+    reminder: '15'
   }
 ];
 
 // Initial tasks
 const initialTasks: Task[] = [
-  { id: 1, title: 'Buy groceries', completed: false, priority: 'high', dueDate: '2025-04-03', time: '5:00 PM', location: 'Grocery Store' },
-  { id: 2, title: 'Call dentist', completed: false, priority: 'medium', dueDate: '2025-04-03', time: '2:00 PM' },
-  { id: 3, title: 'Finish presentation', completed: true, priority: 'low', dueDate: '2025-04-03' },
+  { id: 1, title: 'Buy groceries', completed: false, priority: 'high', dueDate: '2025-04-03', time: '5:00 PM', location: 'Grocery Store', reminder: '30' },
+  { id: 2, title: 'Call dentist', completed: false, priority: 'medium', dueDate: '2025-04-03', time: '2:00 PM', reminder: '15' },
+  { id: 3, title: 'Finish presentation', completed: true, priority: 'low', dueDate: '2025-04-03', reminder: 'none' },
 ];
 
 const CalendarView: React.FC = () => {
@@ -101,10 +126,10 @@ const CalendarView: React.FC = () => {
       location: '',
       type: 'event',
       priority: 'medium',
+      reminder: '30',
     },
   });
 
-  // Reset form when dialog opens
   const onOpenChange = (open: boolean) => {
     setIsDialogOpen(open);
     if (open) {
@@ -115,11 +140,11 @@ const CalendarView: React.FC = () => {
         location: '',
         type: 'event',
         priority: 'medium',
+        reminder: '30',
       });
     }
   };
 
-  // Handle form submission
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (values.type === 'event') {
       const newEvent: Event = {
@@ -128,10 +153,10 @@ const CalendarView: React.FC = () => {
         date: values.date,
         time: values.time,
         location: values.location,
+        reminder: values.reminder,
       };
       setEvents([...events, newEvent]);
     } else {
-      // It's a task
       const formattedDate = format(values.date, 'yyyy-MM-dd');
       const newTask: Task = {
         id: Math.max(0, ...tasks.map(t => t.id)) + 1,
@@ -141,16 +166,15 @@ const CalendarView: React.FC = () => {
         dueDate: formattedDate,
         time: values.time,
         location: values.location,
+        reminder: values.reminder,
       };
       setTasks([...tasks, newTask]);
     }
     setIsDialogOpen(false);
   };
 
-  // Get the formatted date string for today
   const formattedToday = date ? format(date, 'yyyy-MM-dd') : '';
 
-  // Get events for the selected date
   const selectedDateEvents = events.filter(
     (event) => 
       date && 
@@ -159,12 +183,10 @@ const CalendarView: React.FC = () => {
       event.date.getFullYear() === date.getFullYear()
   );
 
-  // Get tasks for the selected date
   const selectedDateTasks = tasks.filter(
     (task) => task.dueDate === formattedToday
   );
 
-  // Combined items for display (events and tasks)
   const combinedItems = [
     ...selectedDateEvents.map(event => ({
       ...event,
@@ -178,7 +200,6 @@ const CalendarView: React.FC = () => {
     })),
   ];
 
-  // Function to highlight dates with events or tasks
   const isDayWithItem = (day: Date) => {
     const formattedDay = format(day, 'yyyy-MM-dd');
     
@@ -192,13 +213,17 @@ const CalendarView: React.FC = () => {
     );
   };
 
-  // Toggle task completion status
   const toggleTaskStatus = (taskId: number) => {
     setTasks(
       tasks.map(task =>
         task.id === taskId ? { ...task, completed: !task.completed } : task
       )
     );
+  };
+
+  const getReminderLabel = (value: string) => {
+    const option = reminderOptions.find(opt => opt.value === value);
+    return option ? option.label : "No reminder";
   };
 
   return (
@@ -368,6 +393,33 @@ const CalendarView: React.FC = () => {
                       )}
                     />
                     
+                    <FormField
+                      control={form.control}
+                      name="reminder"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center">
+                            <Bell className="h-4 w-4 mr-2 text-todo-purple" />
+                            Reminder
+                          </FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a reminder time" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {reminderOptions.map(option => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    
                     <DialogFooter>
                       <Button type="submit" className="bg-todo-purple hover:bg-todo-purple/90">
                         Add {form.watch('type') === 'event' ? 'Event' : 'Task'}
@@ -422,6 +474,12 @@ const CalendarView: React.FC = () => {
                       <div className="mt-2 space-y-1 text-sm text-muted-foreground">
                         {item.time && <p>⏰ {item.time}</p>}
                         {item.location && <p>📍 {item.location}</p>}
+                        {item.reminder && item.reminder !== 'none' && (
+                          <p className="flex items-center">
+                            <Bell className="h-3 w-3 mr-1 text-todo-purple" />
+                            {getReminderLabel(item.reminder)}
+                          </p>
+                        )}
                         {item.itemType === 'task' && item.priority && (
                           <p>
                             🔔 Priority: 

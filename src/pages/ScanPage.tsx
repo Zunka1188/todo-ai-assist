@@ -29,7 +29,7 @@ const ScanPage = () => {
         </Button>
         <AppHeader 
           title="Scan & Capture" 
-          subtitle="Capture and process information with AI"
+          subtitle="Scan invitations, receipts and more with AI"
           className="py-0"
         />
       </div>
