@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, addDays, subDays, isSameDay, isToday } from 'date-fns';
@@ -106,30 +105,29 @@ const DayView: React.FC<DayViewProps> = ({
   };
 
   const handleTimeRangeChange = (type: 'start' | 'end', value: string) => {
-    // Update the input field value regardless of validation
     if (type === 'start') {
       setStartInputValue(value);
     } else {
       setEndInputValue(value);
     }
     
-    // If input is empty, don't process further
-    if (value === '') {
+    if (value.trim() === '') {
       return;
     }
     
     const hour = parseInt(value, 10);
-    if (isNaN(hour) || hour < 0 || hour > 23) return;
+    
+    if (isNaN(hour) || hour < 0 || hour > 23) {
+      return;
+    }
     
     let newStart = startHour;
     let newEnd = endHour;
     
     if (type === 'start') {
       if (hour <= endHour) newStart = hour;
-      else return;
     } else {
       if (hour >= startHour) newEnd = hour;
-      else return;
     }
     
     checkForHiddenEvents(newStart, newEnd);
@@ -141,16 +139,41 @@ const DayView: React.FC<DayViewProps> = ({
   };
 
   const handleInputBlur = (type: 'start' | 'end') => {
-    // If field is left empty, restore the last valid value
     if (type === 'start') {
-      if (startInputValue === '') {
+      const value = startInputValue.trim();
+      
+      if (value === '' || isNaN(parseInt(value, 10))) {
         setStartInputValue(startHour.toString());
+        return;
+      }
+      
+      const hour = parseInt(value, 10);
+      
+      if (hour < 0 || hour > 23 || hour > endHour) {
+        setStartInputValue(startHour.toString());
+      } else {
+        setStartHour(hour);
+        setStartInputValue(hour.toString());
       }
     } else {
-      if (endInputValue === '') {
+      const value = endInputValue.trim();
+      
+      if (value === '' || isNaN(parseInt(value, 10))) {
         setEndInputValue(endHour.toString());
+        return;
+      }
+      
+      const hour = parseInt(value, 10);
+      
+      if (hour < 0 || hour > 23 || hour < startHour) {
+        setEndInputValue(endHour.toString());
+      } else {
+        setEndHour(hour);
+        setEndInputValue(hour.toString());
       }
     }
+    
+    setShowAllHours(startHour === 0 && endHour === 23);
   };
 
   return (
@@ -223,7 +246,8 @@ const DayView: React.FC<DayViewProps> = ({
             <Label htmlFor="startHour" className="text-sm whitespace-nowrap">From:</Label>
             <Input
               id="startHour"
-              type="number"
+              type="text"
+              inputMode="numeric"
               min="0"
               max="23"
               value={startInputValue}
@@ -237,7 +261,8 @@ const DayView: React.FC<DayViewProps> = ({
             <Label htmlFor="endHour" className="text-sm whitespace-nowrap">To:</Label>
             <Input
               id="endHour"
-              type="number"
+              type="text"
+              inputMode="numeric"
               min="0"
               max="23"
               value={endInputValue}
