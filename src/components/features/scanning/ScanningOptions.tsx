@@ -19,11 +19,13 @@ interface ScanOption {
   description: string;
   action: () => void;
   highlight?: boolean;
+  mobileOnly?: boolean;
+  desktopOnly?: boolean;
 }
 
 const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClick }) => {
   const { toast } = useToast();
-  const { isMobile } = useIsMobile();
+  const { isMobile, hasCamera } = useIsMobile();
   const navigate = useNavigate();
   const [showScanToCalendar, setShowScanToCalendar] = useState(false);
   const [showSmartScan, setShowSmartScan] = useState(false);
@@ -102,7 +104,8 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClic
       icon: Crop,
       label: "Screen Selection",
       description: "Select part of screen for processing",
-      action: handleScreenSelection
+      action: handleScreenSelection,
+      desktopOnly: true
     },
     {
       icon: Image,
@@ -134,6 +137,13 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClic
     }
   ];
 
+  // Filter options based on device capabilities
+  const filteredOptions = scanOptions.filter(option => {
+    if (option.mobileOnly && !isMobile) return false;
+    if (option.desktopOnly && isMobile) return false;
+    return true;
+  });
+
   return (
     <>
       {showSmartScan ? (
@@ -148,7 +158,7 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClic
         <ScreenshotDetection onClose={() => setShowScreenshotDetection(false)} />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {scanOptions.map((option, index) => {
+          {filteredOptions.map((option, index) => {
             const Icon = option.icon;
             return (
               <button

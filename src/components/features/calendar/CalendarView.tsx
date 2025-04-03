@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List, Image, Camera, Paperclip } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -227,8 +227,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
   const [showCamera, setShowCamera] = useState(false);
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const imageInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const filteredEvents = events.filter(event => 
     searchTerm ? 
@@ -327,7 +327,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'document') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     
@@ -356,30 +356,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       description: "The file has been attached to this event.",
     });
   };
-  
-  const handleCameraCaptureSuccessful = (imageBlob: Blob) => {
-    const fileId = `camera-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    const fileName = `Camera Image ${new Date().toLocaleString()}.jpg`;
-    const fileUrl = URL.createObjectURL(imageBlob);
-    
-    const currentAttachments = form.getValues("attachments") || [];
-    
-    const newAttachment: AttachmentType = {
-      id: fileId,
-      type: 'image',
-      name: fileName,
-      url: fileUrl,
-      thumbnailUrl: fileUrl,
-    };
-    
-    form.setValue("attachments", [...currentAttachments, newAttachment]);
-    
-    setShowCamera(false);
-    
-    toast({
-      title: "Image captured",
-      description: "The camera image has been attached to this event.",
-    });
+
+  const handleImageCapture = () => {
+    if (imageInputRef.current) {
+      imageInputRef.current.click();
+    }
   };
 
   const handleAttachments = () => {
@@ -502,8 +483,17 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                   <input 
                     type="file" 
                     ref={fileInputRef}
-                    onChange={(e) => handleFileChange(e, 'document')}
+                    onChange={handleFileChange}
                     accept="*/*"
+                    style={{ display: 'none' }}
+                    multiple
+                  />
+                  
+                  <input 
+                    type="file" 
+                    ref={imageInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
                     style={{ display: 'none' }}
                     multiple
                   />
@@ -828,8 +818,21 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                         className="flex items-center min-h-[44px] min-w-[44px] touch-manipulation"
                       >
                         <Paperclip className="h-4 w-4 mr-2" />
-                        <span>Add Attachment</span>
+                        <span>Add Files</span>
                       </Button>
+                      
+                      {isMobile && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleImageCapture}
+                          className="flex items-center min-h-[44px] min-w-[44px] touch-manipulation"
+                        >
+                          <Camera className="h-4 w-4 mr-2" />
+                          <span>Take Photo</span>
+                        </Button>
+                      )}
                     </div>
                     
                     <FormField
