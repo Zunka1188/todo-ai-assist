@@ -134,13 +134,15 @@ const formSchema = z.object({
   recurringOccurrences: z.string().optional(),
   recurringDaysOfWeek: z.array(z.string()).optional(),
   reminder: z.string().default("30"),
-  attachments: z.array(z.object({
-    id: z.string(),
-    type: z.enum(['image', 'document']),
-    name: z.string(),
-    url: z.string(),
-    thumbnailUrl: z.string().optional(),
-  })).default([]),
+  attachments: z.array(
+    z.object({
+      id: z.string(),
+      type: z.enum(['image', 'document']),
+      name: z.string(),
+      url: z.string(),
+      thumbnailUrl: z.string().optional(),
+    })
+  ).default([]),
 });
 
 const initialEvents: Event[] = [
@@ -331,7 +333,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'document' | 'image') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'document') => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     
