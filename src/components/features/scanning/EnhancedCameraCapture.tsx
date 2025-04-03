@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import DataRecognition, { RecognizedItem, RecognizedItemType } from './DataRecognition';
+import './camera-animations.css';
 
 interface EnhancedCameraCaptureProps {
   onClose: () => void;
@@ -468,7 +469,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         
         toast({
           title: "Item Saved Successfully",
-          description: `"${formData.title}" has been saved.",
+          description: `"${formData.title}" has been saved.`,
           variant: "default",
         });
         
@@ -705,19 +706,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
           </Button>
         </div>
       )}
-
-      <style>
-        {`
-          @keyframes scan {
-            0% { top: 0; }
-            50% { top: calc(100% - 4px); }
-            100% { top: 0; }
-          }
-          .animate-scan {
-            animation: scan 3s infinite ease-in-out;
-          }
-        `}
-      </style>
     </div>
   );
 };
