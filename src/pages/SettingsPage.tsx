@@ -10,6 +10,7 @@ import AppHeader from '@/components/layout/AppHeader';
 import { useTheme } from '@/hooks/use-theme';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Sheet,
   SheetClose,
@@ -33,6 +34,7 @@ interface UserSettings {
 const SettingsPage = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const isMobile = useIsMobile();
   const [settings, setSettings] = useState<UserSettings>({
     username: 'User',
     email: 'user@example.com',
@@ -64,7 +66,7 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="space-y-6 py-4">
+    <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
       <div className="flex items-center mb-2">
         <Button 
           variant="ghost" 
@@ -82,19 +84,19 @@ const SettingsPage = () => {
         />
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6">
+      <div className="flex flex-col gap-4 sm:gap-6">
         {/* User profile section */}
-        <Card className="p-6 space-y-4 flex-1">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
+        <Card className="p-4 sm:p-6 space-y-4 flex-1">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Avatar className="h-14 w-14 sm:h-16 sm:w-16">
               <AvatarImage src="" alt={settings.username} />
-              <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+              <AvatarFallback className="bg-primary text-primary-foreground text-lg sm:text-xl">
                 {settings.username.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="text-xl font-semibold">{settings.username}</h3>
-              <p className="text-muted-foreground">{settings.email}</p>
+              <h3 className="text-lg sm:text-xl font-semibold">{settings.username}</h3>
+              <p className="text-sm text-muted-foreground">{settings.email}</p>
             </div>
           </div>
 
@@ -102,7 +104,7 @@ const SettingsPage = () => {
             <SheetTrigger asChild>
               <Button className="w-full">Edit Profile</Button>
             </SheetTrigger>
-            <SheetContent>
+            <SheetContent className={isMobile ? "w-full" : ""}>
               <SheetHeader>
                 <SheetTitle>Edit Profile</SheetTitle>
                 <SheetDescription>
@@ -145,9 +147,9 @@ const SettingsPage = () => {
                   </div>
                 </div>
                 
-                <SheetFooter>
+                <SheetFooter className={isMobile ? "flex-col" : ""}>
                   <SheetClose asChild>
-                    <Button type="submit">Save changes</Button>
+                    <Button type="submit" className={isMobile ? "w-full" : ""}>Save changes</Button>
                   </SheetClose>
                 </SheetFooter>
               </form>
@@ -165,14 +167,14 @@ const SettingsPage = () => {
         </Card>
 
         {/* App settings section */}
-        <Card className="p-6 space-y-6 flex-1">
+        <Card className="p-4 sm:p-6 space-y-4 sm:space-y-6 flex-1">
           <h3 className="text-lg font-medium">App Settings</h3>
           
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="space-y-0.5">
                 <Label>Dark Mode</Label>
-                <FormDescription>
+                <FormDescription className="text-xs sm:text-sm">
                   Switch between light and dark themes
                 </FormDescription>
               </div>
@@ -186,14 +188,14 @@ const SettingsPage = () => {
               </div>
             </div>
             
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="space-y-0.5">
                 <Label>Language</Label>
-                <FormDescription>
+                <FormDescription className="text-xs sm:text-sm">
                   Select your preferred language
                 </FormDescription>
               </div>
-              <select className="bg-background border rounded px-3 py-1">
+              <select className="bg-background border rounded px-3 py-2 w-full sm:w-auto text-base">
                 <option>English</option>
                 <option>Spanish</option>
                 <option>French</option>

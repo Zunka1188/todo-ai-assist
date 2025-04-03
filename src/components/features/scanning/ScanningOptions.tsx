@@ -69,7 +69,7 @@ const ScanningOptions: React.FC = () => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
       {scanOptions.map((option, index) => {
         const Icon = option.icon;
         return (
@@ -77,16 +77,16 @@ const ScanningOptions: React.FC = () => {
             key={index}
             onClick={option.action}
             className={cn(
-              "metallic-card flex items-center p-4 rounded-xl transition-all duration-300",
+              "metallic-card flex items-center p-3 sm:p-4 rounded-xl transition-all duration-300",
               "hover:shadow-lg hover:-translate-y-0.5"
             )}
           >
-            <div className="bg-todo-purple bg-opacity-10 p-3 rounded-full mr-4">
-              <Icon className="text-todo-purple" size={24} />
+            <div className="bg-todo-purple bg-opacity-10 p-2 sm:p-3 rounded-full mr-3 sm:mr-4 flex-shrink-0">
+              <Icon className="text-todo-purple" size={isMobile ? 20 : 24} />
             </div>
-            <div className="text-left">
-              <h3 className="font-medium text-todo-black">{option.label}</h3>
-              <p className="text-sm text-muted-foreground">{option.description}</p>
+            <div className="text-left min-w-0">
+              <h3 className="font-medium text-todo-black text-sm sm:text-base truncate">{option.label}</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{option.description}</p>
             </div>
           </button>
         );

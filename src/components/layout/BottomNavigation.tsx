@@ -1,11 +1,13 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, ShoppingCart, Calendar, Upload, FileText, Camera, CheckSquare, Settings } from 'lucide-react';
+import { Home, ShoppingCart, Calendar, Camera, FileText, CheckSquare, Settings } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const BottomNavigation = () => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const isMobile = useIsMobile();
 
   const isActive = (path: string) => currentPath === path;
 
@@ -19,21 +21,26 @@ const BottomNavigation = () => {
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 
+  // If not mobile, don't render the bottom navigation
+  if (!isMobile) {
+    return null;
+  }
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
-      <div className="container mx-auto px-2 py-2 flex justify-between items-center">
+      <div className="container mx-auto px-1 py-1 flex justify-between items-center">
         {navItems.map(({ path, icon: Icon, label }) => (
           <Link 
             key={path}
             to={path} 
-            className={`flex flex-col items-center justify-center p-2 rounded-md transition-colors ${
+            className={`flex flex-col items-center justify-center p-1.5 rounded-md transition-colors ${
               isActive(path) 
                 ? 'text-primary font-medium' 
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <Icon className={`h-5 w-5 ${isActive(path) ? 'text-primary' : ''}`} />
-            <span className="text-xs mt-1">{label}</span>
+            <span className="text-[10px] mt-0.5 leading-tight">{label}</span>
           </Link>
         ))}
       </div>
