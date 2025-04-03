@@ -48,6 +48,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { toast } from "@/components/ui/use-toast";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface ShoppingItem {
   id: string;
@@ -118,8 +119,10 @@ const ShoppingList: React.FC = () => {
   const [isMultiSelectActive, setIsMultiSelectActive] = useState(false);
   const [isDeleteCategoryDialogOpen, setIsDeleteCategoryDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState('');
+  const [isPurchasedSectionCollapsed, setIsPurchasedSectionCollapsed] = useState(false);
   const { isMobile } = useIsMobile();
   const carouselRef = useRef(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Save to localStorage whenever items or categories change
   useEffect(() => {
@@ -157,6 +160,13 @@ const ShoppingList: React.FC = () => {
     toast({
       description: `Added ${newItem.name} to ${newItem.category}`,
     });
+
+    // Scroll to the top to see the new item
+    setTimeout(() => {
+      if (scrollAreaRef.current) {
+        scrollAreaRef.current.scrollTop = 0;
+      }
+    }, 100);
   };
 
   const toggleItem = (id: string) => {
@@ -165,11 +175,20 @@ const ShoppingList: React.FC = () => {
       return;
     }
     
-    setItems(
-      items.map((item) =>
-        item.id === id ? { ...item, completed: !item.completed } : item
-      )
+    const updatedItems = items.map((item) =>
+      item.id === id ? { ...item, completed: !item.completed } : item
     );
+    
+    setItems(updatedItems);
+    
+    const item = items.find(item => item.id === id);
+    if (item) {
+      toast({
+        description: item.completed 
+          ? `Moved "${item.name}" to Not Purchased` 
+          : `Moved "${item.name}" to Purchased`,
+      });
+    }
   };
 
   const removeItem = (id: string) => {
@@ -254,11 +273,13 @@ const ShoppingList: React.FC = () => {
     setSortOption(option);
   };
   
-  const getSortedItems = () => {
-    const filteredItems = activeCategory === 'All' 
+  const getFilteredItems = () => {
+    return activeCategory === 'All' 
       ? items 
       : items.filter(item => item.category === activeCategory);
-      
+  };
+  
+  const getSortedItems = (filteredItems: ShoppingItem[]) => {
     return filteredItems.sort((a, b) => {
       switch (sortOption) {
         case 'nameAsc':
@@ -295,16 +316,15 @@ const ShoppingList: React.FC = () => {
     });
   };
   
-  const sortedItems = getSortedItems();
+  const filteredItems = getFilteredItems();
+  const notPurchasedItems = getSortedItems(filteredItems.filter(item => !item.completed));
+  const purchasedItems = getSortedItems(filteredItems.filter(item => item.completed));
+  
   const allCategories = ['All', ...categories];
 
-  // Reset scroll position when new items are added
-  useEffect(() => {
-    const scrollArea = document.querySelector('.shopping-items-scroll-area');
-    if (scrollArea) {
-      scrollArea.scrollTop = 0;
-    }
-  }, [items.length]);
+  const togglePurchasedSection = () => {
+    setIsPurchasedSectionCollapsed(!isPurchasedSectionCollapsed);
+  };
 
   return (
     <div className="space-y-4">
@@ -515,86 +535,199 @@ const ShoppingList: React.FC = () => {
         </DropdownMenu>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-280px)] pr-4 shopping-items-scroll-area">
-        <ul className="space-y-1">
-          {sortedItems.length === 0 ? (
-            <li className="text-center py-3 text-muted-foreground text-[10px]">
-              No items in this category. Add some new items!
-            </li>
-          ) : (
-            sortedItems.map((item) => (
-              <li 
-                key={item.id}
-                className={cn(
-                  "flex items-center justify-between p-1 rounded-lg border transition-colors",
-                  item.completed 
-                    ? "bg-muted border-muted" 
-                    : "bg-card border-border dark:bg-gray-800 dark:border-gray-700"
-                )}
-              >
-                <div className="flex items-center space-x-1.5">
-                  {isMultiSelectActive ? (
-                    <Checkbox
-                      checked={selectedItems.includes(item.id)}
-                      onCheckedChange={() => handleItemSelect(item.id)}
-                      className="h-3 w-3"
-                    />
-                  ) : (
-                    <button
-                      onClick={() => toggleItem(item.id)}
-                      className={cn(
-                        "flex items-center justify-center w-3 h-3 rounded-full border",
-                        item.completed 
-                          ? "bg-todo-purple border-todo-purple text-white" 
-                          : "border-gray-300 dark:border-gray-500"
-                      )}
-                    >
-                      {item.completed && <Check size={8} />}
-                    </button>
-                  )}
-                  
-                  <div className="flex flex-col">
-                    <span className={cn(
-                      "text-[11px] dark:text-white",
-                      item.completed && "line-through text-muted-foreground"
-                    )}>
-                      {item.name}
-                    </span>
-                    
-                    <div className="flex flex-wrap items-center text-[8px] text-muted-foreground mt-0.5 gap-1">
-                      {item.amount && (
-                        <span className="text-[8px]">Qty: {item.amount}</span>
-                      )}
-                      
-                      {item.price && (
-                        <span className="text-[8px]">Price: ${item.price}</span>
-                      )}
-                      
-                      {item.dateToPurchase && (
-                        <span className="flex items-center text-[8px]">
-                          <Calendar size={7} className="mr-0.5" /> 
-                          {new Date(item.dateToPurchase).toLocaleDateString()}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <span className="text-[8px] px-1 py-0.5 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-100">
-                    {item.category}
-                  </span>
-                  <button
-                    onClick={() => removeItem(item.id)}
-                    className="text-gray-400 hover:text-red-500 transition-colors"
-                    aria-label={`Remove ${item.name}`}
+      <ScrollArea className="h-[calc(100vh-280px)] pr-4 shopping-items-scroll-area" ref={scrollAreaRef}>
+        {/* Not Purchased Section */}
+        <div className="mb-4">
+          <h3 className="text-xs font-medium mb-2 text-muted-foreground">Not Purchased ({notPurchasedItems.length})</h3>
+          
+          <AnimatePresence>
+            {notPurchasedItems.length === 0 ? (
+              <div className="text-center py-3 text-muted-foreground text-[10px]">
+                No items to purchase. Add some new items!
+              </div>
+            ) : (
+              <ul className="space-y-1">
+                {notPurchasedItems.map((item) => (
+                  <motion.li 
+                    key={`not-purchased-${item.id}`}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.2 }}
+                    className={cn(
+                      "flex items-center justify-between p-1 rounded-lg border transition-colors",
+                      "bg-green-50 border-green-100 dark:bg-green-900/20 dark:border-green-800/50"
+                    )}
                   >
-                    <X size={10} />
-                  </button>
-                </div>
-              </li>
-            ))
-          )}
-        </ul>
+                    <div className="flex items-center space-x-1.5">
+                      {isMultiSelectActive ? (
+                        <Checkbox
+                          checked={selectedItems.includes(item.id)}
+                          onCheckedChange={() => handleItemSelect(item.id)}
+                          className="h-3 w-3"
+                        />
+                      ) : (
+                        <button
+                          onClick={() => toggleItem(item.id)}
+                          className={cn(
+                            "flex items-center justify-center w-3 h-3 rounded-full border",
+                            "border-green-300 dark:border-green-700"
+                          )}
+                        >
+                          {item.completed && <Check size={8} />}
+                        </button>
+                      )}
+                      
+                      <div className="flex flex-col">
+                        <span className="text-[11px] dark:text-white">
+                          {item.name}
+                        </span>
+                        
+                        <div className="flex flex-wrap items-center text-[8px] text-muted-foreground mt-0.5 gap-1">
+                          {item.amount && (
+                            <span className="text-[8px]">Qty: {item.amount}</span>
+                          )}
+                          
+                          {item.price && (
+                            <span className="text-[8px]">Price: ${item.price}</span>
+                          )}
+                          
+                          {item.dateToPurchase && (
+                            <span className="flex items-center text-[8px]">
+                              <Calendar size={7} className="mr-0.5" /> 
+                              {new Date(item.dateToPurchase).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <span className="text-[8px] px-1 py-0.5 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-100">
+                        {item.category}
+                      </span>
+                      <button
+                        onClick={() => removeItem(item.id)}
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                        aria-label={`Remove ${item.name}`}
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  </motion.li>
+                ))}
+              </ul>
+            )}
+          </AnimatePresence>
+        </div>
+        
+        {/* Purchased Section */}
+        <div className="mb-2">
+          <div 
+            className="flex items-center justify-between cursor-pointer mb-2"
+            onClick={togglePurchasedSection}
+          >
+            <h3 className="text-xs font-medium text-muted-foreground">
+              Purchased ({purchasedItems.length})
+            </h3>
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+              <ChevronDown 
+                size={14} 
+                className={cn(
+                  "transition-transform",
+                  isPurchasedSectionCollapsed && "transform rotate-180"
+                )}
+              />
+            </Button>
+          </div>
+          
+          <AnimatePresence>
+            {!isPurchasedSectionCollapsed && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {purchasedItems.length === 0 ? (
+                  <div className="text-center py-3 text-muted-foreground text-[10px]">
+                    No purchased items yet.
+                  </div>
+                ) : (
+                  <ul className="space-y-1">
+                    {purchasedItems.map((item) => (
+                      <motion.li 
+                        key={`purchased-${item.id}`}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2 }}
+                        className={cn(
+                          "flex items-center justify-between p-1 rounded-lg border transition-colors",
+                          "bg-gray-100 border-gray-200 dark:bg-gray-800/50 dark:border-gray-700/50"
+                        )}
+                      >
+                        <div className="flex items-center space-x-1.5">
+                          {isMultiSelectActive ? (
+                            <Checkbox
+                              checked={selectedItems.includes(item.id)}
+                              onCheckedChange={() => handleItemSelect(item.id)}
+                              className="h-3 w-3"
+                            />
+                          ) : (
+                            <button
+                              onClick={() => toggleItem(item.id)}
+                              className={cn(
+                                "flex items-center justify-center w-3 h-3 rounded-full border",
+                                "bg-gray-300 border-gray-300 text-white dark:bg-gray-500 dark:border-gray-500"
+                              )}
+                            >
+                              <Check size={8} />
+                            </button>
+                          )}
+                          
+                          <div className="flex flex-col">
+                            <span className="text-[11px] line-through text-muted-foreground">
+                              {item.name}
+                            </span>
+                            
+                            <div className="flex flex-wrap items-center text-[8px] text-muted-foreground mt-0.5 gap-1">
+                              {item.amount && (
+                                <span className="text-[8px]">Qty: {item.amount}</span>
+                              )}
+                              
+                              {item.price && (
+                                <span className="text-[8px]">Price: ${item.price}</span>
+                              )}
+                              
+                              {item.dateToPurchase && (
+                                <span className="flex items-center text-[8px]">
+                                  <Calendar size={7} className="mr-0.5" /> 
+                                  {new Date(item.dateToPurchase).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <span className="text-[8px] px-1 py-0.5 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-200">
+                            {item.category}
+                          </span>
+                          <button
+                            onClick={() => removeItem(item.id)}
+                            className="text-gray-400 hover:text-red-500 transition-colors"
+                            aria-label={`Remove ${item.name}`}
+                          >
+                            <X size={10} />
+                          </button>
+                        </div>
+                      </motion.li>
+                    ))}
+                  </ul>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </ScrollArea>
 
       <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>

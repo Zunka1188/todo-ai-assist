@@ -31,7 +31,7 @@ const ShoppingPage = () => {
           </Button>
           <AppHeader 
             title="Shopping" 
-            subtitle="Track items you need to buy"
+            subtitle="Track what you need to buy"
             className="py-0"
           />
         </div>
