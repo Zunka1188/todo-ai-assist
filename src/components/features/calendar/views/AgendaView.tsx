@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { format, isSameDay, isToday, compareAsc } from 'date-fns';
-import { Clock, MapPin, Calendar as CalendarIcon } from 'lucide-react';
+import { Clock, MapPin, Calendar as CalendarIcon, PaperClip, FileText, Image } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Event {
@@ -21,6 +22,13 @@ interface Event {
     daysOfWeek?: number[];
   };
   reminder?: string;
+  attachments?: Array<{
+    id: string;
+    type: 'image' | 'document';
+    name: string;
+    url: string;
+    thumbnailUrl?: string;
+  }>;
 }
 
 interface AgendaViewProps {
@@ -131,6 +139,28 @@ const AgendaView: React.FC<AgendaViewProps> = ({
                               <p className="text-sm flex items-center text-muted-foreground">
                                 <MapPin className="h-3.5 w-3.5 mr-2" />
                                 {event.location}
+                              </p>
+                            )}
+                            
+                            {event.attachments && event.attachments.length > 0 && (
+                              <p className="text-sm flex items-center text-muted-foreground">
+                                <PaperClip className="h-3.5 w-3.5 mr-2" />
+                                {event.attachments.length} attachment{event.attachments.length !== 1 ? 's' : ''}
+                                
+                                <span className="flex ml-2">
+                                  {event.attachments.slice(0, 3).map((attachment) => (
+                                    <span key={attachment.id} className="mr-1" title={attachment.name}>
+                                      {attachment.type === 'image' ? (
+                                        <Image className="h-3.5 w-3.5" />
+                                      ) : (
+                                        <FileText className="h-3.5 w-3.5" />
+                                      )}
+                                    </span>
+                                  ))}
+                                  {event.attachments.length > 3 && (
+                                    <span className="text-xs">+{event.attachments.length - 3}</span>
+                                  )}
+                                </span>
                               </p>
                             )}
                           </div>
