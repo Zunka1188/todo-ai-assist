@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { EllipsisVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -21,7 +21,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     onClick, 
     onIconClick, 
     variant = 'default', 
-    iconSize = 18, 
+    iconSize = 20, 
     className = '', 
     iconClassName = '',
     active = false,
@@ -41,26 +41,30 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         variant={variant}
         onClick={onClick}
         className={cn(
-          "w-auto max-w-full h-10 px-4 flex items-center justify-between gap-2 transition-colors",
+          "w-auto max-w-[200px] h-[44px] px-4 flex items-center justify-between gap-2 transition-all duration-200",
           "rounded-lg overflow-hidden relative",
           active && "bg-primary text-primary-foreground hover:bg-primary/90", 
           className
         )}
         {...props}
+        aria-label={`${text} options`}
       >
-        <span className="truncate text-sm font-medium">
+        <span className="truncate text-base font-medium mr-1">
           {text}
         </span>
         <div 
           onClick={handleIconClick}
           className={cn(
-            "flex items-center justify-center ml-1 rounded-full",
+            "flex items-center justify-center ml-2 rounded-full",
             "hover:bg-black/10 dark:hover:bg-white/10",
-            "transition-colors p-0.5",
+            "transition-colors p-0.5 cursor-pointer",
             iconClassName
           )}
+          aria-label="More options"
+          role="button"
+          tabIndex={0}
         >
-          <MoreHorizontal size={iconSize} />
+          <EllipsisVertical size={iconSize} />
         </div>
       </Button>
     );

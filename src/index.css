@@ -78,17 +78,35 @@
   }
   
   .responsive-button {
-    @apply flex items-center justify-between w-auto max-w-full rounded-lg px-4 py-2.5 min-h-10;
-    @apply transition-colors hover:cursor-pointer;
+    @apply flex items-center justify-between w-auto max-w-[200px] rounded-lg px-4 py-2.5 min-h-[44px];
+    @apply transition-all duration-200 hover:cursor-pointer;
     @apply overflow-hidden;
   }
   
   .responsive-button-text {
-    @apply truncate text-sm font-medium;
+    @apply truncate text-base font-medium;
   }
   
   .responsive-button-icon {
     @apply flex items-center justify-center ml-2;
     @apply hover:bg-black/10 dark:hover:bg-white/10 rounded-full p-0.5 transition-colors;
+  }
+  
+  /* Button hover animations */
+  .button-hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+  
+  .button-hover-shadow {
+    @apply transition-shadow duration-200 hover:shadow-md;
+  }
+  
+  /* Icon animations */
+  .icon-hover-rotate {
+    @apply transition-transform duration-200 hover:rotate-90;
+  }
+  
+  .icon-hover-pulse {
+    @apply hover:animate-pulse;
   }
 }
