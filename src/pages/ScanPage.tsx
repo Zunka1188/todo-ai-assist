@@ -28,8 +28,8 @@ const ScanPage = () => {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <AppHeader 
-          title="Scan & Capture" 
-          subtitle="Scan invitations, receipts and more with AI"
+          title="Smart Scanner" 
+          subtitle="Automatically recognize items and take action"
           className="py-0"
         />
       </div>

@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { Camera, Upload, List, Calendar, Receipt, Crop, Image, Bell } from 'lucide-react';
+import { Camera, Upload, List, Calendar, Receipt, Crop, Image } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import ScanToCalendar from './ScanToCalendar';
+import CameraCaptureWithAI from './CameraCaptureWithAI';
 
 interface ScanOption {
   icon: React.ElementType;
@@ -19,6 +20,7 @@ const ScanningOptions: React.FC = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [showScanToCalendar, setShowScanToCalendar] = React.useState(false);
+  const [showSmartScan, setShowSmartScan] = React.useState(false);
 
   const showToast = (message: string) => {
     toast({
@@ -31,18 +33,22 @@ const ScanningOptions: React.FC = () => {
     setShowScanToCalendar(true);
   };
 
+  const handleSmartScan = () => {
+    setShowSmartScan(true);
+  };
+
   const scanOptions: ScanOption[] = [
     {
       icon: Camera,
-      label: "Camera Scan",
-      description: "Scan products, documents, or receipts",
-      action: () => showToast("Camera activated for scanning...")
+      label: "Smart Scan",
+      description: "Auto-recognize and suggest actions",
+      action: handleSmartScan
     },
     {
       icon: Upload,
       label: "Upload Image",
       description: "Select an image from your gallery",
-      action: () => showToast("Please select an image to upload...")
+      action: () => navigate('/upload')
     },
     {
       icon: Calendar,
@@ -72,13 +78,15 @@ const ScanningOptions: React.FC = () => {
       icon: Receipt,
       label: "Scan Receipt",
       description: "Extract and save receipt information",
-      action: () => showToast("Ready to scan and process receipts...")
+      action: () => navigate('/spending')
     }
   ];
 
   return (
     <>
-      {showScanToCalendar ? (
+      {showSmartScan ? (
+        <CameraCaptureWithAI onClose={() => setShowSmartScan(false)} />
+      ) : showScanToCalendar ? (
         <ScanToCalendar onClose={() => setShowScanToCalendar(false)} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
