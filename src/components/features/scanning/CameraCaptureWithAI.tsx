@@ -1,10 +1,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, X, Calendar, List, FileText, Receipt, Loader2, AlertCircle } from 'lucide-react';
+import { Camera, X, Calendar, List, FileText, Receipt, Loader2, AlertCircle, CameraOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 interface CameraCaptureWithAIProps {
   onClose: () => void;
@@ -26,51 +27,115 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
   const [processing, setProcessing] = useState(false);
   const [detectionResult, setDetectionResult] = useState<DetectionResult | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
   
   const startCamera = async () => {
     try {
+      console.log("Starting camera...");
       setCameraError(null);
+      setIsInitializing(true);
       
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Camera API not supported in this browser");
+        console.error("Camera API not supported");
+        setCameraError("Camera API not supported in this browser");
+        setIsInitializing(false);
+        return;
       }
       
-      // Try with basic constraints first for better mobile compatibility
+      // First try with simpler constraints for wider compatibility
       const constraints = { 
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
+        video: { facingMode: 'environment' },
         audio: false
       };
       
       console.log("Requesting camera access with constraints:", constraints);
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          console.log("Video metadata loaded");
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.muted = true;
+          videoRef.current.playsInline = true;
+          
+          videoRef.current.onloadedmetadata = () => {
+            console.log("Video metadata loaded, attempting to play");
+            if (videoRef.current) {
+              videoRef.current.play()
+                .then(() => {
+                  console.log("Camera started successfully");
+                  setCameraActive(true);
+                  setIsInitializing(false);
+                })
+                .catch(err => {
+                  console.error("Error playing video:", err);
+                  setCameraError(`Error playing video: ${err.message}`);
+                  setIsInitializing(false);
+                });
+            }
+          };
+          
+          videoRef.current.onerror = (e) => {
+            console.error("Video element error:", e);
+            setCameraError("Video element error");
+            setIsInitializing(false);
+          };
+        } else {
+          console.error("Video reference not available");
+          setCameraError("Camera initialization failed - video element not found");
+          setIsInitializing(false);
+        }
+      } catch (err) {
+        console.error("First attempt failed, trying with different constraints", err);
+        
+        // If the first attempt fails, try with more specific constraints
+        try {
+          const fallbackConstraints = {
+            video: {
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            },
+            audio: false
+          };
+          
+          console.log("Trying fallback constraints:", fallbackConstraints);
+          const fallbackStream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+          
           if (videoRef.current) {
-            videoRef.current.play()
-              .then(() => {
-                console.log("Camera started successfully");
-                setCameraActive(true);
-              })
-              .catch(err => {
-                console.error("Error playing video:", err);
-                setCameraError("Error starting video playback");
-              });
+            videoRef.current.srcObject = fallbackStream;
+            videoRef.current.muted = true;
+            videoRef.current.playsInline = true;
+            
+            videoRef.current.onloadedmetadata = () => {
+              console.log("Video metadata loaded with fallback constraints");
+              if (videoRef.current) {
+                videoRef.current.play()
+                  .then(() => {
+                    console.log("Camera started successfully with fallback constraints");
+                    setCameraActive(true);
+                    setIsInitializing(false);
+                  })
+                  .catch(playErr => {
+                    console.error("Error playing video with fallback constraints:", playErr);
+                    setCameraError(`Error starting camera: ${playErr.message}`);
+                    setIsInitializing(false);
+                  });
+              }
+            };
           }
-        };
-      } else {
-        console.error("Video reference not available");
-        setCameraError("Camera initialization failed");
+        } catch (fallbackErr) {
+          console.error("Both camera initialization attempts failed:", fallbackErr);
+          const errorMessage = fallbackErr instanceof Error 
+            ? fallbackErr.message 
+            : "Unknown camera access error";
+          setCameraError(`Could not access camera: ${errorMessage}`);
+          setIsInitializing(false);
+        }
       }
     } catch (error) {
-      console.error('Error accessing camera:', error);
+      console.error('Error in camera initialization:', error);
       setCameraError(error instanceof Error ? error.message : "Unknown camera error");
+      setIsInitializing(false);
       
       toast({
         title: "Camera Error",
@@ -209,14 +274,32 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
   
   // Start camera when component mounts
   useEffect(() => {
-    console.log("Starting camera on component mount");
+    console.log("Component mounted, starting camera");
     startCamera();
     
     // Cleanup function to stop camera when component unmounts
     return () => {
-      console.log("Stopping camera on component unmount");
+      console.log("Component unmounting, stopping camera");
       stopCamera();
     };
+  }, []);
+  
+  const checkCameraPermission = async () => {
+    try {
+      // Check if we already have permission
+      const permissions = await navigator.permissions.query({ name: 'camera' as PermissionName });
+      if (permissions.state === 'denied') {
+        setCameraError("Camera permission denied. Please enable camera access in your browser settings.");
+        setIsInitializing(false);
+      }
+    } catch (error) {
+      console.log("Permissions API not supported, skipping permission check");
+      // Some browsers don't support the permissions API, so we'll just try to access the camera directly
+    }
+  };
+  
+  useEffect(() => {
+    checkCameraPermission();
   }, []);
   
   const getActionText = () => {
@@ -289,12 +372,18 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
           <img src={capturedImage} alt="Captured" className="w-full h-full object-contain" />
         ) : cameraError ? (
           <div className="text-white text-center p-4">
-            <AlertCircle className="mx-auto h-12 w-12 mb-2 text-red-500" />
+            <CameraOff className="mx-auto h-12 w-12 mb-2 text-red-500" />
             <p className="text-red-300 mb-2">Camera Error</p>
             <p className="text-sm text-gray-300 mb-4">{cameraError}</p>
             <Button onClick={retakeImage} variant="outline" className="bg-white/10 hover:bg-white/20">
               Try Again
             </Button>
+          </div>
+        ) : isInitializing ? (
+          <div className="text-white text-center p-4">
+            <Camera className="mx-auto h-12 w-12 mb-2 animate-pulse" />
+            <p>Initializing camera...</p>
+            <p className="text-xs text-gray-400 mt-2">This may take a moment</p>
           </div>
         ) : (
           <div className="text-white text-center p-4">
@@ -305,6 +394,16 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
         
         <canvas ref={canvasRef} className="hidden" />
       </div>
+      
+      {cameraError && (
+        <Alert variant="destructive" className="mt-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Camera Access Error</AlertTitle>
+          <AlertDescription>
+            {cameraError}. Please ensure your browser has permission to access the camera.
+          </AlertDescription>
+        </Alert>
+      )}
       
       {capturedImage && (
         <div className="space-y-4">
