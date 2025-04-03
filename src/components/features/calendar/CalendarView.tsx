@@ -12,8 +12,8 @@ import {
   DialogHeader, 
   DialogTitle,
   DialogFooter,
-  DialogTrigger,
   DialogClose,
+  DialogTrigger,
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -50,6 +50,12 @@ import DayView from './views/DayView';
 import WeekView from './views/WeekView';
 import MonthView from './views/MonthView';
 import AgendaView from './views/AgendaView';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Event {
   id: string;
@@ -342,7 +348,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       
       const newAttachment = {
         id: fileId,
-        type: type,
+        type: type as 'image' | 'document',
         name: fileName,
         url: fileUrl,
         thumbnailUrl,
@@ -848,38 +854,33 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
                     </FormLabel>
                     
                     <div className="flex flex-wrap gap-2 mb-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAttachDocument}
-                        className="flex items-center"
-                      >
-                        <FileText className="h-4 w-4 mr-1" />
-                        Document
-                      </Button>
-                      
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAttachImage}
-                        className="flex items-center"
-                      >
-                        <Image className="h-4 w-4 mr-1" />
-                        Image
-                      </Button>
-                      
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleTakePicture}
-                        className="flex items-center"
-                      >
-                        <Camera className="h-4 w-4 mr-1" />
-                        Take Picture
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center"
+                          >
+                            <Paperclip className="h-4 w-4 mr-1" />
+                            Attachment
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="bg-background">
+                          <DropdownMenuItem onClick={handleAttachDocument}>
+                            <FileText className="h-4 w-4 mr-2" />
+                            <span>Document</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleAttachImage}>
+                            <Image className="h-4 w-4 mr-2" />
+                            <span>Image</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleTakePicture}>
+                            <Camera className="h-4 w-4 mr-2" />
+                            <span>Take Picture</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                     
                     <FormField
