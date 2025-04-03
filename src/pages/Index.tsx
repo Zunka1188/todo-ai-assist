@@ -9,10 +9,13 @@ import CalendarWidget from '@/components/widgets/CalendarWidget';
 import TaskWidget from '@/components/widgets/TaskWidget';
 import SpendingWidget from '@/components/widgets/SpendingWidget';
 import { useTheme } from '@/hooks/use-theme';
+import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { isMobile } = useIsMobile();
 
   const handleScan = () => {
     navigate('/scan');
@@ -46,7 +49,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="space-y-6 py-4">
+    <div className="space-y-5 py-3 sm:space-y-6 sm:py-4">
       {/* Header */}
       <div className="text-center space-y-2">
         <h1 className={cn(
@@ -57,22 +60,22 @@ const Index = () => {
       </div>
 
       {/* Main scan button */}
-      <div className="flex justify-center my-6 sm:my-8">
+      <div className="flex justify-center my-4 sm:my-6">
         <ScanButton 
-          className="transform hover:scale-105 transition-transform" 
+          className="transform hover:scale-105 transition-transform active:scale-95 touch-manipulation" 
           onScan={handleScan}
         />
       </div>
 
       {/* Widgets section */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         <AppHeader 
           title="Widgets" 
           subtitle="Quick access to your information"
-          className="text-primary font-semibold section-header"
+          className={theme === 'light' ? "text-primary font-semibold section-header" : "text-white font-semibold section-header"}
         />
         
-        <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-3">
           <CalendarWidget />
           <TaskWidget />
           <SpendingWidget />
@@ -80,14 +83,14 @@ const Index = () => {
       </div>
 
       {/* Feature cards */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         <AppHeader 
           title="Features" 
           subtitle="Organize your life with AI-powered tools"
-          className="text-primary font-semibold section-header"
+          className={theme === 'light' ? "text-primary font-semibold section-header" : "text-white font-semibold section-header"}
         />
         
-        <div className="dashboard-grid">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
           {featureCards.map((card) => (
             <FeatureCard 
               key={card.title} 
@@ -101,7 +104,7 @@ const Index = () => {
       </div>
 
       {/* Quick info */}
-      <div className="bg-todo-purple/5 dark:bg-todo-purple/20 p-6 rounded-xl border border-todo-purple/10 dark:border-todo-purple/30">
+      <div className="bg-todo-purple/5 dark:bg-todo-purple/20 p-4 sm:p-6 rounded-xl border border-todo-purple/10 dark:border-todo-purple/30">
         <h3 className={cn(
           "font-medium mb-2",
           theme === 'light' 
@@ -120,6 +123,3 @@ const Index = () => {
 };
 
 export default Index;
-
-// Need to import cn
-import { cn } from '@/lib/utils';

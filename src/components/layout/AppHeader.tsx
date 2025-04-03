@@ -13,9 +13,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({ title, subtitle, className }) => 
   const { theme } = useTheme();
   
   return (
-    <header className={cn("flex flex-col space-y-1 py-4", className)}>
+    <header className={cn("flex flex-col space-y-1 py-3 sm:py-4", className)}>
       <h1 className={cn(
-        "text-[28px] font-bold sm:text-[32px] md:text-[36px]",
+        "text-[24px] font-bold sm:text-[28px] md:text-[32px]",
         theme === 'light' 
           ? "text-todo-black" 
           : "text-white"

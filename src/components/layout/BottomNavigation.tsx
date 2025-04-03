@@ -28,7 +28,7 @@ const BottomNavigation = () => {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 shadow-md">
       <div className="container mx-auto px-1 py-2 flex justify-between items-center">
         {navItems.map(({ path, icon: Icon, label }) => (
           <Link 
@@ -36,11 +36,12 @@ const BottomNavigation = () => {
             to={path} 
             className={cn(
               "flex flex-col items-center justify-center min-w-[60px] p-2 rounded-md transition-colors",
+              "active:bg-secondary/70 touch-manipulation",
               isActive(path) 
                 ? "text-primary font-medium" 
                 : theme === 'light'
                   ? "text-foreground hover:text-primary"
-                  : "text-foreground/80 hover:text-foreground"
+                  : "text-white hover:text-foreground"
             )}
           >
             <Icon className={cn(
@@ -49,13 +50,14 @@ const BottomNavigation = () => {
                 ? "text-primary" 
                 : theme === 'light'
                   ? "text-foreground/90" 
-                  : "text-foreground/70"
+                  : "text-white"
             )} />
             <span className={cn(
               "text-[10px] mt-1 leading-tight text-center",
               isActive(path) 
                 ? "font-medium" 
-                : "font-normal"
+                : "font-normal",
+              theme === 'dark' && !isActive(path) ? "text-white/90" : ""
             )}>
               {label}
             </span>

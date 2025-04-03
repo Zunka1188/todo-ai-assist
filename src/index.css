@@ -62,6 +62,14 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Adjust for mobile viewport */
+  @media (max-width: 640px) {
+    html {
+      font-size: 15px;
+    }
   }
 }
 
@@ -114,15 +122,15 @@
   
   /* High contrast text utilities */
   .text-high-contrast {
-    @apply text-foreground dark:text-foreground;
+    @apply text-foreground dark:text-white;
   }
   
   .text-medium-contrast {
-    @apply text-foreground/80 dark:text-foreground/90;
+    @apply text-foreground/80 dark:text-white/90;
   }
   
   .text-low-contrast {
-    @apply text-muted-foreground dark:text-muted-foreground;
+    @apply text-muted-foreground dark:text-white/70;
   }
   
   /* Button contrast utilities */
@@ -140,7 +148,7 @@
   
   /* Icon contrast utilities */
   .icon-high-contrast {
-    @apply text-foreground dark:text-foreground;
+    @apply text-foreground dark:text-white;
   }
   
   .icon-medium-contrast {
@@ -148,12 +156,12 @@
   }
   
   .icon-low-contrast {
-    @apply text-muted-foreground/70 dark:text-muted-foreground;
+    @apply text-muted-foreground/70 dark:text-white/70;
   }
   
   /* Tab contrast utilities */
   .tab-active {
-    @apply text-primary font-medium;
+    @apply text-primary font-medium dark:text-white;
   }
   
   .tab-inactive-light {
@@ -161,6 +169,29 @@
   }
   
   .tab-inactive-dark {
-    @apply text-foreground/80 hover:text-foreground;
+    @apply text-white/80 hover:text-white;
+  }
+  
+  /* Mobile specific utilities */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  /* Mobile tappable area - ensure touch targets are at least 44x44px */
+  .tap-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Mobile active state */
+  .mobile-active-effect {
+    @apply active:bg-black/5 dark:active:bg-white/10;
   }
 }
