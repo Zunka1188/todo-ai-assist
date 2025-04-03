@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const DocumentsPage = () => {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ const DocumentsPage = () => {
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
   const [noteCategory, setNoteCategory] = useState('');
+  const isMobile = useIsMobile();
   
   const goBack = () => {
     navigate('/');
@@ -50,13 +52,13 @@ const DocumentsPage = () => {
   };
 
   return (
-    <div className="space-y-6 py-4">
-      <div className="flex items-center mb-2">
+    <div className="space-y-4 py-2 sm:py-4">
+      <div className="flex items-center">
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={goBack} 
-          className="mr-2"
+          className="mr-2 min-h-[44px] min-w-[44px]"
           aria-label="Go back to home"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -69,47 +71,56 @@ const DocumentsPage = () => {
       </div>
       
       <div className="flex gap-2 flex-wrap">
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2 min-h-[44px]">
           <Upload className="h-4 w-4" />
-          Upload File
+          <span className={isMobile ? "text-sm" : ""}>Upload File</span>
         </Button>
         
         <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center gap-2 min-h-[44px]">
               <FileText className="h-4 w-4" />
-              New Note
+              <span className={isMobile ? "text-sm" : ""}>New Note</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className={cn(
+            "sm:max-w-[500px]",
+            isMobile ? "w-[calc(100%-32px)] p-4" : ""
+          )}>
             <DialogHeader>
               <DialogTitle>Create a new note</DialogTitle>
               <DialogDescription>
-                Add a new note to your collection. Fill out the details below.
+                Add a new note to your collection.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="note-title" className="text-right">
+              <div className={cn(
+                "grid items-center gap-4",
+                isMobile ? "grid-cols-1" : "grid-cols-4"
+              )}>
+                <Label htmlFor="note-title" className={isMobile ? "mb-1" : "text-right"}>
                   Title
                 </Label>
                 <Input
                   id="note-title"
                   value={noteTitle}
                   onChange={(e) => setNoteTitle(e.target.value)}
-                  className="col-span-3"
+                  className={isMobile ? "w-full" : "col-span-3"}
                   placeholder="Note title"
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="note-category" className="text-right">
+              <div className={cn(
+                "grid items-center gap-4",
+                isMobile ? "grid-cols-1" : "grid-cols-4"
+              )}>
+                <Label htmlFor="note-category" className={isMobile ? "mb-1" : "text-right"}>
                   Category
                 </Label>
                 <Select 
                   value={noteCategory} 
                   onValueChange={setNoteCategory}
                 >
-                  <SelectTrigger className="col-span-3">
+                  <SelectTrigger className={isMobile ? "w-full" : "col-span-3"}>
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -120,22 +131,25 @@ const DocumentsPage = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-4 items-start gap-4">
-                <Label htmlFor="note-content" className="text-right pt-2">
+              <div className={cn(
+                "grid items-start gap-4",
+                isMobile ? "grid-cols-1" : "grid-cols-4"
+              )}>
+                <Label htmlFor="note-content" className={isMobile ? "mb-1" : "text-right pt-2"}>
                   Content
                 </Label>
                 <Textarea
                   id="note-content"
                   value={noteContent}
                   onChange={(e) => setNoteContent(e.target.value)}
-                  className="col-span-3"
+                  className={isMobile ? "w-full" : "col-span-3"}
                   rows={6}
                   placeholder="Write your note here..."
                 />
               </div>
             </div>
-            <DialogFooter>
-              <Button onClick={createNote} type="submit">Save Note</Button>
+            <DialogFooter className={isMobile ? "flex-col gap-2" : ""}>
+              <Button onClick={createNote} type="submit" className="w-full sm:w-auto">Save Note</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

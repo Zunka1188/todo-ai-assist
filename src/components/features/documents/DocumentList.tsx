@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Document {
   id: string;
@@ -91,6 +93,7 @@ const DocumentList: React.FC = () => {
   const [selectedFolder, setSelectedFolder] = useState('all');
   const [newFolderName, setNewFolderName] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const createFolder = () => {
     if (newFolderName.trim() === '') return;
@@ -124,6 +127,113 @@ const DocumentList: React.FC = () => {
     }
   };
 
+  // Mobile view uses Tabs instead of horizontal scrolling categories
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        <Tabs defaultValue="all" onValueChange={setSelectedFolder} className="w-full">
+          <TabsList className="w-full flex justify-start overflow-x-auto pb-1 scrollbar-none">
+            {folders.slice(0, 5).map((folder) => (
+              <TabsTrigger 
+                key={folder.id} 
+                value={folder.id}
+                className="px-3 py-1.5 text-sm whitespace-nowrap flex-shrink-0"
+              >
+                {folder.name}
+              </TabsTrigger>
+            ))}
+            <TabsTrigger 
+              value="more" 
+              className="px-3 py-1.5 text-sm whitespace-nowrap flex-shrink-0"
+            >
+              More
+            </TabsTrigger>
+          </TabsList>
+          
+          {folders.slice(0, 5).map((folder) => (
+            <TabsContent key={folder.id} value={folder.id} className="mt-2">
+              <DocumentGrid 
+                documents={
+                  folder.id === 'all'
+                    ? documents
+                    : folder.id === 'images'
+                      ? documents.filter(doc => doc.type === 'image')
+                      : folder.id === 'notes'
+                        ? documents.filter(doc => doc.type === 'note')
+                        : documents.filter(doc => doc.category.toLowerCase() === folder.id.toLowerCase())
+                }
+                getDocumentIcon={getDocumentIcon}
+              />
+            </TabsContent>
+          ))}
+          
+          <TabsContent value="more">
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {folders.slice(5).map((folder) => (
+                <Button
+                  key={folder.id}
+                  variant="outline"
+                  className="justify-start p-2 h-auto"
+                  onClick={() => setSelectedFolder(folder.id)}
+                >
+                  <Folder className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <span className="text-sm">{folder.name}</span>
+                </Button>
+              ))}
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="justify-start p-2 h-auto"
+                  >
+                    <Plus className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span className="text-sm">New Folder</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-[calc(100%-32px)] p-4">
+                  <DialogHeader>
+                    <DialogTitle>Create a new folder</DialogTitle>
+                    <DialogDescription>
+                      Enter a name for your new folder.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-1 items-center gap-4">
+                      <Label htmlFor="folder-name" className="mb-1">
+                        Name
+                      </Label>
+                      <Input
+                        id="folder-name"
+                        value={newFolderName}
+                        onChange={(e) => setNewFolderName(e.target.value)}
+                        className="w-full"
+                        placeholder="e.g., Recipes, Projects, etc."
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={createFolder} type="submit" className="w-full">Create Folder</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+            
+            {selectedFolder !== 'all' && 
+              selectedFolder !== 'images' && 
+              selectedFolder !== 'notes' && 
+              !folders.slice(0, 5).some(f => f.id === selectedFolder) && (
+              <DocumentGrid 
+                documents={documents.filter(doc => doc.category.toLowerCase() === selectedFolder.toLowerCase())}
+                getDocumentIcon={getDocumentIcon}
+              />
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  }
+
+  // Desktop view with horizontal scrolling categories
   return (
     <div className="space-y-6">
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
@@ -177,42 +287,64 @@ const DocumentList: React.FC = () => {
         </Dialog>
       </div>
 
-      <div className="grid gap-4">
-        {filteredDocuments.map((doc) => (
-          <div
-            key={doc.id}
-            className="flex items-center p-3 bg-white rounded-lg shadow-sm border border-border hover:shadow-md transition-shadow cursor-pointer"
-          >
-            <div className="bg-todo-purple bg-opacity-10 p-2 rounded-lg mr-3">
-              {getDocumentIcon(doc.type)}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-todo-black truncate">
-                {doc.name}
-              </h4>
-              <div className="flex items-center text-xs text-muted-foreground mt-1">
-                <span className="truncate">
-                  {doc.date.toLocaleDateString()}
-                </span>
-                <span className="mx-1.5">•</span>
-                <span className="bg-secondary/50 px-2 py-0.5 rounded-full truncate">
-                  {doc.category}
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
+      <DocumentGrid 
+        documents={filteredDocuments}
+        getDocumentIcon={getDocumentIcon}
+      />
+    </div>
+  );
+};
 
-        {filteredDocuments.length === 0 && (
-          <div className="text-center py-8">
-            <Folder className="mx-auto h-12 w-12 text-muted-foreground/50" />
-            <h3 className="mt-4 text-lg font-medium">No documents found</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Upload or create documents to see them here
-            </p>
-          </div>
-        )}
+// Extracted DocumentGrid component for reuse
+interface DocumentGridProps {
+  documents: Document[];
+  getDocumentIcon: (type: string) => React.ReactNode;
+}
+
+const DocumentGrid: React.FC<DocumentGridProps> = ({ documents, getDocumentIcon }) => {
+  const isMobile = useIsMobile();
+  
+  if (documents.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Folder className="mx-auto h-12 w-12 text-muted-foreground/50" />
+        <h3 className="mt-4 text-lg font-medium">No documents found</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Upload or create documents to see them here
+        </p>
       </div>
+    );
+  }
+  
+  return (
+    <div className="grid gap-3">
+      {documents.map((doc) => (
+        <div
+          key={doc.id}
+          className="flex items-center p-3 bg-white rounded-lg shadow-sm border border-border hover:shadow-md transition-shadow cursor-pointer"
+        >
+          <div className="bg-todo-purple bg-opacity-10 p-2 rounded-lg mr-3 flex-shrink-0">
+            {getDocumentIcon(doc.type)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-todo-black truncate">
+              {doc.name}
+            </h4>
+            <div className={cn(
+              "flex items-center text-xs text-muted-foreground mt-1",
+              isMobile && "flex-wrap gap-1"
+            )}>
+              <span className="truncate">
+                {doc.date.toLocaleDateString()}
+              </span>
+              {!isMobile && <span className="mx-1.5">•</span>}
+              <span className="bg-secondary/50 px-2 py-0.5 rounded-full truncate">
+                {doc.category}
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

@@ -30,14 +30,15 @@ const ScanButton: React.FC<ScanButtonProps> = ({ className, onScan }) => {
     <button
       onClick={handleScan}
       className={cn(
-        "metallic-button p-4 sm:p-6 rounded-full flex items-center justify-center",
+        "metallic-button rounded-full flex items-center justify-center",
         "bg-todo-purple text-white shadow-lg touch-action-manipulation",
         "hover:shadow-xl transition-all duration-300 active:scale-95",
-        isMobile ? "min-h-[60px] min-w-[60px]" : "",
+        isMobile ? "p-4 min-h-[60px] min-w-[60px]" : "p-6",
         className
       )}
+      aria-label="Scan with camera"
     >
-      <Camera size={isMobile ? 28 : 32} />
+      <Camera size={isMobile ? 24 : 32} />
     </button>
   );
 };
