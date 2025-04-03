@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
@@ -576,12 +577,11 @@ const ShoppingList: React.FC = () => {
               </CarouselItem>
             </CarouselContent>
             <div className="absolute right-0 top-1/2 -translate-y-1/2 bg-gradient-to-l from-background to-transparent w-12 h-8 pointer-events-none" />
+            <div className="flex justify-center items-center mt-2 gap-2">
+              <CarouselPrevious className="static translate-y-0 h-6 w-6 transform-none" />
+              <CarouselNext className="static translate-y-0 h-6 w-6 transform-none" />
+            </div>
           </Carousel>
-          
-          <div className="flex justify-center items-center mt-2 gap-2">
-            <CarouselPrevious className="static translate-y-0 h-6 w-6 transform-none" />
-            <CarouselNext className="static translate-y-0 h-6 w-6 transform-none" />
-          </div>
         </div>
 
         <div className="flex flex-col space-y-2">
