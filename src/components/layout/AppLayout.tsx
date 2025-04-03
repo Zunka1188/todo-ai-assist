@@ -78,12 +78,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
                 <span>Spending</span>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/settings" className="cursor-pointer flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                <span>Settings</span>
-              </Link>
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <Link to="/settings" className="p-2 rounded-md hover:bg-secondary">
