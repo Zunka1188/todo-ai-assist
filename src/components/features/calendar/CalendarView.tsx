@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List, Image, Camera, Paperclip } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -336,9 +337,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
     const newAttachments: AttachmentType[] = [];
     
     Array.from(files).forEach(file => {
+      // Ensure all required properties are defined (not optional)
       const fileId = `attachment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       const fileName = file.name;
-      
       const fileUrl = URL.createObjectURL(file);
       
       let thumbnailUrl: string | undefined;
@@ -364,7 +365,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       description: "The file has been attached to this event.",
     });
   };
-
+  
   const handleCameraCaptureSuccessful = (imageBlob: Blob) => {
     const fileId = `camera-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const fileName = `Camera Image ${new Date().toLocaleString()}.jpg`;
