@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Clock, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from "@/hooks/use-toast";
 
 interface Event {
   id: string;
@@ -44,6 +46,8 @@ const DayView: React.FC<DayViewProps> = ({
   const [startHour, setStartHour] = useState(0);
   const [endHour, setEndHour] = useState(23);
   const [showAllHours, setShowAllHours] = useState(true);
+  const [hiddenEvents, setHiddenEvents] = useState<Event[]>([]);
+  const { toast } = useToast();
 
   const prevDay = () => {
     setDate(subDays(date, 1));
@@ -77,17 +81,53 @@ const DayView: React.FC<DayViewProps> = ({
   
   const isCurrentDate = isToday(date);
 
+  const checkForHiddenEvents = (start: number, end: number) => {
+    // Only consider time events (not all-day events)
+    const hidden = timeEvents.filter(event => {
+      const eventStartHour = event.startDate.getHours();
+      const eventEndHour = event.endDate.getHours();
+      
+      // Event is hidden if it starts or ends outside the visible range
+      return (eventStartHour < start && eventEndHour < start) || 
+             (eventStartHour > end && eventEndHour > end);
+    });
+
+    setHiddenEvents(hidden);
+    
+    if (hidden.length > 0) {
+      toast({
+        title: "Warning: Hidden Events",
+        description: `${hidden.length} event${hidden.length === 1 ? '' : 's'} will be hidden with this time range.`,
+        variant: "default",
+      });
+    }
+    
+    return hidden;
+  };
+
   const handleTimeRangeChange = (type: 'start' | 'end', value: string) => {
     const hour = parseInt(value, 10);
     if (isNaN(hour) || hour < 0 || hour > 23) return;
     
+    let newStart = startHour;
+    let newEnd = endHour;
+    
     if (type === 'start') {
-      if (hour <= endHour) setStartHour(hour);
+      if (hour <= endHour) newStart = hour;
+      else return;
     } else {
-      if (hour >= startHour) setEndHour(hour);
+      if (hour >= startHour) newEnd = hour;
+      else return;
     }
     
-    setShowAllHours(startHour === 0 && endHour === 23);
+    // Check if this change would hide any events
+    checkForHiddenEvents(newStart, newEnd);
+    
+    // Update the state
+    if (type === 'start') setStartHour(newStart);
+    else setEndHour(newEnd);
+    
+    setShowAllHours(newStart === 0 && newEnd === 23);
   };
 
   return (
@@ -134,6 +174,7 @@ const DayView: React.FC<DayViewProps> = ({
               setStartHour(0);
               setEndHour(23);
               setShowAllHours(true);
+              setHiddenEvents([]);
             }}
           >
             Full 24h
@@ -168,6 +209,15 @@ const DayView: React.FC<DayViewProps> = ({
           </div>
         </div>
       </div>
+      
+      {/* Warning for hidden events */}
+      {hiddenEvents.length > 0 && (
+        <Alert variant="destructive" className="py-2">
+          <AlertDescription className="text-sm">
+            Warning: {hiddenEvents.length} event{hiddenEvents.length === 1 ? '' : 's'} {hiddenEvents.length === 1 ? 'is' : 'are'} hidden with the current time range.
+          </AlertDescription>
+        </Alert>
+      )}
       
       {/* All-day events section */}
       {allDayEvents.length > 0 && (
