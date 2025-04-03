@@ -119,15 +119,20 @@ const SpendingPage = () => {
                   }}
                 >
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={monthlyData}>
+                    <BarChart 
+                      data={monthlyData} 
+                      margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                       <XAxis 
                         dataKey="name"
                         tick={{ fill: 'var(--foreground)' }}
+                        padding={{ left: 10, right: 10 }}
                       />
                       <YAxis 
                         tickFormatter={(value) => `$${value}`}
                         tick={{ fill: 'var(--foreground)' }}
+                        width={60}
                       />
                       <Tooltip
                         content={({ active, payload }) => {
@@ -161,7 +166,7 @@ const SpendingPage = () => {
                         radius={[4, 4, 0, 0]} 
                         name="Amount"
                       />
-                      <Legend />
+                      <Legend wrapperStyle={{ paddingTop: 10 }} />
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartContainer>
@@ -193,15 +198,24 @@ const SpendingPage = () => {
                   }}
                 >
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={yearlyData}>
+                    <BarChart 
+                      data={yearlyData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                       <XAxis 
                         dataKey="name"
                         tick={{ fill: 'var(--foreground)' }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        interval={0}
+                        fontSize={12}
                       />
                       <YAxis 
                         tickFormatter={(value) => `$${value}`}
                         tick={{ fill: 'var(--foreground)' }}
+                        width={60}
                       />
                       <Tooltip
                         content={({ active, payload }) => {
@@ -235,7 +249,7 @@ const SpendingPage = () => {
                         radius={[4, 4, 0, 0]} 
                         name="Amount"
                       />
-                      <Legend />
+                      <Legend wrapperStyle={{ paddingTop: 10 }} />
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartContainer>
@@ -263,7 +277,11 @@ const SpendingPage = () => {
               }}
             >
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoryData} layout="vertical">
+                <BarChart 
+                  data={categoryData} 
+                  layout="vertical"
+                  margin={{ top: 20, right: 30, left: 60, bottom: 20 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis 
                     type="number"
@@ -274,6 +292,7 @@ const SpendingPage = () => {
                     type="category" 
                     dataKey="name"
                     tick={{ fill: 'var(--foreground)' }}
+                    width={80}
                   />
                   <Tooltip
                     content={({ active, payload }) => {
@@ -307,7 +326,7 @@ const SpendingPage = () => {
                     radius={[0, 4, 4, 0]} 
                     name="Amount"
                   />
-                  <Legend />
+                  <Legend wrapperStyle={{ paddingTop: 10 }} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>

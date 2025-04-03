@@ -91,13 +91,17 @@ const SpendingWidget = () => {
             }}
           >
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={spendingData}>
+              <BarChart 
+                data={spendingData}
+                margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+              >
                 <XAxis 
                   dataKey="name"
                   tickLine={false}
                   axisLine={false}
                   fontSize={10}
                   tick={{ fill: 'var(--foreground)' }}
+                  dy={5}
                 />
                 <YAxis 
                   tickLine={false}
@@ -105,6 +109,7 @@ const SpendingWidget = () => {
                   fontSize={10}
                   tickFormatter={(value) => `$${value}`}
                   tick={{ fill: 'var(--foreground)' }}
+                  width={40}
                 />
                 <Tooltip
                   content={({ active, payload }) => {
