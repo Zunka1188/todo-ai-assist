@@ -2,7 +2,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { format, isSameDay, isToday, compareAsc } from 'date-fns';
-import { Clock, MapPin, Calendar as CalendarIcon, PaperClip, FileText, Image } from 'lucide-react';
+import { Clock, MapPin, Calendar as CalendarIcon, Paperclip, FileText, Image } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Event {
@@ -144,7 +144,7 @@ const AgendaView: React.FC<AgendaViewProps> = ({
                             
                             {event.attachments && event.attachments.length > 0 && (
                               <p className="text-sm flex items-center text-muted-foreground">
-                                <PaperClip className="h-3.5 w-3.5 mr-2" />
+                                <Paperclip className="h-3.5 w-3.5 mr-2" />
                                 {event.attachments.length} attachment{event.attachments.length !== 1 ? 's' : ''}
                                 
                                 <span className="flex ml-2">
