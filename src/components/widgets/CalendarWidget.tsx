@@ -36,6 +36,14 @@ const CalendarWidget = () => {
     );
   };
 
+  // Function to check if a date is today
+  const isToday = (day: Date) => {
+    const today = new Date();
+    return day.getDate() === today.getDate() &&
+           day.getMonth() === today.getMonth() &&
+           day.getFullYear() === today.getFullYear();
+  };
+
   return (
     <Card className="metallic-card shadow-sm hover:shadow transition-shadow duration-300">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -55,6 +63,7 @@ const CalendarWidget = () => {
           className="rounded-lg border bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 shadow pointer-events-auto w-full mx-auto"
           modifiers={{
             event: (date) => isDayWithEvent(date),
+            today: (date) => isToday(date),
           }}
           modifiersStyles={{
             event: { 
@@ -62,6 +71,11 @@ const CalendarWidget = () => {
               backgroundColor: 'rgba(155, 135, 245, 0.1)',
               color: '#7E69AB',
               borderColor: '#9b87f5' 
+            },
+            today: {
+              fontWeight: 'bold',
+              color: '#9b87f5',
+              textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
             }
           }}
           showOutsideDays={true}
