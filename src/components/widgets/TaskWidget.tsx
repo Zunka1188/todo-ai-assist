@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Input } from '@/components/ui/input';
+import { useTheme } from '@/hooks/use-theme';
 
 type Task = {
   id: number;
@@ -18,6 +19,7 @@ type Task = {
 const TaskWidget = () => {
   const today = new Date();
   const formattedToday = format(today, 'yyyy-MM-dd');
+  const { theme } = useTheme();
   
   const [tasks, setTasks] = React.useState<Task[]>([
     { id: 1, title: 'Buy groceries', completed: false, priority: 'high', dueDate: formattedToday },
@@ -81,7 +83,10 @@ const TaskWidget = () => {
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="flex items-center space-x-2">
           <CheckSquare className="h-5 w-5 text-todo-purple" />
-          <h3 className="font-medium">Today's Tasks</h3>
+          <h3 className={cn(
+            "font-medium",
+            theme === 'light' ? "text-foreground" : "text-white"
+          )}>Today's Tasks</h3>
         </div>
         <Link to="/calendar" className="text-sm text-todo-purple flex items-center">
           View all <ChevronRight className="h-4 w-4 ml-1" />

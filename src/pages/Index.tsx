@@ -8,9 +8,11 @@ import FeatureCard from '@/components/features/FeatureCard';
 import CalendarWidget from '@/components/widgets/CalendarWidget';
 import TaskWidget from '@/components/widgets/TaskWidget';
 import SpendingWidget from '@/components/widgets/SpendingWidget';
+import { useTheme } from '@/hooks/use-theme';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const handleScan = () => {
     navigate('/scan');
@@ -47,7 +49,10 @@ const Index = () => {
     <div className="space-y-6 py-4">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-foreground dark:text-white">ToDo</h1>
+        <h1 className={cn(
+          "text-3xl font-bold",
+          theme === 'light' ? "text-foreground" : "text-white"
+        )}>ToDo</h1>
         <p className="text-muted-foreground dark:text-gray-300">Your All-in-One AI-Powered Assistant</p>
       </div>
 
@@ -97,7 +102,12 @@ const Index = () => {
 
       {/* Quick info */}
       <div className="bg-todo-purple/5 dark:bg-todo-purple/20 p-6 rounded-xl border border-todo-purple/10 dark:border-todo-purple/30">
-        <h3 className="font-medium text-todo-purple-dark dark:text-todo-purple-light mb-2">
+        <h3 className={cn(
+          "font-medium mb-2",
+          theme === 'light' 
+            ? "text-todo-purple-dark" 
+            : "text-todo-purple-light"
+        )}>
           Your AI-Powered Assistant
         </h3>
         <p className="text-sm text-muted-foreground dark:text-gray-300">
@@ -110,3 +120,6 @@ const Index = () => {
 };
 
 export default Index;
+
+// Need to import cn
+import { cn } from '@/lib/utils';

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Calendar as CalendarIcon, ChevronRight, Bell } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -6,13 +5,13 @@ import { Link } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/hooks/use-theme';
 import { 
   Popover, 
   PopoverContent, 
   PopoverTrigger 
 } from '@/components/ui/popover';
 
-// Sample upcoming events for demo - matching the structure in CalendarView
 const upcomingEvents = [
   {
     id: '1',
@@ -58,8 +57,8 @@ const CalendarWidget = () => {
   const [selectedDayEvents, setSelectedDayEvents] = useState<typeof upcomingEvents>([]);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [open, setOpen] = useState(false);
+  const { theme } = useTheme();
   
-  // Function to check if a date has events
   const isDayWithEvent = (day: Date) => {
     return upcomingEvents.some(
       (event) => 
@@ -69,7 +68,6 @@ const CalendarWidget = () => {
     );
   };
 
-  // Handle day selection to show events in popover
   const handleDaySelect = (day: Date | undefined) => {
     setDate(day);
     
@@ -102,7 +100,10 @@ const CalendarWidget = () => {
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="flex items-center space-x-2">
           <CalendarIcon className="h-5 w-5 text-todo-purple" />
-          <h3 className="font-medium">Calendar</h3>
+          <h3 className={cn(
+            "font-medium",
+            theme === 'light' ? "text-foreground" : "text-white"
+          )}>Calendar</h3>
         </div>
         <Link to="/calendar" className="text-sm text-todo-purple flex items-center">
           View all <ChevronRight className="h-4 w-4 ml-1" />
@@ -147,7 +148,10 @@ const CalendarWidget = () => {
                       key={event.id}
                       className="p-3 rounded-lg border border-border bg-white dark:bg-gray-800 shadow-sm"
                     >
-                      <h5 className="font-medium text-todo-black dark:text-white">
+                      <h5 className={cn(
+                        "font-medium",
+                        theme === 'light' ? "text-todo-black" : "text-white"
+                      )}>
                         {event.title}
                         <span className="ml-2 text-xs text-todo-purple bg-todo-purple/10 px-2 py-0.5 rounded">
                           Event
