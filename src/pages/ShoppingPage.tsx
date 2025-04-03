@@ -1,16 +1,18 @@
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import AppHeader from '@/components/layout/AppHeader';
 import ShoppingList from '@/components/features/shopping/ShoppingList';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTheme } from '@/hooks/use-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const ShoppingPage = () => {
   const navigate = useNavigate();
   const { isMobile } = useIsMobile();
+  const { theme } = useTheme();
   const contentRef = useRef<HTMLDivElement>(null);
 
   const goBack = () => {
@@ -32,7 +34,10 @@ const ShoppingPage = () => {
               className="mr-2 md:mr-3 h-9 w-9 md:h-10 md:w-10 hover:bg-secondary"
               aria-label="Go back to home"
             >
-              <ArrowLeft className="h-4 w-4 md:h-5 md:w-5 text-foreground" />
+              <ArrowLeft className={cn(
+                "h-4 w-4 md:h-5 md:w-5",
+                theme === 'light' ? "text-foreground" : "text-foreground/90"
+              )} />
             </Button>
             <AppHeader 
               title="Shopping" 
@@ -51,3 +56,6 @@ const ShoppingPage = () => {
 };
 
 export default ShoppingPage;
+
+// Need to import cn
+import { cn } from '@/lib/utils';

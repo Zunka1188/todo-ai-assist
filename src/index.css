@@ -27,6 +27,7 @@
     --radius: 0.5rem;
     --todo-purple: 267 75% 52%;
     --todo-purple-dark: 267 75% 40%;
+    --todo-purple-light: 267 75% 80%;
   }
   
   .dark {
@@ -51,6 +52,7 @@
     --ring: 267 75% 65%;
     --todo-purple: 267 75% 65%;
     --todo-purple-dark: 267 75% 55%;
+    --todo-purple-light: 267 75% 80%;
   }
 }
 
@@ -147,5 +149,18 @@
   
   .icon-low-contrast {
     @apply text-muted-foreground/70 dark:text-muted-foreground;
+  }
+  
+  /* Tab contrast utilities */
+  .tab-active {
+    @apply text-primary font-medium;
+  }
+  
+  .tab-inactive-light {
+    @apply text-foreground/90 hover:text-primary;
+  }
+  
+  .tab-inactive-dark {
+    @apply text-foreground/80 hover:text-foreground;
   }
 }
