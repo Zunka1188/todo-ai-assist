@@ -17,7 +17,7 @@ const ShoppingPage = () => {
   };
 
   return (
-    <div className="space-y-4 py-2 sm:py-4 px-2 sm:px-4 container mx-auto max-w-4xl">
+    <div className="space-y-4 py-2 sm:py-4 px-4 sm:px-4 container mx-auto max-w-4xl">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center">
           <Button 
