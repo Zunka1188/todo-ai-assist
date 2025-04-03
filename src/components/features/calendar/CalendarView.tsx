@@ -321,7 +321,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
       setIsViewDialogOpen(false);
       toast({
         title: "Event deleted",
-        description: `"${selectedEvent.title}" has been removed from your calendar.`,
+        description: `"${selectedEvent.title}" has been removed from your calendar.",
       });
       setSelectedEvent(null);
     }
@@ -333,19 +333,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
     
     const currentAttachments = form.getValues("attachments") || [];
     
-    const newAttachments: AttachmentType[] = [];
-    
-    Array.from(files).forEach(file => {
-      const attachment: AttachmentType = {
-        id: `attachment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        type: file.type.startsWith('image/') ? 'image' : 'document',
-        name: file.name,
-        url: URL.createObjectURL(file),
-        thumbnailUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
-      };
-      
-      newAttachments.push(attachment);
-    });
+    const newAttachments: AttachmentType[] = Array.from(files).map(file => ({
+      id: `attachment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      type: file.type.startsWith('image/') ? 'image' : 'document',
+      name: file.name,
+      url: URL.createObjectURL(file),
+      thumbnailUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+    }));
     
     form.setValue("attachments", [...currentAttachments, ...newAttachments]);
     
