@@ -77,9 +77,7 @@ const CalendarWidget = () => {
                     }
                   )}
                 >
-                  <span 
-                    style={isCurrentDay ? { textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)' } : undefined}
-                  >
+                  <span>
                     {date.getDate()}
                   </span>
                 </div>
