@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List, Image, Paperclip } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -331,13 +332,23 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '' }
     
     const currentAttachments = form.getValues("attachments") || [];
     
-    const newAttachments: AttachmentType[] = Array.from(files).map(file => ({
-      id: `attachment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      type: file.type.startsWith('image/') ? 'image' : 'document',
-      name: file.name,
-      url: URL.createObjectURL(file),
-      thumbnailUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined
-    }));
+    // Ensure all required properties are explicitly set for each attachment
+    const newAttachments: AttachmentType[] = Array.from(files).map(file => {
+      // Create an attachment with all required properties defined
+      const attachment: AttachmentType = {
+        id: `attachment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        type: file.type.startsWith('image/') ? 'image' : 'document',
+        name: file.name,
+        url: URL.createObjectURL(file)
+      };
+      
+      // Add optional properties if applicable
+      if (file.type.startsWith('image/')) {
+        attachment.thumbnailUrl = URL.createObjectURL(file);
+      }
+      
+      return attachment;
+    });
     
     form.setValue("attachments", [...currentAttachments, ...newAttachments]);
     
