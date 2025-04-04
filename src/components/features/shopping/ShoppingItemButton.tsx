@@ -37,7 +37,6 @@ const ShoppingItemButton = ({
       size="sm"
       className={cn(
         "flex flex-col items-start justify-center gap-1 transition-colors w-full",
-        hasAdditionalInfo && "py-3", // Add more padding when we have additional info
         "h-auto min-h-[80px]", // Set a consistent minimum height for all buttons
         className
       )}
@@ -79,7 +78,7 @@ const ShoppingItemButton = ({
             </div>
           )}
           {imageUrl && (
-            <div className="w-full mt-2 h-[60px] overflow-hidden">
+            <div className="w-full mt-2 h-[48px] overflow-hidden">
               <img 
                 src={imageUrl} 
                 alt={name || "Product"} 

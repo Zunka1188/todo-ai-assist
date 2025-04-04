@@ -119,7 +119,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         )}
         
         {imageUrl && (
-          <div className="w-full mt-2 h-[60px] overflow-hidden">
+          <div className="w-full mt-2 h-[48px] overflow-hidden">
             <img 
               src={imageUrl} 
               alt={text} 
