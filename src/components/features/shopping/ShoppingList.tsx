@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -57,7 +56,7 @@ const ShoppingList = ({
         </div>
       ) : (
         <ScrollArea className="h-[calc(100vh-280px)]">
-          <div className="shopping-items-grid pb-8">
+          <div className={`shopping-items-grid grid ${isMobile ? 'grid-cols-3 gap-2' : 'grid-cols-4 gap-4'} pb-8`}>
             {filteredItems.map((item) => (
               <ShoppingItemButton
                 key={item.id}
