@@ -27,6 +27,13 @@ import { useToast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ImageAnalysisModal from '../documents/ImageAnalysisModal';
 import { AnalysisResult } from '@/utils/imageAnalysis';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface AddItemDialogProps {
   open: boolean;
@@ -40,7 +47,8 @@ interface AddItemDialogProps {
     price?: string, 
     file?: string | null,
     fileName?: string,
-    fileType?: string
+    fileType?: string,
+    repeatOption?: 'none' | 'weekly' | 'monthly'
   }) => void;
 }
 
@@ -62,6 +70,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [fullScreenPreview, setFullScreenPreview] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [repeatOption, setRepeatOption] = useState<'none' | 'weekly' | 'monthly'>('none');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -172,7 +181,8 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
       price,
       file,
       fileName: fileName || undefined,
-      fileType: fileType || undefined
+      fileType: fileType || undefined,
+      repeatOption
     };
     
     onSave(itemData);
@@ -194,6 +204,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
     setImageOptionsOpen(false);
     setIsCustomCategory(false);
     setFullScreenPreview(false);
+    setRepeatOption('none');
   };
 
   const clearFile = () => {
@@ -521,6 +532,24 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                     value={dateToPurchase}
                     onChange={(e) => setDateToPurchase(e.target.value)}
                   />
+                </div>
+                
+                {/* New Repeat Option Field */}
+                <div className="grid gap-2">
+                  <Label htmlFor="repeat-option">Repeat</Label>
+                  <Select 
+                    value={repeatOption} 
+                    onValueChange={(value) => setRepeatOption(value as 'none' | 'weekly' | 'monthly')}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None (One-off)</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="grid gap-2">
