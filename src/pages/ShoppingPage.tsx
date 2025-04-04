@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+
+import React, { useRef, useState, useEffect } from 'react';
 import { ArrowLeft, ShoppingBag, Search, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -38,9 +39,14 @@ const ShoppingPage = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<ShoppingTab>('one-off');
+  const [activeTab, setActiveTab] = useState<ShoppingTab>('all'); // Start with 'all' tab to see everything
   const [editItem, setEditItem] = useState<ItemData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+
+  // Force the "all" tab to be active on initial load
+  useEffect(() => {
+    setActiveTab('all');
+  }, []);
 
   const goBack = () => {
     navigate('/');
@@ -173,7 +179,7 @@ const ShoppingPage = () => {
       {/* Updated Tab Navigation - One-off, Weekly, Monthly, All */}
       <div className="mb-4">
         <Tabs 
-          defaultValue="one-off" 
+          defaultValue="all" 
           value={activeTab} 
           onValueChange={(value) => setActiveTab(value as ShoppingTab)} 
           className="w-full"
