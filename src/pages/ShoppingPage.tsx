@@ -8,7 +8,6 @@ import AppHeader from '@/components/layout/AppHeader';
 import ShoppingList from '@/components/features/shopping/ShoppingList';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
@@ -46,12 +45,12 @@ const ShoppingPage = () => {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 my-4">
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 my-3">
         <Button 
-          className="bg-primary text-white hover:bg-primary/90 gap-2 h-10 sm:w-auto w-full"
+          className="bg-primary text-white hover:bg-primary/90 gap-2 h-10 sm:w-auto w-full flex justify-center items-center"
           size={isMobile ? "default" : "sm"}
         >
-          <Plus className="h-5 w-5" />
+          <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
           <span>Add Item</span>
         </Button>
         
