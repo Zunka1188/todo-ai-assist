@@ -21,8 +21,8 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         
         // Semantic variants for better naming consistency
-        active: "bg-green-500 text-white hover:bg-green-600",    // Active state (was green)
-        completed: "bg-gray-400 text-white hover:bg-gray-500",   // Completed state (was gray)
+        active: "bg-green-500 text-white hover:bg-green-600",    // Active state - green "Mark as Purchased"
+        completed: "bg-gray-400 text-white hover:bg-gray-500",   // Completed state - gray "Bring Back"
         purple: "bg-purple-600 text-white hover:bg-purple-700",  // Add Item button
         
         // Legacy variants - kept for backward compatibility

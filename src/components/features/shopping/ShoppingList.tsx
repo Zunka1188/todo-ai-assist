@@ -433,7 +433,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         setItems(updatedItems);
         
         toast({
-          description: `Moved "${item.name}" to Not Purchased`,
+          description: `Moved "${item.name}" back to Not Purchased`,
         });
       } else {
         const updatedItems = items.map((i) =>
@@ -442,7 +442,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         setItems(updatedItems);
         
         toast({
-          description: `Moved "${item.name}" to Not Purchased`,
+          description: `Moved "${item.name}" back to Not Purchased`,
         });
       }
     }
@@ -800,7 +800,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                               )}
                               aria-label="Mark as purchased"
                             >
-                              {item.completed && <Check size={12} />}
+                              {item.completed && <Check size={14} />}
                             </button>
                           )}
                           <CardTitle className={cn(
@@ -912,6 +912,22 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                             Last purchased: {item.lastPurchased.toLocaleDateString()}
                           </div>
                         )}
+                        
+                        <div className="mt-3 pt-2 border-t">
+                          <Button
+                            type="button"
+                            variant="active" 
+                            size="sm"
+                            className="w-full"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleItem(item.id);
+                            }}
+                          >
+                            <Check size={14} className="mr-1" />
+                            Mark as Purchased
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -1003,6 +1019,22 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                               Purchased: {item.lastPurchased.toLocaleDateString()}
                             </div>
                           )}
+                        </div>
+                        
+                        <div className="mt-3 pt-2 border-t">
+                          <Button
+                            type="button"
+                            variant="completed"
+                            size="sm"
+                            className="w-full"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleItem(item.id);
+                            }}
+                          >
+                            <RefreshCw size={14} className="mr-1" />
+                            Bring Back
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
