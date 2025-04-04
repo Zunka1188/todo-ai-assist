@@ -21,7 +21,7 @@ const ShoppingPage: React.FC = () => {
   const location = useLocation();
   const { enabled: debugEnabled } = useDebugMode();
   const { toast } = useToast();
-  const { updateItem, addItem, categories } = useShoppingItems('all', '');
+  const { updateItem, addItem } = useShoppingItems('all', '');
   const { isMobile } = useIsMobile();
   
   // Get the tab from URL query parameters
@@ -60,7 +60,6 @@ const ShoppingPage: React.FC = () => {
     try {
       const result = addItem({
         name: item.name,
-        category: item.category || "Other",
         amount: item.amount,
         price: item.price,
         imageUrl: item.file,
@@ -94,7 +93,6 @@ const ShoppingPage: React.FC = () => {
       // Prepare the data for update
       const itemData = {
         name: updatedItem.name,
-        category: updatedItem.category || "Other",
         amount: updatedItem.amount,
         imageUrl: updatedItem.file,
         notes: updatedItem.notes,
@@ -214,8 +212,7 @@ const ShoppingPage: React.FC = () => {
             file: editItem.item?.imageUrl || null,
             fileName: editItem.item?.fileName || '',
             fileType: 'image',
-            repeatOption: editItem.item?.repeatOption || 'none',
-            category: editItem.item?.category || 'Other'
+            repeatOption: editItem.item?.repeatOption || 'none'
           }}
           isEditing={true}
         />

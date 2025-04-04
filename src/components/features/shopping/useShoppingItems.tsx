@@ -1,12 +1,11 @@
 
 import { useState, useEffect } from 'react';
-import { useCategoriesManager, defaultCategories } from './useCategoriesManager';
 
 export interface ShoppingItem {
   id: string;
   name: string;
   completed: boolean;
-  category: string;
+  category?: string;
   amount?: string;
   dateToPurchase?: string;
   price?: string;
@@ -21,7 +20,6 @@ const initialItems: ShoppingItem[] = [{
   id: '5',
   name: 'Organic Coffee Beans',
   completed: false,
-  category: 'Groceries',
   dateAdded: new Date(),
   amount: '2 bags',
   price: '14.99',
@@ -33,28 +31,24 @@ const initialItems: ShoppingItem[] = [{
   id: '1',
   name: 'Dish Soap',
   completed: false,
-  category: 'Household',
   dateAdded: new Date('2023-04-01'),
   repeatOption: 'monthly'
 }, {
   id: '2',
   name: 'Apples',
   completed: false,
-  category: 'Groceries',
   dateAdded: new Date('2023-04-02'),
   repeatOption: 'weekly'
 }, {
   id: '3',
   name: 'Bread',
   completed: false,
-  category: 'Groceries',
   dateAdded: new Date('2023-04-02'),
   repeatOption: 'weekly'
 }, {
   id: '4',
   name: 'Toothpaste',
   completed: false,
-  category: 'Household',
   dateAdded: new Date('2023-04-03'),
   imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
   repeatOption: 'monthly'
@@ -99,18 +93,13 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   });
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('newest');
-  const [activeCategory, setActiveCategory] = useState('All');
   
-  // Import the categories manager
-  const categoriesManager = useCategoriesManager();
-  const { categories } = categoriesManager;
-
   // Save items to localStorage whenever they change
   useEffect(() => {
     saveToLocalStorage('shoppingItems', items);
   }, [items]);
 
-  // Filter items based on filterMode, activeCategory, and searchTerm
+  // Filter items based on filterMode, and searchTerm
   const getFilteredItems = () => {
     let filtered = items;
     
@@ -130,17 +119,11 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
         break;
     }
     
-    // Apply category filter
-    if (activeCategory !== 'All') {
-      filtered = filtered.filter(item => item.category === activeCategory);
-    }
-    
     // Apply search filter
     if (searchTerm.trim() !== '') {
       const lowerSearchTerm = searchTerm.toLowerCase();
       filtered = filtered.filter(item => 
         item.name.toLowerCase().includes(lowerSearchTerm) || 
-        item.category.toLowerCase().includes(lowerSearchTerm) ||
         (item.notes && item.notes.toLowerCase().includes(lowerSearchTerm))
       );
     }
@@ -255,11 +238,8 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     items: filteredItems,
     selectedItems,
     sortOption,
-    activeCategory,
     notPurchasedItems,
     purchasedItems,
-    categories, // Expose categories from the manager
-    setActiveCategory,
     setSortOption,
     addItem,
     toggleItem,

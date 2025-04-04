@@ -63,7 +63,6 @@ const ShoppingList = ({
       // Create a new item for the shopping list
       const newItem = {
         name: itemData.name,
-        category: itemData.category || "Household",
         amount: itemData.amount || '1', 
         price: itemData.price,
         imageUrl: itemData.file || null,

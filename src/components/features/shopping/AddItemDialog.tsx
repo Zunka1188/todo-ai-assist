@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog,
@@ -42,7 +43,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
-import { useCategoriesManager } from './useCategoriesManager';
 
 interface ItemData {
   id?: string;
@@ -53,7 +53,6 @@ interface ItemData {
   fileName?: string;
   fileType?: string;
   repeatOption?: 'none' | 'weekly' | 'monthly';
-  category?: string;
 }
 
 interface AddItemDialogProps {
@@ -78,9 +77,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   const [fullScreenPreview, setFullScreenPreview] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [repeatOption, setRepeatOption] = useState<'none' | 'weekly' | 'monthly'>('none');
-  const [category, setCategory] = useState('Groceries');
-  
-  const { categories } = useCategoriesManager();
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -95,7 +91,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       setFileName(editItem.fileName || '');
       setFileType(editItem.fileType || '');
       setRepeatOption(editItem.repeatOption || 'none');
-      setCategory(editItem.category || 'Groceries');
     } else if (!editItem && open) {
       resetForm();
     }
@@ -185,8 +180,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       file,
       fileName: fileName || undefined,
       fileType: fileType || undefined,
-      repeatOption,
-      category
+      repeatOption
     };
     
     console.log("Saving item with data:", itemData);
@@ -214,7 +208,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     setImageOptionsOpen(false);
     setFullScreenPreview(false);
     setRepeatOption('none');
-    setCategory('Groceries');
   };
 
   const clearFile = () => {
@@ -329,24 +322,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     }
   };
 
-  const CategorySelector = () => (
-    <div className="grid gap-2">
-      <Label htmlFor="category">Category</Label>
-      <select
-        id="category"
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {categories.filter(c => c !== 'All').map((cat) => (
-          <option key={cat} value={cat}>
-            {cat}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-
   const dialogContent = (
     <>
       <div className={cn("space-y-4", isMobile && "pb-4")}>
@@ -360,8 +335,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
               onChange={(e) => setName(e.target.value)}
             />
           </div>
-
-          <CategorySelector />
 
           <div className="grid gap-2">
             <Label htmlFor="file">File</Label>
