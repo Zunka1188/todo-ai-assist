@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface Event {
   id: string;
@@ -41,6 +42,10 @@ const WeekView: React.FC<WeekViewProps> = ({
   theme,
   weekStartsOn = 1  // Default to Monday
 }) => {
+  const [startHour, setStartHour] = useState(0);
+  const [endHour, setEndHour] = useState(23);
+  const [showFullDay, setShowFullDay] = useState(true);
+
   const weekStart = startOfWeek(date, { weekStartsOn });
   const weekEnd = endOfWeek(date, { weekStartsOn });
   const daysInWeek = eachDayOfInterval({ start: weekStart, end: weekEnd });
@@ -66,8 +71,32 @@ const WeekView: React.FC<WeekViewProps> = ({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
   
-  // Create hours array for the time column
-  const hours = Array.from({ length: 24 }, (_, i) => i);
+  // Create hours array for the time column based on current start/end hour settings
+  const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i);
+
+  const handleFullDayToggle = () => {
+    if (!showFullDay) {
+      setStartHour(0);
+      setEndHour(23);
+      setShowFullDay(true);
+    }
+  };
+
+  const handleStartHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (!isNaN(value) && value >= 0 && value <= 23) {
+      setStartHour(value);
+      setShowFullDay(value === 0 && endHour === 23);
+    }
+  };
+
+  const handleEndHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (!isNaN(value) && value >= 0 && value <= 23) {
+      setEndHour(value);
+      setShowFullDay(startHour === 0 && value === 23);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -95,6 +124,42 @@ const WeekView: React.FC<WeekViewProps> = ({
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
+        </div>
+      </div>
+
+      {/* Time Range Controls */}
+      <div className="flex flex-wrap gap-2 items-center">
+        <Button 
+          size="sm" 
+          className={cn(
+            "bg-[#9b87f5]",
+            showFullDay ? "hover:bg-[#7E69AB]" : "bg-opacity-70 hover:bg-[#9b87f5] hover:bg-opacity-80"
+          )}
+          onClick={handleFullDayToggle}
+        >
+          Full 24h
+        </Button>
+        <div className="flex items-center gap-2">
+          <span className="text-sm">From:</span>
+          <Input
+            type="number"
+            min="0"
+            max="23"
+            value={startHour}
+            onChange={handleStartHourChange}
+            className="w-16 h-9 text-center"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm">To:</span>
+          <Input
+            type="number"
+            min="0"
+            max="23"
+            value={endHour}
+            onChange={handleEndHourChange}
+            className="w-16 h-9 text-center"
+          />
         </div>
       </div>
       
