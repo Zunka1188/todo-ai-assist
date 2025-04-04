@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
@@ -17,7 +18,9 @@ import {
   MoreVertical,
   Image,
   Upload,
-  Search
+  Search,
+  Eye,
+  ImageIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,6 +54,14 @@ import {
 } from '@/components/ui/popover';
 import { toast } from "@/components/ui/use-toast";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface ShoppingItem {
   id: string;
@@ -66,6 +77,7 @@ interface ShoppingItem {
 
 interface ShoppingListProps {
   searchTerm?: string;
+  filterMode: 'all' | 'text' | 'image';
 }
 
 type SortOption = 'nameAsc' | 'nameDesc' | 'dateAsc' | 'dateDesc' | 'priceAsc' | 'priceDesc' | 'newest' | 'oldest';
@@ -82,7 +94,7 @@ const initialItems: ShoppingItem[] = [
   { id: '1', name: 'Dish Soap', completed: false, category: 'Household', dateAdded: new Date('2023-04-01') },
   { id: '2', name: 'Apples', completed: false, category: 'Groceries', dateAdded: new Date('2023-04-02') },
   { id: '3', name: 'Bread', completed: false, category: 'Groceries', dateAdded: new Date('2023-04-02') },
-  { id: '4', name: 'Toothpaste', completed: false, category: 'Household', dateAdded: new Date('2023-04-03') },
+  { id: '4', name: 'Toothpaste', completed: false, category: 'Household', dateAdded: new Date('2023-04-03'), imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60' },
 ];
 
 const parseStoredItems = (items: any[]): ShoppingItem[] => {
@@ -118,7 +130,7 @@ const saveToLocalStorage = (key: string, value: any): void => {
   }
 };
 
-const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '' }) => {
+const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode }) => {
   const [items, setItems] = useState<ShoppingItem[]>(() => 
     loadFromLocalStorage<ShoppingItem[]>('shoppingItems', initialItems)
   );
@@ -425,6 +437,20 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '' }) => {
       );
     }
     
+    // Apply the filterMode
+    switch (filterMode) {
+      case 'text':
+        filtered = filtered.filter(item => !item.imageUrl);
+        break;
+      case 'image':
+        filtered = filtered.filter(item => !!item.imageUrl);
+        break;
+      case 'all':
+      default:
+        // No additional filtering needed
+        break;
+    }
+    
     return filtered;
   };
   
@@ -520,200 +546,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '' }) => {
 
   return (
     <div className="space-y-4">
-      <div className="sticky top-0 z-10 pt-1 pb-3 bg-background">
-        <div className="mb-3 relative">
-          <Carousel
-            className="w-full"
-            opts={{
-              align: "start",
-              loop: false,
-            }}
-            showNavigation={false}
-          >
-            <CarouselContent className="-ml-0.5 md:-ml-1">
-              {allCategories.map((category) => (
-                <CarouselItem key={category} className="pl-0.5 md:pl-1 basis-auto">
-                  <div className="relative group">
-                    <Button
-                      variant={activeCategory === category ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setActiveCategory(category)}
-                      className={cn(
-                        "rounded-full whitespace-nowrap h-8 px-3 md:px-4",
-                        activeCategory === category && "bg-todo-purple text-white hover:bg-todo-purple-dark"
-                      )}
-                    >
-                      <span className="text-xs">{category}</span>
-                      
-                      {category !== 'All' && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className={cn(
-                                "h-5 w-5 p-0 rounded-full absolute right-0.5 top-0.5",
-                                activeCategory === category ? "text-white" : "text-gray-400"
-                              )}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <MoreVertical size={10} />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-32">
-                            <DropdownMenuItem 
-                              onClick={() => handleEditCategory(category)}
-                              className="cursor-pointer"
-                            >
-                              <Edit size={12} className="mr-2" />
-                              <span className="text-xs">Edit</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleDeleteCategory(category)}
-                              className="cursor-pointer text-red-500 hover:text-red-600"
-                            >
-                              <Trash2 size={12} className="mr-2" />
-                              <span className="text-xs">Delete</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </Button>
-                  </div>
-                </CarouselItem>
-              ))}
-              <CarouselItem className="pl-0.5 md:pl-1 basis-auto">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAddCategoryDialogOpen(true)}
-                  className="rounded-full whitespace-nowrap h-8 px-3 md:px-4"
-                >
-                  <Plus size={12} className="mr-1" /> <span className="text-xs">New Category</span>
-                </Button>
-              </CarouselItem>
-            </CarouselContent>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 bg-gradient-to-l from-background to-transparent w-12 h-8 pointer-events-none" />
-          </Carousel>
-        </div>
-
-        <div className="flex flex-col space-y-2">
-          <div className="flex space-x-2">
-            <Input
-              placeholder="Add new item..."
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              className="flex-1 h-10 text-sm"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && !showDetailedEntry) addItem();
-              }}
-            />
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="h-10 w-10 px-0"
-                  aria-label={showDetailedEntry ? "Hide details" : "Show details"}
-                >
-                  <MoreHorizontal size={16} />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-60">
-                <div className="space-y-2">
-                  <div className="text-sm font-medium">Item Details</div>
-                  <div className="grid gap-2">
-                    <div className="grid grid-cols-4 items-center gap-2">
-                      <label className="text-xs col-span-1">Category</label>
-                      <select
-                        value={newItemCategory}
-                        onChange={(e) => setNewItemCategory(e.target.value)}
-                        className="rounded-md border border-input bg-background px-2 py-1.5 text-xs dark:bg-gray-800 dark:border-gray-700 dark:text-white col-span-3"
-                      >
-                        {categories.map((category) => (
-                          <option key={category} value={category}>
-                            {category}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-2">
-                      <label className="text-xs col-span-1">Amount</label>
-                      <Input
-                        placeholder="Optional"
-                        value={newItemAmount}
-                        onChange={(e) => setNewItemAmount(e.target.value)}
-                        className="col-span-3 h-8 text-xs"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-2">
-                      <label className="text-xs col-span-1">Date</label>
-                      <Input
-                        type="date"
-                        placeholder="Optional"
-                        value={newItemDate}
-                        onChange={(e) => setNewItemDate(e.target.value)}
-                        className="col-span-3 h-8 text-xs"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-2">
-                      <label className="text-xs col-span-1">Price</label>
-                      <Input
-                        type="number"
-                        placeholder="Optional"
-                        value={newItemPrice}
-                        onChange={(e) => setNewItemPrice(e.target.value)}
-                        className="col-span-3 h-8 text-xs"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-2">
-                      <label className="text-xs col-span-1">Image</label>
-                      <div className="col-span-3 flex items-center">
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          ref={newItemFileInputRef}
-                          onChange={(e) => handleFileChange(e, true)}
-                          className="hidden"
-                          id="new-item-image"
-                        />
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="h-8 w-full text-xs flex justify-center"
-                          onClick={() => newItemFileInputRef.current?.click()}
-                        >
-                          <Image size={12} className="mr-1" />
-                          {newItemImage ? 'Change Image' : 'Add Image'}
-                        </Button>
-                      </div>
-                    </div>
-                    {newItemImage && (
-                      <div className="text-xs text-center text-muted-foreground">
-                        Image selected: {newItemImage.name}
-                      </div>
-                    )}
-                    <Button 
-                      size="sm" 
-                      onClick={addItem} 
-                      className="mt-1 w-full bg-todo-purple hover:bg-todo-purple-dark text-white h-8"
-                    >
-                      <span className="text-xs">Add Item with Details</span>
-                    </Button>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-            <Button 
-              onClick={addItem} 
-              className="bg-todo-purple hover:bg-todo-purple-dark text-white h-10 w-10 px-0"
-              aria-label="Add item"
-            >
-              <Plus size={16} />
-            </Button>
-          </div>
-        </div>
-      </div>
-
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button 
@@ -741,160 +573,239 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '' }) => {
           )}
         </div>
         
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8">
-              <SortAsc size={12} className="mr-1" /> <span className="text-xs">Sort</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleSort('nameAsc')}>
-              <span className="text-xs">Name (A-Z)</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleSort('nameDesc')}>
-              <span className="text-xs">Name (Z-A)</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleSort('dateAsc')}>
-              <span className="text-xs">Date (Earliest First)</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleSort('dateDesc')}>
-              <span className="text-xs">Date (Latest First)</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleSort('priceAsc')}>
-              <span className="text-xs">Price (Low to High)</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleSort('priceDesc')}>
-              <span className="text-xs">Price (High to Low)</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleSort('newest')}>
-              <span className="text-xs">Recently Added</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleSort('oldest')}>
-              <span className="text-xs">Oldest Added</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8">
+                <Tag size={12} className="mr-1" /> <span className="text-xs">Category</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {allCategories.map((category) => (
+                <DropdownMenuItem 
+                  key={category} 
+                  onClick={() => setActiveCategory(category)}
+                  className={cn(
+                    "cursor-pointer text-xs",
+                    activeCategory === category && "bg-accent"
+                  )}
+                >
+                  {category}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuItem 
+                onClick={() => setIsAddCategoryDialogOpen(true)}
+                className="cursor-pointer text-primary"
+              >
+                <Plus size={12} className="mr-1" /> <span className="text-xs">Add Category</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8">
+                <SortAsc size={12} className="mr-1" /> <span className="text-xs">Sort</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleSort('nameAsc')}>
+                <span className="text-xs">Name (A-Z)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSort('nameDesc')}>
+                <span className="text-xs">Name (Z-A)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSort('dateAsc')}>
+                <span className="text-xs">Date (Earliest First)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSort('dateDesc')}>
+                <span className="text-xs">Date (Latest First)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSort('priceAsc')}>
+                <span className="text-xs">Price (Low to High)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSort('priceDesc')}>
+                <span className="text-xs">Price (High to Low)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSort('newest')}>
+                <span className="text-xs">Recently Added</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSort('oldest')}>
+                <span className="text-xs">Oldest Added</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-280px)] pr-4 shopping-items-scroll-area smooth-scroll" ref={scrollAreaRef}>
+      <ScrollArea className="h-[calc(100vh-320px)] pr-4 shopping-items-scroll-area smooth-scroll" ref={scrollAreaRef}>
         <div className="mb-4">
-          <h3 className="text-xs font-medium mb-2 text-muted-foreground">Not Purchased ({notPurchasedItems.length})</h3>
+          <h3 className="text-xs font-medium mb-3 text-muted-foreground">Not Purchased ({notPurchasedItems.length})</h3>
           
           <AnimatePresence>
             {notPurchasedItems.length === 0 ? (
-              <div className="text-center py-3 text-muted-foreground text-[10px]">
+              <div className="text-center py-3 text-muted-foreground text-sm">
                 No items to purchase. Add some new items!
               </div>
             ) : (
-              <ul className="space-y-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {notPurchasedItems.map((item) => (
-                  <motion.li 
+                  <motion.div 
                     key={`not-purchased-${item.id}`}
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
                     transition={{ duration: 0.2 }}
-                    className={cn(
-                      "flex flex-col p-1 rounded-lg border transition-colors",
-                      "bg-green-50 border-green-100 dark:bg-green-900/20 dark:border-green-800/50"
-                    )}
                   >
-                    <div 
-                      className="flex items-center justify-between cursor-pointer"
+                    <Card 
+                      className={cn(
+                        "overflow-hidden transition-all hover:shadow-md",
+                        "bg-white dark:bg-gray-800"
+                      )}
                       onClick={() => !isMultiSelectActive && toggleItem(item.id)}
                     >
-                      <div className="flex items-center space-x-1.5">
-                        {isMultiSelectActive ? (
-                          <Checkbox
-                            checked={selectedItems.includes(item.id)}
-                            onCheckedChange={() => handleItemSelect(item.id)}
-                            className="h-3 w-3"
-                          />
-                        ) : (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleItem(item.id);
-                            }}
-                            className={cn(
-                              "flex items-center justify-center w-3 h-3 rounded-full border",
-                              "border-green-300 dark:border-green-700"
-                            )}
-                          >
-                            {item.completed && <Check size={8} />}
-                          </button>
-                        )}
-                        
-                        <div className="flex flex-col">
-                          <span className="text-[11px] dark:text-white">
+                      <CardHeader className="p-3 pb-0 flex flex-row items-center space-y-0 gap-2">
+                        <div className="flex-1 flex items-center gap-2">
+                          {isMultiSelectActive ? (
+                            <Checkbox
+                              checked={selectedItems.includes(item.id)}
+                              onCheckedChange={() => handleItemSelect(item.id)}
+                              className="h-4 w-4"
+                            />
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleItem(item.id);
+                              }}
+                              className={cn(
+                                "flex items-center justify-center w-4 h-4 rounded-full border",
+                                "border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+                              )}
+                              aria-label="Mark as purchased"
+                            >
+                              {item.completed && <Check size={12} />}
+                            </button>
+                          )}
+                          <CardTitle className={cn(
+                            "text-sm font-medium",
+                            item.completed && "line-through text-gray-500 dark:text-gray-400"
+                          )}>
                             {item.name}
-                          </span>
-                          
-                          <div className="flex flex-wrap items-center text-[8px] text-muted-foreground mt-0.5 gap-1">
-                            {item.amount && (
-                              <span className="text-[8px]">Qty: {item.amount}</span>
-                            )}
-                            
-                            {item.price && (
-                              <span className="text-[8px]">Price: ${item.price}</span>
-                            )}
-                            
-                            {item.dateToPurchase && (
-                              <span className="flex items-center text-[8px]">
-                                <Calendar size={7} className="mr-0.5" /> 
-                                {new Date(item.dateToPurchase).toLocaleDateString()}
-                              </span>
-                            )}
-                          </div>
+                          </CardTitle>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                        <span className="text-[8px] px-1 py-0.5 rounded-full bg-secondary text-secondary-foreground dark:bg-gray-700 dark:text-gray-100">
-                          {item.category}
-                        </span>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="h-5 w-5 p-0"
+                              className="h-8 w-8 p-0"
                             >
-                              <MoreVertical size={10} />
+                              <MoreVertical size={14} />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-32">
-                            <DropdownMenuItem onClick={() => handleEditItem(item)} className="cursor-pointer">
-                              <Edit size={12} className="mr-1" />
-                              <span className="text-[10px]">Edit</span>
+                          <DropdownMenuContent align="end" className="w-36">
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditItem(item);
+                            }} className="cursor-pointer">
+                              <Edit size={14} className="mr-2" />
+                              <span className="text-sm">Edit</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => removeItem(item.id)} className="cursor-pointer text-red-500">
-                              <Trash2 size={12} className="mr-1" />
-                              <span className="text-[10px]">Delete</span>
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              removeItem(item.id);
+                            }} className="cursor-pointer text-red-500">
+                              <Trash2 size={14} className="mr-2" />
+                              <span className="text-sm">Delete</span>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </div>
-                    </div>
-                    {item.imageUrl && (
-                      <div className="mt-1 flex justify-center">
-                        <img 
-                          src={item.imageUrl} 
-                          alt={item.name} 
-                          className="max-h-24 rounded-md object-contain cursor-pointer hover:brightness-90 transition-all"
-                          onClick={(e) => handleImagePreview(item.imageUrl!, e)}
-                        />
-                      </div>
-                    )}
-                  </motion.li>
+                      </CardHeader>
+                      
+                      <CardContent className="p-3 pt-2">
+                        {item.imageUrl ? (
+                          <div className="relative w-full">
+                            <div className="aspect-[3/2] rounded-md overflow-hidden mb-2">
+                              <img 
+                                src={item.imageUrl} 
+                                alt={item.name} 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="absolute right-2 top-2 h-8 w-8 p-0 bg-black/40 hover:bg-black/60 text-white rounded-full"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleImagePreview(item.imageUrl!);
+                              }}
+                            >
+                              <Eye size={14} />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="mb-2 flex items-center text-xs text-muted-foreground">
+                            <ImageIcon size={14} className="mr-1 text-muted-foreground" /> No image attached
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center flex-wrap gap-2 mt-1">
+                          <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground">
+                            {item.category}
+                          </span>
+                          
+                          {item.price && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300">
+                              ${item.price}
+                            </span>
+                          )}
+                          
+                          {item.amount && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                              Qty: {item.amount}
+                            </span>
+                          )}
+                        </div>
+                      </CardContent>
+                      
+                      <CardFooter className="p-3 pt-0 flex justify-between items-center">
+                        {item.dateToPurchase ? (
+                          <span className="text-xs text-muted-foreground flex items-center">
+                            <Calendar size={12} className="mr-1" />
+                            {new Date(item.dateToPurchase).toLocaleDateString()}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            Added {item.dateAdded.toLocaleDateString()}
+                          </span>
+                        )}
+                        
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleItem(item.id);
+                          }}
+                        >
+                          <Check size={12} className="mr-1" />
+                          Mark as Purchased
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
                 ))}
-              </ul>
+              </div>
             )}
           </AnimatePresence>
         </div>
         
         <div className="mb-2">
           <div 
-            className="flex items-center justify-between cursor-pointer mb-2"
+            className="flex items-center justify-between cursor-pointer mb-3"
             onClick={togglePurchasedSection}
           >
             <h3 className="text-xs font-medium text-muted-foreground">
@@ -920,110 +831,153 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '' }) => {
                 transition={{ duration: 0.2 }}
               >
                 {purchasedItems.length === 0 ? (
-                  <div className="text-center py-3 text-muted-foreground text-[10px]">
+                  <div className="text-center py-3 text-muted-foreground text-sm">
                     No items purchased yet.
                   </div>
                 ) : (
-                  <ul className="space-y-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {purchasedItems.map((item) => (
-                      <motion.li 
+                      <motion.div
                         key={`purchased-${item.id}`}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        onClick={() => !isMultiSelectActive && toggleItem(item.id)}
-                        className={cn(
-                          "flex flex-col p-1 rounded-lg border transition-colors cursor-pointer",
-                          "bg-gray-50 border-gray-100 dark:bg-gray-800/30 dark:border-gray-700/50"
-                        )}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-1.5">
-                            {isMultiSelectActive ? (
-                              <Checkbox
-                                checked={selectedItems.includes(item.id)}
-                                onCheckedChange={() => handleItemSelect(item.id)}
-                                className="h-3 w-3"
-                              />
-                            ) : (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleItem(item.id);
-                                }}
-                                className={cn(
-                                  "flex items-center justify-center w-3 h-3 rounded-full border",
-                                  "bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500"
-                                )}
-                              >
-                                <Check size={8} className="text-white" />
-                              </button>
-                            )}
-                            
-                            <div className="flex flex-col">
-                              <span className="text-[11px] text-gray-500 dark:text-gray-400 line-through">
+                        <Card 
+                          className={cn(
+                            "overflow-hidden transition-all hover:shadow-md opacity-70",
+                            "bg-gray-50 dark:bg-gray-700/50"
+                          )}
+                          onClick={() => !isMultiSelectActive && toggleItem(item.id)}
+                        >
+                          <CardHeader className="p-3 pb-0 flex flex-row items-center space-y-0 gap-2">
+                            <div className="flex-1 flex items-center gap-2">
+                              {isMultiSelectActive ? (
+                                <Checkbox
+                                  checked={selectedItems.includes(item.id)}
+                                  onCheckedChange={() => handleItemSelect(item.id)}
+                                  className="h-4 w-4"
+                                />
+                              ) : (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleItem(item.id);
+                                  }}
+                                  className={cn(
+                                    "flex items-center justify-center w-4 h-4 rounded-full",
+                                    "bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500"
+                                  )}
+                                  aria-label="Mark as not purchased"
+                                >
+                                  <Check size={12} className="text-white" />
+                                </button>
+                              )}
+                              <CardTitle className={cn(
+                                "text-sm font-medium line-through text-gray-500 dark:text-gray-400"
+                              )}>
                                 {item.name}
-                              </span>
-                              
-                              <div className="flex flex-wrap items-center text-[8px] text-muted-foreground mt-0.5 gap-1">
-                                {item.amount && (
-                                  <span className="text-[8px] text-gray-400">Qty: {item.amount}</span>
-                                )}
-                                
-                                {item.price && (
-                                  <span className="text-[8px] text-gray-400">Price: ${item.price}</span>
-                                )}
-                                
-                                {item.dateToPurchase && (
-                                  <span className="flex items-center text-[8px] text-gray-400">
-                                    <Calendar size={7} className="mr-0.5" /> 
-                                    {new Date(item.dateToPurchase).toLocaleDateString()}
-                                  </span>
-                                )}
-                              </div>
+                              </CardTitle>
                             </div>
-                          </div>
-                          <div className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                            <span className="text-[8px] px-1 py-0.5 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                              {item.category}
-                            </span>
                             <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
-                                  className="h-5 w-5 p-0"
+                                  className="h-8 w-8 p-0"
                                 >
-                                  <MoreVertical size={10} />
+                                  <MoreVertical size={14} />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-32">
-                                <DropdownMenuItem onClick={() => handleEditItem(item)} className="cursor-pointer">
-                                  <Edit size={12} className="mr-1" />
-                                  <span className="text-[10px]">Edit</span>
+                              <DropdownMenuContent align="end" className="w-36">
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditItem(item);
+                                }} className="cursor-pointer">
+                                  <Edit size={14} className="mr-2" />
+                                  <span className="text-sm">Edit</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => removeItem(item.id)} className="cursor-pointer text-red-500">
-                                  <Trash2 size={12} className="mr-1" />
-                                  <span className="text-[10px]">Delete</span>
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeItem(item.id);
+                                }} className="cursor-pointer text-red-500">
+                                  <Trash2 size={14} className="mr-2" />
+                                  <span className="text-sm">Delete</span>
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
-                          </div>
-                        </div>
-                        {item.imageUrl && (
-                          <div className="mt-1 flex justify-center">
-                            <img 
-                              src={item.imageUrl} 
-                              alt={item.name} 
-                              className="max-h-24 rounded-md object-contain opacity-60 cursor-pointer hover:brightness-90 transition-all"
-                              onClick={(e) => handleImagePreview(item.imageUrl!, e)}
-                            />
-                          </div>
-                        )}
-                      </motion.li>
+                          </CardHeader>
+                          
+                          <CardContent className="p-3 pt-2">
+                            {item.imageUrl ? (
+                              <div className="relative w-full">
+                                <div className="aspect-[3/2] rounded-md overflow-hidden mb-2 opacity-70">
+                                  <img 
+                                    src={item.imageUrl} 
+                                    alt={item.name} 
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  className="absolute right-2 top-2 h-8 w-8 p-0 bg-black/40 hover:bg-black/60 text-white rounded-full"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleImagePreview(item.imageUrl!);
+                                  }}
+                                >
+                                  <Eye size={14} />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="mb-2 flex items-center text-xs text-muted-foreground">
+                                <ImageIcon size={14} className="mr-1 text-muted-foreground" /> No image attached
+                              </div>
+                            )}
+                            
+                            <div className="flex items-center flex-wrap gap-2 mt-1">
+                              <span className="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                {item.category}
+                              </span>
+                              
+                              {item.price && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                  ${item.price}
+                                </span>
+                              )}
+                              
+                              {item.amount && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                  Qty: {item.amount}
+                                </span>
+                              )}
+                            </div>
+                          </CardContent>
+                          
+                          <CardFooter className="p-3 pt-0 flex justify-between items-center">
+                            <span className="text-xs text-muted-foreground">
+                              Purchased
+                            </span>
+                            
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleItem(item.id);
+                              }}
+                            >
+                              <X size={12} className="mr-1" />
+                              Undo Purchase
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      </motion.div>
                     ))}
-                  </ul>
+                  </div>
                 )}
               </motion.div>
             )}

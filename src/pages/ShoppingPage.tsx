@@ -1,6 +1,6 @@
 
 import React, { useRef, useState } from 'react';
-import { ArrowLeft, ShoppingBag, Search, Plus, FileText } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Search, Plus, FileText, Image, ListFilter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,10 @@ import { useTheme } from '@/hooks/use-theme';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+// Define the tab types
+type ShoppingTab = 'all' | 'text' | 'image';
 
 const ShoppingPage = () => {
   const navigate = useNavigate();
@@ -21,6 +25,7 @@ const ShoppingPage = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<ShoppingTab>('all');
 
   const goBack = () => {
     navigate('/');
@@ -85,8 +90,41 @@ const ShoppingPage = () => {
       
       <Separator className="my-2" />
       
-      <div className="flex-1 overflow-hidden mt-2">
-        <ShoppingList searchTerm={searchTerm} />
+      {/* Tab Navigation - similar to Calendar page */}
+      <div className="mb-4">
+        <Tabs 
+          defaultValue="all" 
+          value={activeTab} 
+          onValueChange={(value) => setActiveTab(value as ShoppingTab)} 
+          className="w-full"
+        >
+          <TabsList className="grid grid-cols-3 w-full">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="text">Text</TabsTrigger>
+            <TabsTrigger value="image">Image</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="mt-0 pt-4">
+            <ShoppingList 
+              searchTerm={searchTerm} 
+              filterMode="all"
+            />
+          </TabsContent>
+          
+          <TabsContent value="text" className="mt-0 pt-4">
+            <ShoppingList 
+              searchTerm={searchTerm} 
+              filterMode="text"
+            />
+          </TabsContent>
+          
+          <TabsContent value="image" className="mt-0 pt-4">
+            <ShoppingList 
+              searchTerm={searchTerm} 
+              filterMode="image"
+            />
+          </TabsContent>
+        </Tabs>
       </div>
       
       <AddItemDialog 
