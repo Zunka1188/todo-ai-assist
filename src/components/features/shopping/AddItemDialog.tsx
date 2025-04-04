@@ -42,6 +42,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
+import { useCategoriesManager } from './useCategoriesManager';
 
 interface ItemData {
   id?: string;
@@ -52,12 +53,13 @@ interface ItemData {
   fileName?: string;
   fileType?: string;
   repeatOption?: 'none' | 'weekly' | 'monthly';
+  category?: string;
 }
 
 interface AddItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (item: ItemData) => void;
+  onSave: (item: ItemData) => boolean | void;
   editItem?: ItemData | null;
   isEditing?: boolean;
 }
@@ -76,6 +78,9 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   const [fullScreenPreview, setFullScreenPreview] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [repeatOption, setRepeatOption] = useState<'none' | 'weekly' | 'monthly'>('none');
+  const [category, setCategory] = useState('Groceries');
+  
+  const { categories } = useCategoriesManager();
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -90,6 +95,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       setFileName(editItem.fileName || '');
       setFileType(editItem.fileType || '');
       setRepeatOption(editItem.repeatOption || 'none');
+      setCategory(editItem.category || 'Groceries');
     } else if (!editItem && open) {
       resetForm();
     }
@@ -179,19 +185,23 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       file,
       fileName: fileName || undefined,
       fileType: fileType || undefined,
-      repeatOption
+      repeatOption,
+      category
     };
     
     console.log("Saving item with data:", itemData);
     
-    onSave(itemData);
-    resetForm();
-    onOpenChange(false);
+    const result = onSave(itemData);
     
-    toast({
-      title: "Item Saved",
-      description: `${itemData.name} has been added to your ${repeatOption === 'none' ? 'shopping list' : repeatOption === 'weekly' ? 'weekly items' : 'monthly items'}.`,
-    });
+    if (result !== false) {
+      resetForm();
+      onOpenChange(false);
+      
+      toast({
+        title: isEditing ? "Item Updated" : "Item Saved",
+        description: `${itemData.name} has been ${isEditing ? 'updated' : 'added to your ' + (repeatOption === 'none' ? 'shopping list' : repeatOption === 'weekly' ? 'weekly items' : 'monthly items')}.`,
+      });
+    }
   };
 
   const resetForm = () => {
@@ -204,6 +214,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     setImageOptionsOpen(false);
     setFullScreenPreview(false);
     setRepeatOption('none');
+    setCategory('Groceries');
   };
 
   const clearFile = () => {
@@ -318,37 +329,23 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     }
   };
 
-  if (fullScreenPreview && file && fileType === 'image') {
-    return (
-      <div className="fixed inset-0 bg-black z-50 flex flex-col">
-        <div className="p-4 flex justify-between items-center bg-black/80">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="text-white" 
-            onClick={toggleFullScreenPreview}
-          >
-            <Minimize2 className="h-6 w-6" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="text-white" 
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="h-6 w-6" />
-          </Button>
-        </div>
-        <div className="flex-1 flex items-center justify-center overflow-auto">
-          <img 
-            src={file} 
-            alt="Full screen preview" 
-            className="max-h-full max-w-full object-contain"
-          />
-        </div>
-      </div>
-    );
-  }
+  const CategorySelector = () => (
+    <div className="grid gap-2">
+      <Label htmlFor="category">Category</Label>
+      <select
+        id="category"
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {categories.filter(c => c !== 'All').map((cat) => (
+          <option key={cat} value={cat}>
+            {cat}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 
   const dialogContent = (
     <>
@@ -363,6 +360,8 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
               onChange={(e) => setName(e.target.value)}
             />
           </div>
+
+          <CategorySelector />
 
           <div className="grid gap-2">
             <Label htmlFor="file">File</Label>
@@ -491,6 +490,38 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       </div>
     </>
   );
+
+  if (fullScreenPreview && file && fileType === 'image') {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex flex-col">
+        <div className="p-4 flex justify-between items-center bg-black/80">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-white" 
+            onClick={toggleFullScreenPreview}
+          >
+            <Minimize2 className="h-6 w-6" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-white" 
+            onClick={() => onOpenChange(false)}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
+        <div className="flex-1 flex items-center justify-center overflow-auto">
+          <img 
+            src={file} 
+            alt="Full screen preview" 
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

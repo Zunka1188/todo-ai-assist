@@ -4,7 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SearchInput from '@/components/ui/search-input';
 import ShoppingList from '@/components/features/shopping/ShoppingList';
 import AddItemDialog from '@/components/features/shopping/AddItemDialog';
-import EditItemDialog from '@/components/features/shopping/EditItemDialog';
 import { Button } from '@/components/ui/button';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useDebugMode } from '@/hooks/useDebugMode';
@@ -88,15 +87,18 @@ const ShoppingPage: React.FC = () => {
   }
 
   // Handler for updating items
-  const handleUpdateItem = (updatedItem: any, imageFile: File | null) => {
+  const handleUpdateItem = (updatedItem: any) => {
     try {
-      if (!editItem || !editItem.id) return;
+      if (!editItem || !editItem.id) return false;
       
       // Prepare the data for update
       const itemData = {
-        ...updatedItem,
-        // If there's a new image file, use that URL instead
-        imageUrl: imageFile ? URL.createObjectURL(imageFile) : updatedItem.imageUrl
+        name: updatedItem.name,
+        category: updatedItem.category || "Other",
+        amount: updatedItem.amount,
+        imageUrl: updatedItem.file,
+        notes: updatedItem.notes,
+        repeatOption: updatedItem.repeatOption || 'none'
       };
       
       const result = updateItem(editItem.id, itemData);
@@ -106,6 +108,7 @@ const ShoppingPage: React.FC = () => {
           title: "Item Updated",
           description: `${updatedItem.name} has been updated.`
         });
+        return true;
       }
     } catch (error) {
       console.error("Error updating item:", error);
@@ -115,6 +118,7 @@ const ShoppingPage: React.FC = () => {
         variant: "destructive"
       });
     }
+    return false;
   }
 
   return (
@@ -187,6 +191,7 @@ const ShoppingPage: React.FC = () => {
         </div>
       )}
 
+      {/* Add Item Dialog */}
       {showAddDialog && (
         <AddItemDialog 
           open={showAddDialog} 
@@ -195,13 +200,24 @@ const ShoppingPage: React.FC = () => {
         />
       )}
 
+      {/* Edit Item Dialog - now using the same AddItemDialog component */}
       {editItem && (
-        <EditItemDialog 
-          isOpen={true}
-          onClose={handleCloseEditDialog}
-          item={editItem.item}
-          categories={categories || []}
+        <AddItemDialog 
+          open={true}
+          onOpenChange={handleCloseEditDialog}
           onSave={handleUpdateItem}
+          editItem={{
+            id: editItem.id,
+            name: editItem.item?.name || '',
+            notes: editItem.item?.notes || '',
+            amount: editItem.item?.amount || '',
+            file: editItem.item?.imageUrl || null,
+            fileName: editItem.item?.fileName || '',
+            fileType: 'image',
+            repeatOption: editItem.item?.repeatOption || 'none',
+            category: editItem.item?.category || 'Other'
+          }}
+          isEditing={true}
         />
       )}
     </div>
