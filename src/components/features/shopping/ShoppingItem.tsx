@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Check, Trash, Image as ImageIcon, ShoppingBag } from 'lucide-react';
+import { Check, Trash, Edit, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ interface ShoppingItemProps {
   category?: string;
   onCheck?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onEdit?: (id: string) => void;
 }
 
 const ShoppingItem: React.FC<ShoppingItemProps> = ({
@@ -22,7 +23,8 @@ const ShoppingItem: React.FC<ShoppingItemProps> = ({
   checked = false,
   category,
   onCheck,
-  onDelete
+  onDelete,
+  onEdit
 }) => {
   const { theme } = useTheme();
   
@@ -65,6 +67,18 @@ const ShoppingItem: React.FC<ShoppingItemProps> = ({
       </div>
       
       <div className="flex items-center ml-2">
+        {onEdit && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onEdit(id)}
+            className="h-8 w-8 text-muted-foreground hover:text-primary"
+            aria-label="Edit item"
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+        )}
+        
         <Button
           variant="ghost"
           size="icon"

@@ -17,6 +17,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // Updated tab types to include the "one-off" option
 type ShoppingTab = 'one-off' | 'weekly' | 'monthly' | 'all';
 
+// Interface for shopping item data
+interface ItemData {
+  id?: string;
+  name: string;
+  notes?: string;
+  amount?: string;
+  dateToPurchase?: string;
+  price?: string;
+  file?: string | null;
+  fileName?: string;
+  fileType?: string;
+  repeatOption?: 'none' | 'weekly' | 'monthly';
+}
+
 const ShoppingPage = () => {
   const navigate = useNavigate();
   const { isMobile } = useIsMobile();
@@ -26,30 +40,30 @@ const ShoppingPage = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ShoppingTab>('one-off');
+  const [editItem, setEditItem] = useState<ItemData | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const goBack = () => {
     navigate('/');
   };
 
-  const handleAddItem = (item: { 
-    name: string, 
-    notes?: string, 
-    amount?: string, 
-    dateToPurchase?: string, 
-    price?: string, 
-    file?: string | null,
-    fileName?: string,
-    fileType?: string,
-    repeatOption?: 'none' | 'weekly' | 'monthly'
-  }) => {
+  const handleAddItem = (item: ItemData) => {
     // In a real app, this would add the item to a database
-    console.log('Adding item:', item);
+    console.log('Adding/Editing item:', item);
     
-    toast({
-      title: "Item Added",
-      description: `"${item.name}" has been added to your shopping list`,
-      variant: "default",
-    });
+    if (isEditing) {
+      toast({
+        title: "Item Updated",
+        description: `"${item.name}" has been updated`,
+        variant: "default",
+      });
+    } else {
+      toast({
+        title: "Item Added",
+        description: `"${item.name}" has been added to your shopping list`,
+        variant: "default",
+      });
+    }
     
     // Update tab based on repeat option
     if (item.repeatOption === 'weekly') {
@@ -59,6 +73,27 @@ const ShoppingPage = () => {
     } else {
       setActiveTab('one-off');
     }
+    
+    // Reset editing state
+    setIsEditing(false);
+    setEditItem(null);
+  };
+
+  const handleEditItem = (id: string) => {
+    // In a real app, you would fetch the item data from your database
+    // For this example, we'll use mock data
+    const mockItem = {
+      id,
+      name: `Item ${id}`,
+      notes: `Some notes for item ${id}`,
+      amount: '1',
+      price: '9.99',
+      repeatOption: 'none' as const,
+    };
+    
+    setEditItem(mockItem);
+    setIsEditing(true);
+    setAddDialogOpen(true);
   };
 
   return (
@@ -87,7 +122,11 @@ const ShoppingPage = () => {
         <Button 
           className="gap-2 h-10 sm:w-auto w-full flex justify-center items-center"
           size={isMobile ? "default" : "sm"}
-          onClick={() => setAddDialogOpen(true)}
+          onClick={() => {
+            setIsEditing(false);
+            setEditItem(null);
+            setAddDialogOpen(true);
+          }}
           variant="purple" // Using the purple variant
         >
           <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -127,6 +166,7 @@ const ShoppingPage = () => {
             <ShoppingList 
               searchTerm={searchTerm} 
               filterMode="one-off"
+              onEditItem={handleEditItem}
             />
           </TabsContent>
           
@@ -134,6 +174,7 @@ const ShoppingPage = () => {
             <ShoppingList 
               searchTerm={searchTerm} 
               filterMode="weekly"
+              onEditItem={handleEditItem}
             />
           </TabsContent>
           
@@ -141,6 +182,7 @@ const ShoppingPage = () => {
             <ShoppingList 
               searchTerm={searchTerm} 
               filterMode="monthly"
+              onEditItem={handleEditItem}
             />
           </TabsContent>
           
@@ -148,6 +190,7 @@ const ShoppingPage = () => {
             <ShoppingList 
               searchTerm={searchTerm} 
               filterMode="all"
+              onEditItem={handleEditItem}
             />
           </TabsContent>
         </Tabs>
@@ -157,6 +200,8 @@ const ShoppingPage = () => {
         open={addDialogOpen} 
         onOpenChange={setAddDialogOpen} 
         onSave={handleAddItem}
+        editItem={editItem}
+        isEditing={isEditing}
       />
     </div>
   );

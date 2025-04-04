@@ -35,23 +35,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+interface ItemData {
+  id?: string;
+  name: string;
+  notes?: string;
+  amount?: string;
+  dateToPurchase?: string;
+  price?: string;
+  file?: string | null;
+  fileName?: string;
+  fileType?: string;
+  repeatOption?: 'none' | 'weekly' | 'monthly';
+}
+
 interface AddItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (item: { 
-    name: string, 
-    notes?: string, 
-    amount?: string, 
-    dateToPurchase?: string, 
-    price?: string, 
-    file?: string | null,
-    fileName?: string,
-    fileType?: string,
-    repeatOption?: 'none' | 'weekly' | 'monthly'
-  }) => void;
+  onSave: (item: ItemData) => void;
+  editItem?: ItemData | null;
+  isEditing?: boolean;
 }
 
-const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
+const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing = false }: AddItemDialogProps) => {
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
   const [name, setName] = useState('');
@@ -71,6 +76,22 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    if (editItem && open) {
+      setName(editItem.name || '');
+      setNotes(editItem.notes || '');
+      setAmount(editItem.amount || '');
+      setDateToPurchase(editItem.dateToPurchase || '');
+      setPrice(editItem.price || '');
+      setFile(editItem.file || null);
+      setFileName(editItem.fileName || '');
+      setFileType(editItem.fileType || '');
+      setRepeatOption(editItem.repeatOption || 'none');
+    } else if (!editItem && open) {
+      resetForm();
+    }
+  }, [editItem, open]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
@@ -86,7 +107,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
         setFile(event.target.result as string);
         setIsUploading(false);
         
-        // Trigger AI analysis for images, PDFs and documents
         if (['image', 'pdf', 'document'].includes(detectedFileType)) {
           setShowAnalysisModal(true);
         }
@@ -99,41 +119,32 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
 
   const handleCameraCapture = async () => {
     try {
-      // Request camera access
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { facingMode: 'environment' } 
       });
       
-      // Create video element
       const video = document.createElement('video');
       video.srcObject = stream;
       
-      // Create canvas to capture frame
       const canvas = document.createElement('canvas');
       
-      // When video can play, capture a frame
       video.onloadedmetadata = () => {
         video.play();
         
-        // Set canvas dimensions
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         
-        // Draw video frame to canvas
         const context = canvas.getContext('2d');
         if (context) {
           context.drawImage(video, 0, 0, canvas.width, canvas.height);
           
-          // Convert canvas to image data
           const imageData = canvas.toDataURL('image/jpeg');
           setFile(imageData);
           setFileName("camera_capture_" + new Date().toISOString().substring(0, 10) + ".jpg");
           setFileType('image');
           
-          // Stop camera stream
           stream.getTracks().forEach(track => track.stop());
           
-          // Trigger AI analysis
           setShowAnalysisModal(true);
         }
       };
@@ -152,7 +163,8 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
       return;
     }
     
-    const itemData = {
+    const itemData: ItemData = {
+      ...(editItem?.id ? { id: editItem.id } : {}),
       name: name.trim() || (fileName ? fileName : 'Untitled Item'),
       notes,
       amount,
@@ -200,12 +212,10 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   };
 
   const handleAnalysisComplete = (result: AnalysisResult) => {
-    // Apply AI analysis results to form fields
     if (result.title) setName(result.title);
     if (result.description) setNotes(result.description);
     if (result.price) setPrice(result.price);
     
-    // Close analysis modal
     setShowAnalysisModal(false);
     
     toast({
@@ -288,7 +298,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                 className="w-full justify-start gap-3"
                 variant="outline"
               >
-                <Camera className="h-4 w-4" /> Take a Picture
+                <Camera className="h-4 w-4" /> Take Photo
               </Button>
               <Button variant="ghost" className="w-full mt-2">Cancel</Button>
             </div>
@@ -298,7 +308,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
     }
   };
 
-  // If in full screen mode for image preview, show a simplified view
   if (fullScreenPreview && file && fileType === 'image') {
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col">
@@ -339,7 +348,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
           preventNavigateOnClose={true}
         >
           <DialogHeader>
-            <DialogTitle>Add New Item</DialogTitle>
+            <DialogTitle>{isEditing ? "Edit Item" : "Add New Item"}</DialogTitle>
           </DialogHeader>
 
           <ScrollArea className="max-h-[calc(90vh-10rem)] pr-4">
@@ -474,7 +483,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                   />
                 </div>
                 
-                {/* Repeat Option Field */}
                 <div className="grid gap-2">
                   <Label htmlFor="repeat-option">Repeat</Label>
                   <Select 
@@ -522,7 +530,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
               className={cn(isMobile && "w-full")}
               disabled={name.trim() === '' && !file}
             >
-              Add to Shopping List
+              {isEditing ? "Save Changes" : "Add to Shopping List"}
             </Button>
           </DialogFooter>
         </DialogContent>

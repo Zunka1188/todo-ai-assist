@@ -72,6 +72,7 @@ const SheetContent = React.forwardRef<
         ref={ref}
         className={cn(sheetVariants({ side }), className)}
         onPointerDownOutside={preventNavigateOnClose ? handlePointerDownOutside : undefined}
+        onInteractOutside={preventNavigateOnClose ? handlePointerDownOutside : undefined}
         {...props}
       >
         {children}

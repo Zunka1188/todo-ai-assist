@@ -51,6 +51,7 @@ const DialogContent = React.forwardRef<
           className
         )}
         onPointerDownOutside={preventNavigateOnClose ? handlePointerDownOutside : undefined}
+        onInteractOutside={preventNavigateOnClose ? handlePointerDownOutside : undefined}
         {...props}
       >
         {children}
