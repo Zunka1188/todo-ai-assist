@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import AppHeader from '@/components/layout/AppHeader';
 import ShoppingList from '@/components/features/shopping/ShoppingList';
 import AddItemDialog from '@/components/features/shopping/AddItemDialog';
-import AttachmentOptionsDialog from '@/components/features/shopping/AttachmentOptionsDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
 import { cn } from '@/lib/utils';
@@ -26,7 +25,6 @@ const ShoppingPage = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [attachmentDialogOpen, setAttachmentDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ShoppingTab>('one-off');
 
   const goBack = () => {
@@ -63,34 +61,6 @@ const ShoppingPage = () => {
       setActiveTab('one-off');
     }
   };
-  
-  const handleCameraCapture = () => {
-    // In a real implementation, this would open the camera
-    console.log('Opening camera capture...');
-    setAddDialogOpen(true);
-  };
-  
-  const handleFileUpload = () => {
-    // In a real implementation, this would open file picker
-    console.log('Opening file picker...');
-    setAddDialogOpen(true);
-  };
-  
-  const handleDocumentUpload = () => {
-    // In a real implementation, this would open document picker
-    console.log('Opening document picker...');
-    setAddDialogOpen(true);
-  };
-
-  const handleManualEntry = () => {
-    console.log('Opening manual entry form...');
-    setAddDialogOpen(true);
-  };
-
-  const handleTemplateBrowse = () => {
-    console.log('Opening template browser...');
-    setAddDialogOpen(true);
-  };
 
   return (
     <div className="flex flex-col h-full">
@@ -118,7 +88,7 @@ const ShoppingPage = () => {
         <Button 
           className="gap-2 h-10 sm:w-auto w-full flex justify-center items-center"
           size={isMobile ? "default" : "sm"}
-          onClick={() => setAttachmentDialogOpen(true)}
+          onClick={() => setAddDialogOpen(true)}
           variant="purple" // Using the purple variant
         >
           <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -183,17 +153,6 @@ const ShoppingPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-      
-      <AttachmentOptionsDialog 
-        open={attachmentDialogOpen}
-        onOpenChange={setAttachmentDialogOpen}
-        onCameraCapture={handleCameraCapture}
-        onFileUpload={handleFileUpload}
-        onDocumentUpload={handleDocumentUpload}
-        onManualEntry={handleManualEntry}
-        onTemplateBrowse={handleTemplateBrowse}
-        title="Add Shopping Item"
-      />
       
       <AddItemDialog 
         open={addDialogOpen} 
