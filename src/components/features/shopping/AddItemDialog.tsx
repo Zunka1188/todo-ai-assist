@@ -10,8 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; 
-import { Image, Upload, Camera, X } from 'lucide-react';
+import { Image, Upload, Camera, X, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Sheet,
@@ -23,6 +22,15 @@ import {
 } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
 
 interface AddItemDialogProps {
   open: boolean;
@@ -33,17 +41,21 @@ interface AddItemDialogProps {
 const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   const { isMobile } = useIsMobile();
   const [name, setName] = useState('');
-  const [category, setCategory] = useState('Groceries');
+  const [category, setCategory] = useState('');
+  const [customCategory, setCustomCategory] = useState('');
+  const [notes, setNotes] = useState('');
   const [amount, setAmount] = useState('');
   const [dateToPurchase, setDateToPurchase] = useState('');
   const [price, setPrice] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'text' | 'image'>('text');
   const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  const predefinedCategories = ["Groceries", "Household", "Electronics", "Clothing", "Other"];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -64,15 +76,34 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
     setImageOptionsOpen(false);
   };
 
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (value === "custom") {
+      setIsCustomCategory(true);
+      setCategory('');
+    } else {
+      setIsCustomCategory(false);
+      setCategory(value);
+      setCustomCategory('');
+    }
+  };
+
   const handleSave = () => {
-    if ((activeTab === 'text' && name.trim() === '') || 
-        (activeTab === 'image' && !imageFile)) {
+    // Don't save if both name and image are missing
+    if (name.trim() === '' && !imageFile) {
       return;
     }
     
+    // Determine which category to use
+    const finalCategory = isCustomCategory ? customCategory : category;
+    
     const itemData = {
-      name: name || (imageFile ? imageFile.name : 'Untitled Item'),
-      category,
+      name: name.trim() || (imageFile ? imageFile.name : 'Untitled Item'),
+      category: finalCategory || 'Uncategorized',
+      notes,
+      amount,
+      dateToPurchase,
+      price,
       image: previewUrl
     };
     
@@ -83,14 +114,16 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
 
   const resetForm = () => {
     setName('');
-    setCategory('Groceries');
+    setCategory('');
+    setCustomCategory('');
+    setNotes('');
     setAmount('');
     setDateToPurchase('');
     setPrice('');
     setImageFile(null);
     setPreviewUrl(null);
-    setActiveTab('text');
     setImageOptionsOpen(false);
+    setIsCustomCategory(false);
   };
 
   const clearImage = () => {
@@ -117,7 +150,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
               className="flex-1"
             >
               <Image className="mr-2 h-4 w-4" />
-              {previewUrl ? "Change Image" : "Attach Image"}
+              {previewUrl ? "Change Image" : "Add Image"}
             </Button>
           </SheetTrigger>
           <SheetContent side="bottom" className="h-auto pb-8">
@@ -163,7 +196,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
               className="flex-1"
             >
               <Image className="mr-2 h-4 w-4" />
-              {previewUrl ? "Change Image" : "Attach Image"}
+              {previewUrl ? "Change Image" : "Add Image"}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent className="max-w-xs">
@@ -197,249 +230,138 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
           <DialogTitle>Add New Item</DialogTitle>
         </DialogHeader>
 
-        <Tabs 
-          value={activeTab} 
-          onValueChange={(v) => setActiveTab(v as 'text' | 'image')} 
-          className="w-full"
-        >
-          <TabsList className="grid grid-cols-2 w-full mb-4">
-            <TabsTrigger value="text">Text Item</TabsTrigger>
-            <TabsTrigger value="image">Image Item</TabsTrigger>
-          </TabsList>
+        <div className="space-y-4">
+          <div className="grid gap-4">
+            {/* Item Name */}
+            <div className="grid gap-2">
+              <Label htmlFor="name">Item Name</Label>
+              <Input
+                id="name"
+                placeholder="Enter item name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
 
-          <TabsContent value="text" className="space-y-4">
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Item Name</Label>
-                <Input
-                  id="name"
-                  placeholder="Enter item name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="category">Category</Label>
-                <select
-                  id="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="Groceries">Groceries</option>
-                  <option value="Household">Household</option>
-                  <option value="Electronics">Electronics</option>
-                  <option value="Clothing">Clothing</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="amount">Amount (Optional)</Label>
-                  <Input
-                    id="amount"
-                    placeholder="e.g., 2 boxes"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="price">Price (Optional)</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    placeholder="e.g., 9.99"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="date">Purchase By (Optional)</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={dateToPurchase}
-                  onChange={(e) => setDateToPurchase(e.target.value)}
-                />
-              </div>
+            {/* Category Selection - with custom option */}
+            <div className="grid gap-2">
+              <Label htmlFor="category">Category (Optional)</Label>
+              <select
+                id="category"
+                value={isCustomCategory ? "custom" : category}
+                onChange={handleCategoryChange}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Select a category</option>
+                {predefinedCategories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+                <option value="custom">Add custom category</option>
+              </select>
               
-              {/* Optional image for text items with new image selection options */}
-              <div className="grid gap-2">
-                <Label htmlFor="image">Attach Image (Optional)</Label>
-                <div className="flex gap-2">
+              {isCustomCategory && (
+                <div className="mt-2">
                   <Input
-                    id="image"
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    className="hidden"
+                    placeholder="Enter custom category"
+                    value={customCategory}
+                    onChange={(e) => setCustomCategory(e.target.value)}
                   />
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    ref={cameraInputRef}
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  
-                  <ImageSourceOptions />
-                  
-                  {previewUrl && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={clearImage}
-                      className="p-2"
-                      title="Remove image"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
                 </div>
+              )}
+            </div>
+
+            {/* Image Upload */}
+            <div className="grid gap-2">
+              <Label htmlFor="image">Image (Optional)</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <Input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  ref={cameraInputRef}
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                
+                <ImageSourceOptions />
+                
                 {previewUrl && (
-                  <div className="mt-2 relative rounded-lg overflow-hidden border">
-                    <img 
-                      src={previewUrl} 
-                      alt="Preview" 
-                      className="max-h-32 mx-auto object-contain"
-                    />
-                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={clearImage}
+                    className="p-2"
+                    title="Remove image"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 )}
               </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="image" className="space-y-4">
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label>Upload Image</Label>
-                <div 
-                  className={cn(
-                    "border-2 border-dashed rounded-lg p-6 text-center hover:bg-accent transition-colors",
-                    previewUrl ? "border-primary/50" : "border-muted-foreground/30"
-                  )}
-                  onClick={() => setImageOptionsOpen(true)}
-                >
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    className="hidden"
+              {previewUrl && (
+                <div className="mt-2 relative rounded-lg overflow-hidden border">
+                  <img 
+                    src={previewUrl} 
+                    alt="Preview" 
+                    className="max-h-32 mx-auto object-contain"
                   />
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    ref={cameraInputRef}
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  
-                  {previewUrl ? (
-                    <div className="relative">
-                      <img 
-                        src={previewUrl} 
-                        alt="Preview" 
-                        className="max-h-64 mx-auto object-contain rounded"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          clearImage();
-                        }}
-                        className="absolute top-0 right-0 h-8 w-8 translate-x-1/2 -translate-y-1/2"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-2">
-                      <Upload className="h-10 w-10 text-muted-foreground mb-2" />
-                      <p className="text-sm font-medium">Click to upload or take a picture</p>
-                      <p className="text-xs text-muted-foreground">
-                        JPG, PNG or GIF files supported
-                      </p>
-                    </div>
-                  )}
                 </div>
+              )}
+            </div>
 
-                {/* Image source selection sheet/dialog for the image tab */}
-                <Sheet open={imageOptionsOpen} onOpenChange={setImageOptionsOpen}>
-                  <SheetContent side="bottom" className={cn("h-auto pb-8", !isMobile && "max-w-sm mx-auto")}>
-                    <SheetHeader className="mb-4">
-                      <SheetTitle>Choose Image Source</SheetTitle>
-                    </SheetHeader>
-                    <div className="flex flex-col space-y-3">
-                      <Button 
-                        onClick={() => {
-                          fileInputRef.current?.click();
-                          setImageOptionsOpen(false);
-                        }}
-                        className="w-full justify-start gap-3"
-                        variant="outline"
-                      >
-                        <Upload className="h-4 w-4" /> Upload from Device
-                      </Button>
-                      <Button 
-                        onClick={() => {
-                          cameraInputRef.current?.click();
-                          setImageOptionsOpen(false);
-                        }}
-                        className="w-full justify-start gap-3"
-                        variant="outline"
-                      >
-                        <Camera className="h-4 w-4" /> Take a Picture
-                      </Button>
-                      <Button variant="ghost" className="w-full mt-2" onClick={() => setImageOptionsOpen(false)}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </SheetContent>
-                </Sheet>
-              </div>
-
+            {/* Additional Details */}
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="imageName">Item Name (Optional)</Label>
+                <Label htmlFor="amount">Quantity (Optional)</Label>
                 <Input
-                  id="imageName"
-                  placeholder="Enter a name for this item"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  id="amount"
+                  placeholder="e.g., 2 boxes"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground">
-                  If left blank, the image filename will be used
-                </p>
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="imageCategory">Category</Label>
-                <select
-                  id="imageCategory"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="Groceries">Groceries</option>
-                  <option value="Household">Household</option>
-                  <option value="Electronics">Electronics</option>
-                  <option value="Clothing">Clothing</option>
-                  <option value="Other">Other</option>
-                </select>
+                <Label htmlFor="price">Price (Optional)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  placeholder="e.g., 9.99"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                />
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+
+            <div className="grid gap-2">
+              <Label htmlFor="date">Purchase By (Optional)</Label>
+              <Input
+                id="date"
+                type="date"
+                value={dateToPurchase}
+                onChange={(e) => setDateToPurchase(e.target.value)}
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Textarea
+                id="notes"
+                placeholder="Add any additional notes here"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="min-h-[80px]"
+              />
+            </div>
+          </div>
+        </div>
 
         <DialogFooter className={cn(isMobile && "flex-col gap-2")}>
           <Button 
@@ -455,7 +377,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
           <Button 
             onClick={handleSave}
             className={cn(isMobile && "w-full")}
-            disabled={(activeTab === 'text' && !name.trim()) || (activeTab === 'image' && !previewUrl)}
+            disabled={name.trim() === '' && !previewUrl}
           >
             Add to Shopping List
           </Button>
