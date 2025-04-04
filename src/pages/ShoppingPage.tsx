@@ -68,7 +68,7 @@ const ShoppingPage = () => {
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 my-3">
         <Button 
-          className="bg-primary text-white hover:bg-primary/90 gap-2 h-10 sm:w-auto w-full flex justify-center items-center"
+          className="bg-green-500 hover:bg-green-600 text-white gap-2 h-10 sm:w-auto w-full flex justify-center items-center"
           size={isMobile ? "default" : "sm"}
           onClick={() => setAddDialogOpen(true)}
         >

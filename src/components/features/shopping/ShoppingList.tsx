@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
@@ -16,11 +15,10 @@ import {
   Trash2,
   Edit,
   MoreVertical,
-  Image,
+  Image as ImageIcon,
   Upload,
   Search,
   Eye,
-  ImageIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -151,6 +149,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   const [isMultiSelectActive, setIsMultiSelectActive] = useState(false);
   const [isDeleteCategoryDialogOpen, setIsDeleteCategoryDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState('');
+  // Make purchased section always visible by default
   const [isPurchasedSectionCollapsed, setIsPurchasedSectionCollapsed] = useState(false);
   const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
   const [categoryToEdit, setCategoryToEdit] = useState('');
@@ -785,7 +784,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-8 text-xs"
+                          className="h-8 text-xs bg-green-500 hover:bg-green-600 text-white border-green-500"
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleItem(item.id);
@@ -803,6 +802,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
           </AnimatePresence>
         </div>
         
+        {/* Always show the Purchased section header */}
         <div className="mb-2">
           <div 
             className="flex items-center justify-between cursor-pointer mb-3"
@@ -847,7 +847,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                         <Card 
                           className={cn(
                             "overflow-hidden transition-all hover:shadow-md opacity-70",
-                            "bg-gray-50 dark:bg-gray-700/50"
+                            "bg-gray-100 dark:bg-gray-700/50" // Making sure it's clearly gray
                           )}
                           onClick={() => !isMultiSelectActive && toggleItem(item.id)}
                         >
@@ -898,339 +898,3 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                                   <Edit size={14} className="mr-2" />
                                   <span className="text-sm">Edit</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeItem(item.id);
-                                }} className="cursor-pointer text-red-500">
-                                  <Trash2 size={14} className="mr-2" />
-                                  <span className="text-sm">Delete</span>
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </CardHeader>
-                          
-                          <CardContent className="p-3 pt-2">
-                            {item.imageUrl ? (
-                              <div className="relative w-full">
-                                <div className="aspect-[3/2] rounded-md overflow-hidden mb-2 opacity-70">
-                                  <img 
-                                    src={item.imageUrl} 
-                                    alt={item.name} 
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-                                <Button
-                                  size="sm"
-                                  variant="secondary"
-                                  className="absolute right-2 top-2 h-8 w-8 p-0 bg-black/40 hover:bg-black/60 text-white rounded-full"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleImagePreview(item.imageUrl!);
-                                  }}
-                                >
-                                  <Eye size={14} />
-                                </Button>
-                              </div>
-                            ) : (
-                              <div className="mb-2 flex items-center text-xs text-muted-foreground">
-                                <ImageIcon size={14} className="mr-1 text-muted-foreground" /> No image attached
-                              </div>
-                            )}
-                            
-                            <div className="flex items-center flex-wrap gap-2 mt-1">
-                              <span className="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                {item.category}
-                              </span>
-                              
-                              {item.price && (
-                                <span className="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                  ${item.price}
-                                </span>
-                              )}
-                              
-                              {item.amount && (
-                                <span className="text-xs px-2 py-1 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                                  Qty: {item.amount}
-                                </span>
-                              )}
-                            </div>
-                          </CardContent>
-                          
-                          <CardFooter className="p-3 pt-0 flex justify-between items-center">
-                            <span className="text-xs text-muted-foreground">
-                              Purchased
-                            </span>
-                            
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-8 text-xs"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleItem(item.id);
-                              }}
-                            >
-                              <X size={12} className="mr-1" />
-                              Undo Purchase
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </ScrollArea>
-
-      {/* Edit Category Dialog */}
-      <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Input
-                id="edit-category"
-                value={editedCategoryName}
-                onChange={(e) => setEditedCategoryName(e.target.value)}
-                className="col-span-3"
-                placeholder="Category name"
-              />
-            </div>
-          </div>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsEditCategoryDialogOpen(false)}
-              className="sm:flex-1"
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="button" 
-              onClick={confirmEditCategory}
-              className="bg-todo-purple hover:bg-todo-purple-dark text-white sm:flex-1"
-              disabled={!editedCategoryName.trim() || editedCategoryName === categoryToEdit}
-            >
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Category Dialog */}
-      <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Category</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Input
-                id="new-category"
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                className="col-span-3"
-                placeholder="Category name"
-              />
-            </div>
-          </div>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsAddCategoryDialogOpen(false)}
-              className="sm:flex-1"
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="button" 
-              onClick={addCategory}
-              className="bg-todo-purple hover:bg-todo-purple-dark text-white sm:flex-1"
-              disabled={!newCategory.trim() || categories.includes(newCategory.trim())}
-            >
-              Add Category
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Category Dialog */}
-      <Dialog open={isDeleteCategoryDialogOpen} onOpenChange={setIsDeleteCategoryDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Delete Category</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm text-muted-foreground">
-              Are you sure you want to delete the category "{categoryToDelete}"? All items in this category will be moved to "Other".
-            </p>
-          </div>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsDeleteCategoryDialogOpen(false)}
-              className="sm:flex-1"
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="button" 
-              variant="destructive"
-              onClick={confirmDeleteCategory}
-              className="sm:flex-1"
-            >
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Item Dialog */}
-      <Dialog open={isEditItemDialogOpen} onOpenChange={setIsEditItemDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Item</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <div className="grid grid-cols-4 items-center gap-2">
-                <label className="text-sm col-span-1">Name</label>
-                <Input
-                  id="edit-item-name"
-                  value={editItemName}
-                  onChange={(e) => setEditItemName(e.target.value)}
-                  className="col-span-3"
-                  placeholder="Item name"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-2">
-                <label className="text-sm col-span-1">Category</label>
-                <select
-                  value={editItemCategory}
-                  onChange={(e) => setEditItemCategory(e.target.value)}
-                  className="rounded-md border border-input bg-background px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-white col-span-3"
-                >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-2">
-                <label className="text-sm col-span-1">Amount</label>
-                <Input
-                  id="edit-item-amount"
-                  value={editItemAmount}
-                  onChange={(e) => setEditItemAmount(e.target.value)}
-                  className="col-span-3"
-                  placeholder="Optional"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-2">
-                <label className="text-sm col-span-1">Date</label>
-                <Input
-                  id="edit-item-date"
-                  type="date"
-                  value={editItemDate}
-                  onChange={(e) => setEditItemDate(e.target.value)}
-                  className="col-span-3"
-                  placeholder="Optional"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-2">
-                <label className="text-sm col-span-1">Price</label>
-                <Input
-                  id="edit-item-price"
-                  type="number"
-                  value={editItemPrice}
-                  onChange={(e) => setEditItemPrice(e.target.value)}
-                  className="col-span-3"
-                  placeholder="Optional"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-2">
-                <label className="text-sm col-span-1">Image</label>
-                <div className="col-span-3">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    className="hidden"
-                    id="edit-item-image"
-                  />
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Image className="mr-2 h-4 w-4" />
-                    {editItemImageUrl ? 'Change Image' : 'Add Image'}
-                  </Button>
-                </div>
-              </div>
-              {editItemImageUrl && (
-                <div className="col-span-4 flex justify-center mt-2">
-                  <img 
-                    src={editItemImageUrl} 
-                    alt="Preview" 
-                    className="max-h-40 rounded-md object-contain border p-1"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsEditItemDialogOpen(false)}
-              className="sm:flex-1"
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="button" 
-              onClick={saveEditedItem}
-              className="bg-todo-purple hover:bg-todo-purple-dark text-white sm:flex-1"
-              disabled={!editItemName.trim()}
-            >
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Image Preview Dialog */}
-      <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
-        <DialogContent className="max-w-3xl p-1 bg-transparent border-none">
-          <div className="relative w-full rounded-lg overflow-hidden bg-background p-1 shadow-lg">
-            <DialogClose className="absolute right-2 top-2 z-10 rounded-full bg-background/80 p-1">
-              <X className="h-4 w-4" />
-            </DialogClose>
-            {previewImage && (
-              <div className="flex items-center justify-center max-h-[80vh]">
-                <img 
-                  src={previewImage} 
-                  alt="Preview" 
-                  className="object-contain max-h-[80vh] max-w-full rounded"
-                />
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
-
-export default ShoppingList;
