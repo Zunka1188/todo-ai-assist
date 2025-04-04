@@ -58,7 +58,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const predefinedCategories = ["Groceries", "Household", "Electronics", "Clothing", "Style", "Recipes", "Travel", "Fitness", "Work", "Files", "Other"];
+  const predefinedCategories = ["Other", "Style", "Recipes", "Travel", "Fitness", "Files"];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -100,7 +100,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
     
     const itemData = {
       name: name.trim() || (fileName ? fileName : 'Untitled Item'),
-      category: finalCategory || 'Uncategorized',
+      category: finalCategory || 'Other',
       notes,
       amount,
       dateToPurchase,
