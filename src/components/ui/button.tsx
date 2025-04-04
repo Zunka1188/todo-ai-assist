@@ -24,7 +24,7 @@ const buttonVariants = cva(
         active: "bg-green-500 text-white hover:bg-green-600",    // Active state (was green)
         completed: "bg-gray-400 text-white hover:bg-gray-500",   // Completed state (was gray)
         purple: "bg-purple-600 text-white hover:bg-purple-700",  // Add Item button
-        purchase: "bg-[#28a745] text-white hover:bg-[#218838]",  // Purchase button - EXACT color from specs
+        purchase: "bg-[#28a745] text-white hover:bg-[#28a745] transition-none",  // Purchase button - EXACT color from specs, no hover effect
         
         // Legacy variants - kept for backward compatibility
         green: "bg-green-500 text-white hover:bg-green-600",  
@@ -35,7 +35,7 @@ const buttonVariants = cva(
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
-        purchase: "h-8 rounded-none px-3", // Making it exactly 32px height with no rounding
+        purchase: "h-8 rounded-none px-3 py-0", // Making it exactly 32px height with no rounding and no padding
       },
     },
     defaultVariants: {

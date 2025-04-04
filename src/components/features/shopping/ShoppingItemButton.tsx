@@ -31,7 +31,7 @@ const ShoppingItemButton = ({
   const hasAdditionalInfo = quantity || price || notes || (repeatOption && repeatOption !== 'none');
   
   return (
-    <div className="w-full max-w-[320px] h-[96px] bg-background rounded-md overflow-hidden flex flex-col border border-border shadow-sm">
+    <div className="w-full max-w-[320px] h-[96px] bg-background rounded-md overflow-hidden flex flex-col border-2 border-border shadow-md">
       {/* Top Section: Product Image & Details (64px height) */}
       <div className="flex h-[64px] w-full">
         {/* Left Column - Product Image (48x48px with 8px margin) */}
@@ -43,7 +43,7 @@ const ShoppingItemButton = ({
               aria-hidden="true"
             />
           ) : (
-            <div className="w-full h-full rounded-md bg-muted flex items-center justify-center" aria-hidden="true">
+            <div className="w-full h-full rounded-md bg-slate-200 dark:bg-slate-700 flex items-center justify-center" aria-hidden="true">
               <span className="text-xs text-muted-foreground">No image</span>
             </div>
           )}
@@ -91,8 +91,8 @@ const ShoppingItemButton = ({
         variant="purchase" 
         size="purchase"
         className={cn(
-          "w-full h-[32px] rounded-none mt-auto",
-          "flex items-center justify-center",
+          "w-full h-[32px] rounded-none mt-auto border-t border-border",
+          "flex items-center justify-center transition-none",
           className
         )}
         onClick={onClick}

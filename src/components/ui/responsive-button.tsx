@@ -55,7 +55,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     return (
       <div className={cn(
         "w-full max-w-[320px] h-[96px] bg-background rounded-md overflow-hidden flex flex-col",
-        "border border-border shadow-sm",
+        "border-2 border-border shadow-md",
         active && "border-primary border-2",
         className
       )}>
@@ -70,7 +70,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
                 aria-hidden="true"
               />
             ) : (
-              <div className="w-full h-full rounded-md bg-muted/40 flex items-center justify-center" aria-hidden="true">
+              <div className="w-full h-full rounded-md bg-slate-200 dark:bg-slate-700 flex items-center justify-center" aria-hidden="true">
                 <span className="text-xs text-muted-foreground">No img</span>
               </div>
             )}
@@ -138,7 +138,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
           ref={ref}
           variant={variant === 'default' ? 'purchase' : variant}
           onClick={onClick}
-          className="w-full h-[32px] rounded-none mt-auto"
+          className="w-full h-[32px] rounded-none mt-auto border-t border-border"
           {...props}
         >
           {props.children || "Action"}
