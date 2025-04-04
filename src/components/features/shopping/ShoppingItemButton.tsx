@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -11,12 +12,13 @@ interface ShoppingItemButtonProps {
   onClick: (e: React.MouseEvent) => void;
   className?: string;
   quantity?: string;
-  notes?: string; // We'll keep this in the props but not display it
+  notes?: string;
   repeatOption?: 'none' | 'weekly' | 'monthly';
   name?: string;
   imageUrl?: string;
   onEdit?: () => void;
   onDelete?: () => void;
+  onImagePreview?: () => void;
 }
 
 const ShoppingItemButton = ({ 
@@ -29,27 +31,29 @@ const ShoppingItemButton = ({
   name,
   imageUrl,
   onEdit,
-  onDelete
+  onDelete,
+  onImagePreview
 }: ShoppingItemButtonProps) => {
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const { theme } = useTheme();
   
-  // Determine background and text colors based on theme
   const bgColor = theme === 'dark' ? '#1E1E1E' : 'white';
   const textColor = theme === 'dark' ? '#E0E0E0' : 'black';
   const borderColor = theme === 'dark' ? '#333333' : '#e2e8f0';
   const secondaryTextColor = theme === 'dark' ? '#B0B0B0' : '#64748b';
   
-  // Handle dropdown click without triggering the parent button
   const handleDropdownClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
 
-  // Handle image click to show full-screen preview
   const handleImageClick = (e: React.MouseEvent) => {
     if (imageUrl) {
       e.stopPropagation();
-      setImagePreviewOpen(true);
+      if (onImagePreview) {
+        onImagePreview();
+      } else {
+        setImagePreviewOpen(true);
+      }
     }
   };
   
@@ -174,7 +178,11 @@ const ShoppingItemButton = ({
                       <DropdownMenuItem 
                         onClick={(e) => {
                           e.preventDefault();
-                          setImagePreviewOpen(true);
+                          if (onImagePreview) {
+                            onImagePreview();
+                          } else {
+                            setImagePreviewOpen(true);
+                          }
                         }}
                         className={theme === 'dark' ? 'text-zinc-200 hover:bg-zinc-800' : ''}
                       >
@@ -290,20 +298,22 @@ const ShoppingItemButton = ({
         </div>
       </div>
       
-      {/* Image Full Screen Preview Dialog */}
-      <Dialog open={imagePreviewOpen} onOpenChange={setImagePreviewOpen}>
-        <DialogContent className={`max-w-4xl p-0 overflow-hidden ${theme === 'dark' ? 'bg-zinc-900 border-zinc-700' : 'bg-white'}`}>
-          <div className="relative w-full h-full max-h-[80vh] flex items-center justify-center">
-            {imageUrl && (
-              <img 
-                src={imageUrl} 
-                alt={name || "Product image"} 
-                className="max-w-full max-h-full object-contain"
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Image Full Screen Preview Dialog - only used if onImagePreview is not provided */}
+      {!onImagePreview && (
+        <Dialog open={imagePreviewOpen} onOpenChange={setImagePreviewOpen}>
+          <DialogContent className={`max-w-4xl p-0 overflow-hidden ${theme === 'dark' ? 'bg-zinc-900 border-zinc-700' : 'bg-white'}`}>
+            <div className="relative w-full h-full max-h-[80vh] flex items-center justify-center">
+              {imageUrl && (
+                <img 
+                  src={imageUrl} 
+                  alt={name || "Product image"} 
+                  className="max-w-full max-h-full object-contain"
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 };
