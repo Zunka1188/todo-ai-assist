@@ -1,11 +1,15 @@
+
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogTrigger, AlertDialogFooter } from '@/components/ui/alert-dialog';
 import ShoppingItemButton from './ShoppingItemButton';
 import { useShoppingItems } from './useShoppingItems';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Separator } from '@/components/ui/separator';
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 type ShoppingListProps = {
   searchTerm?: string;
@@ -25,6 +29,8 @@ const ShoppingList = ({
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const { isMobile } = useIsMobile();
+  const navigate = useNavigate();
+  const location = useLocation();
   
   // Filter items based on search term and filter mode, but don't filter out completed items
   const filteredItems = shoppingItemsContext.items.filter((item) => {
@@ -49,6 +55,29 @@ const ShoppingList = ({
     setSelectedImageUrl(imageUrl);
     setIsImageDialogOpen(true);
   };
+  
+  // Handle dialog close with navigation protection
+  const handleDialogClose = () => {
+    setIsImageDialogOpen(false);
+    setSelectedImageUrl(null);
+  };
+
+  // Handle back navigation
+  React.useEffect(() => {
+    const handlePopState = () => {
+      // If dialog is open, close it and prevent navigation
+      if (isImageDialogOpen) {
+        handleDialogClose();
+        // We need to push the current path again to maintain correct history
+        navigate(location.pathname, { replace: true });
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isImageDialogOpen, navigate, location.pathname]);
 
   return (
     <div className={cn('w-full', className)}>
@@ -109,18 +138,36 @@ const ShoppingList = ({
         </ScrollArea>
       )}
 
-      {/* Image Preview Dialog */}
+      {/* Improved Image Preview Dialog with Close Button */}
       <AlertDialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
         <AlertDialogContent className="max-w-4xl p-0">
-          <div className="relative w-full h-full max-h-[80vh] flex items-center justify-center">
-            {selectedImageUrl && (
-              <img 
-                src={selectedImageUrl} 
-                alt="Preview" 
-                className="max-w-full max-h-full object-contain"
-              />
-            )}
+          <div className="relative w-full h-full max-h-[80vh] flex flex-col">
+            <div className="flex-grow flex items-center justify-center overflow-hidden">
+              {selectedImageUrl && (
+                <img 
+                  src={selectedImageUrl} 
+                  alt="Preview" 
+                  className="max-w-full max-h-full object-contain"
+                />
+              )}
+            </div>
+            <AlertDialogFooter className="p-4 bg-background border-t">
+              <Button onClick={handleDialogClose} className="ml-auto">
+                Close
+              </Button>
+            </AlertDialogFooter>
           </div>
+          
+          {/* Close Button in the top right */}
+          <Button 
+            onClick={handleDialogClose}
+            variant="ghost" 
+            size="icon"
+            className="absolute right-2 top-2 rounded-full h-8 w-8 p-0 bg-background/80 hover:bg-background/90"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </Button>
         </AlertDialogContent>
       </AlertDialog>
     </div>
