@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Check, RefreshCw } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 interface ShoppingItemButtonProps {
   completed: boolean;
@@ -14,7 +14,7 @@ const ShoppingItemButton = ({ completed, onClick, className }: ShoppingItemButto
   return (
     <Button
       type="button"
-      variant={completed ? "completed" : "active"} // Using semantic variants
+      variant={completed ? "completed" : "active"} // Using semantic variants for better readability
       size="sm"
       className={cn(
         "flex items-center justify-center gap-2 transition-colors",
@@ -24,14 +24,11 @@ const ShoppingItemButton = ({ completed, onClick, className }: ShoppingItemButto
     >
       {completed ? (
         <>
-          <RefreshCw size={16} />
-          <span>Bring Back</span>
+          <Check size={16} />
+          <span>Purchased</span>
         </>
       ) : (
-        <>
-          <Check size={16} />
-          <span>Mark as Purchased</span>
-        </>
+        <span>Mark as Purchased</span>
       )}
     </Button>
   );
