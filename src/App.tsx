@@ -17,7 +17,6 @@ import SettingsPage from "./pages/SettingsPage";
 import SpendingPage from "./pages/SpendingPage";
 import TroubleshootPage from "./pages/TroubleshootPage";
 import NotFound from "./pages/NotFound";
-import DocumentsSubtabPage from "./pages/DocumentsSubtabPage";
 
 const queryClient = new QueryClient();
 
@@ -35,7 +34,6 @@ const App = () => (
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/scan" element={<ScanPage />} />
               <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/documents/categories" element={<DocumentsSubtabPage />} />
               <Route path="/upload" element={<UploadPage />} />
               <Route path="/tasks" element={<TasksPage />} />
               <Route path="/settings" element={<SettingsPage />} />
