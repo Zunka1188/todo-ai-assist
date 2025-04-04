@@ -985,8 +985,9 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </div>
       </ScrollArea>
 
+      {/* Edit Category Dialog */}
       <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
           </DialogHeader>
@@ -1001,18 +1002,19 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsEditCategoryDialogOpen(false)}
+              className="sm:flex-1"
             >
               Cancel
             </Button>
             <Button 
               type="button" 
               onClick={confirmEditCategory}
-              className="bg-todo-purple hover:bg-todo-purple-dark text-white"
+              className="bg-todo-purple hover:bg-todo-purple-dark text-white sm:flex-1"
               disabled={!editedCategoryName.trim() || editedCategoryName === categoryToEdit}
             >
               Save Changes
@@ -1021,8 +1023,9 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </DialogContent>
       </Dialog>
 
+      {/* Add Category Dialog */}
       <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Category</DialogTitle>
           </DialogHeader>
@@ -1037,18 +1040,19 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsAddCategoryDialogOpen(false)}
+              className="sm:flex-1"
             >
               Cancel
             </Button>
             <Button 
               type="button" 
               onClick={addCategory}
-              className="bg-todo-purple hover:bg-todo-purple-dark text-white"
+              className="bg-todo-purple hover:bg-todo-purple-dark text-white sm:flex-1"
               disabled={!newCategory.trim() || categories.includes(newCategory.trim())}
             >
               Add Category
@@ -1057,8 +1061,9 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </DialogContent>
       </Dialog>
 
+      {/* Delete Category Dialog */}
       <Dialog open={isDeleteCategoryDialogOpen} onOpenChange={setIsDeleteCategoryDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Delete Category</DialogTitle>
           </DialogHeader>
@@ -1067,11 +1072,12 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
               Are you sure you want to delete the category "{categoryToDelete}"? All items in this category will be moved to "Other".
             </p>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsDeleteCategoryDialogOpen(false)}
+              className="sm:flex-1"
             >
               Cancel
             </Button>
@@ -1079,6 +1085,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
               type="button" 
               variant="destructive"
               onClick={confirmDeleteCategory}
+              className="sm:flex-1"
             >
               Delete
             </Button>
@@ -1086,8 +1093,9 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </DialogContent>
       </Dialog>
 
+      {/* Edit Item Dialog */}
       <Dialog open={isEditItemDialogOpen} onOpenChange={setIsEditItemDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Item</DialogTitle>
           </DialogHeader>
@@ -1181,18 +1189,19 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
               )}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsEditItemDialogOpen(false)}
+              className="sm:flex-1"
             >
               Cancel
             </Button>
             <Button 
               type="button" 
               onClick={saveEditedItem}
-              className="bg-todo-purple hover:bg-todo-purple-dark text-white"
+              className="bg-todo-purple hover:bg-todo-purple-dark text-white sm:flex-1"
               disabled={!editItemName.trim()}
             >
               Save Changes
@@ -1201,6 +1210,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </DialogContent>
       </Dialog>
 
+      {/* Image Preview Dialog */}
       <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
         <DialogContent className="max-w-3xl p-1 bg-transparent border-none">
           <div className="relative w-full rounded-lg overflow-hidden bg-background p-1 shadow-lg">
