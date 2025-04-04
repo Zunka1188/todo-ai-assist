@@ -198,17 +198,28 @@ interface CalendarViewProps {
   viewMode: 'month' | 'week' | 'day' | 'agenda';
   searchTerm?: string;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  isCreateDialogOpen?: boolean;
+  setIsCreateDialogOpen?: (open: boolean) => void;
 }
 
-const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '', weekStartsOn = 1 }) => {
+const CalendarView: React.FC<CalendarViewProps> = ({ 
+  viewMode, 
+  searchTerm = '', 
+  weekStartsOn = 1,
+  isCreateDialogOpen,
+  setIsCreateDialogOpen
+}) => {
   const [date, setDate] = useState<Date>(new Date());
   const [events, setEvents] = useState<Event[]>(initialEvents);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [localCreateDialogOpen, setLocalCreateDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
+  
+  const effectiveCreateDialogOpen = isCreateDialogOpen !== undefined ? isCreateDialogOpen : localCreateDialogOpen;
+  const effectiveSetCreateDialogOpen = setIsCreateDialogOpen || setLocalCreateDialogOpen;
 
   const filteredEvents = events.filter(event => 
     searchTerm ? 
@@ -224,9 +235,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '', 
       title: '',
       description: '',
       startDate: new Date(),
-      startTime: '09:00',
+      startTime: '10:00',
       endDate: new Date(),
-      endTime: '10:00',
+      endTime: '11:00',
       allDay: false,
       location: '',
       color: '#4285F4',
@@ -267,9 +278,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '', 
       title: '',
       description: '',
       startDate: date,
-      startTime: '09:00',
+      startTime: '10:00',
       endDate: date,
-      endTime: '10:00',
+      endTime: '11:00',
       allDay: false,
       location: '',
       color: '#4285F4',
@@ -278,7 +289,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '', 
       reminder: '30',
     });
     setIsEditMode(false);
-    setIsCreateDialogOpen(true);
+    effectiveSetCreateDialogOpen(true);
   };
 
   const handleViewEvent = (event: Event) => {
@@ -289,7 +300,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '', 
   const handleEditEvent = () => {
     setIsEditMode(true);
     setIsViewDialogOpen(false);
-    setIsCreateDialogOpen(true);
+    effectiveSetCreateDialogOpen(true);
   };
 
   const handleDeleteEvent = () => {
@@ -355,7 +366,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '', 
         });
       }
       
-      setIsCreateDialogOpen(false);
+      effectiveSetCreateDialogOpen(false);
       setIsEditMode(false);
       setSelectedEvent(null);
     } catch (error) {
@@ -387,7 +398,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '', 
 
   return (
     <div className="space-y-4">
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+      <Dialog open={effectiveCreateDialogOpen} onOpenChange={effectiveSetCreateDialogOpen}>
         <DialogContent className="max-w-md md:max-w-lg max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>{isEditMode ? 'Edit Event' : 'Create New Event'}</DialogTitle>
@@ -710,7 +721,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ viewMode, searchTerm = '', 
                       type="button" 
                       variant="outline" 
                       onClick={() => {
-                        setIsCreateDialogOpen(false);
+                        effectiveSetCreateDialogOpen(false);
                         setIsEditMode(false);
                       }}
                     >
