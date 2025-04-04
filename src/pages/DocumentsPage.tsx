@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Search, Plus, Tag, Shirt, ChefHat, Plane, Dumbbell, FileText, X, Maximize2, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

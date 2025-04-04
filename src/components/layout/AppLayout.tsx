@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import BottomNavigation from './BottomNavigation';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
