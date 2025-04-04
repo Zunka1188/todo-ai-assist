@@ -15,8 +15,8 @@ interface ResponsiveButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEle
   hideIcon?: boolean;
   // Properties for shopping items
   quantity?: string;
-  price?: string;
-  notes?: string;
+  price?: string; // We'll keep this in the props but not display it
+  notes?: string; // We'll keep this in the props but not display it
   repeatOption?: 'none' | 'weekly' | 'monthly';
   imageUrl?: string;
 }
@@ -48,7 +48,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     };
 
     // Determine if we have details to show
-    const hasDetails = quantity || price || notes || (repeatOption && repeatOption !== 'none');
+    const hasDetails = quantity || (repeatOption && repeatOption !== 'none');
     
     // Using the exact grocery item widget style per specifications
     return (
@@ -161,7 +161,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
               )}
             </div>
 
-            {/* Additional Details */}
+            {/* Additional Details - Only showing quantity and repeat option */}
             {hasDetails && (
               <div style={{
                 display: 'flex',
@@ -177,28 +177,11 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
                     Qty: {quantity}
                   </span>
                 )}
-                {price && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    ${price}
-                  </span>
-                )}
                 {repeatOption && repeatOption !== 'none' && (
                   <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                     <Repeat size={10} style={{ marginRight: '4px' }} />
                     {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
                   </span>
-                )}
-                {notes && (
-                  <div style={{
-                    width: '100%',
-                    fontSize: '12px',
-                    color: '#64748b',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
-                    {notes}
-                  </div>
                 )}
               </div>
             )}

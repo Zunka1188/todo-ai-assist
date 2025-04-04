@@ -12,8 +12,8 @@ interface ShoppingItemButtonProps {
   onClick: (e: React.MouseEvent) => void;
   className?: string;
   quantity?: string;
-  price?: string;
-  notes?: string;
+  price?: string; // We'll keep this in the props but not display it
+  notes?: string; // We'll keep this in the props but not display it
   repeatOption?: 'none' | 'weekly' | 'monthly';
   name?: string;
   imageUrl?: string;
@@ -214,7 +214,7 @@ const ShoppingItemButton = ({
               </div>
             )}
             
-            {/* Quantity Line - 30px height, centered vertically */}
+            {/* Quantity Line - centered vertically */}
             <div style={{ 
               display: 'flex',
               alignItems: 'center',
@@ -232,15 +232,9 @@ const ShoppingItemButton = ({
                   <ChevronDown size={14} className="ml-1 opacity-70" />
                 </div>
               )}
-              {price && quantity && (
-                <span className="mx-2" style={{color: textColor}}>•</span>
-              )}
-              {price && (
-                <span style={{color: textColor}}>${price}</span>
-              )}
             </div>
             
-            {/* Repeat Option Line - 30px height, centered vertically */}
+            {/* Repeat Option Line - centered vertically */}
             <div style={{ 
               display: 'flex', 
               alignItems: 'center',
@@ -262,34 +256,7 @@ const ShoppingItemButton = ({
                   </span>
                 </div>
               )}
-              
-              {/* Notes - show if there's space and no repeat option */}
-              {!repeatOption && notes && (
-                <div style={{
-                  fontSize: '12px',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  color: secondaryTextColor
-                }}>
-                  {notes}
-                </div>
-              )}
             </div>
-            
-            {/* Notes Line - show if there's both repeat option and notes */}
-            {repeatOption && repeatOption !== 'none' && notes && (
-              <div style={{
-                fontSize: '12px',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                color: secondaryTextColor,
-                paddingLeft: '10px'
-              }}>
-                {notes}
-              </div>
-            )}
           </div>
         </div>
         
