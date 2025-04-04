@@ -82,8 +82,12 @@ const Index = () => {
           "grid gap-3 sm:gap-4",
           isMobile ? "grid-cols-1" : "grid-cols-2"
         )}>
-          <CalendarWidget />
-          <TaskWidget />
+          <div className="h-full">
+            <CalendarWidget />
+          </div>
+          <div className="h-full">
+            <TaskWidget />
+          </div>
         </div>
       </div>
 

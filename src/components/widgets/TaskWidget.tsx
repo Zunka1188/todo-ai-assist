@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { CheckSquare, ChevronRight, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -79,7 +80,7 @@ const TaskWidget = () => {
     });
 
   return (
-    <Card className="metallic-card shadow-sm hover:shadow transition-shadow duration-300">
+    <Card className="h-full shadow-sm hover:shadow transition-shadow duration-300">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="flex items-center space-x-2">
           <CheckSquare className="h-5 w-5 text-todo-purple" />
@@ -94,7 +95,7 @@ const TaskWidget = () => {
       </CardHeader>
       <CardContent className="pb-3">
         {todaysTasks.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
             {todaysTasks.map(task => (
               <div 
                 key={task.id} 
