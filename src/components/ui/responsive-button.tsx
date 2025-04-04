@@ -57,7 +57,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         variant={variant}
         onClick={onClick}
         className={cn(
-          "w-auto max-w-[200px] h-auto min-h-[44px] px-4 flex flex-col items-start justify-center gap-1 transition-all duration-200",
+          "w-auto max-w-[200px] h-auto min-h-[80px] px-4 flex flex-col items-start justify-center gap-1 transition-all duration-200",
           "rounded-lg overflow-hidden relative",
           active && "bg-primary text-primary-foreground hover:bg-primary/90",
           className
@@ -119,11 +119,11 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         )}
         
         {imageUrl && (
-          <div className="w-full mt-2">
+          <div className="w-full mt-2 h-[60px] overflow-hidden">
             <img 
               src={imageUrl} 
               alt={text} 
-              className="rounded-md w-[30%]"
+              className="rounded-md object-cover h-full max-w-[30%]"
               loading="lazy"
             />
           </div>
