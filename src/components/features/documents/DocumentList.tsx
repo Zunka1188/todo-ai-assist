@@ -132,19 +132,19 @@ const DocumentList: React.FC = () => {
     return (
       <div className="space-y-4">
         <Tabs defaultValue="all" onValueChange={setSelectedFolder} className="w-full">
-          <TabsList className="w-full flex justify-start overflow-x-auto pb-1 scrollbar-none">
+          <TabsList className="w-full flex justify-start overflow-x-auto pb-1 scrollbar-none bg-gray-800">
             {folders.slice(0, 5).map((folder) => (
               <TabsTrigger 
                 key={folder.id} 
                 value={folder.id}
-                className="px-3 py-1.5 text-sm whitespace-nowrap flex-shrink-0"
+                className="px-3 py-1.5 text-sm whitespace-nowrap flex-shrink-0 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-todo-purple"
               >
                 {folder.name}
               </TabsTrigger>
             ))}
             <TabsTrigger 
               value="more" 
-              className="px-3 py-1.5 text-sm whitespace-nowrap flex-shrink-0"
+              className="px-3 py-1.5 text-sm whitespace-nowrap flex-shrink-0 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-todo-purple"
             >
               More
             </TabsTrigger>
@@ -173,7 +173,7 @@ const DocumentList: React.FC = () => {
                 <Button
                   key={folder.id}
                   variant="outline"
-                  className="justify-start p-2 h-auto"
+                  className="justify-start p-2 h-auto bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
                   onClick={() => setSelectedFolder(folder.id)}
                 >
                   <Folder className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -184,35 +184,41 @@ const DocumentList: React.FC = () => {
                 <DialogTrigger asChild>
                   <Button
                     variant="outline"
-                    className="justify-start p-2 h-auto"
+                    className="justify-start p-2 h-auto bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
                   >
                     <Plus className="h-4 w-4 mr-2 text-muted-foreground" />
                     <span className="text-sm">New Folder</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="w-[calc(100%-32px)] p-4">
+                <DialogContent className="w-[calc(100%-32px)] p-4 bg-background border-gray-700">
                   <DialogHeader>
-                    <DialogTitle>Create a new folder</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle className="text-white">Create a new folder</DialogTitle>
+                    <DialogDescription className="text-gray-400">
                       Enter a name for your new folder.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-1 items-center gap-4">
-                      <Label htmlFor="folder-name" className="mb-1">
+                      <Label htmlFor="folder-name" className="mb-1 text-gray-300">
                         Name
                       </Label>
                       <Input
                         id="folder-name"
                         value={newFolderName}
                         onChange={(e) => setNewFolderName(e.target.value)}
-                        className="w-full"
+                        className="w-full bg-gray-800 border-gray-700 text-white"
                         placeholder="e.g., Recipes, Projects, etc."
                       />
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button onClick={createFolder} type="submit" className="w-full">Create Folder</Button>
+                    <Button 
+                      onClick={createFolder} 
+                      type="submit" 
+                      className="w-full bg-todo-purple hover:bg-todo-purple/90"
+                    >
+                      Create Folder
+                    </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -236,16 +242,16 @@ const DocumentList: React.FC = () => {
   // Desktop view with horizontal scrolling categories
   return (
     <div className="space-y-6">
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
         {folders.map((folder) => (
           <button
             key={folder.id}
             onClick={() => setSelectedFolder(folder.id)}
             className={cn(
-              "py-1.5 px-3 rounded-full text-sm whitespace-nowrap",
+              "py-1.5 px-3 rounded-lg text-sm whitespace-nowrap",
               selectedFolder === folder.id
                 ? "bg-todo-purple text-white"
-                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                : "bg-gray-800 text-gray-300 hover:bg-gray-700"
             )}
           >
             {folder.name}
@@ -254,34 +260,40 @@ const DocumentList: React.FC = () => {
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <button className="py-1.5 px-3 rounded-full text-sm whitespace-nowrap bg-secondary/50 text-secondary-foreground hover:bg-secondary/80 flex items-center gap-1">
+            <button className="py-1.5 px-3 rounded-lg text-sm whitespace-nowrap bg-gray-800/50 text-gray-300 hover:bg-gray-700 flex items-center gap-1">
               <Plus size={14} />
               New Folder
             </button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px] bg-background border-gray-700">
             <DialogHeader>
-              <DialogTitle>Create a new folder</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-white">Create a new folder</DialogTitle>
+              <DialogDescription className="text-gray-400">
                 Enter a name for your new folder to organize your documents.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="folder-name" className="text-right">
+                <Label htmlFor="folder-name" className="text-right text-gray-300">
                   Name
                 </Label>
                 <Input
                   id="folder-name"
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
-                  className="col-span-3"
+                  className="col-span-3 bg-gray-800 border-gray-700 text-white"
                   placeholder="e.g., Recipes, Projects, etc."
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={createFolder} type="submit">Create Folder</Button>
+              <Button 
+                onClick={createFolder} 
+                type="submit"
+                className="bg-todo-purple hover:bg-todo-purple/90"
+              >
+                Create Folder
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -308,7 +320,7 @@ const DocumentGrid: React.FC<DocumentGridProps> = ({ documents, getDocumentIcon 
     return (
       <div className="text-center py-8">
         <Folder className="mx-auto h-12 w-12 text-muted-foreground/50" />
-        <h3 className="mt-4 text-lg font-medium">No documents found</h3>
+        <h3 className="mt-4 text-lg font-medium text-gray-300">No documents found</h3>
         <p className="mt-1 text-sm text-muted-foreground">
           Upload or create documents to see them here
         </p>
@@ -321,24 +333,24 @@ const DocumentGrid: React.FC<DocumentGridProps> = ({ documents, getDocumentIcon 
       {documents.map((doc) => (
         <div
           key={doc.id}
-          className="flex items-center p-3 bg-white rounded-lg shadow-sm border border-border hover:shadow-md transition-shadow cursor-pointer"
+          className="flex items-center p-3 bg-gray-800 rounded-lg border border-gray-700 hover:bg-gray-700 transition-shadow cursor-pointer"
         >
           <div className="bg-todo-purple bg-opacity-10 p-2 rounded-lg mr-3 flex-shrink-0">
             {getDocumentIcon(doc.type)}
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="font-medium text-todo-black truncate">
+            <h4 className="font-medium text-white truncate">
               {doc.name}
             </h4>
             <div className={cn(
-              "flex items-center text-xs text-muted-foreground mt-1",
+              "flex items-center text-xs text-gray-400 mt-1",
               isMobile && "flex-wrap gap-1"
             )}>
               <span className="truncate">
                 {doc.date.toLocaleDateString()}
               </span>
               {!isMobile && <span className="mx-1.5">•</span>}
-              <span className="bg-secondary/50 px-2 py-0.5 rounded-full truncate">
+              <span className="bg-gray-700 px-2 py-0.5 rounded-full truncate text-gray-300">
                 {doc.category}
               </span>
             </div>

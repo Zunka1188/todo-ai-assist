@@ -203,32 +203,33 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-background text-foreground border-gray-700">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-white">
               {isEditing ? "Edit Item" : "Add New Item"}
             </DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Title*</Label>
+              <Label htmlFor="title" className="text-gray-300">Title*</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter title"
                 required
+                className="bg-gray-800 border-gray-700 text-white"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category" className="text-gray-300">Category</Label>
               <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-gray-800 border-gray-700 text-white">
                   {categories.map((cat) => (
                     <SelectItem key={cat} value={cat}>
                       {cat}
@@ -239,44 +240,47 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description" className="text-gray-300">Description</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Enter description"
                 rows={3}
+                className="bg-gray-800 border-gray-700 text-white"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tags">Tags (comma separated)</Label>
+              <Label htmlFor="tags" className="text-gray-300">Tags (comma separated)</Label>
               <Input
                 id="tags"
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
                 placeholder="e.g., important, work, personal"
+                className="bg-gray-800 border-gray-700 text-white"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date" className="text-gray-300">Date</Label>
               <Input
                 id="date"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                className="bg-gray-800 border-gray-700 text-white"
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Image</Label>
+              <Label className="text-gray-300">Image</Label>
               {image ? (
                 <div className="relative">
                   <img 
                     src={image} 
                     alt="Preview" 
-                    className="w-full h-48 object-contain border rounded-md"
+                    className="w-full h-48 object-contain border rounded-md border-gray-700"
                   />
                   <Button
                     type="button"
@@ -293,7 +297,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
                   <Button
                     type="button"
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
                   >
@@ -308,7 +312,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
                   <Button
                     type="button"
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
                     onClick={handleCameraCapture}
                     disabled={isUploading}
                   >
@@ -328,10 +332,18 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+                className="border-gray-700 text-white hover:bg-gray-700"
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="bg-todo-purple hover:bg-todo-purple/90">
+              <Button 
+                type="submit" 
+                className="bg-todo-purple hover:bg-todo-purple/90"
+              >
                 {isEditing ? (
                   <>
                     <Save className="h-4 w-4 mr-2" />
