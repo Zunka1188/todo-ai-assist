@@ -6,6 +6,7 @@ import { Check, Repeat, MoreVertical, Maximize2, Edit, Trash2 } from 'lucide-rea
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useTheme } from '@/hooks/use-theme';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ShoppingItemButtonProps {
   completed: boolean;
@@ -36,11 +37,22 @@ const ShoppingItemButton = ({
 }: ShoppingItemButtonProps) => {
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const { theme } = useTheme();
+  const { isMobile } = useIsMobile();
   
   const bgColor = theme === 'dark' ? '#1E1E1E' : 'white';
   const textColor = theme === 'dark' ? '#E0E0E0' : 'black';
   const borderColor = theme === 'dark' ? '#333333' : '#e2e8f0';
   const secondaryTextColor = theme === 'dark' ? '#B0B0B0' : '#64748b';
+  
+  // Scale factors for mobile (70% of original size)
+  const containerWidth = isMobile ? '168px' : '240px'; // 70% of 240px for mobile
+  const containerHeight = isMobile ? 'auto' : 'auto';
+  const imageSize = isMobile ? '56px' : '80px'; // 70% of 80px
+  const headerHeight = isMobile ? '28px' : '40px'; // 70% of 40px
+  const buttonHeight = isMobile ? '28px' : '40px'; // 70% of 40px
+  const fontSize = isMobile ? '13px' : '16px';
+  const detailsFontSize = isMobile ? '12px' : '15px';
+  const iconSize = isMobile ? 12 : 14;
   
   const handleDropdownClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -60,7 +72,7 @@ const ShoppingItemButton = ({
   return (
     <>
       <div className="shopping-item-container" style={{
-        width: '240px',
+        width: containerWidth,
         border: `2px solid ${borderColor}`,
         borderRadius: '6px',
         overflow: 'hidden',
@@ -70,9 +82,9 @@ const ShoppingItemButton = ({
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.2)',
         backgroundColor: bgColor
       }}>
-        {/* Top Section: Item Name - 40px height */}
+        {/* Top Section: Item Name - scaled height */}
         <div style={{
-          height: '40px',
+          height: headerHeight,
           padding: '0 12px',
           borderBottom: `1px solid ${borderColor}`,
           backgroundColor: bgColor,
@@ -81,7 +93,7 @@ const ShoppingItemButton = ({
           justifyContent: 'center'
         }}>
           <div style={{
-            fontSize: '16px',
+            fontSize: fontSize,
             fontWeight: 'bold',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
@@ -94,16 +106,15 @@ const ShoppingItemButton = ({
           </div>
         </div>
         
-        {/* Middle Section: Product Image & Details - 80px height */}
+        {/* Middle Section: Product Image & Details - scaled height */}
         <div style={{
           display: 'flex',
-          height: '80px',
           width: '100%'
         }}>
-          {/* Left Column - Product Image (80x80px) */}
+          {/* Left Column - Product Image (scaled size) */}
           <div style={{
-            width: '80px',
-            height: '80px',
+            width: imageSize,
+            height: imageSize,
             flexShrink: 0,
             cursor: imageUrl ? 'pointer' : 'default'
           }} onClick={handleImageClick}>
@@ -129,20 +140,20 @@ const ShoppingItemButton = ({
                 justifyContent: 'center'
               }} aria-hidden="true">
                 <span style={{
-                  fontSize: '12px',
+                  fontSize: isMobile ? '10px' : '12px',
                   color: secondaryTextColor
                 }}>No image</span>
               </div>
             )}
           </div>
           
-          {/* Right Column - Product Details with structured alignment */}
+          {/* Right Column - Product Details with structured alignment - scaled width */}
           <div style={{
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            width: '160px',
-            height: '80px',
+            width: `calc(${containerWidth} - ${imageSize})`,
+            height: imageSize,
             position: 'relative'
           }}>
             {/* Menu (⋮) Icon - positioned at top right */}
@@ -158,10 +169,10 @@ const ShoppingItemButton = ({
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8 p-0"
+                      className={isMobile ? "h-6 w-6 p-0" : "h-8 w-8 p-0"}
                       style={{ color: theme === 'dark' ? '#B0B0B0' : undefined }}
                     >
-                      <MoreVertical className="h-5 w-5" />
+                      <MoreVertical className={isMobile ? "h-4 w-4" : "h-5 w-5"} />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent 
@@ -223,13 +234,13 @@ const ShoppingItemButton = ({
             <div style={{ 
               display: 'flex',
               alignItems: 'center',
-              height: '30px',
+              height: isMobile ? '22px' : '30px',
               paddingLeft: '10px',
               paddingRight: '20px' // Additional space for the menu icon
             }}>
               {quantity && (
                 <div className="flex items-center" style={{
-                  fontSize: '15px',
+                  fontSize: detailsFontSize,
                   fontWeight: 600,
                   color: textColor
                 }}>
@@ -242,18 +253,18 @@ const ShoppingItemButton = ({
             <div style={{ 
               display: 'flex', 
               alignItems: 'center',
-              height: '30px',
+              height: isMobile ? '22px' : '30px',
               paddingLeft: '10px'
             }}>
               {repeatOption && repeatOption !== 'none' && (
                 <div style={{ 
                   display: 'flex', 
                   alignItems: 'center',
-                  fontSize: '14px', 
+                  fontSize: isMobile ? '11px' : '14px', 
                   fontWeight: 400,
                   color: textColor
                 }}>
-                  <Repeat size={14} style={{ marginRight: '4px' }} />
+                  <Repeat size={iconSize} style={{ marginRight: '4px' }} />
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
                   </span>
@@ -263,9 +274,9 @@ const ShoppingItemButton = ({
           </div>
         </div>
         
-        {/* Bottom Section: Purchase Button - 40px height */}
+        {/* Bottom Section: Purchase Button - scaled height */}
         <div style={{
-          height: '40px',
+          height: buttonHeight,
           backgroundColor: completed ? '#6c757d' : '#28A745', // Using green color exactly as specified
           display: 'flex',
           alignItems: 'center',
@@ -273,7 +284,7 @@ const ShoppingItemButton = ({
           borderTop: `1px solid ${borderColor}`,
           color: 'white',
           fontWeight: 600,
-          fontSize: '15px',
+          fontSize: isMobile ? '13px' : '15px',
           cursor: 'pointer',
           boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.1)',
           transition: 'background-color 0.2s ease',
@@ -289,7 +300,7 @@ const ShoppingItemButton = ({
         >
           {completed ? (
             <>
-              <Check size={16} style={{ marginRight: '8px' }} />
+              <Check size={isMobile ? 14 : 16} style={{ marginRight: '8px' }} />
               <span>Purchased</span>
             </>
           ) : (

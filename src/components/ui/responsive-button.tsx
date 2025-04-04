@@ -2,6 +2,7 @@
 import React from 'react';
 import { EllipsisVertical, Repeat } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ResponsiveButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string;
@@ -39,6 +40,18 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     imageUrl,
     ...props 
   }, ref) => {
+    const { isMobile } = useIsMobile();
+    
+    // Scale dimensions for mobile (70% of original)
+    const containerWidth = isMobile ? '168px' : '240px'; // 70% of 240px
+    const containerHeight = isMobile ? '67px' : '96px'; // 70% of 96px
+    const topSectionHeight = isMobile ? '45px' : '64px'; // 70% of 64px
+    const bottomSectionHeight = isMobile ? '22px' : '32px'; // 70% of 32px
+    const imageSize = isMobile ? '34px' : '48px'; // 70% of 48px
+    const margin = isMobile ? '5px' : '8px';
+    const fontSize = isMobile ? '13px' : '16px';
+    const detailsFontSize = isMobile ? '10px' : '12px';
+    const adjustedIconSize = isMobile ? iconSize * 0.7 : iconSize;
     
     const handleIconClick = (e: React.MouseEvent) => {
       e.stopPropagation(); // Prevent button click when clicking the icon
@@ -53,8 +66,8 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     // Using the exact grocery item widget style per specifications
     return (
       <div style={{
-        width: '240px',
-        height: '96px',
+        width: containerWidth,
+        height: containerHeight,
         border: '2px solid var(--border-color, #e2e8f0)',
         borderRadius: '6px',
         overflow: 'hidden',
@@ -64,17 +77,17 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         backgroundColor: 'var(--bg-color, white)'
       }}>
-        {/* Top Section: Product Image & Details (64px height) */}
+        {/* Top Section: Product Image & Details */}
         <div style={{
           display: 'flex',
-          height: '64px',
+          height: topSectionHeight,
           width: '100%'
         }}>
-          {/* Left Column - Product Image (48x48px with 8px margin) */}
+          {/* Left Column - Product Image */}
           <div style={{
-            width: '48px',
-            height: '48px',
-            margin: '8px',
+            width: imageSize,
+            height: imageSize,
+            margin: margin,
             flexShrink: 0
           }}>
             {imageUrl ? (
@@ -101,7 +114,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
                 justifyContent: 'center'
               }} aria-hidden="true">
                 <span style={{
-                  fontSize: '10px',
+                  fontSize: isMobile ? '8px' : '10px',
                   color: '#64748b'
                 }}>No img</span>
               </div>
@@ -113,11 +126,11 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            marginLeft: '8px',
+            marginLeft: margin,
             flexGrow: 1,
             overflow: 'hidden',
-            paddingRight: '8px',
-            maxWidth: '176px'
+            paddingRight: margin,
+            maxWidth: `calc(${containerWidth} - ${imageSize} - ${margin} * 3)`
           }}>
             <div style={{
               display: 'flex',
@@ -126,7 +139,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
               justifyContent: 'space-between'
             }}>
               <span style={{
-                fontSize: '16px',
+                fontSize: fontSize,
                 fontWeight: 'bold',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -154,7 +167,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
                   tabIndex={0}
                 >
                   <EllipsisVertical 
-                    size={iconSize} 
+                    size={adjustedIconSize} 
                     style={{ color: 'currentColor' }} 
                   />
                 </div>
@@ -166,11 +179,11 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
               <div style={{
                 display: 'flex',
                 flexWrap: 'wrap',
-                gap: '8px',
+                gap: isMobile ? '5px' : '8px',
                 width: '100%',
-                fontSize: '12px',
+                fontSize: detailsFontSize,
                 color: '#64748b',
-                marginTop: '4px'
+                marginTop: isMobile ? '2px' : '4px'
               }}>
                 {quantity && (
                   <span style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -179,7 +192,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
                 )}
                 {repeatOption && repeatOption !== 'none' && (
                   <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    <Repeat size={10} style={{ marginRight: '4px' }} />
+                    <Repeat size={isMobile ? 8 : 10} style={{ marginRight: '4px' }} />
                     {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
                   </span>
                 )}
@@ -188,7 +201,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
           </div>
         </div>
         
-        {/* Bottom Section: Button (32px height) */}
+        {/* Bottom Section: Button */}
         <button
           ref={ref}
           onClick={onClick}
@@ -197,7 +210,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
             bottom: 0,
             left: 0,
             right: 0,
-            height: '32px',
+            height: bottomSectionHeight,
             backgroundColor: variant === 'default' ? '#28a745' : '#6c757d',
             display: 'flex',
             alignItems: 'center',
@@ -205,7 +218,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
             borderTop: '1px solid #e2e8f0',
             color: 'white',
             fontWeight: 500,
-            fontSize: '14px',
+            fontSize: isMobile ? '12px' : '14px',
             width: '100%',
             border: 'none',
             cursor: 'pointer'

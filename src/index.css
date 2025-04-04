@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -107,6 +108,32 @@
   .purchase-button:hover {
     background-color: #28a745 !important;
     opacity: 1 !important;
+  }
+  
+  /* Shopping items grid layout for responsive display */
+  .shopping-items-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1rem;
+    width: 100%;
+  }
+  
+  @media (min-width: 480px) {
+    .shopping-items-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .shopping-items-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .shopping-items-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
   }
 }
 
