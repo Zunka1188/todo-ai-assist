@@ -84,6 +84,7 @@ import ShoppingItemButton from './ShoppingItemButton';
 interface ShoppingListProps {
   searchTerm?: string;
   filterMode: 'one-off' | 'weekly' | 'monthly' | 'all';
+  onEditItem?: (id: string) => void;
 }
 
 type SortOption = 
@@ -160,7 +161,7 @@ const saveToLocalStorage = (key: string, value: any): void => {
   }
 };
 
-const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode }) => {
+const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode, onEditItem }) => {
   const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
   
   const [items, setItems] = useState<ShoppingItem[]>(() => 
@@ -292,6 +293,11 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   };
 
   const handleEditItem = (item: ShoppingItem) => {
+    if (onEditItem) {
+      onEditItem(item.id);
+      return;
+    }
+    
     setItemToEdit(item);
     setEditItemName(item.name);
     setEditItemCategory(item.category);
