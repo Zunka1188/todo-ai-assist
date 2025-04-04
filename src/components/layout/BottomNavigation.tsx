@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, ShoppingBag, Calendar, Camera, HelpCircle } from 'lucide-react';
+import { Home, ShoppingBag, Calendar, Camera, FileText } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
@@ -17,9 +17,9 @@ const BottomNavigation = () => {
   const navItems = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/shopping', icon: ShoppingBag, label: 'Shopping' },
-    { path: '/scan', icon: Camera, label: 'Scan' },
     { path: '/calendar', icon: Calendar, label: 'Calendar' },
-    { path: '/troubleshoot', icon: HelpCircle, label: 'Help' },
+    { path: '/documents', icon: FileText, label: 'Documents' },
+    { path: '/scan', icon: Camera, label: 'Scan' },
   ];
 
   // If not mobile, don't render the bottom navigation
