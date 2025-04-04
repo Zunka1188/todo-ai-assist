@@ -18,6 +18,9 @@ const DocumentsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
+  // Define categories for documents
+  const categories = ['Personal', 'Work', 'Travel', 'Cooking', 'Receipts', 'Other'];
+  
   const goBack = () => {
     navigate('/');
   };
@@ -142,7 +145,9 @@ const DocumentsPage = () => {
       <AddDocumentDialog 
         open={isAddDialogOpen} 
         onClose={() => setIsAddDialogOpen(false)}
-        onSave={handleAddDocument}
+        onAdd={handleAddDocument}
+        currentCategory="Personal"
+        categories={categories}
       />
     </div>
   );

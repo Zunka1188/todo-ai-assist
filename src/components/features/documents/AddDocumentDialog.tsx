@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, X, Camera, Upload, Loader2, Save, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
