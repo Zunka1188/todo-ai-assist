@@ -37,7 +37,7 @@ const ShoppingItemButton = ({
       size="sm"
       className={cn(
         "flex flex-col items-start justify-center gap-1 transition-colors w-full",
-        "h-auto min-h-[80px]", // Set a consistent minimum height for all buttons
+        "h-auto min-h-[80px] px-3 py-2", // Set a consistent size with explicit padding
         className
       )}
       onClick={onClick}

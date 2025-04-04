@@ -57,7 +57,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         variant={variant}
         onClick={onClick}
         className={cn(
-          "w-auto max-w-[200px] h-auto min-h-[80px] px-4 flex flex-col items-start justify-center gap-1 transition-all duration-200",
+          "w-auto max-w-[200px] h-auto min-h-[80px] px-3 py-2 flex flex-col items-start justify-center gap-1 transition-all duration-200",
           "rounded-lg overflow-hidden relative",
           active && "bg-primary text-primary-foreground hover:bg-primary/90",
           className
