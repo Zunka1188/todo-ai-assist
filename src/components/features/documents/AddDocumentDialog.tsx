@@ -41,14 +41,14 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   onClose,
   onAdd,
   currentCategory,
-  categories,
+  categories = [],
   isEditing = false,
   editItem = null
 }) => {
   const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState(currentCategory);
+  const [category, setCategory] = useState(currentCategory || 'Personal');
   const [tags, setTags] = useState('');
   const [date, setDate] = useState('');
   const [image, setImage] = useState<string | null>(null);
@@ -72,7 +72,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
         // New item - reset form
         setTitle('');
         setDescription('');
-        setCategory(currentCategory);
+        setCategory(currentCategory || 'Personal');
         setTags('');
         setDate('');
         setImage(null);
