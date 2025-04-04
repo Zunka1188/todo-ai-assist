@@ -33,7 +33,6 @@ const ShoppingPage = () => {
 
   const handleAddItem = (item: { 
     name: string, 
-    category: string, 
     notes?: string, 
     amount?: string, 
     dateToPurchase?: string, 

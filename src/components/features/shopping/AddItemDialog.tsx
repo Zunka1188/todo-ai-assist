@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog,
@@ -40,7 +41,6 @@ interface AddItemDialogProps {
   onOpenChange: (open: boolean) => void;
   onSave: (item: { 
     name: string, 
-    category: string, 
     notes?: string, 
     amount?: string, 
     dateToPurchase?: string, 
@@ -56,8 +56,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
   const [name, setName] = useState('');
-  const [category, setCategory] = useState('');
-  const [customCategory, setCustomCategory] = useState('');
   const [notes, setNotes] = useState('');
   const [amount, setAmount] = useState('');
   const [dateToPurchase, setDateToPurchase] = useState('');
@@ -66,7 +64,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   const [fileName, setFileName] = useState('');
   const [fileType, setFileType] = useState('');
   const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
-  const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [fullScreenPreview, setFullScreenPreview] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -74,8 +71,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-
-  const predefinedCategories = ["Other", "Style", "Recipes", "Travel", "Fitness", "Files"];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -153,28 +148,13 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
     }
   };
 
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    if (value === "custom") {
-      setIsCustomCategory(true);
-      setCategory('');
-    } else {
-      setIsCustomCategory(false);
-      setCategory(value);
-      setCustomCategory('');
-    }
-  };
-
   const handleSave = () => {
     if (name.trim() === '' && !file) {
       return;
     }
     
-    const finalCategory = isCustomCategory ? customCategory : category;
-    
     const itemData = {
       name: name.trim() || (fileName ? fileName : 'Untitled Item'),
-      category: finalCategory || 'Other',
       notes,
       amount,
       dateToPurchase,
@@ -192,8 +172,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
 
   const resetForm = () => {
     setName('');
-    setCategory('');
-    setCustomCategory('');
     setNotes('');
     setAmount('');
     setDateToPurchase('');
@@ -202,7 +180,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
     setFileName('');
     setFileType('');
     setImageOptionsOpen(false);
-    setIsCustomCategory(false);
     setFullScreenPreview(false);
     setRepeatOption('none');
   };
@@ -226,19 +203,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   const handleAnalysisComplete = (result: AnalysisResult) => {
     // Apply AI analysis results to form fields
     if (result.title) setName(result.title);
-    
-    // Match the category from analysis to one of our available categories
-    if (result.category) {
-      const lowerCaseCategory = result.category.toLowerCase();
-      // Check if the category exists in our list
-      const foundCategory = predefinedCategories.find(cat => 
-        cat.toLowerCase() === lowerCaseCategory
-      );
-      if (foundCategory) {
-        setCategory(foundCategory);
-      }
-    }
-    
     if (result.description) setNotes(result.description);
     if (result.price) setPrice(result.price);
     
@@ -390,32 +354,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="category">Category *</Label>
-                  <select
-                    id="category"
-                    value={isCustomCategory ? "custom" : category}
-                    onChange={handleCategoryChange}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option value="">Select a category</option>
-                    {predefinedCategories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                    <option value="custom">Add custom category</option>
-                  </select>
-                  
-                  {isCustomCategory && (
-                    <div className="mt-2">
-                      <Input
-                        placeholder="Enter custom category"
-                        value={customCategory}
-                        onChange={(e) => setCustomCategory(e.target.value)}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid gap-2">
                   <Label htmlFor="file">File</Label>
                   <div className="space-y-2">
                     <div className="grid grid-cols-2 gap-2">
@@ -534,7 +472,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                   />
                 </div>
                 
-                {/* New Repeat Option Field */}
+                {/* Repeat Option Field */}
                 <div className="grid gap-2">
                   <Label htmlFor="repeat-option">Repeat</Label>
                   <Select 
