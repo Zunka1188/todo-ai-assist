@@ -209,6 +209,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   const carouselRef = useRef(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const purchasedSectionRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     saveToLocalStorage('shoppingItems', items);
@@ -219,34 +220,44 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   }, [categories]);
 
   const scrollToPurchasedSection = () => {
-    if (purchasedSectionRef.current && scrollAreaRef.current) {
+    if (purchasedSectionRef.current) {
       if (isPurchasedSectionCollapsed) {
         setIsPurchasedSectionCollapsed(false);
         
         setTimeout(() => {
-          if (purchasedSectionRef.current && scrollAreaRef.current) {
-            const sectionTop = purchasedSectionRef.current.offsetTop;
-            if (sectionTop > 0) {
-              scrollAreaRef.current.scrollTo({ 
-                top: sectionTop - 20, 
-                behavior: 'smooth' 
-              });
-              console.log('Scrolling to purchased section at position:', sectionTop);
-            }
-          }
-        }, 150);
+          scrollToSection();
+        }, 250);
       } else {
-        const sectionTop = purchasedSectionRef.current.offsetTop;
-        if (sectionTop > 0) {
-          scrollAreaRef.current.scrollTo({ 
-            top: sectionTop - 20, 
-            behavior: 'smooth' 
-          });
-          console.log('Scrolling to purchased section at position:', sectionTop);
-        }
+        scrollToSection();
       }
     } else {
-      console.log('Purchase section or scroll area ref not found');
+      console.log('Purchase section ref not found');
+    }
+  };
+
+  const scrollToSection = () => {
+    if (purchasedSectionRef.current) {
+      try {
+        if (viewportRef.current) {
+          const sectionPosition = purchasedSectionRef.current.getBoundingClientRect();
+          const viewportPosition = viewportRef.current.getBoundingClientRect();
+          const relativeTop = sectionPosition.top - viewportPosition.top;
+          
+          viewportRef.current.scrollBy({
+            top: relativeTop - 40,
+            behavior: 'smooth'
+          });
+          console.log('Scrolling using viewport ref, position:', relativeTop);
+        } else {
+          purchasedSectionRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+          console.log('Scrolling using scrollIntoView');
+        }
+      } catch (error) {
+        console.error('Error scrolling to section:', error);
+      }
     }
   };
 
@@ -765,6 +776,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
               className="h-8 flex items-center gap-1" 
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 scrollToPurchasedSection();
               }}
             >
@@ -776,8 +788,8 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
       </div>
 
       <ScrollArea 
-        className="h-[calc(100vh-320px)] pr-4 shopping-items-scroll-area smooth-scroll" 
-        ref={scrollAreaRef}
+        className="h-[calc(100vh-320px)] pr-4 shopping-items-scroll-area" 
+        scrollRef={viewportRef}
       >
         <div className="mb-4">
           <h3 className="text-xs font-medium mb-3 text-muted-foreground">Not Purchased ({notPurchasedItems.length})</h3>
@@ -957,7 +969,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
           
           {purchasedItems.length > 0 && (
             <div 
-              className="mt-6" 
+              className="mt-6 pt-2" 
               ref={purchasedSectionRef}
               id="purchased-section"
             >
