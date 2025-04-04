@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -63,30 +62,32 @@ const ShoppingList = ({
       ) : (
         <ScrollArea className="h-[calc(100vh-280px)]">
           {/* Unpurchased Items Section */}
-          <div className={`shopping-items-grid grid ${isMobile ? 'grid-cols-3 gap-2' : 'grid-cols-4 gap-4'}`}>
-            {unpurchasedItems.map((item) => (
-              <ShoppingItemButton
-                key={item.id}
-                name={item.name}
-                completed={item.completed}
-                quantity={item.amount}
-                repeatOption={item.repeatOption}
-                imageUrl={item.imageUrl}
-                notes={item.notes}
-                onClick={() => toggleItemCompletion(item.id)}
-                onDelete={() => deleteItem(item.id)}
-                onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
-                onImagePreview={item.imageUrl ? () => handleImagePreview(item.imageUrl!) : undefined}
-              />
-            ))}
-          </div>
+          {unpurchasedItems.length > 0 && (
+            <div className={`shopping-items-grid grid ${isMobile ? 'grid-cols-3 gap-2' : 'grid-cols-4 gap-4'}`}>
+              {unpurchasedItems.map((item) => (
+                <ShoppingItemButton
+                  key={item.id}
+                  name={item.name}
+                  completed={item.completed}
+                  quantity={item.amount}
+                  repeatOption={item.repeatOption}
+                  imageUrl={item.imageUrl}
+                  notes={item.notes}
+                  onClick={() => toggleItemCompletion(item.id)}
+                  onDelete={() => deleteItem(item.id)}
+                  onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
+                  onImagePreview={item.imageUrl ? () => handleImagePreview(item.imageUrl!) : undefined}
+                />
+              ))}
+            </div>
+          )}
           
           {/* Purchased Items Section - only show if there are purchased items */}
           {purchasedItems.length > 0 && (
-            <>
-              <Separator className="my-6" />
-              <h3 className="text-lg font-medium mb-4">Purchased Items</h3>
-              <div className={`shopping-items-grid grid ${isMobile ? 'grid-cols-3 gap-2' : 'grid-cols-4 gap-4'} pb-8`}>
+            <div className="mt-6 mb-8">
+              <Separator className="mb-4" />
+              <h3 className="text-lg font-medium mb-4 px-1">{isMobile ? 'Purchased' : 'Purchased Items'}</h3>
+              <div className={`shopping-items-grid grid ${isMobile ? 'grid-cols-3 gap-2' : 'grid-cols-4 gap-4'}`}>
                 {purchasedItems.map((item) => (
                   <ShoppingItemButton
                     key={item.id}
@@ -103,7 +104,7 @@ const ShoppingList = ({
                   />
                 ))}
               </div>
-            </>
+            </div>
           )}
         </ScrollArea>
       )}
