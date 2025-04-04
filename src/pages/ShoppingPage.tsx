@@ -15,7 +15,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Define the tab types
-type ShoppingTab = 'all' | 'text' | 'image';
+type ShoppingTab = 'all' | 'weekly' | 'monthly';
 
 const ShoppingPage = () => {
   const navigate = useNavigate();
@@ -40,7 +40,8 @@ const ShoppingPage = () => {
     price?: string, 
     file?: string | null,
     fileName?: string,
-    fileType?: string
+    fileType?: string,
+    repeatOption?: 'none' | 'weekly' | 'monthly'
   }) => {
     // In a real app, this would add the item to a database
     console.log('Adding item:', item);
@@ -51,17 +52,11 @@ const ShoppingPage = () => {
       variant: "default",
     });
     
-    // Determine if the item has a file to update the appropriate tab
-    if (item.file) {
-      // If we're in text mode but adding an item with file, switch to all view
-      if (activeTab === 'text') {
-        setActiveTab('all');
-      }
-    } else {
-      // If we're in image mode but adding a text item, switch to all view
-      if (activeTab === 'image') {
-        setActiveTab('all');
-      }
+    // If we have a repeat option, update the appropriate tab
+    if (item.repeatOption === 'weekly' && activeTab !== 'weekly') {
+      setActiveTab('weekly');
+    } else if (item.repeatOption === 'monthly' && activeTab !== 'monthly') {
+      setActiveTab('monthly');
     }
   };
 
@@ -111,7 +106,7 @@ const ShoppingPage = () => {
       
       <Separator className="my-2" />
       
-      {/* Tab Navigation - similar to Calendar page */}
+      {/* Tab Navigation - updated with Weekly and Monthly tabs */}
       <div className="mb-4">
         <Tabs 
           defaultValue="all" 
@@ -121,8 +116,8 @@ const ShoppingPage = () => {
         >
           <TabsList className="grid grid-cols-3 w-full">
             <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="text">Text</TabsTrigger>
-            <TabsTrigger value="image">Image</TabsTrigger>
+            <TabsTrigger value="weekly">Weekly</TabsTrigger>
+            <TabsTrigger value="monthly">Monthly</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="mt-0 pt-4">
@@ -132,17 +127,17 @@ const ShoppingPage = () => {
             />
           </TabsContent>
           
-          <TabsContent value="text" className="mt-0 pt-4">
+          <TabsContent value="weekly" className="mt-0 pt-4">
             <ShoppingList 
               searchTerm={searchTerm} 
-              filterMode="text"
+              filterMode="weekly"
             />
           </TabsContent>
           
-          <TabsContent value="image" className="mt-0 pt-4">
+          <TabsContent value="monthly" className="mt-0 pt-4">
             <ShoppingList 
               searchTerm={searchTerm} 
-              filterMode="image"
+              filterMode="monthly"
             />
           </TabsContent>
         </Tabs>

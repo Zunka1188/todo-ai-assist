@@ -21,6 +21,7 @@ import {
   Search,
   Eye,
   Camera,
+  Repeat,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,11 +78,12 @@ import {
   AlertDialogContent,
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 // Define the missing interfaces
 interface ShoppingListProps {
   searchTerm?: string;
-  filterMode: 'all' | 'text' | 'image';
+  filterMode: 'all' | 'weekly' | 'monthly';
 }
 
 type SortOption = 
@@ -105,6 +107,7 @@ interface ShoppingItem {
   dateAdded: Date;
   imageUrl?: string;
   notes?: string;
+  repeatOption?: 'none' | 'weekly' | 'monthly';
 }
 
 const defaultCategories = [
@@ -116,10 +119,10 @@ const defaultCategories = [
 ];
 
 const initialItems: ShoppingItem[] = [
-  { id: '1', name: 'Dish Soap', completed: false, category: 'Household', dateAdded: new Date('2023-04-01') },
-  { id: '2', name: 'Apples', completed: false, category: 'Groceries', dateAdded: new Date('2023-04-02') },
-  { id: '3', name: 'Bread', completed: false, category: 'Groceries', dateAdded: new Date('2023-04-02') },
-  { id: '4', name: 'Toothpaste', completed: false, category: 'Household', dateAdded: new Date('2023-04-03'), imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60' },
+  { id: '1', name: 'Dish Soap', completed: false, category: 'Household', dateAdded: new Date('2023-04-01'), repeatOption: 'monthly' },
+  { id: '2', name: 'Apples', completed: false, category: 'Groceries', dateAdded: new Date('2023-04-02'), repeatOption: 'weekly' },
+  { id: '3', name: 'Bread', completed: false, category: 'Groceries', dateAdded: new Date('2023-04-02'), repeatOption: 'weekly' },
+  { id: '4', name: 'Toothpaste', completed: false, category: 'Household', dateAdded: new Date('2023-04-03'), imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60', repeatOption: 'monthly' },
 ];
 
 const parseStoredItems = (items: any[]): ShoppingItem[] => {
@@ -195,6 +198,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   const [newItemImage, setNewItemImage] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [editItemNotes, setEditItemNotes] = useState('');
+  const [editItemRepeatOption, setEditItemRepeatOption] = useState<'none' | 'weekly' | 'monthly'>('none');
   
   // Fixed duplicate ref declarations
   const editImageFileRef = useRef<HTMLInputElement>(null);
@@ -222,6 +226,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     setEditItemPrice(item.price || '');
     setEditItemImageUrl(item.imageUrl || '');
     setEditItemNotes(item.notes || '');
+    setEditItemRepeatOption(item.repeatOption || 'none');
     setIsEditItemDialogOpen(true);
   };
 
@@ -260,7 +265,8 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                   dateToPurchase: editItemDate || undefined,
                   price: editItemPrice || undefined,
                   imageUrl: newImageUrl,
-                  notes: editItemNotes || undefined
+                  notes: editItemNotes || undefined,
+                  repeatOption: editItemRepeatOption
                 } 
               : item
           );
@@ -285,7 +291,8 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
               dateToPurchase: editItemDate || undefined,
               price: editItemPrice || undefined,
               imageUrl: imageUrl || undefined,
-              notes: editItemNotes || undefined
+              notes: editItemNotes || undefined,
+              repeatOption: editItemRepeatOption
             } 
           : item
       );
@@ -378,25 +385,60 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     }
   };
 
+  // Modified to handle repeating items
   const toggleItem = (id: string) => {
     if (isMultiSelectActive) {
       handleItemSelect(id);
       return;
     }
     
-    const updatedItems = items.map((item) =>
-      item.id === id ? { ...item, completed: !item.completed } : item
-    );
-    
-    setItems(updatedItems);
-    
     const item = items.find(item => item.id === id);
-    if (item) {
+    
+    if (!item) return;
+    
+    // Handle repeating items logic
+    if (!item.completed) {
+      // Mark as completed
+      const updatedItems = items.map((i) =>
+        i.id === id ? { ...i, completed: true } : i
+      );
+      setItems(updatedItems);
+      
       toast({
-        description: item.completed 
-          ? `Moved "${item.name}" to Not Purchased` 
-          : `Moved "${item.name}" to Purchased`,
+        description: `Moved "${item.name}" to Purchased`,
       });
+    } else {
+      // If item is repeating, duplicate it when unmarking
+      if (item.repeatOption === 'weekly' || item.repeatOption === 'monthly') {
+        // Create a new item for next week/month
+        const newItem: ShoppingItem = {
+          ...item,
+          id: Date.now().toString(),
+          completed: false,
+          dateAdded: new Date()
+        };
+        
+        // Update the original item to be not completed
+        const updatedItems = items.map((i) =>
+          i.id === id ? { ...i, completed: false } : i
+        );
+        
+        setItems(updatedItems);
+        
+        toast({
+          description: `Moved "${item.name}" to Not Purchased`,
+        });
+      } else {
+        // Non-repeating items just get unmarked
+        const updatedItems = items.map((i) =>
+          i.id === id ? { ...i, completed: false } : i
+        );
+        setItems(updatedItems);
+        
+        toast({
+          description: `Moved "${item.name}" to Not Purchased`,
+        });
+      }
     }
   };
 
@@ -480,28 +522,33 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   };
   
   const getFilteredItems = () => {
-    let filtered = activeCategory === 'All' 
-      ? items 
-      : items.filter(item => item.category === activeCategory);
+    // Apply repeating filter first
+    let filtered = items;
     
+    switch (filterMode) {
+      case 'weekly':
+        filtered = items.filter(item => item.repeatOption === 'weekly');
+        break;
+      case 'monthly':
+        filtered = items.filter(item => item.repeatOption === 'monthly');
+        break;
+      case 'all':
+      default:
+        break;
+    }
+    
+    // Then apply category filter
+    if (activeCategory !== 'All') {
+      filtered = filtered.filter(item => item.category === activeCategory);
+    }
+    
+    // Finally apply search term
     if (searchTerm.trim() !== '') {
       const lowerSearchTerm = searchTerm.toLowerCase();
       filtered = filtered.filter(item => 
         item.name.toLowerCase().includes(lowerSearchTerm) || 
         item.category.toLowerCase().includes(lowerSearchTerm)
       );
-    }
-    
-    switch (filterMode) {
-      case 'text':
-        filtered = filtered.filter(item => !item.imageUrl);
-        break;
-      case 'image':
-        filtered = filtered.filter(item => !!item.imageUrl);
-        break;
-      case 'all':
-      default:
-        break;
     }
     
     return filtered;
@@ -894,6 +941,13 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                             {item.category}
                           </span>
                           
+                          {item.repeatOption && item.repeatOption !== 'none' && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 flex items-center">
+                              <Repeat className="h-3 w-3 mr-1" />
+                              {item.repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
+                            </span>
+                          )}
+                          
                           {item.price && (
                             <span className="text-xs px-2 py-1 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300">
                               ${item.price}
@@ -1081,6 +1135,13 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                                 {item.category}
                               </span>
                               
+                              {item.repeatOption && item.repeatOption !== 'none' && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 flex items-center">
+                                  <Repeat className="h-3 w-3 mr-1" />
+                                  {item.repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
+                                </span>
+                              )}
+                              
                               {item.price && (
                                 <span className="text-xs px-2 py-1 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300">
                                   ${item.price}
@@ -1137,122 +1198,146 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
           <DialogHeader>
             <DialogTitle>Edit Item</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-name">Item Name</Label>
-                <Input
-                  id="edit-name"
-                  placeholder="Enter item name"
-                  value={editItemName}
-                  onChange={(e) => setEditItemName(e.target.value)}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-category">Category</Label>
-                <select
-                  id="edit-category"
-                  value={editItemCategory}
-                  onChange={(e) => setEditItemCategory(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-image">Image (Optional)</Label>
-                <div className="flex gap-2">
+          <ScrollArea className="max-h-[60vh]">
+            <div className="space-y-4 px-1">
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-name">Item Name*</Label>
                   <Input
-                    id="edit-image"
-                    type="file"
-                    accept="image/*"
-                    ref={editImageFileRef}
-                    onChange={handleEditFileChange}
-                    className="hidden"
+                    id="edit-name"
+                    placeholder="Enter item name"
+                    value={editItemName}
+                    onChange={(e) => setEditItemName(e.target.value)}
                   />
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    ref={editCameraInputRef}
-                    onChange={handleEditFileChange}
-                    className="hidden"
-                  />
-                  
-                  <ImageOptionsDialog />
-                  
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-category">Category*</Label>
+                  <select
+                    id="edit-category"
+                    value={editItemCategory}
+                    onChange={(e) => setEditItemCategory(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-image">Image</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="edit-image"
+                      type="file"
+                      accept="image/*"
+                      ref={editImageFileRef}
+                      onChange={handleEditFileChange}
+                      className="hidden"
+                    />
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      ref={editCameraInputRef}
+                      onChange={handleEditFileChange}
+                      className="hidden"
+                    />
+                    
+                    <ImageOptionsDialog />
+                    
+                    {editItemImageUrl && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={clearEditImage}
+                        className="p-2"
+                        title="Remove image"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                   {editItemImageUrl && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={clearEditImage}
-                      className="p-2"
-                      title="Remove image"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <div className="mt-2 relative rounded-lg overflow-hidden border">
+                      <img 
+                        src={editItemImageUrl} 
+                        alt="Preview" 
+                        className="max-h-32 mx-auto object-contain"
+                      />
+                    </div>
                   )}
                 </div>
-                {editItemImageUrl && (
-                  <div className="mt-2 relative rounded-lg overflow-hidden border">
-                    <img 
-                      src={editItemImageUrl} 
-                      alt="Preview" 
-                      className="max-h-32 mx-auto object-contain"
+
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-repeat">Repeat</Label>
+                  <RadioGroup 
+                    value={editItemRepeatOption} 
+                    onValueChange={(value) => setEditItemRepeatOption(value as 'none' | 'weekly' | 'monthly')}
+                    className="flex flex-col space-y-1"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="none" id="none" />
+                      <Label htmlFor="none">None</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="weekly" id="weekly" />
+                      <Label htmlFor="weekly">Weekly</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="monthly" id="monthly" />
+                      <Label htmlFor="monthly">Monthly</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-amount">Quantity</Label>
+                    <Input
+                      id="edit-amount"
+                      placeholder="e.g., 2 boxes"
+                      value={editItemAmount}
+                      onChange={(e) => setEditItemAmount(e.target.value)}
                     />
                   </div>
-                )}
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="edit-amount">Quantity (Optional)</Label>
-                  <Input
-                    id="edit-amount"
-                    placeholder="e.g., 2 boxes"
-                    value={editItemAmount}
-                    onChange={(e) => setEditItemAmount(e.target.value)}
-                  />
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-price">Price</Label>
+                    <Input
+                      id="edit-price"
+                      type="number"
+                      placeholder="e.g., 9.99"
+                      value={editItemPrice}
+                      onChange={(e) => setEditItemPrice(e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-price">Price (Optional)</Label>
+                  <Label htmlFor="edit-date">Purchase By</Label>
                   <Input
-                    id="edit-price"
-                    type="number"
-                    placeholder="e.g., 9.99"
-                    value={editItemPrice}
-                    onChange={(e) => setEditItemPrice(e.target.value)}
+                    id="edit-date"
+                    type="date"
+                    value={editItemDate}
+                    onChange={(e) => setEditItemDate(e.target.value)}
                   />
                 </div>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-date">Purchase By (Optional)</Label>
-                <Input
-                  id="edit-date"
-                  type="date"
-                  value={editItemDate}
-                  onChange={(e) => setEditItemDate(e.target.value)}
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="edit-notes">Notes (Optional)</Label>
-                <Textarea
-                  id="edit-notes"
-                  placeholder="Add any additional notes here"
-                  value={editItemNotes}
-                  onChange={(e) => setEditItemNotes(e.target.value)}
-                  className="min-h-[80px]"
-                />
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-notes">Notes</Label>
+                  <Textarea
+                    id="edit-notes"
+                    placeholder="Add any additional notes here"
+                    value={editItemNotes}
+                    onChange={(e) => setEditItemNotes(e.target.value)}
+                    className="min-h-[80px]"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          </ScrollArea>
           <DialogFooter className={cn(isMobile && "flex-col gap-2")}>
             <Button 
               variant="outline" 
