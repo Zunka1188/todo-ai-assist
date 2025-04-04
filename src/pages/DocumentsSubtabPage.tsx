@@ -25,7 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 // Define the tab types
-type DocumentCategory = 'style' | 'recipes' | 'travel' | 'fitness' | 'other' | 'files';
+type DocumentCategory = 'other' | 'style' | 'recipes' | 'travel' | 'fitness' | 'files';
 
 // Define the item type
 interface DocumentItem {
@@ -102,6 +102,15 @@ const initialItems: DocumentItem[] = [
     content: 'Some miscellaneous notes that don\'t fit into other categories.',
     tags: ['general', 'misc'],
     date: new Date(2025, 3, 7)
+  },
+  {
+    id: '8',
+    title: 'Document File',
+    category: 'files',
+    type: 'note',
+    content: 'This is a sample file in the files category.',
+    tags: ['document', 'file'],
+    date: new Date(2025, 3, 8)
   }
 ];
 

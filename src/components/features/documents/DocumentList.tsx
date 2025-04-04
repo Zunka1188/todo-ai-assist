@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { File, Plus, FileText, FileSpreadsheet, FileCode, Image, FileArchive, Maximize2, Pencil, Trash2 } from 'lucide-react';
+import { File, Plus, FileText, FileSpreadsheet, FileCode, Image, FileArchive, Maximize2, Pencil, Trash2, ChefHat, Plane, Dumbbell, Shirt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AddDocumentDialog from './AddDocumentDialog';
 import FilePreview from './FilePreview';
@@ -22,9 +23,12 @@ interface Document {
   fileUrl?: string;
 }
 
+// Define the categories
+const CATEGORIES = ['other', 'style', 'recipes', 'travel', 'fitness', 'files'];
+
 const DocumentList: React.FC<DocumentListProps> = ({ 
   searchTerm = '', 
-  categories = ['other', 'style', 'recipes', 'travel', 'fitness', 'files'] 
+  categories = CATEGORIES 
 }) => {
   // State for add document dialog
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -33,11 +37,11 @@ const DocumentList: React.FC<DocumentListProps> = ({
   
   // Mock data - in a real app, this would come from a database or API
   const documents = [
-    { id: '1', title: 'Resume', category: 'Personal', date: '2025-03-15', fileType: 'pdf', fileUrl: 'https://picsum.photos/id/24/400/300' },
-    { id: '2', title: 'Project Plan', category: 'Work', date: '2025-03-20', fileType: 'word', fileUrl: 'https://picsum.photos/id/25/400/300' },
-    { id: '3', title: 'Vacation Itinerary', category: 'Travel', date: '2025-03-25', fileType: 'text', fileUrl: 'https://picsum.photos/id/26/400/300' },
-    { id: '4', title: 'Lease Agreement', category: 'Legal', date: '2025-03-10', fileType: 'pdf', fileUrl: 'https://picsum.photos/id/27/400/300' },
-    { id: '5', title: 'Budget Spreadsheet', category: 'Finance', date: '2025-03-05', fileType: 'excel', fileUrl: 'https://picsum.photos/id/28/400/300' },
+    { id: '1', title: 'Resume', category: 'other', date: '2025-03-15', fileType: 'pdf', fileUrl: 'https://picsum.photos/id/24/400/300' },
+    { id: '2', title: 'Project Plan', category: 'other', date: '2025-03-20', fileType: 'word', fileUrl: 'https://picsum.photos/id/25/400/300' },
+    { id: '3', title: 'Vacation Itinerary', category: 'travel', date: '2025-03-25', fileType: 'text', fileUrl: 'https://picsum.photos/id/26/400/300' },
+    { id: '4', title: 'Lease Agreement', category: 'other', date: '2025-03-10', fileType: 'pdf', fileUrl: 'https://picsum.photos/id/27/400/300' },
+    { id: '5', title: 'Budget Spreadsheet', category: 'other', date: '2025-03-05', fileType: 'excel', fileUrl: 'https://picsum.photos/id/28/400/300' },
   ];
 
   // Filter documents based on search term
@@ -66,6 +70,25 @@ const DocumentList: React.FC<DocumentListProps> = ({
     // In a real app, this would delete the document from the database
     console.log('Deleting document:', id);
     // For now we'll just log it
+  };
+
+  // Get category icon
+  const getCategoryIcon = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'style':
+        return <Shirt className="h-5 w-5 text-blue-500" />;
+      case 'recipes':
+        return <ChefHat className="h-5 w-5 text-green-500" />;
+      case 'travel':
+        return <Plane className="h-5 w-5 text-amber-500" />;
+      case 'fitness':
+        return <Dumbbell className="h-5 w-5 text-purple-500" />;
+      case 'files':
+        return <FileArchive className="h-5 w-5 text-gray-500" />;
+      case 'other':
+      default:
+        return <FileText className="h-5 w-5 text-gray-500" />;
+    }
   };
 
   // Get file type icon
@@ -112,7 +135,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
           onOpenChange={setIsAddDialogOpen}
           onAdd={handleAddDocument}
           categories={categories}
-          currentCategory="files"
+          currentCategory="other"
         />
       </div>
     );
@@ -138,14 +161,14 @@ const DocumentList: React.FC<DocumentListProps> = ({
           >
             <div className="flex items-start">
               <div className="mr-4 shrink-0 w-12">
-                {getFileTypeIcon(doc.fileType || 'unknown')}
+                {doc.category && getCategoryIcon(doc.category) || getFileTypeIcon(doc.fileType || 'unknown')}
               </div>
               <div className="flex-1">
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-medium">{doc.title}</h3>
                     <div className="text-sm text-muted-foreground mt-1">
-                      Category: {doc.category}
+                      Category: {doc.category.charAt(0).toUpperCase() + doc.category.slice(1)}
                     </div>
                     <div className="text-xs text-muted-foreground mt-0.5">
                       {doc.date}
@@ -202,7 +225,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
         onOpenChange={setIsAddDialogOpen}
         onAdd={handleAddDocument}
         categories={categories}
-        currentCategory="files"
+        currentCategory="other"
         editItem={editingItem ? {
           id: editingItem.id,
           title: editingItem.title,
