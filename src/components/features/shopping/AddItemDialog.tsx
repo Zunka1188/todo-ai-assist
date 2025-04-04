@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog,
@@ -49,7 +48,6 @@ interface ItemData {
   name: string;
   notes?: string;
   amount?: string;
-  price?: string;
   file?: string | null;
   fileName?: string;
   fileType?: string;
@@ -70,7 +68,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   const [name, setName] = useState('');
   const [notes, setNotes] = useState('');
   const [amount, setAmount] = useState('');
-  const [price, setPrice] = useState('');
   const [file, setFile] = useState<string | null>(null);
   const [fileName, setFileName] = useState('');
   const [fileType, setFileType] = useState('');
@@ -89,7 +86,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       setName(editItem.name || '');
       setNotes(editItem.notes || '');
       setAmount(editItem.amount || '');
-      setPrice(editItem.price || '');
       setFile(editItem.file || null);
       setFileName(editItem.fileName || '');
       setFileType(editItem.fileType || '');
@@ -175,7 +171,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       name: name.trim() || (fileName ? fileName : 'Untitled Item'),
       notes,
       amount,
-      price,
       file,
       fileName: fileName || undefined,
       fileType: fileType || undefined,
@@ -191,7 +186,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     setName('');
     setNotes('');
     setAmount('');
-    setPrice('');
     setFile(null);
     setFileName('');
     setFileType('');
@@ -219,7 +213,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   const handleAnalysisComplete = (result: AnalysisResult) => {
     if (result.title) setName(result.title);
     if (result.description) setNotes(result.description);
-    if (result.price) setPrice(result.price);
     
     setShowAnalysisModal(false);
     
@@ -345,7 +338,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     );
   }
 
-  // The main content of our dialog that both the desktop Dialog and mobile Drawer will use
   const dialogContent = (
     <>
       <div className={cn("space-y-4", isMobile && "pb-4")}>
@@ -446,27 +438,14 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="amount">Quantity</Label>
-              <Input
-                id="amount"
-                placeholder="e.g., 2 boxes"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="price">Price</Label>
-              <Input
-                id="price"
-                type="number"
-                placeholder="e.g., 9.99"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-              />
-            </div>
+          <div className="grid gap-2">
+            <Label htmlFor="amount">Quantity</Label>
+            <Input
+              id="amount"
+              placeholder="e.g., 2 boxes"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
           </div>
           
           <div className="grid gap-2">
@@ -501,7 +480,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     </>
   );
 
-  // Render different UI for mobile vs. desktop
   return (
     <>
       {isMobile ? (

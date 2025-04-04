@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -12,7 +11,6 @@ interface ShoppingItemButtonProps {
   onClick: (e: React.MouseEvent) => void;
   className?: string;
   quantity?: string;
-  price?: string; // We'll keep this in the props but not display it
   notes?: string; // We'll keep this in the props but not display it
   repeatOption?: 'none' | 'weekly' | 'monthly';
   name?: string;
@@ -26,7 +24,6 @@ const ShoppingItemButton = ({
   onClick, 
   className,
   quantity,
-  price,
   notes,
   repeatOption,
   name,

@@ -22,7 +22,6 @@ interface ItemData {
   name: string;
   notes?: string;
   amount?: string;
-  price?: string;
   file?: string | null;
   fileName?: string;
   fileType?: string;
@@ -96,7 +95,6 @@ const ShoppingPage = () => {
         name: item.name,
         notes: item.notes || '',
         amount: item.amount || '',
-        price: item.price || '',
         file: item.imageUrl || null,
         fileName: '',
         fileType: '',
@@ -113,7 +111,6 @@ const ShoppingPage = () => {
         name: itemName || `Item ${id}`,
         notes: `Some notes for item ${id}`,
         amount: '1',
-        price: '9.99',
         file: null,
         fileName: '',
         fileType: '',
