@@ -5,9 +5,10 @@ import { File } from 'lucide-react';
 // Define the props for DocumentList
 interface DocumentListProps {
   searchTerm?: string;
+  categories?: string[];
 }
 
-const DocumentList: React.FC<DocumentListProps> = ({ searchTerm = '' }) => {
+const DocumentList: React.FC<DocumentListProps> = ({ searchTerm = '', categories = [] }) => {
   // Mock data - in a real app, this would come from a database or API
   const documents = [
     { id: '1', title: 'Resume', category: 'Personal', date: '2025-03-15' },
