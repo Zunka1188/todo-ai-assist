@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Check, Calendar, Repeat } from 'lucide-react';
+import { Check, Repeat } from 'lucide-react';
 
 interface ShoppingItemButtonProps {
   completed: boolean;
@@ -11,10 +11,9 @@ interface ShoppingItemButtonProps {
   quantity?: string;
   price?: string;
   notes?: string;
-  dateToPurchase?: string;
   repeatOption?: 'none' | 'weekly' | 'monthly';
   name?: string;
-  imageUrl?: string; // Added imageUrl prop
+  imageUrl?: string;
 }
 
 const ShoppingItemButton = ({ 
@@ -24,13 +23,12 @@ const ShoppingItemButton = ({
   quantity,
   price,
   notes,
-  dateToPurchase,
   repeatOption,
   name,
   imageUrl
 }: ShoppingItemButtonProps) => {
   // Determine if we need to show additional info
-  const hasAdditionalInfo = quantity || price || notes || dateToPurchase || (repeatOption && repeatOption !== 'none') || imageUrl;
+  const hasAdditionalInfo = quantity || price || notes || (repeatOption && repeatOption !== 'none') || imageUrl;
   
   return (
     <Button
@@ -68,12 +66,6 @@ const ShoppingItemButton = ({
               ${price}
             </span>
           )}
-          {dateToPurchase && (
-            <span className="inline-flex items-center">
-              <Calendar size={10} className="mr-1" />
-              {new Date(dateToPurchase).toLocaleDateString()}
-            </span>
-          )}
           {repeatOption && repeatOption !== 'none' && (
             <span className="inline-flex items-center">
               <Repeat size={10} className="mr-1" />
@@ -90,7 +82,7 @@ const ShoppingItemButton = ({
               <img 
                 src={imageUrl} 
                 alt={name || "Product"} 
-                className="rounded-md w-[30%]" // Reduced size by 70%
+                className="rounded-md w-[30%]"
                 loading="lazy"
               />
             </div>

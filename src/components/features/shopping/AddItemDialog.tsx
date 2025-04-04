@@ -49,7 +49,6 @@ interface ItemData {
   name: string;
   notes?: string;
   amount?: string;
-  dateToPurchase?: string;
   price?: string;
   file?: string | null;
   fileName?: string;
@@ -71,7 +70,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   const [name, setName] = useState('');
   const [notes, setNotes] = useState('');
   const [amount, setAmount] = useState('');
-  const [dateToPurchase, setDateToPurchase] = useState('');
   const [price, setPrice] = useState('');
   const [file, setFile] = useState<string | null>(null);
   const [fileName, setFileName] = useState('');
@@ -91,7 +89,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       setName(editItem.name || '');
       setNotes(editItem.notes || '');
       setAmount(editItem.amount || '');
-      setDateToPurchase(editItem.dateToPurchase || '');
       setPrice(editItem.price || '');
       setFile(editItem.file || null);
       setFileName(editItem.fileName || '');
@@ -178,7 +175,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       name: name.trim() || (fileName ? fileName : 'Untitled Item'),
       notes,
       amount,
-      dateToPurchase,
       price,
       file,
       fileName: fileName || undefined,
@@ -195,7 +191,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     setName('');
     setNotes('');
     setAmount('');
-    setDateToPurchase('');
     setPrice('');
     setFile(null);
     setFileName('');
@@ -472,16 +467,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
                 onChange={(e) => setPrice(e.target.value)}
               />
             </div>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="date">Purchase By</Label>
-            <Input
-              id="date"
-              type="date"
-              value={dateToPurchase}
-              onChange={(e) => setDateToPurchase(e.target.value)}
-            />
           </div>
           
           <div className="grid gap-2">

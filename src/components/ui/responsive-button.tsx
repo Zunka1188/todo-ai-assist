@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { EllipsisVertical, Calendar, Repeat } from 'lucide-react';
+import { EllipsisVertical, Repeat } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -18,9 +18,8 @@ interface ResponsiveButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEle
   quantity?: string;
   price?: string;
   notes?: string;
-  dateToPurchase?: string;
   repeatOption?: 'none' | 'weekly' | 'monthly';
-  imageUrl?: string; // Added imageUrl prop
+  imageUrl?: string;
 }
 
 const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonProps>(
@@ -37,7 +36,6 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     quantity,
     price,
     notes,
-    dateToPurchase,
     repeatOption,
     imageUrl,
     ...props 
@@ -51,7 +49,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     };
 
     // Determine if we have details to show
-    const hasDetails = quantity || price || dateToPurchase || notes || (repeatOption && repeatOption !== 'none') || imageUrl;
+    const hasDetails = quantity || price || notes || (repeatOption && repeatOption !== 'none') || imageUrl;
     
     return (
       <Button
@@ -105,12 +103,6 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
                 ${price}
               </span>
             )}
-            {dateToPurchase && (
-              <span className="inline-flex items-center">
-                <Calendar size={10} className="mr-1" />
-                {new Date(dateToPurchase).toLocaleDateString()}
-              </span>
-            )}
             {repeatOption && repeatOption !== 'none' && (
               <span className="inline-flex items-center">
                 <Repeat size={10} className="mr-1" />
@@ -131,7 +123,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
             <img 
               src={imageUrl} 
               alt={text} 
-              className="rounded-md w-[30%]" // Reduced size by 70%
+              className="rounded-md w-[30%]"
               loading="lazy"
             />
           </div>
