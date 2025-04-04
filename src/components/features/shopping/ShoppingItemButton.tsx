@@ -31,10 +31,10 @@ const ShoppingItemButton = ({
   const hasAdditionalInfo = quantity || price || notes || (repeatOption && repeatOption !== 'none');
   
   return (
-    <div className="w-full max-w-[320px] h-[96px] bg-background rounded-md overflow-hidden flex flex-col">
+    <div className="w-full max-w-[320px] h-[96px] bg-background rounded-md overflow-hidden flex flex-col border border-border">
       {/* Top Section: Product Image & Details (64px height) */}
       <div className="flex h-[64px] w-full">
-        {/* Left Column - Product Image */}
+        {/* Left Column - Product Image (48x48px with 8px margin) */}
         <div className="w-[48px] h-[48px] my-auto ml-2">
           {imageUrl ? (
             <div 
@@ -47,8 +47,8 @@ const ShoppingItemButton = ({
           )}
         </div>
         
-        {/* Right Column - Product Details */}
-        <div className="flex flex-col justify-center ml-2 overflow-hidden">
+        {/* Right Column - Product Details (with 8px gap from image) */}
+        <div className="flex flex-col justify-center ml-2 overflow-hidden max-w-[256px]">
           {/* Product Name */}
           <div className="text-base font-bold truncate">
             {name || "Unnamed Product"}
@@ -86,22 +86,22 @@ const ShoppingItemButton = ({
       {/* Bottom Section: Purchase Button (32px height) */}
       <Button
         type="button"
-        variant={completed ? "completed" : "active"}
+        variant="purchase" 
+        size="purchase"
         className={cn(
           "w-full h-[32px] rounded-sm mt-auto",
           "flex items-center justify-center",
-          completed ? "bg-gray-400 text-white hover:bg-gray-500" : "bg-green-500 text-white hover:bg-green-600",
           className
         )}
         onClick={onClick}
       >
         {completed ? (
           <>
-            <Check size={16} className="mr-2" />
-            <span className="font-medium">Purchased</span>
+            <Check size={14} className="mr-2" />
+            <span className="font-medium text-sm">Purchased</span>
           </>
         ) : (
-          <span className="font-medium">Purchase</span>
+          <span className="font-medium text-sm">Purchase</span>
         )}
       </Button>
     </div>
