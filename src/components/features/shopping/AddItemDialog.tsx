@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { 
   Dialog,
@@ -59,7 +58,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const predefinedCategories = ["Groceries", "Household", "Electronics", "Clothing", "Other"];
+  const predefinedCategories = ["Groceries", "Household", "Electronics", "Clothing", "Files", "Other"];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
