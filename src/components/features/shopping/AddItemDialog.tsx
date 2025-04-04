@@ -35,7 +35,7 @@ import { useForm } from 'react-hook-form';
 interface AddItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (item: { name: string, category: string, image?: string | null }) => void;
+  onSave: (item: { name: string, category: string, notes?: string, amount?: string, dateToPurchase?: string, price?: string, image?: string | null }) => void;
 }
 
 const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
@@ -90,7 +90,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
 
   const handleSave = () => {
     // Don't save if both name and image are missing
-    if (name.trim() === '' && !imageFile) {
+    if (name.trim() === '' && !previewUrl) {
       return;
     }
     

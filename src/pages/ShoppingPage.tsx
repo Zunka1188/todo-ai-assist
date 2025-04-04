@@ -31,7 +31,7 @@ const ShoppingPage = () => {
     navigate('/');
   };
 
-  const handleAddItem = (item: { name: string, category: string, image?: string | null }) => {
+  const handleAddItem = (item: { name: string, category: string, notes?: string, amount?: string, dateToPurchase?: string, price?: string, image?: string | null }) => {
     // In a real app, this would add the item to a database
     console.log('Adding item:', item);
     
@@ -41,7 +41,18 @@ const ShoppingPage = () => {
       variant: "default",
     });
     
-    // The ShoppingList component would need to be updated to handle new items
+    // Determine if the item has an image to update the appropriate tab
+    if (item.image) {
+      // If we're in text mode but adding an image item, switch to all view
+      if (activeTab === 'text') {
+        setActiveTab('all');
+      }
+    } else {
+      // If we're in image mode but adding a text item, switch to all view
+      if (activeTab === 'image') {
+        setActiveTab('all');
+      }
+    }
   };
 
   return (
