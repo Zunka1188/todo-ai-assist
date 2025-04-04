@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ScrollArea } from '@/components/ui/scroll-area';
 import ImageAnalysisModal from './ImageAnalysisModal';
 import { AnalysisResult } from '@/utils/imageAnalysis';
 import FilePreview, { getFileTypeFromName } from './FilePreview';
@@ -274,171 +275,175 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title" className="text-gray-300">Title*</Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter title"
-                required
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
+          <ScrollArea className="h-[60vh] pr-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-gray-300">Title*</Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter title"
+                  required
+                  className="bg-gray-800 border-gray-700 text-white"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="category" className="text-gray-300">Category</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700 text-white">
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-gray-300">Category</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description" className="text-gray-300">Description</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Enter description"
-                rows={3}
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-gray-300">Description</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter description"
+                  rows={3}
+                  className="bg-gray-800 border-gray-700 text-white"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="tags" className="text-gray-300">Tags (comma separated)</Label>
-              <Input
-                id="tags"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="e.g., important, work, personal"
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="tags" className="text-gray-300">Tags (comma separated)</Label>
+                <Input
+                  id="tags"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="e.g., important, work, personal"
+                  className="bg-gray-800 border-gray-700 text-white"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="date" className="text-gray-300">Date</Label>
-              <Input
-                id="date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="bg-gray-800 border-gray-700 text-white"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="date" className="text-gray-300">Date</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="bg-gray-800 border-gray-700 text-white"
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label className="text-gray-300">File</Label>
-              {file ? (
-                <div className="relative">
-                  <FilePreview 
-                    file={file}
-                    fileName={fileName}
-                    fileType={fileType}
-                    className="w-full h-48"
-                  />
-                  <div className="absolute top-2 right-2 flex gap-1">
-                    {fileType === 'image' && (
+              <div className="space-y-2">
+                <Label className="text-gray-300">File</Label>
+                {file ? (
+                  <div className="relative">
+                    <FilePreview 
+                      file={file}
+                      fileName={fileName}
+                      fileType={fileType}
+                      className="w-full h-48"
+                    />
+                    <div className="absolute top-2 right-2 flex gap-1">
+                      {fileType === 'image' && (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
+                          onClick={toggleFullScreenPreview}
+                        >
+                          <Maximize2 className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         type="button"
-                        variant="secondary"
+                        variant="destructive"
                         size="sm"
-                        className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
-                        onClick={toggleFullScreenPreview}
+                        className="h-8 w-8 p-0"
+                        onClick={handleRemoveFile}
                       >
-                        <Maximize2 className="h-4 w-4" />
+                        <X className="h-4 w-4" />
                       </Button>
-                    )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
                     <Button
                       type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={handleRemoveFile}
+                      variant="outline"
+                      className="flex-1 bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
                     >
-                      <X className="h-4 w-4" />
+                      {isUploading ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Upload className="h-4 w-4 mr-2" />
+                      )}
+                      Upload File
                     </Button>
+                    
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1 bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
+                      onClick={handleCameraCapture}
+                      disabled={isUploading}
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Take Photo
+                    </Button>
+                    
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="*/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
                   </div>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1 bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                  >
-                    {isUploading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Upload className="h-4 w-4 mr-2" />
-                    )}
-                    Upload File
-                  </Button>
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1 bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
-                    onClick={handleCameraCapture}
-                    disabled={isUploading}
-                  >
-                    <Camera className="h-4 w-4 mr-2" />
-                    Take Photo
-                  </Button>
-                  
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="*/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                </div>
-              )}
-              <p className="text-xs text-gray-400 mt-1">
-                Supported files: images, PDFs, documents, spreadsheets, and more
-              </p>
-            </div>
-
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => onOpenChange(false)}
-                className="border-gray-700 text-white hover:bg-gray-700"
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                className="bg-todo-purple hover:bg-todo-purple/90"
-              >
-                {isEditing ? (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Update Item
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Item
-                  </>
                 )}
-              </Button>
-            </DialogFooter>
-          </form>
+                <p className="text-xs text-gray-400 mt-1">
+                  Supported files: images, PDFs, documents, spreadsheets, and more
+                </p>
+              </div>
+
+              <div className="pt-4">
+                <DialogFooter>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => onOpenChange(false)}
+                    className="border-gray-700 text-white hover:bg-gray-700"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="bg-todo-purple hover:bg-todo-purple/90"
+                  >
+                    {isEditing ? (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Update Item
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Item
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </div>
+            </form>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
       
