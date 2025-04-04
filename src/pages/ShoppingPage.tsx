@@ -24,8 +24,6 @@ const ShoppingPage = () => {
     navigate('/');
   };
 
-  const categories = ['All', 'Groceries', 'Household', 'Personal', 'Other'];
-
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center space-x-4 py-2 sm:py-4">
@@ -67,25 +65,6 @@ const ShoppingPage = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-      </div>
-
-      <div className="flex space-x-2 overflow-x-auto hide-scrollbar pb-2 my-3">
-        {categories.map((category) => (
-          <Button
-            key={category}
-            variant={activeCategory === category ? "default" : "outline"}
-            size="sm"
-            className={cn(
-              "rounded-full px-4 py-1 h-8 text-sm font-medium whitespace-nowrap",
-              activeCategory === category 
-                ? "bg-primary text-white" 
-                : "bg-secondary text-muted-foreground hover:bg-accent"
-            )}
-            onClick={() => setActiveCategory(category)}
-          >
-            {category}
-          </Button>
-        ))}
       </div>
       
       <Separator className="my-2" />
