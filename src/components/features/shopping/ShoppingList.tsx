@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
@@ -915,4 +916,153 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                         {item.lastPurchased && (
                           <div className="mt-2 text-xs text-muted-foreground border-t pt-2 flex items-center">
                             <CircleCheck size={10} className="mr-1" />
-                            Last purchased
+                            Last purchased: {item.lastPurchased.toLocaleDateString()}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </AnimatePresence>
+          
+          {purchasedItems.length > 0 && (
+            <div className="mt-6">
+              <div 
+                className="flex items-center justify-between mb-2 cursor-pointer"
+                onClick={togglePurchasedSection}
+              >
+                <h3 className="text-xs font-medium text-muted-foreground flex items-center">
+                  Purchased ({purchasedItems.length})
+                  <ChevronDown 
+                    size={14} 
+                    className={cn(
+                      "ml-1 transition-transform", 
+                      !isPurchasedSectionCollapsed && "rotate-180"
+                    )} 
+                  />
+                </h3>
+              </div>
+              
+              {!isPurchasedSectionCollapsed && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                  {purchasedItems.map((item) => (
+                    <Card
+                      key={`purchased-${item.id}`}
+                      className={cn(
+                        "overflow-hidden border-gray-200 dark:border-gray-700",
+                        "bg-gray-50 dark:bg-gray-900/50"
+                      )}
+                      onClick={() => !isMultiSelectActive && toggleItem(item.id)}
+                    >
+                      <CardHeader className="p-3 pb-0 flex flex-row items-center space-y-0 gap-2">
+                        <div className="flex-1 flex items-center gap-2">
+                          {isMultiSelectActive ? (
+                            <Checkbox
+                              checked={selectedItems.includes(item.id)}
+                              onCheckedChange={() => handleItemSelect(item.id)}
+                              className="h-4 w-4"
+                            />
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleItem(item.id);
+                              }}
+                              className="flex items-center justify-center w-4 h-4 rounded-full border border-gray-400 bg-gray-200 dark:bg-gray-600"
+                              aria-label="Mark as not purchased"
+                            >
+                              <Check size={12} />
+                            </button>
+                          )}
+                          <CardTitle className="text-sm font-medium line-through text-gray-500 dark:text-gray-400">
+                            {item.name}
+                          </CardTitle>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0 text-gray-500"
+                            >
+                              <MoreVertical size={14} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-36">
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              removeItem(item.id);
+                            }} className="cursor-pointer text-red-500">
+                              <Trash2 size={14} className="mr-2" />
+                              <span className="text-sm">Delete</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </CardHeader>
+                      
+                      <CardContent className="p-3 pt-2">
+                        <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+                          {item.lastPurchased && (
+                            <div className="text-xs text-muted-foreground flex items-center">
+                              <CircleCheck size={12} className="mr-1" />
+                              Purchased: {item.lastPurchased.toLocaleDateString()}
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+      
+      {/* Hidden file inputs */}
+      <input 
+        type="file"
+        accept="image/*"
+        className="hidden"
+        ref={editImageFileRef}
+        onChange={handleEditFileChange}
+      />
+      
+      <input 
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        ref={editCameraInputRef}
+        onChange={handleEditFileChange}
+      />
+      
+      {/* Image Preview Dialog */}
+      {previewImage && (
+        <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+          <DialogContent className="sm:max-w-xl p-0 overflow-hidden bg-black">
+            <div className="relative w-full aspect-auto max-h-[80vh] flex items-center justify-center">
+              <img
+                src={previewImage}
+                alt="Preview"
+                className="max-w-full max-h-full object-contain"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 rounded-full bg-black/50 text-white hover:bg-black/70"
+                onClick={() => setPreviewImage(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+};
+
+export default ShoppingList;
