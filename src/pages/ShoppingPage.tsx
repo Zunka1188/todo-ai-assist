@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { ArrowLeft, ShoppingBag, Search, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -79,25 +78,45 @@ const ShoppingPage = () => {
     setEditItem(null);
   };
 
-  const handleEditItem = (id: string) => {
-    // In a real app, you would fetch the item data from your database
-    // For this example, we'll create a more complete mock item that matches AddItemDialog expectations
-    const mockItem = {
-      id,
-      name: `Item ${id}`,
-      notes: `Some notes for item ${id}`,
-      amount: '1',
-      dateToPurchase: '2025-05-15',
-      price: '9.99',
-      file: null, // Include the file property to match AddItemDialog
-      fileName: '', // Include filename property
-      fileType: '', // Include filetype property
-      repeatOption: 'none' as const,
-    };
-    
-    setEditItem(mockItem);
-    setIsEditing(true);
-    setAddDialogOpen(true);
+  const handleEditItem = (id: string, itemName?: string, item?: any) => {
+    // Update to use the actual item data passed from the ShoppingList component
+    // instead of creating mock data
+    if (item) {
+      const itemToEdit: ItemData = {
+        id,
+        name: item.name,
+        notes: item.notes || '',
+        amount: item.amount || '',
+        dateToPurchase: item.dateToPurchase || '',
+        price: item.price || '',
+        file: item.imageUrl || null,
+        fileName: '',
+        fileType: '',
+        repeatOption: item.repeatOption || 'none',
+      };
+      
+      setEditItem(itemToEdit);
+      setIsEditing(true);
+      setAddDialogOpen(true);
+    } else {
+      // Fallback to mock data if no item object is provided (backward compatibility)
+      const mockItem = {
+        id,
+        name: itemName || `Item ${id}`,
+        notes: `Some notes for item ${id}`,
+        amount: '1',
+        dateToPurchase: '2025-05-15',
+        price: '9.99',
+        file: null,
+        fileName: '',
+        fileType: '',
+        repeatOption: 'none' as const,
+      };
+      
+      setEditItem(mockItem);
+      setIsEditing(true);
+      setAddDialogOpen(true);
+    }
   };
 
   return (

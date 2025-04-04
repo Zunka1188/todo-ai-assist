@@ -84,7 +84,7 @@ import ShoppingItemButton from './ShoppingItemButton';
 interface ShoppingListProps {
   searchTerm?: string;
   filterMode: 'one-off' | 'weekly' | 'monthly' | 'all';
-  onEditItem?: (id: string) => void;
+  onEditItem?: (id: string, name: string, item: ShoppingItem) => void;
 }
 
 type SortOption = 
@@ -294,7 +294,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
 
   const handleEditItem = (item: ShoppingItem) => {
     if (onEditItem) {
-      onEditItem(item.id);
+      onEditItem(item.id, item.name, item);
       return;
     }
     
