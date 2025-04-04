@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Search, Plus, Tag } from 'lucide-react';
+import { ArrowLeft, Search, Plus, Tag, Shirt, ChefHat, Plane, Dumbbell, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,7 @@ interface DocumentItem {
   image?: string | null;
 }
 
-const CATEGORIES = ['Style', 'Recipes', 'Travel', 'Fitness'];
+const CATEGORIES = ['Style', 'Recipes', 'Travel', 'Fitness', 'Other'];
 
 const DocumentsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -67,6 +67,15 @@ const DocumentsPage: React.FC = () => {
         tags: ['workout', 'core', 'strength'],
         date: '2025-03-05',
         image: null
+      },
+      {
+        id: '5',
+        title: 'Miscellaneous Notes',
+        description: 'General notes and information',
+        category: 'Other',
+        tags: ['notes', 'general', 'misc'],
+        date: '2025-03-20',
+        image: null
       }
     ];
   });
@@ -90,6 +99,24 @@ const DocumentsPage: React.FC = () => {
       title: "Item deleted",
       description: "The item has been removed",
     });
+  };
+
+  // Get category icon component
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'Style':
+        return <Shirt className="h-4 w-4 mr-2" />;
+      case 'Recipes':
+        return <ChefHat className="h-4 w-4 mr-2" />;
+      case 'Travel':
+        return <Plane className="h-4 w-4 mr-2" />;
+      case 'Fitness':
+        return <Dumbbell className="h-4 w-4 mr-2" />;
+      case 'Other':
+        return <FileText className="h-4 w-4 mr-2" />;
+      default:
+        return null;
+    }
   };
 
   // Filter documents by category and search term
@@ -140,9 +167,10 @@ const DocumentsPage: React.FC = () => {
       </div>
       
       <Tabs defaultValue={activeCategory} value={activeCategory} onValueChange={setActiveCategory}>
-        <TabsList className="grid grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-5 w-full">
           {CATEGORIES.map(category => (
-            <TabsTrigger key={category} value={category}>
+            <TabsTrigger key={category} value={category} className="flex items-center justify-center gap-1">
+              {getCategoryIcon(category)}
               {category}
             </TabsTrigger>
           ))}
