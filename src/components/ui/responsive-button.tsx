@@ -161,7 +161,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
               )}
             </div>
 
-            {/* Additional Details - Only showing quantity and repeat option */}
+            {/* Additional Details - Only showing quantity and repeat option - MODIFIED TO REMOVE "Qty:" PREFIX */}
             {hasDetails && (
               <div style={{
                 display: 'flex',
@@ -174,7 +174,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
               }}>
                 {quantity && (
                   <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    Qty: {quantity}
+                    {quantity}
                   </span>
                 )}
                 {repeatOption && repeatOption !== 'none' && (

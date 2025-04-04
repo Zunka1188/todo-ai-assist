@@ -219,7 +219,7 @@ const ShoppingItemButton = ({
               </div>
             )}
             
-            {/* Quantity Line - centered vertically */}
+            {/* Quantity Line - centered vertically - MODIFIED TO REMOVE "Qty:" PREFIX */}
             <div style={{ 
               display: 'flex',
               alignItems: 'center',
@@ -233,7 +233,7 @@ const ShoppingItemButton = ({
                   fontWeight: 600,
                   color: textColor
                 }}>
-                  <span>Qty: {quantity}</span>
+                  <span>{quantity}</span>
                 </div>
               )}
             </div>
