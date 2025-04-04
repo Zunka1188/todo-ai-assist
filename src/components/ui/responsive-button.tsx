@@ -55,21 +55,24 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     return (
       <div className={cn(
         "w-full max-w-[320px] h-[96px] bg-background rounded-md overflow-hidden flex flex-col",
-        active && "border border-primary",
+        "border border-border shadow-sm",
+        active && "border-primary border-2",
         className
       )}>
         {/* Top Section: Product Image & Details (64px height) */}
         <div className="flex h-[64px] w-full">
           {/* Left Column - Product Image (48x48px with 8px margin) */}
-          <div className="w-[48px] h-[48px] my-auto ml-2">
+          <div className="w-[48px] h-[48px] my-auto ml-2 flex-shrink-0">
             {imageUrl ? (
               <div 
-                className="w-full h-full rounded-md bg-cover bg-center"
+                className="w-full h-full rounded-md bg-cover bg-center border border-muted"
                 style={{ backgroundImage: `url(${imageUrl})` }}
                 aria-hidden="true"
               />
             ) : (
-              <div className="w-full h-full rounded-md bg-muted/40" aria-hidden="true" />
+              <div className="w-full h-full rounded-md bg-muted/40 flex items-center justify-center" aria-hidden="true">
+                <span className="text-xs text-muted-foreground">No img</span>
+              </div>
             )}
           </div>
           
@@ -133,9 +136,9 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         {/* Bottom Section: Button (32px height) */}
         <Button
           ref={ref}
-          variant={variant}
+          variant={variant === 'default' ? 'purchase' : variant}
           onClick={onClick}
-          className="w-full h-[32px] rounded-sm mt-auto"
+          className="w-full h-[32px] rounded-none mt-auto"
           {...props}
         >
           {props.children || "Action"}

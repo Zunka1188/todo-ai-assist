@@ -31,19 +31,21 @@ const ShoppingItemButton = ({
   const hasAdditionalInfo = quantity || price || notes || (repeatOption && repeatOption !== 'none');
   
   return (
-    <div className="w-full max-w-[320px] h-[96px] bg-background rounded-md overflow-hidden flex flex-col border border-border">
+    <div className="w-full max-w-[320px] h-[96px] bg-background rounded-md overflow-hidden flex flex-col border border-border shadow-sm">
       {/* Top Section: Product Image & Details (64px height) */}
       <div className="flex h-[64px] w-full">
         {/* Left Column - Product Image (48x48px with 8px margin) */}
-        <div className="w-[48px] h-[48px] my-auto ml-2">
+        <div className="w-[48px] h-[48px] my-auto ml-2 flex-shrink-0">
           {imageUrl ? (
             <div 
-              className="w-full h-full rounded-md bg-cover bg-center"
+              className="w-full h-full rounded-md bg-cover bg-center border border-muted"
               style={{ backgroundImage: `url(${imageUrl})` }}
               aria-hidden="true"
             />
           ) : (
-            <div className="w-full h-full rounded-md bg-muted" aria-hidden="true" />
+            <div className="w-full h-full rounded-md bg-muted flex items-center justify-center" aria-hidden="true">
+              <span className="text-xs text-muted-foreground">No image</span>
+            </div>
           )}
         </div>
         
@@ -89,7 +91,7 @@ const ShoppingItemButton = ({
         variant="purchase" 
         size="purchase"
         className={cn(
-          "w-full h-[32px] rounded-sm mt-auto",
+          "w-full h-[32px] rounded-none mt-auto",
           "flex items-center justify-center",
           className
         )}
