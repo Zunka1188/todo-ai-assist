@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -19,7 +20,7 @@ const ShoppingList = ({
   className,
   onEditItem
 }: ShoppingListProps) => {
-  const shoppingItemsContext = useShoppingItems('all', '');
+  const shoppingItemsContext = useShoppingItems(filterMode, searchTerm);
   const { removeItem: deleteItem, toggleItem: toggleItemCompletion } = shoppingItemsContext;
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);

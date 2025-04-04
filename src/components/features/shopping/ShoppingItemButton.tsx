@@ -43,16 +43,13 @@ const ShoppingItemButton = ({
   const borderColor = theme === 'dark' ? '#333333' : '#e2e8f0';
   const secondaryTextColor = theme === 'dark' ? '#B0B0B0' : '#64748b';
   
-  // Responsive sizing - adjusted for 4 items on desktop and 3 items on mobile
-  // For desktop: 100% / 4 = ~25% width per item
-  // For mobile: 100% / 3 = ~33.33% width per item
-  const containerWidth = '100%'; // Let the grid handle the width
-  const imageSize = isMobile ? '56px' : '80px';
-  const headerHeight = isMobile ? '28px' : '40px';
-  const buttonHeight = isMobile ? '28px' : '40px';
-  const fontSize = isMobile ? '13px' : '16px';
-  const detailsFontSize = isMobile ? '12px' : '15px';
-  const iconSize = isMobile ? 12 : 14;
+  const containerWidth = '100%';
+  const imageSize = isMobile ? '45px' : '80px';
+  const headerHeight = isMobile ? '24px' : '40px';
+  const buttonHeight = isMobile ? '24px' : '40px';
+  const fontSize = isMobile ? '12px' : '16px';
+  const detailsFontSize = isMobile ? '10px' : '15px';
+  const iconSize = isMobile ? 10 : 14;
   
   const handleDropdownClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -81,7 +78,6 @@ const ShoppingItemButton = ({
       boxShadow: '0 4px 6px rgba(0, 0, 0, 0.2)',
       backgroundColor: bgColor
     }}>
-      {/* Top Section: Item Name */}
       <div style={{
         height: headerHeight,
         padding: '0 12px',
@@ -105,12 +101,10 @@ const ShoppingItemButton = ({
         </div>
       </div>
       
-      {/* Middle Section: Product Image & Details */}
       <div style={{
         display: 'flex',
         width: '100%'
       }}>
-        {/* Left Column - Product Image */}
         <div style={{
           width: imageSize,
           height: imageSize,
@@ -146,7 +140,6 @@ const ShoppingItemButton = ({
           )}
         </div>
         
-        {/* Right Column - Product Details */}
         <div style={{
           display: 'flex',
           flexDirection: 'column',
@@ -228,13 +221,12 @@ const ShoppingItemButton = ({
             </div>
           )}
           
-          {/* Quantity Line */}
           <div style={{ 
             display: 'flex',
             alignItems: 'center',
             height: isMobile ? '22px' : '30px',
             paddingLeft: '10px',
-            paddingRight: '20px' // Additional space for the menu icon
+            paddingRight: '20px'
           }}>
             {quantity && (
               <div className="flex items-center" style={{
@@ -247,7 +239,6 @@ const ShoppingItemButton = ({
             )}
           </div>
           
-          {/* Repeat Option Line */}
           <div style={{ 
             display: 'flex', 
             alignItems: 'center',
@@ -272,7 +263,6 @@ const ShoppingItemButton = ({
         </div>
       </div>
       
-      {/* Bottom Section: Purchase Button */}
       <div style={{
         height: buttonHeight,
         backgroundColor: completed ? '#6c757d' : '#28A745',
@@ -290,10 +280,10 @@ const ShoppingItemButton = ({
       }}
       onClick={onClick}
       onMouseOver={(e) => { 
-        if (!completed) e.currentTarget.style.backgroundColor = '#23963F' // Darker green on hover
+        if (!completed) e.currentTarget.style.backgroundColor = '#23963F'
       }}
       onMouseOut={(e) => { 
-        if (!completed) e.currentTarget.style.backgroundColor = '#28A745' // Back to original green
+        if (!completed) e.currentTarget.style.backgroundColor = '#28A745'
       }}
       >
         {completed ? (
@@ -306,7 +296,6 @@ const ShoppingItemButton = ({
         )}
       </div>
 
-      {/* Image Full Screen Preview Dialog - only used if onImagePreview is not provided */}
       {!onImagePreview && (
         <Dialog open={imagePreviewOpen} onOpenChange={setImagePreviewOpen}>
           <DialogContent className={`max-w-4xl p-0 overflow-hidden ${theme === 'dark' ? 'bg-zinc-900 border-zinc-700' : 'bg-white'}`}>
