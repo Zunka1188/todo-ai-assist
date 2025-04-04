@@ -36,7 +36,7 @@ const BottomNavigation = () => {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 shadow-md">
+    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 shadow-md safe-bottom">
       <div className="container mx-auto px-1 py-2 flex justify-between items-center">
         {navItems.map(({ path, icon: Icon, label }) => (
           <div 

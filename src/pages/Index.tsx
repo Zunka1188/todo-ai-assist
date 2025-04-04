@@ -7,6 +7,7 @@ import ScanButton from '@/components/features/ScanButton';
 import FeatureCard from '@/components/features/FeatureCard';
 import CalendarWidget from '@/components/widgets/CalendarWidget';
 import TaskWidget from '@/components/widgets/TaskWidget';
+import SpendingWidget from '@/components/widgets/SpendingWidget';
 import { useTheme } from '@/hooks/use-theme';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -48,7 +49,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="space-y-5 py-3 sm:space-y-6 sm:py-4">
+    <div className="space-y-5 py-3 sm:space-y-6 sm:py-4 w-full">
       {/* Header */}
       <div className="text-center space-y-2">
         <h1 className={cn(
@@ -71,12 +72,18 @@ const Index = () => {
         <AppHeader 
           title="Widgets" 
           subtitle="Quick access to your information"
-          className={theme === 'light' ? "text-primary font-semibold section-header" : "text-white font-semibold section-header"}
+          className={cn(
+            "font-semibold section-header",
+            theme === 'light' ? "text-primary" : "text-white"
+          )}
         />
         
-        <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1">
           <CalendarWidget />
-          <TaskWidget />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+            <TaskWidget />
+            <SpendingWidget />
+          </div>
         </div>
       </div>
 
@@ -85,7 +92,10 @@ const Index = () => {
         <AppHeader 
           title="Features" 
           subtitle="Organize your life with AI-powered tools"
-          className={theme === 'light' ? "text-primary font-semibold section-header" : "text-white font-semibold section-header"}
+          className={cn(
+            "font-semibold section-header",
+            theme === 'light' ? "text-primary" : "text-white"
+          )}
         />
         
         <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
@@ -118,7 +128,7 @@ const Index = () => {
         <div className="flex justify-center">
           <a 
             href="/troubleshoot" 
-            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-todo-purple/10 hover:bg-todo-purple/20 transition-colors text-todo-purple"
+            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-todo-purple/10 hover:bg-todo-purple/20 transition-colors text-todo-purple min-h-[44px] touch-manipulation"
           >
             <HelpCircle className="h-4 w-4" />
             Need help? Visit our troubleshooting page
