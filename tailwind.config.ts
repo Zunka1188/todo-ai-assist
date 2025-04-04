@@ -27,7 +27,9 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					dark: 'hsl(var(--todo-purple-dark))', 
+					light: 'hsl(var(--todo-purple-light))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -65,10 +67,12 @@ export default {
 				},
 				todo: {
 					purple: {
-						light: '#D1B3E1', // Light purple for dark mode
-						DEFAULT: '#9b87f5',
-						dark: '#5D1A8C', // Dark purple for light mode
+						light: 'hsl(var(--todo-purple-light))',
+						DEFAULT: 'hsl(var(--todo-purple))',
+						dark: 'hsl(var(--todo-purple-dark))',
 					},
+					charcoal: 'hsl(var(--todo-charcoal))', // #1A1F2C - Dark background
+					gray: 'hsl(var(--todo-gray))', // #8E9196 - Neutral gray
 					black: '#1A1F2C',
 					metallic: {
 						silver: '#9F9EA1',

@@ -7,13 +7,14 @@ import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Settings, FileText, CheckSquare, Menu, Home, Calendar, ShoppingBag, Camera, CreditCard } from 'lucide-react';
+import { Settings, FileText, CheckSquare, Menu, Home, Calendar, ShoppingBag, Camera, CreditCard, ScanLine } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import ScanButton from '../features/scanning/ScanButton';
 
 interface AppLayoutProps {
   className?: string;
@@ -22,8 +23,16 @@ interface AppLayoutProps {
 const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
   const { toast } = useToast();
   const { isMobile, isIOS, isAndroid, windowWidth } = useIsMobile();
-  const { theme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const location = useLocation();
+  
+  // Set the theme to dark by default as specified in the requirements
+  useEffect(() => {
+    // Only set it once when the app first loads
+    if (localStorage.getItem('theme') === null) {
+      setTheme('dark');
+    }
+  }, []);
   
   // Handle iOS safe areas and viewport issues
   useEffect(() => {
@@ -55,16 +64,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
     }
   }, [isIOS, isAndroid]);
 
-  // Handle content prefetching for faster navigation
-  useEffect(() => {
-    const prefetchContent = () => {
-      // Would implement route-based prefetching here if needed
-    };
-    
-    prefetchContent();
-  }, [location.pathname]);
-
   const textColorClass = theme === 'light' ? "text-foreground" : "text-white";
+
+  // Don't show scan button on scan page
+  const showScanButton = location.pathname !== '/scan';
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -114,12 +117,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to="/upload" className="cursor-pointer flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                <span className={textColorClass}>Upload</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
               <Link to="/spending" className="cursor-pointer flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
                 <span className={textColorClass}>Spending</span>
@@ -133,12 +130,22 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
         <ThemeToggle />
       </div>
       <main className={cn(
-        "container mx-auto px-2 sm:px-4 flex-1", 
+        "container mx-auto px-2 sm:px-4 flex-1 relative", 
         isMobile ? "pb-24 pt-1" : "py-4",
         isIOS && "pb-safe-bottom",
         className
       )}>
         <Outlet />
+        
+        {/* Floating Scan Button */}
+        {showScanButton && (
+          <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-30">
+            <ScanButton
+              size={isMobile ? "default" : "lg"}
+              className="shadow-xl"
+            />
+          </div>
+        )}
       </main>
       <BottomNavigation />
     </div>

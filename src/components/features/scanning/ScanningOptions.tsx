@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Camera, Upload, List, Calendar, Receipt, Crop, Image, FileText, Scan } from 'lucide-react';
+import { Camera, Upload, List, Calendar, Receipt, Crop, Image, FileText, Scan, ShoppingBag } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -9,9 +9,11 @@ import { useTheme } from '@/hooks/use-theme';
 import ScanToCalendar from './ScanToCalendar';
 import EnhancedCameraCapture from './EnhancedCameraCapture';
 import ScreenshotDetection from './ScreenshotDetection';
+import { Button } from '@/components/ui/button';
 
 interface ScanningOptionsProps {
   onScreenSelectionClick?: () => void;
+  preferredMode?: string;
 }
 
 interface ScanOption {
@@ -22,9 +24,13 @@ interface ScanOption {
   highlight?: boolean;
   mobileOnly?: boolean;
   desktopOnly?: boolean;
+  mode?: string;
 }
 
-const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClick }) => {
+const ScanningOptions: React.FC<ScanningOptionsProps> = ({ 
+  onScreenSelectionClick,
+  preferredMode 
+}) => {
   const { toast } = useToast();
   const { isMobile, hasCamera, isIOS, isAndroid, isTouchDevice } = useIsMobile();
   const { theme } = useTheme();
@@ -57,6 +63,17 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClic
     }
   }, [hasCamera]);
 
+  // If there's a preferred mode, auto-trigger the appropriate action
+  useEffect(() => {
+    if (preferredMode) {
+      const option = scanOptions.find(opt => opt.mode === preferredMode);
+      if (option) {
+        // Set a brief timeout to let the component render first
+        setTimeout(() => option.action(), 100);
+      }
+    }
+  }, [preferredMode]);
+
   const showToast = (message: string) => {
     toast({
       title: "Scan Processing",
@@ -68,7 +85,10 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClic
     setShowScanToCalendar(true);
   };
 
-  const handleSmartScan = () => {
+  const handleSmartScan = (mode?: string) => {
+    if (mode) {
+      sessionStorage.setItem('preferredScanMode', mode);
+    }
     setShowSmartScan(true);
   };
 
@@ -90,7 +110,7 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClic
     // Show success toast with more specific detail
     toast({
       title: "Item Processed Successfully",
-      description: `'${data.title}' has been saved and categorized.`,
+      description: data.title ? `'${data.title}' has been saved.` : "Item has been processed.",
       variant: "default",
     });
     
@@ -113,20 +133,35 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClic
       description: hasCamera ? 
         "Auto-recognize items and suggested actions" : 
         "Camera not available on this device",
-      action: handleSmartScan,
+      action: () => handleSmartScan(),
       highlight: true
+    },
+    {
+      icon: ShoppingBag,
+      label: "Scan Shopping Item",
+      description: "Add products to your shopping list",
+      action: () => handleSmartScan('shopping'),
+      mode: 'shopping'
+    },
+    {
+      icon: Calendar,
+      label: "Scan to Calendar",
+      description: "Extract event details from invitation",
+      action: handleScanToCalendar,
+      mode: 'calendar'
+    },
+    {
+      icon: FileText,
+      label: "Document Scanner",
+      description: "Scan and digitize physical documents",
+      action: () => handleSmartScan('document'),
+      mode: 'document'
     },
     {
       icon: Upload,
       label: "Upload Image",
       description: "Select an image from your gallery",
       action: () => navigate('/upload')
-    },
-    {
-      icon: Calendar,
-      label: "Scan to Calendar",
-      description: "Extract event details from invitation",
-      action: handleScanToCalendar
     },
     {
       icon: Crop,
@@ -143,33 +178,24 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClic
     },
     {
       icon: List,
-      label: "Add to Shopping List",
-      description: "Scan and add items to your list",
+      label: "Shopping List",
+      description: "View and manage your shopping list",
       action: () => navigate('/shopping')
     },
     {
       icon: Receipt,
       label: "Scan Receipt",
       description: "Extract and save receipt information",
-      action: () => navigate('/spending')
-    },
-    {
-      icon: FileText,
-      label: "Document Scanner",
-      description: "Scan and digitize physical documents",
-      action: () => {
-        setShowSmartScan(true);
-        // Pre-select document mode
-        sessionStorage.setItem('preferredScanMode', 'document');
-      }
+      action: () => handleSmartScan('receipt')
     }
   ];
 
-  // Filter options based on device capabilities
+  // Filter options based on device capabilities and preferred mode
   const filteredOptions = scanOptions.filter(option => {
     if (option.mobileOnly && !isMobile) return false;
     if (option.desktopOnly && isMobile) return false;
     if (option.icon === Camera && !hasCamera) return true; // Show but with different description
+    if (preferredMode && option.mode && option.mode !== preferredMode) return false;
     return true;
   });
 
@@ -200,18 +226,19 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({ onScreenSelectionClic
                 onClick={option.action}
                 disabled={isDisabled}
                 className={cn(
-                  "metallic-card flex items-center p-4 rounded-xl transition-all duration-300",
-                  "hover:shadow-lg active:scale-95 touch-action-manipulation",
-                  option.highlight && !isDisabled && "ring-2 ring-todo-purple ring-opacity-50",
+                  "flex items-center p-4 rounded-xl transition-all duration-300",
+                  "border border-border hover:border-primary/30",
+                  "bg-card hover:shadow-lg active:scale-95 touch-action-manipulation",
+                  option.highlight && !isDisabled && "ring-2 ring-primary ring-opacity-40",
                   isDisabled && "opacity-60 cursor-not-allowed"
                 )}
               >
                 <div className={cn(
-                  "bg-todo-purple bg-opacity-10 p-3 rounded-full mr-4 flex-shrink-0 flex items-center justify-center",
+                  "bg-primary bg-opacity-10 p-3 rounded-full mr-4 flex-shrink-0 flex items-center justify-center",
                   option.highlight && !isDisabled && "bg-opacity-20"
                 )} style={{minWidth: "46px", minHeight: "46px"}}>
                   <Icon className={cn(
-                    "text-todo-purple", 
+                    "text-primary", 
                     isDisabled && "opacity-50"
                   )} size={isMobile ? 20 : 24} />
                 </div>
