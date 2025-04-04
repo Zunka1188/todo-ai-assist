@@ -6,6 +6,7 @@ import ShoppingItemButton from './ShoppingItemButton';
 import { useShoppingItems } from './useShoppingItems';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Separator } from '@/components/ui/separator';
 
 type ShoppingListProps = {
   searchTerm?: string;
@@ -41,6 +42,10 @@ const ShoppingList = ({
     return false;
   });
   
+  // Separate unpurchased and purchased items
+  const unpurchasedItems = filteredItems.filter(item => !item.completed);
+  const purchasedItems = filteredItems.filter(item => item.completed);
+  
   const handleImagePreview = (imageUrl: string) => {
     setSelectedImageUrl(imageUrl);
     setIsImageDialogOpen(true);
@@ -57,8 +62,9 @@ const ShoppingList = ({
         </div>
       ) : (
         <ScrollArea className="h-[calc(100vh-280px)]">
-          <div className={`shopping-items-grid grid ${isMobile ? 'grid-cols-3 gap-2' : 'grid-cols-4 gap-4'} pb-8`}>
-            {filteredItems.map((item) => (
+          {/* Unpurchased Items Section */}
+          <div className={`shopping-items-grid grid ${isMobile ? 'grid-cols-3 gap-2' : 'grid-cols-4 gap-4'}`}>
+            {unpurchasedItems.map((item) => (
               <ShoppingItemButton
                 key={item.id}
                 name={item.name}
@@ -74,6 +80,31 @@ const ShoppingList = ({
               />
             ))}
           </div>
+          
+          {/* Purchased Items Section - only show if there are purchased items */}
+          {purchasedItems.length > 0 && (
+            <>
+              <Separator className="my-6" />
+              <h3 className="text-lg font-medium mb-4">Purchased Items</h3>
+              <div className={`shopping-items-grid grid ${isMobile ? 'grid-cols-3 gap-2' : 'grid-cols-4 gap-4'} pb-8`}>
+                {purchasedItems.map((item) => (
+                  <ShoppingItemButton
+                    key={item.id}
+                    name={item.name}
+                    completed={item.completed}
+                    quantity={item.amount}
+                    repeatOption={item.repeatOption}
+                    imageUrl={item.imageUrl}
+                    notes={item.notes}
+                    onClick={() => toggleItemCompletion(item.id)}
+                    onDelete={() => deleteItem(item.id)}
+                    onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
+                    onImagePreview={item.imageUrl ? () => handleImagePreview(item.imageUrl!) : undefined}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </ScrollArea>
       )}
 
