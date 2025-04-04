@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, Search, Plus, FileText, Image, Tag, ChefHat, Plane, Dumbbell, Shirt, X, Maximize2, Minimize2, Camera } from 'lucide-react';
+import { ArrowLeft, Search, Plus, FileText, Image, Tag, ChefHat, Plane, Dumbbell, Shirt, X, Maximize2, Minimize2, Camera, FileArchive } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -154,12 +154,11 @@ const DocumentsSubtabPage = () => {
         return <Plane className="h-5 w-5" />;
       case 'fitness':
         return <Dumbbell className="h-5 w-5" />;
-      case 'other':
-        return <FileText className="h-5 w-5" />;
       case 'files':
-        return <Tag className="h-5 w-5" />;
+        return <FileArchive className="h-5 w-5" />;
+      case 'other':
       default:
-        return null;
+        return <FileText className="h-5 w-5" />;
     }
   };
 
@@ -377,7 +376,11 @@ const DocumentsSubtabPage = () => {
           onValueChange={(value) => setActiveTab(value as DocumentCategory)} 
           className="w-full"
         >
-          <TabsList className="grid grid-cols-5 w-full">
+          <TabsList className="grid grid-cols-6 w-full">
+            <TabsTrigger value="other" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              <span className={isMobile ? "hidden" : "inline"}>Other</span>
+            </TabsTrigger>
             <TabsTrigger value="style" className="flex items-center gap-2">
               <Shirt className="h-4 w-4" />
               <span className={isMobile ? "hidden" : "inline"}>Style</span>
@@ -394,16 +397,22 @@ const DocumentsSubtabPage = () => {
               <Dumbbell className="h-4 w-4" />
               <span className={isMobile ? "hidden" : "inline"}>Fitness</span>
             </TabsTrigger>
-            <TabsTrigger value="other" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span className={isMobile ? "hidden" : "inline"}>Other</span>
-            </TabsTrigger>
             <TabsTrigger value="files" className="flex items-center gap-2">
-              <Tag className="h-4 w-4" />
+              <FileArchive className="h-4 w-4" />
               <span className={isMobile ? "hidden" : "inline"}>Files</span>
             </TabsTrigger>
           </TabsList>
 
+          <TabsContent value="other" className="mt-0 pt-4">
+            <DocumentItemsList 
+              items={filteredItems}
+              getTypeIcon={getTypeIcon}
+              onEdit={handleOpenAddDialog}
+              onDelete={handleDeleteItem}
+              onViewImage={openFullScreenImage}
+            />
+          </TabsContent>
+          
           <TabsContent value="style" className="mt-0 pt-4">
             <DocumentItemsList 
               items={filteredItems}
@@ -435,16 +444,6 @@ const DocumentsSubtabPage = () => {
           </TabsContent>
           
           <TabsContent value="fitness" className="mt-0 pt-4">
-            <DocumentItemsList 
-              items={filteredItems}
-              getTypeIcon={getTypeIcon}
-              onEdit={handleOpenAddDialog}
-              onDelete={handleDeleteItem}
-              onViewImage={openFullScreenImage}
-            />
-          </TabsContent>
-          
-          <TabsContent value="other" className="mt-0 pt-4">
             <DocumentItemsList 
               items={filteredItems}
               getTypeIcon={getTypeIcon}

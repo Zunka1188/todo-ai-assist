@@ -40,8 +40,8 @@ const DocumentList: React.FC<DocumentListProps> = ({
     { id: '1', title: 'Resume', category: 'other', date: '2025-03-15', fileType: 'pdf', fileUrl: 'https://picsum.photos/id/24/400/300' },
     { id: '2', title: 'Project Plan', category: 'other', date: '2025-03-20', fileType: 'word', fileUrl: 'https://picsum.photos/id/25/400/300' },
     { id: '3', title: 'Vacation Itinerary', category: 'travel', date: '2025-03-25', fileType: 'text', fileUrl: 'https://picsum.photos/id/26/400/300' },
-    { id: '4', title: 'Lease Agreement', category: 'other', date: '2025-03-10', fileType: 'pdf', fileUrl: 'https://picsum.photos/id/27/400/300' },
-    { id: '5', title: 'Budget Spreadsheet', category: 'other', date: '2025-03-05', fileType: 'excel', fileUrl: 'https://picsum.photos/id/28/400/300' },
+    { id: '4', title: 'Lease Agreement', category: 'files', date: '2025-03-10', fileType: 'pdf', fileUrl: 'https://picsum.photos/id/27/400/300' },
+    { id: '5', title: 'Budget Spreadsheet', category: 'files', date: '2025-03-05', fileType: 'excel', fileUrl: 'https://picsum.photos/id/28/400/300' },
   ];
 
   // Filter documents based on search term
