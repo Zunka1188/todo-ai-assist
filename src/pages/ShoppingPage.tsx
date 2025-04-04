@@ -6,10 +6,11 @@ import ShoppingList from '@/components/features/shopping/ShoppingList';
 import AddItemDialog from '@/components/features/shopping/AddItemDialog';
 import EditItemDialog from '@/components/features/shopping/EditItemDialog';
 import { Button } from '@/components/ui/button';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { useShoppingItems } from '@/components/features/shopping/useShoppingItems';
 import { useToast } from '@/components/ui/use-toast';
+import { ArrowLeft } from 'lucide-react';
 
 const ShoppingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -118,7 +119,12 @@ const ShoppingPage: React.FC = () => {
     <div className="container mx-auto">
       <div className="mb-4 flex flex-col gap-4">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Shopping List</h1>
+          <div className="flex items-center gap-2">
+            <Link to="/" className="p-1 rounded-md hover:bg-secondary">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <h1 className="text-2xl font-bold">Shopping List</h1>
+          </div>
           <Button 
             onClick={() => setShowAddDialog(true)}
             className="shrink-0"
