@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, CheckSquare, Bell, ChevronLeft, ChevronRight, Trash, Edit, Clock, MapPin, FileText, CalendarDays, List, Image } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,8 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -60,6 +61,7 @@ interface Event {
   allDay?: boolean;
   location?: string;
   color?: string;
+  image?: string;
   recurring?: {
     frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
     interval: number;
@@ -114,6 +116,7 @@ const formSchema = z.object({
   allDay: z.boolean().default(false),
   location: z.string().optional(),
   color: z.string().default("#4285F4"),
+  image: z.string().optional(),
   recurringType: z.string().default("none"),
   recurringEndDate: z.date().optional(),
   recurringOccurrences: z.string().optional(),
@@ -215,6 +218,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const [localCreateDialogOpen, setLocalCreateDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
   
@@ -241,6 +246,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       allDay: false,
       location: '',
       color: '#4285F4',
+      image: '',
       recurringType: 'none',
       recurringDaysOfWeek: [],
       reminder: '30',
@@ -264,12 +270,19 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         allDay: selectedEvent.allDay || false,
         location: selectedEvent.location || '',
         color: selectedEvent.color || '#4285F4',
+        image: selectedEvent.image || '',
         recurringType: selectedEvent.recurring ? selectedEvent.recurring.frequency : 'none',
         recurringEndDate: selectedEvent.recurring?.endDate,
         recurringOccurrences: selectedEvent.recurring?.occurrences?.toString(),
         recurringDaysOfWeek: selectedEvent.recurring?.daysOfWeek?.map(day => day.toString()) || [],
         reminder: selectedEvent.reminder || '30',
       });
+      
+      if (selectedEvent.image) {
+        setSelectedImage(selectedEvent.image);
+      } else {
+        setSelectedImage(null);
+      }
     }
   }, [selectedEvent, isEditMode, form]);
 
@@ -284,6 +297,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       allDay: false,
       location: '',
       color: '#4285F4',
+      image: '',
       recurringType: 'none',
       recurringDaysOfWeek: [],
       reminder: '30',
@@ -313,6 +327,28 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       });
       setSelectedEvent(null);
     }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setSelectedImage(base64String);
+        form.setValue('image', base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    form.setValue('image', '');
+  };
+
+  const handleImageButtonClick = () => {
+    fileInputRef.current?.click();
   };
 
   const onCreateSubmit = (values: z.infer<typeof formSchema>) => {
@@ -346,6 +382,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         allDay: values.allDay,
         location: values.location,
         color: values.color,
+        image: values.image,
         recurring,
         reminder: values.reminder,
       };
@@ -369,6 +406,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       effectiveSetCreateDialogOpen(false);
       setIsEditMode(false);
       setSelectedEvent(null);
+      setSelectedImage(null);
     } catch (error) {
       console.error('Error creating/updating event:', error);
       toast({
@@ -471,7 +509,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                       name="startTime"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Start Time</FormLabel>
+                          <FormLabel>Start Time*</FormLabel>
                           <FormControl>
                             <Input 
                               type="time" 
@@ -531,7 +569,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                       name="endTime"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>End Time</FormLabel>
+                          <FormLabel>End Time*</FormLabel>
                           <FormControl>
                             <Input 
                               type="time" 
@@ -565,10 +603,61 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                   
                   <FormField
                     control={form.control}
+                    name="image"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Image (Optional)</FormLabel>
+                        <input 
+                          type="file" 
+                          ref={fileInputRef}
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          accept="image/*"
+                        />
+                        {selectedImage ? (
+                          <div className="relative">
+                            <img 
+                              src={selectedImage} 
+                              alt="Event" 
+                              className="w-full h-40 object-cover rounded-md"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-2 right-2"
+                              onClick={handleRemoveImage}
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <FormControl>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="w-full h-12 border-dashed flex gap-2"
+                              onClick={handleImageButtonClick}
+                            >
+                              <Image className="h-4 w-4" />
+                              <span>Add Image</span>
+                            </Button>
+                          </FormControl>
+                        )}
+                        <FormDescription>
+                          Add an optional image for your event.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel>Description (Optional)</FormLabel>
                         <FormControl>
                           <Textarea 
                             placeholder="Enter event description..." 
@@ -588,7 +677,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                       <FormItem>
                         <FormLabel className="flex items-center">
                           <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                          Location
+                          Location (Optional)
                         </FormLabel>
                         <FormControl>
                           <Input placeholder="Enter location..." {...field} />
@@ -603,7 +692,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                     name="color"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Event Color</FormLabel>
+                        <FormLabel>Event Color (Optional)</FormLabel>
                         <div className="flex flex-wrap gap-2">
                           {colorOptions.map((color) => (
                             <div 
@@ -628,7 +717,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                     name="recurringType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Recurrence</FormLabel>
+                        <FormLabel>Recurrence (Optional)</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -695,7 +784,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                       <FormItem>
                         <FormLabel className="flex items-center">
                           <Bell className="h-4 w-4 mr-2 text-muted-foreground" />
-                          Reminder
+                          Reminder (Optional)
                         </FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
@@ -723,6 +812,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                       onClick={() => {
                         effectiveSetCreateDialogOpen(false);
                         setIsEditMode(false);
+                        setSelectedImage(null);
                       }}
                     >
                       Cancel
@@ -776,6 +866,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({
             
             <ScrollArea className="max-h-[70vh]">
               <div className="space-y-4 p-1">
+                {selectedEvent.image && (
+                  <div className="mb-4">
+                    <img 
+                      src={selectedEvent.image} 
+                      alt={selectedEvent.title} 
+                      className="w-full h-48 object-cover rounded-md" 
+                    />
+                  </div>
+                )}
+                
                 <div className="flex items-start gap-3">
                   <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
                   <div>
@@ -840,12 +940,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         )}
       </Dialog>
       
-      <div className="flex justify-end mb-2">
+      <div className="flex justify-between mb-2">
         <Button 
-          className="bg-todo-purple hover:bg-todo-purple/90"
+          className="bg-todo-purple hover:bg-todo-purple/90 gap-2"
           onClick={handleCreateEvent}
         >
-          <Plus className="h-4 w-4 mr-1" /> New Event
+          <Plus className="h-4 w-4" /> New Event
         </Button>
       </div>
       

@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
-import { Camera, ArrowLeft, Calendar as CalendarIcon, Bell } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Camera, ArrowLeft, Calendar as CalendarIcon, Bell, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
@@ -49,6 +49,7 @@ const formSchema = z.object({
   location: z.string().optional(),
   notes: z.string().optional(),
   reminder: z.string().default("30"),
+  image: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -58,6 +59,8 @@ const ScanToCalendar: React.FC<ScanToCalendarProps> = ({ onClose }) => {
   const navigate = useNavigate();
   const [scanning, setScanning] = useState(false);
   const [scanned, setScanned] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -68,6 +71,7 @@ const ScanToCalendar: React.FC<ScanToCalendarProps> = ({ onClose }) => {
       location: "",
       notes: "",
       reminder: "30",
+      image: "",
     },
   });
 
@@ -91,6 +95,28 @@ const ScanToCalendar: React.FC<ScanToCalendarProps> = ({ onClose }) => {
         description: "Event details extracted successfully",
       });
     }, 2000);
+  };
+  
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setSelectedImage(base64String);
+        form.setValue('image', base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    form.setValue('image', '');
   };
   
   const onSubmit = (data: FormValues) => {
@@ -150,7 +176,7 @@ const ScanToCalendar: React.FC<ScanToCalendarProps> = ({ onClose }) => {
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Event Title</FormLabel>
+                  <FormLabel>Event Title*</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter event title" {...field} />
                   </FormControl>
@@ -164,7 +190,7 @@ const ScanToCalendar: React.FC<ScanToCalendarProps> = ({ onClose }) => {
                 name="date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Date</FormLabel>
+                    <FormLabel>Date*</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -202,7 +228,7 @@ const ScanToCalendar: React.FC<ScanToCalendarProps> = ({ onClose }) => {
                 name="time"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Time</FormLabel>
+                    <FormLabel>Time*</FormLabel>
                     <FormControl>
                       <Input placeholder="e.g., 3:00 PM" {...field} />
                     </FormControl>
@@ -210,13 +236,63 @@ const ScanToCalendar: React.FC<ScanToCalendarProps> = ({ onClose }) => {
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="image"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image (Optional)</FormLabel>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    accept="image/*"
+                  />
+                  {selectedImage ? (
+                    <div className="relative">
+                      <img 
+                        src={selectedImage} 
+                        alt="Event" 
+                        className="w-full h-40 object-cover rounded-md"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={handleRemoveImage}
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <FormControl>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full h-12 border-dashed flex gap-2"
+                        onClick={handleImageButtonClick}
+                      >
+                        <Image className="h-4 w-4" />
+                        <span>Add Image</span>
+                      </Button>
+                    </FormControl>
+                  )}
+                  <FormDescription>
+                    Add an optional image for your event.
+                  </FormDescription>
+                </FormItem>
+              )}
+            />
             
             <FormField
               control={form.control}
               name="location"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Location</FormLabel>
+                  <FormLabel>Location (Optional)</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter location" {...field} />
                   </FormControl>
@@ -229,7 +305,7 @@ const ScanToCalendar: React.FC<ScanToCalendarProps> = ({ onClose }) => {
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>Notes (Optional)</FormLabel>
                   <FormControl>
                     <Textarea 
                       placeholder="Enter any additional notes" 
@@ -248,7 +324,7 @@ const ScanToCalendar: React.FC<ScanToCalendarProps> = ({ onClose }) => {
                 <FormItem>
                   <FormLabel className="flex items-center">
                     <Bell className="h-4 w-4 mr-2 text-todo-purple" />
-                    Reminder
+                    Reminder (Optional)
                   </FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
