@@ -928,4 +928,4 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                         </div>
                       </CardContent>
                     </Card>
-                  </
+                  </motion.div
