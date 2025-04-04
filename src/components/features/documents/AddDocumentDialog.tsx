@@ -1,8 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, X, Camera, Upload, Loader2, Save, Maximize2, Minimize2 } from 'lucide-react';
+import { Plus, X, Camera, Upload, Loader2, Save, Maximize2, Minimize2, File as FileIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import ImageAnalysisModal from './ImageAnalysisModal';
 import { AnalysisResult } from '@/utils/imageAnalysis';
+import FilePreview, { getFileTypeFromName } from './FilePreview';
 
 interface DocumentItem {
   id: string;
@@ -24,7 +25,9 @@ interface DocumentItem {
   category: string;
   tags: string[];
   date: string;
-  image?: string | null;
+  file?: string | null;
+  fileName?: string;
+  fileType?: string;
 }
 
 interface AddDocumentDialogProps {
@@ -52,7 +55,9 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   const [category, setCategory] = useState(currentCategory);
   const [tags, setTags] = useState('');
   const [date, setDate] = useState('');
-  const [image, setImage] = useState<string | null>(null);
+  const [file, setFile] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string>('');
+  const [fileType, setFileType] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [fullScreenPreview, setFullScreenPreview] = useState(false);
@@ -68,7 +73,9 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
         setCategory(editItem.category);
         setTags(editItem.tags ? editItem.tags.join(', ') : '');
         setDate(editItem.date);
-        setImage(editItem.image || null);
+        setFile(editItem.file || null);
+        setFileName(editItem.fileName || '');
+        setFileType(editItem.fileType || '');
       } else {
         // New item - reset form
         setTitle('');
@@ -76,7 +83,9 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
         setCategory(currentCategory);
         setTags('');
         setDate('');
-        setImage(null);
+        setFile(null);
+        setFileName('');
+        setFileType('');
       }
     }
   }, [open, currentCategory, isEditing, editItem]);
@@ -100,7 +109,9 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       category,
       tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
       date: date || new Date().toISOString().split('T')[0],
-      image,
+      file,
+      fileName: fileName || undefined,
+      fileType: fileType || undefined,
     };
 
     onAdd(newItem);
@@ -115,20 +126,28 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
       setIsUploading(true);
+      setFileName(selectedFile.name);
+      
+      const detectedFileType = getFileTypeFromName(selectedFile.name);
+      setFileType(detectedFileType);
+      
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
-          const imageData = event.target.result as string;
-          setImage(imageData);
+          const fileData = event.target.result as string;
+          setFile(fileData);
           setIsUploading(false);
-          // Trigger AI analysis
-          setShowAnalysisModal(true);
+          
+          // Only trigger AI analysis for images
+          if (detectedFileType === 'image') {
+            setShowAnalysisModal(true);
+          }
         }
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(selectedFile);
     }
   };
   
@@ -161,7 +180,9 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
           
           // Convert canvas to image data
           const imageData = canvas.toDataURL('image/jpeg');
-          setImage(imageData);
+          setFile(imageData);
+          setFileName("camera_capture_" + new Date().toISOString().substring(0, 10) + ".jpg");
+          setFileType('image');
           
           // Stop camera stream
           stream.getTracks().forEach(track => track.stop());
@@ -180,8 +201,10 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     }
   };
 
-  const handleRemoveImage = () => {
-    setImage(null);
+  const handleRemoveFile = () => {
+    setFile(null);
+    setFileName('');
+    setFileType('');
   };
 
   const toggleFullScreenPreview = () => {
@@ -206,7 +229,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   };
 
   // If in full screen mode for image preview, show a simplified view
-  if (fullScreenPreview && image) {
+  if (fullScreenPreview && file && fileType === 'image') {
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col">
         <div className="p-4 flex justify-between items-center bg-black/80">
@@ -229,7 +252,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
         </div>
         <div className="flex-1 flex items-center justify-center overflow-auto">
           <img 
-            src={image} 
+            src={file} 
             alt="Full screen preview" 
             className="max-h-full max-w-full object-contain"
           />
@@ -246,6 +269,9 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
             <DialogTitle>
               {isEditing ? "Edit Item" : "Add New Item"}
             </DialogTitle>
+            <DialogDescription>
+              Add a document, image, or any other file to your collection
+            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -312,30 +338,33 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-gray-300">Image</Label>
-              {image ? (
+              <Label className="text-gray-300">File</Label>
+              {file ? (
                 <div className="relative">
-                  <img 
-                    src={image} 
-                    alt="Preview" 
-                    className="w-full h-48 object-contain border rounded-md border-gray-700"
+                  <FilePreview 
+                    file={file}
+                    fileName={fileName}
+                    fileType={fileType}
+                    className="w-full h-48"
                   />
                   <div className="absolute top-2 right-2 flex gap-1">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
-                      onClick={toggleFullScreenPreview}
-                    >
-                      <Maximize2 className="h-4 w-4" />
-                    </Button>
+                    {fileType === 'image' && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
+                        onClick={toggleFullScreenPreview}
+                      >
+                        <Maximize2 className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button
                       type="button"
                       variant="destructive"
                       size="sm"
                       className="h-8 w-8 p-0"
-                      onClick={handleRemoveImage}
+                      onClick={handleRemoveFile}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -355,7 +384,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
                     ) : (
                       <Upload className="h-4 w-4 mr-2" />
                     )}
-                    Upload Image
+                    Upload File
                   </Button>
                   
                   <Button
@@ -372,12 +401,15 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
+                    accept="*/*"
                     onChange={handleFileChange}
                     className="hidden"
                   />
                 </div>
               )}
+              <p className="text-xs text-gray-400 mt-1">
+                Supported files: images, PDFs, documents, spreadsheets, and more
+              </p>
             </div>
 
             <DialogFooter>
@@ -411,7 +443,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       </Dialog>
       
       <ImageAnalysisModal
-        imageData={image}
+        imageData={fileType === 'image' ? file : null}
         isOpen={showAnalysisModal}
         onAnalysisComplete={handleAnalysisComplete}
         onClose={() => setShowAnalysisModal(false)}

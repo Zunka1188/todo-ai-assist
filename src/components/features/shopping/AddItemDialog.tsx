@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Image, Upload, Camera, X, Plus } from 'lucide-react';
+import { Image, Upload, Camera, X, Plus, File, Paperclip } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Sheet,
@@ -23,19 +23,22 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
+import FilePreview, { getFileTypeFromName } from '../documents/FilePreview';
 
 interface AddItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (item: { name: string, category: string, notes?: string, amount?: string, dateToPurchase?: string, price?: string, image?: string | null }) => void;
+  onSave: (item: { 
+    name: string, 
+    category: string, 
+    notes?: string, 
+    amount?: string, 
+    dateToPurchase?: string, 
+    price?: string, 
+    file?: string | null,
+    fileName?: string,
+    fileType?: string
+  }) => void;
 }
 
 const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
@@ -47,8 +50,9 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   const [amount, setAmount] = useState('');
   const [dateToPurchase, setDateToPurchase] = useState('');
   const [price, setPrice] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [file, setFile] = useState<string | null>(null);
+  const [fileName, setFileName] = useState('');
+  const [fileType, setFileType] = useState('');
   const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   
@@ -58,19 +62,21 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   const predefinedCategories = ["Groceries", "Household", "Electronics", "Clothing", "Other"];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
     
-    setImageFile(file);
+    setFileName(selectedFile.name);
+    const detectedFileType = getFileTypeFromName(selectedFile.name);
+    setFileType(detectedFileType);
     
     // Generate preview URL
     const reader = new FileReader();
     reader.onload = (event) => {
       if (event.target?.result) {
-        setPreviewUrl(event.target.result as string);
+        setFile(event.target.result as string);
       }
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(selectedFile);
     
     // Close the image options sheet if open
     setImageOptionsOpen(false);
@@ -89,8 +95,8 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   };
 
   const handleSave = () => {
-    // Don't save if both name and image are missing
-    if (name.trim() === '' && !previewUrl) {
+    // Don't save if both name and file are missing
+    if (name.trim() === '' && !file) {
       return;
     }
     
@@ -98,13 +104,15 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
     const finalCategory = isCustomCategory ? customCategory : category;
     
     const itemData = {
-      name: name.trim() || (imageFile ? imageFile.name : 'Untitled Item'),
+      name: name.trim() || (fileName ? fileName : 'Untitled Item'),
       category: finalCategory || 'Uncategorized',
       notes,
       amount,
       dateToPurchase,
       price,
-      image: previewUrl
+      file,
+      fileName: fileName || undefined,
+      fileType: fileType || undefined
     };
     
     onSave(itemData);
@@ -120,15 +128,17 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
     setAmount('');
     setDateToPurchase('');
     setPrice('');
-    setImageFile(null);
-    setPreviewUrl(null);
+    setFile(null);
+    setFileName('');
+    setFileType('');
     setImageOptionsOpen(false);
     setIsCustomCategory(false);
   };
 
-  const clearImage = () => {
-    setImageFile(null);
-    setPreviewUrl(null);
+  const clearFile = () => {
+    setFile(null);
+    setFileName('');
+    setFileType('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -137,7 +147,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
     }
   };
 
-  const ImageSourceOptions = () => {
+  const FileSourceOptions = () => {
     // For mobile, use a Sheet component
     if (isMobile) {
       return (
@@ -149,13 +159,13 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
               onClick={() => setImageOptionsOpen(true)}
               className="flex-1"
             >
-              <Image className="mr-2 h-4 w-4" />
-              {previewUrl ? "Change Image" : "Add Image"}
+              <Paperclip className="mr-2 h-4 w-4" />
+              {file ? "Change File" : "Add File"}
             </Button>
           </SheetTrigger>
           <SheetContent side="bottom" className="h-auto pb-8">
             <SheetHeader className="mb-4">
-              <SheetTitle>Choose Image Source</SheetTitle>
+              <SheetTitle>Choose File Source</SheetTitle>
             </SheetHeader>
             <div className="flex flex-col space-y-3">
               <Button 
@@ -166,7 +176,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                 className="w-full justify-start gap-3"
                 variant="outline"
               >
-                <Upload className="h-4 w-4" /> Upload from Device
+                <Upload className="h-4 w-4" /> Upload File
               </Button>
               <Button 
                 onClick={() => {
@@ -195,8 +205,8 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
               variant="outline"
               className="flex-1"
             >
-              <Image className="mr-2 h-4 w-4" />
-              {previewUrl ? "Change Image" : "Add Image"}
+              <Paperclip className="mr-2 h-4 w-4" />
+              {file ? "Change File" : "Add File"}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent className="max-w-xs">
@@ -206,7 +216,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                 className="w-full justify-start gap-3"
                 variant="outline"
               >
-                <Upload className="h-4 w-4" /> Upload from Device
+                <Upload className="h-4 w-4" /> Upload File
               </Button>
               <Button 
                 onClick={() => cameraInputRef.current?.click()}
@@ -270,14 +280,14 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
               )}
             </div>
 
-            {/* Image Upload */}
+            {/* File Upload */}
             <div className="grid gap-2">
-              <Label htmlFor="image">Image (Optional)</Label>
+              <Label htmlFor="file">File Attachment (Optional)</Label>
               <div className="flex gap-2">
                 <Input
-                  id="image"
+                  id="file"
                   type="file"
-                  accept="image/*"
+                  accept="*/*"
                   ref={fileInputRef}
                   onChange={handleFileChange}
                   className="hidden"
@@ -291,26 +301,27 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                   className="hidden"
                 />
                 
-                <ImageSourceOptions />
+                <FileSourceOptions />
                 
-                {previewUrl && (
+                {file && (
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={clearImage}
+                    onClick={clearFile}
                     className="p-2"
-                    title="Remove image"
+                    title="Remove file"
                   >
                     <X className="h-4 w-4" />
                   </Button>
                 )}
               </div>
-              {previewUrl && (
-                <div className="mt-2 relative rounded-lg overflow-hidden border">
-                  <img 
-                    src={previewUrl} 
-                    alt="Preview" 
-                    className="max-h-32 mx-auto object-contain"
+              {file && (
+                <div className="mt-2">
+                  <FilePreview 
+                    file={file}
+                    fileName={fileName}
+                    fileType={fileType}
+                    className="max-h-32"
                   />
                 </div>
               )}
@@ -377,7 +388,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
           <Button 
             onClick={handleSave}
             className={cn(isMobile && "w-full")}
-            disabled={name.trim() === '' && !previewUrl}
+            disabled={name.trim() === '' && !file}
           >
             Add to Shopping List
           </Button>
