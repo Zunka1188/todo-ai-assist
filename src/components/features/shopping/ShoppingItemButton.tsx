@@ -31,69 +31,80 @@ const ShoppingItemButton = ({
   const hasAdditionalInfo = quantity || price || notes || (repeatOption && repeatOption !== 'none');
   
   return (
-    <Button
-      type="button"
-      variant={completed ? "completed" : "active"} // Using semantic variants for better readability
-      size="sm"
-      className={cn(
-        "flex flex-row items-center justify-start gap-3 transition-colors w-full relative",
-        "h-auto min-h-[40px] px-3 py-2", // Reduced height by 50% (from 80px to 40px)
-        className
-      )}
-      onClick={onClick}
-    >
-      {/* Image on the left side */}
-      {imageUrl ? (
-        <div 
-          className="h-[32px] w-[32px] rounded-md bg-cover bg-center shrink-0"
-          style={{ backgroundImage: `url(${imageUrl})` }}
-          aria-hidden="true"
-        />
-      ) : (
-        <div className="h-[32px] w-[32px] rounded-md bg-muted shrink-0" aria-hidden="true" />
-      )}
-      
-      {/* Content on the right side */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {completed ? (
-          <div className="flex items-center w-full">
-            <Check size={16} className="mr-2 shrink-0" />
-            <span className="truncate font-medium">{name ? name : "Purchased"}</span>
-          </div>
-        ) : (
-          <div className="flex items-center w-full">
-            <span className="truncate font-medium">{name ? name : "Mark as Purchased"}</span>
-          </div>
-        )}
+    <div className="w-full max-w-[320px] h-[96px] bg-background rounded-md overflow-hidden flex flex-col">
+      {/* Top Section: Product Image & Details (64px height) */}
+      <div className="flex h-[64px] w-full">
+        {/* Left Column - Product Image */}
+        <div className="w-[48px] h-[48px] my-auto ml-2">
+          {imageUrl ? (
+            <div 
+              className="w-full h-full rounded-md bg-cover bg-center"
+              style={{ backgroundImage: `url(${imageUrl})` }}
+              aria-hidden="true"
+            />
+          ) : (
+            <div className="w-full h-full rounded-md bg-muted" aria-hidden="true" />
+          )}
+        </div>
         
-        {/* Display additional details when available */}
-        {!completed && hasAdditionalInfo && (
-          <div className="flex flex-wrap gap-x-2 gap-y-1 w-full text-xs text-muted-foreground mt-0.5">
-            {quantity && (
-              <span className="inline-flex items-center">
-                Qty: {quantity}
-              </span>
-            )}
-            {price && (
-              <span className="inline-flex items-center">
-                ${price}
-              </span>
-            )}
-            {repeatOption && repeatOption !== 'none' && (
-              <span className="inline-flex items-center">
-                <Repeat size={10} className="mr-1" />
-                {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
-              </span>
-            )}
-            {notes && (
-              <div className="w-full text-xs truncate mt-0.5">
-                {notes}
-              </div>
-            )}
+        {/* Right Column - Product Details */}
+        <div className="flex flex-col justify-center ml-2 overflow-hidden">
+          {/* Product Name */}
+          <div className="text-base font-bold truncate">
+            {name || "Unnamed Product"}
           </div>
-        )}
+          
+          {/* Additional Details */}
+          {hasAdditionalInfo && (
+            <div className="flex flex-wrap gap-x-2 gap-y-1 text-xs text-muted-foreground mt-1">
+              {quantity && (
+                <span className="inline-flex items-center">
+                  Qty: {quantity}
+                </span>
+              )}
+              {price && (
+                <span className="inline-flex items-center">
+                  ${price}
+                </span>
+              )}
+              {repeatOption && repeatOption !== 'none' && (
+                <span className="inline-flex items-center">
+                  <Repeat size={10} className="mr-1" />
+                  {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
+                </span>
+              )}
+              {notes && (
+                <div className="w-full truncate">
+                  {notes}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </Button>
+      
+      {/* Bottom Section: Purchase Button (32px height) */}
+      <Button
+        type="button"
+        variant={completed ? "completed" : "active"}
+        className={cn(
+          "w-full h-[32px] rounded-sm mt-auto",
+          "flex items-center justify-center",
+          completed ? "bg-gray-400 text-white hover:bg-gray-500" : "bg-green-500 text-white hover:bg-green-600",
+          className
+        )}
+        onClick={onClick}
+      >
+        {completed ? (
+          <>
+            <Check size={16} className="mr-2" />
+            <span className="font-medium">Purchased</span>
+          </>
+        ) : (
+          <span className="font-medium">Purchase</span>
+        )}
+      </Button>
+    </div>
   );
 };
 
