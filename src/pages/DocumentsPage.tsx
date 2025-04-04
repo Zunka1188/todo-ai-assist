@@ -57,17 +57,13 @@ const DocumentsPage = () => {
         </div>
       </div>
 
-      {/* For desktop view - Add button on left, search on right */}
-      <div className={cn(
-        "sm:flex sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 my-3",
-        isMobile ? "hidden" : "flex"
-      )}>
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 my-3">
         <Button 
           className="bg-todo-purple hover:bg-todo-purple/90 text-white gap-2 h-10 sm:w-auto w-full flex justify-center items-center"
-          size="sm"
+          size={isMobile ? "default" : "sm"}
           onClick={() => setIsAddDialogOpen(true)}
         >
-          <Plus className="h-5 w-5" />
+          <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
           <span>Add Document</span>
         </Button>
         
@@ -81,31 +77,6 @@ const DocumentsPage = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-      </div>
-
-      {/* For mobile view - Search on top, add button below */}
-      <div className={cn(
-        "flex-col gap-3 my-3",
-        isMobile ? "flex" : "hidden"
-      )}>
-        <div className="relative w-full">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <Input
-            type="search"
-            placeholder="Search documents..."
-            className="pl-8 h-10 w-full"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        
-        <Button 
-          className="bg-todo-purple hover:bg-todo-purple/90 text-white gap-2 h-10 w-full flex justify-center items-center"
-          onClick={() => setIsAddDialogOpen(true)}
-        >
-          <Plus className="h-4 w-4" />
-          <span>Add Document</span>
-        </Button>
       </div>
 
       <Separator className="my-2" />
@@ -141,7 +112,7 @@ const DocumentsPage = () => {
 
       <AddDocumentDialog 
         open={isAddDialogOpen} 
-        onClose={() => setIsAddDialogOpen(false)}
+        onOpenChange={setIsAddDialogOpen}
         onSave={handleAddDocument}
       />
     </div>
