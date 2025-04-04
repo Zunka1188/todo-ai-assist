@@ -120,7 +120,8 @@ const ShoppingPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto">
+    <div className="flex flex-col h-full">
+      {/* Header section that matches Documents page */}
       <div className="mb-4 flex flex-col gap-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
