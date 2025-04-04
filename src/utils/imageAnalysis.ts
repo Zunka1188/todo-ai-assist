@@ -57,7 +57,7 @@ export const analyzeImage = async (fileData: string, fileName?: string): Promise
     return mockDocumentAnalysis(hash, extractedText);
   } else {
     // Default image analysis
-    const categories = ['Style', 'Recipes', 'Travel', 'Fitness', 'Other'];
+    const categories = ['style', 'recipes', 'travel', 'fitness', 'other'];
     const randomCategory = categories[Math.abs(hash) % categories.length];
     return getMockResultForCategory(randomCategory);
   }
@@ -120,7 +120,7 @@ function mockPdfAnalysis(hash: number, text: string): AnalysisResult {
   
   return {
     title: titles[Math.abs(hash) % titles.length],
-    category: 'Work',
+    category: 'work',
     tags: ['financial', 'quarterly', 'report', 'business'],
     description: 'Financial performance report for the first quarter of fiscal year 2025.',
     date: '2025-03-31',
@@ -143,7 +143,7 @@ function mockDocumentAnalysis(hash: number, text: string): AnalysisResult {
   
   return {
     title: titles[Math.abs(hash) % titles.length],
-    category: 'Work',
+    category: 'work',
     tags: ['meeting', 'minutes', 'project', 'website'],
     description: 'Minutes from the website redesign project team meeting.',
     date: '2025-04-15',
@@ -157,37 +157,37 @@ function mockDocumentAnalysis(hash: number, text: string): AnalysisResult {
 
 function getMockResultForCategory(category: string): AnalysisResult {
   const mockResults: Record<string, AnalysisResult> = {
-    'Style': {
+    'style': {
       title: 'Fashion Design Sketch',
-      category: 'Style',
+      category: 'style',
       tags: ['fashion', 'design', 'clothing'],
       description: 'A modern fashion design sketch showing seasonal outfit concept.',
       date: new Date().toISOString().split('T')[0]
     },
-    'Recipes': {
+    'recipes': {
       title: 'Homemade Pasta Recipe',
-      category: 'Recipes',
+      category: 'recipes',
       tags: ['cooking', 'italian', 'dinner'],
       description: 'Fresh pasta recipe with simple ingredients.',
       date: new Date().toISOString().split('T')[0]
     },
-    'Travel': {
+    'travel': {
       title: 'Vacation Destination',
-      category: 'Travel',
+      category: 'travel',
       tags: ['vacation', 'sightseeing', 'landmarks'],
       description: 'Beautiful travel destination for next vacation planning.',
       date: new Date().toISOString().split('T')[0]
     },
-    'Fitness': {
+    'fitness': {
       title: 'Workout Plan',
-      category: 'Fitness',
+      category: 'fitness',
       tags: ['exercise', 'health', 'workout'],
       description: 'Weekly fitness routine focusing on core strength.',
       date: new Date().toISOString().split('T')[0]
     },
-    'Other': {
+    'other': {
       title: 'General Document',
-      category: 'Other',
+      category: 'other',
       tags: ['document', 'general', 'misc'],
       description: 'General purpose document or image.',
       date: new Date().toISOString().split('T')[0]

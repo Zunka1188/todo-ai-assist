@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { ArrowLeft, File, Search, Plus, Tag, ChefHat, Plane, Dumbbell, Shirt, FileText, Maximize2 } from 'lucide-react';
+import { ArrowLeft, File, Search, Plus, Tag, ChefHat, Plane, Dumbbell, Shirt, FileText, Maximize2, Calendar, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,20 +16,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { getFileTypeFromName } from '@/components/features/documents/FilePreview';
 
-// Define the document categories
-const categories = [
-  'Personal',
-  'Work',
-  'Travel',
-  'Legal',
-  'Finance',
-  'Health',
-  'Education',
-  'Other'
-];
+// Define the available categories to match the Categories tab
+const CATEGORIES = ['style', 'recipes', 'travel', 'fitness', 'work', 'other'];
 
 // Define category tab types
-type DocumentCategory = 'style' | 'recipes' | 'travel' | 'fitness' | 'other';
+type DocumentCategory = 'style' | 'recipes' | 'travel' | 'fitness' | 'work' | 'other';
 
 // Define the item type
 interface DocumentItem {
@@ -39,6 +31,7 @@ interface DocumentItem {
   content: string;
   tags: string[];
   date: Date;
+  addedDate: Date;
   file?: string | null;
   fileName?: string;
   fileType?: string;
@@ -53,7 +46,8 @@ const initialCategoryItems: DocumentItem[] = [
     type: 'image',
     content: 'https://picsum.photos/id/64/400/300',
     tags: ['summer', 'casual'],
-    date: new Date(2025, 3, 1)
+    date: new Date(2025, 3, 1),
+    addedDate: new Date(2025, 3, 4)
   },
   {
     id: '2',
@@ -62,7 +56,8 @@ const initialCategoryItems: DocumentItem[] = [
     type: 'note',
     content: 'Blend 1 banana, 1 cup spinach, 1/2 cup blueberries, 1 tbsp chia seeds, and almond milk.',
     tags: ['healthy', 'breakfast'],
-    date: new Date(2025, 3, 2)
+    date: new Date(2025, 3, 2),
+    addedDate: new Date(2025, 3, 3)
   },
   {
     id: '3',
@@ -71,7 +66,8 @@ const initialCategoryItems: DocumentItem[] = [
     type: 'note',
     content: 'Visit Eiffel Tower, Louvre Museum, Notre-Dame Cathedral, and try local pastries.',
     tags: ['europe', 'vacation'],
-    date: new Date(2025, 3, 3)
+    date: new Date(2025, 3, 3),
+    addedDate: new Date(2025, 3, 3)
   },
   {
     id: '4',
@@ -80,7 +76,8 @@ const initialCategoryItems: DocumentItem[] = [
     type: 'note',
     content: 'Monday: Upper body, Tuesday: Lower body, Wednesday: Rest, Thursday: HIIT, Friday: Full body, Weekend: Active recovery',
     tags: ['workout', 'routine'],
-    date: new Date(2025, 3, 4)
+    date: new Date(2025, 3, 4),
+    addedDate: new Date(2025, 3, 2)
   },
   {
     id: '5',
@@ -89,7 +86,8 @@ const initialCategoryItems: DocumentItem[] = [
     type: 'image',
     content: 'https://picsum.photos/id/96/400/300',
     tags: ['winter', 'fashion'],
-    date: new Date(2025, 3, 5)
+    date: new Date(2025, 3, 5),
+    addedDate: new Date(2025, 3, 1)
   }
 ];
 
@@ -110,7 +108,7 @@ const DocumentsPage = () => {
   };
 
   // Default category for new documents
-  const currentCategory = 'Personal';
+  const currentCategory = activeCategoryTab;
 
   const handleAddDocument = (document: any) => {
     console.log('Adding document:', document);
@@ -128,6 +126,8 @@ const DocumentsPage = () => {
         return <Plane className="h-5 w-5" />;
       case 'fitness':
         return <Dumbbell className="h-5 w-5" />;
+      case 'work':
+        return <FileText className="h-5 w-5 text-blue-600" />;
       case 'other':
         return <FileText className="h-5 w-5" />;
       default:
@@ -160,12 +160,13 @@ const DocumentsPage = () => {
         setCategoryItems(categoryItems.map(existingItem => 
           existingItem.id === editingItem.id ? {
             ...item, 
-            category: activeCategoryTab as DocumentCategory,
+            category: item.category as DocumentCategory,
             content: item.description || item.content || '',
             file: item.file || null,
             fileName: item.fileName || undefined,
             fileType: item.fileType || undefined,
-            date: new Date(item.date || Date.now())
+            date: new Date(item.date || Date.now()),
+            addedDate: editingItem.addedDate
           } : existingItem
         ));
         
@@ -175,14 +176,16 @@ const DocumentsPage = () => {
         });
       } else {
         // Add new item
+        const now = new Date();
         const newItem: DocumentItem = {
           id: Date.now().toString(),
           title: item.title,
-          category: activeCategoryTab as DocumentCategory,
+          category: item.category as DocumentCategory,
           type: item.file && getFileTypeFromName(item.fileName || '') === 'image' ? 'image' : 'note',
           content: item.description || '',
           tags: item.tags || [],
-          date: new Date(item.date || Date.now()),
+          date: new Date(item.date || now),
+          addedDate: now,
           file: item.file || null,
           fileName: item.fileName || undefined,
           fileType: item.fileType || undefined
@@ -224,6 +227,18 @@ const DocumentsPage = () => {
       item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
   );
+
+  // Format date to be more readable
+  const formatDateRelative = (date: Date) => {
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    
+    return date.toLocaleDateString();
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -298,7 +313,7 @@ const DocumentsPage = () => {
             onValueChange={(value) => setActiveCategoryTab(value as DocumentCategory)}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-5 w-full mb-4">
+            <TabsList className="grid grid-cols-6 w-full mb-4">
               <TabsTrigger value="style" className="flex items-center gap-2">
                 <Shirt className="h-4 w-4" />
                 <span className={isMobile ? "hidden" : "inline"}>Style</span>
@@ -315,6 +330,10 @@ const DocumentsPage = () => {
                 <Dumbbell className="h-4 w-4" />
                 <span className={isMobile ? "hidden" : "inline"}>Fitness</span>
               </TabsTrigger>
+              <TabsTrigger value="work" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                <span className={isMobile ? "hidden" : "inline"}>Work</span>
+              </TabsTrigger>
               <TabsTrigger value="other" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 <span className={isMobile ? "hidden" : "inline"}>Other</span>
@@ -329,6 +348,7 @@ const DocumentsPage = () => {
                 onEdit={handleOpenAddDialog}
                 onDelete={handleDeleteItem}
                 onViewImage={handleViewImage}
+                formatDateRelative={formatDateRelative}
               />
             </div>
           </Tabs>
@@ -337,7 +357,10 @@ const DocumentsPage = () => {
         {/* Files Tab Content */}
         <TabsContent value="files" className="mt-4">
           <div className="flex-1 overflow-auto">
-            <DocumentList searchTerm={searchTerm} />
+            <DocumentList 
+              searchTerm={searchTerm} 
+              categories={CATEGORIES}
+            />
           </div>
         </TabsContent>
       </Tabs>
@@ -346,16 +369,17 @@ const DocumentsPage = () => {
         open={isAddDialogOpen} 
         onOpenChange={setIsAddDialogOpen}
         onAdd={handleAddItem}
-        categories={categories}
+        categories={CATEGORIES}
         currentCategory={currentCategory}
         isEditing={!!editingItem}
         editItem={editingItem ? {
           id: editingItem.id,
           title: editingItem.title,
           description: editingItem.content,
-          category: editingItem.category as string,
+          category: editingItem.category,
           tags: editingItem.tags,
           date: editingItem.date.toISOString().split('T')[0],
+          addedDate: editingItem.addedDate.toISOString().split('T')[0],
           file: editingItem.type === 'image' ? editingItem.content : editingItem.file,
           fileName: editingItem.fileName,
           fileType: editingItem.fileType
@@ -409,6 +433,7 @@ interface DocumentItemsListProps {
   onEdit: (item: DocumentItem) => void;
   onDelete: (id: string) => void;
   onViewImage: (imageUrl: string) => void;
+  formatDateRelative: (date: Date) => string;
 }
 
 const DocumentItemsList: React.FC<DocumentItemsListProps> = ({ 
@@ -416,7 +441,8 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
   getTypeIcon, 
   onEdit,
   onDelete,
-  onViewImage
+  onViewImage,
+  formatDateRelative
 }) => {
   if (items.length === 0) {
     return (
@@ -457,6 +483,13 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                         {tag}
                       </span>
                     ))}
+                  </div>
+                  <div className="flex items-center text-xs text-white/80 mt-1.5 gap-1">
+                    <Calendar className="h-3 w-3" />
+                    <span>{item.date.toLocaleDateString()}</span>
+                    <span className="mx-0.5">•</span>
+                    <Clock className="h-3 w-3" />
+                    <span>Added {formatDateRelative(item.addedDate)}</span>
                   </div>
                 </div>
                 <div className="absolute top-2 right-2 flex gap-1">
@@ -526,6 +559,13 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                         </span>
                       ))}
                     </div>
+                    <div className="flex items-center text-xs text-muted-foreground mt-2 gap-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>{item.date.toLocaleDateString()}</span>
+                      <span className="mx-0.5">•</span>
+                      <Clock className="h-3 w-3" />
+                      <span>Added {formatDateRelative(item.addedDate)}</span>
+                    </div>
                   </div>
                   <div className="flex gap-1 ml-2 shrink-0">
                     <Button
@@ -566,9 +606,6 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                       </svg>
                     </Button>
                   </div>
-                </div>
-                <div className="text-xs text-muted-foreground mt-2">
-                  {item.date.toLocaleDateString()}
                 </div>
               </div>
             )}

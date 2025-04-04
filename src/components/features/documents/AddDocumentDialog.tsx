@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, X, Camera, Upload, Loader2, Save, Maximize2, Minimize2, File as FileIcon } from 'lucide-react';
+import { Plus, X, Camera, Upload, Loader2, Save, Maximize2, Minimize2, File as FileIcon, Calendar, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,7 @@ interface DocumentItem {
   category: string;
   tags: string[];
   date: string;
+  addedDate: string;
   file?: string | null;
   fileName?: string;
   fileType?: string;
@@ -41,12 +42,15 @@ interface AddDocumentDialogProps {
   editItem?: DocumentItem | null;
 }
 
+// Define the available categories to match the Categories tab
+const DEFAULT_CATEGORIES = ['style', 'recipes', 'travel', 'fitness', 'work', 'other'];
+
 const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   open,
   onOpenChange,
   onAdd,
-  currentCategory = 'Personal',
-  categories = ['Personal', 'Work'],
+  currentCategory = 'style',
+  categories = DEFAULT_CATEGORIES,
   isEditing = false,
   editItem = null
 }) => {
@@ -103,13 +107,16 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       return;
     }
 
+    const today = new Date().toISOString().split('T')[0];
+
     const newItem: DocumentItem = {
       id: isEditing && editItem ? editItem.id : Date.now().toString(),
       title,
       description: description || undefined,
       category,
       tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
-      date: date || new Date().toISOString().split('T')[0],
+      date: date || today,
+      addedDate: editItem?.addedDate || today,
       file,
       fileName: fileName || undefined,
       fileType: fileType || undefined,
@@ -122,7 +129,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       title: isEditing ? "Item updated" : "Item added",
       description: isEditing 
         ? `${title} has been updated successfully` 
-        : `${title} has been added to ${category}`,
+        : `${title} has been added to ${getCategoryDisplayName(category)}`,
     });
   };
 
@@ -215,7 +222,16 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   const handleAnalysisComplete = (result: AnalysisResult) => {
     // Apply AI analysis results to form fields
     if (result.title) setTitle(result.title);
-    if (result.category && categories.includes(result.category)) setCategory(result.category);
+    
+    // Match the category from analysis to one of our available categories
+    if (result.category) {
+      const lowerCaseCategory = result.category.toLowerCase();
+      // Check if the category exists in our list
+      if (categories.some(cat => cat.toLowerCase() === lowerCaseCategory)) {
+        setCategory(lowerCaseCategory);
+      }
+    }
+    
     if (result.description) setDescription(result.description);
     if (result.tags) setTags(result.tags.join(', '));
     if (result.date) setDate(result.date);
@@ -227,6 +243,11 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       title: "AI Analysis Complete",
       description: "We've pre-filled the form based on your file",
     });
+  };
+
+  const getCategoryDisplayName = (cat: string): string => {
+    // Convert the category to a nicer display format
+    return cat.charAt(0).toUpperCase() + cat.slice(1);
   };
 
   // If in full screen mode for image preview, show a simplified view
@@ -297,7 +318,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
                   <SelectContent>
                     {categories.map((cat) => (
                       <SelectItem key={cat} value={cat}>
-                        {cat}
+                        {getCategoryDisplayName(cat)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -326,13 +347,19 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
+                <Label htmlFor="date" className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Document Date
+                </Label>
                 <Input
                   id="date"
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Date associated with the document's content
+                </p>
               </div>
 
               <div className="space-y-2">
