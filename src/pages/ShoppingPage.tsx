@@ -82,6 +82,16 @@ const ShoppingPage = () => {
     setAddDialogOpen(true);
   };
 
+  const handleManualEntry = () => {
+    console.log('Opening manual entry form...');
+    setAddDialogOpen(true);
+  };
+
+  const handleTemplateBrowse = () => {
+    console.log('Opening template browser...');
+    setAddDialogOpen(true);
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center space-x-4 py-2 sm:py-4">
@@ -180,6 +190,8 @@ const ShoppingPage = () => {
         onCameraCapture={handleCameraCapture}
         onFileUpload={handleFileUpload}
         onDocumentUpload={handleDocumentUpload}
+        onManualEntry={handleManualEntry}
+        onTemplateBrowse={handleTemplateBrowse}
         title="Add Shopping Item"
       />
       

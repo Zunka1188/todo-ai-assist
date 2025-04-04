@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Camera, Upload, File } from 'lucide-react';
+import { Camera, Upload, File, PencilLine, List, Calendar, Tag } from 'lucide-react';
 import { 
   Dialog, 
   DialogContent,
@@ -23,7 +23,11 @@ interface AttachmentOptionsDialogProps {
   onCameraCapture: () => void;
   onFileUpload: () => void;
   onDocumentUpload: () => void;
-  title?: string; // Added for customization
+  onManualEntry?: () => void;
+  onTemplateBrowse?: () => void;
+  onCalendarImport?: () => void;
+  onCategorySelect?: () => void;
+  title?: string;
 }
 
 const AttachmentOptionsDialog = ({
@@ -32,7 +36,11 @@ const AttachmentOptionsDialog = ({
   onCameraCapture,
   onFileUpload,
   onDocumentUpload,
-  title = "Add Item Options", // Default title
+  onManualEntry,
+  onTemplateBrowse,
+  onCalendarImport,
+  onCategorySelect,
+  title = "Add Item Options", 
 }: AttachmentOptionsDialogProps) => {
   const { isMobile } = useIsMobile();
 
@@ -44,6 +52,32 @@ const AttachmentOptionsDialog = ({
             <SheetTitle>{title}</SheetTitle>
           </SheetHeader>
           <div className="flex flex-col space-y-3">
+            {onManualEntry && (
+              <Button 
+                onClick={() => {
+                  onManualEntry();
+                  onOpenChange(false);
+                }}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <PencilLine className="h-4 w-4" /> Manual Entry
+              </Button>
+            )}
+
+            {onTemplateBrowse && (
+              <Button 
+                onClick={() => {
+                  onTemplateBrowse();
+                  onOpenChange(false);
+                }}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <List className="h-4 w-4" /> Browse Templates
+              </Button>
+            )}
+
             <Button 
               onClick={() => {
                 onFileUpload();
@@ -54,6 +88,7 @@ const AttachmentOptionsDialog = ({
             >
               <Upload className="h-4 w-4" /> Attach Image
             </Button>
+
             <Button 
               onClick={() => {
                 onDocumentUpload();
@@ -64,6 +99,7 @@ const AttachmentOptionsDialog = ({
             >
               <File className="h-4 w-4" /> Attach Document
             </Button>
+
             <Button 
               onClick={() => {
                 onCameraCapture();
@@ -74,6 +110,33 @@ const AttachmentOptionsDialog = ({
             >
               <Camera className="h-4 w-4" /> Take a Picture
             </Button>
+
+            {onCalendarImport && (
+              <Button 
+                onClick={() => {
+                  onCalendarImport();
+                  onOpenChange(false);
+                }}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Calendar className="h-4 w-4" /> Import from Calendar
+              </Button>
+            )}
+
+            {onCategorySelect && (
+              <Button 
+                onClick={() => {
+                  onCategorySelect();
+                  onOpenChange(false);
+                }}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Tag className="h-4 w-4" /> Select by Category
+              </Button>
+            )}
+
             <SheetClose asChild>
               <Button variant="ghost" className="w-full mt-2">Cancel</Button>
             </SheetClose>
@@ -89,6 +152,32 @@ const AttachmentOptionsDialog = ({
             <DialogTitle>{title}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col space-y-3 py-4">
+            {onManualEntry && (
+              <Button 
+                onClick={() => {
+                  onManualEntry();
+                  onOpenChange(false);
+                }}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <PencilLine className="h-4 w-4" /> Manual Entry
+              </Button>
+            )}
+
+            {onTemplateBrowse && (
+              <Button 
+                onClick={() => {
+                  onTemplateBrowse();
+                  onOpenChange(false);
+                }}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <List className="h-4 w-4" /> Browse Templates
+              </Button>
+            )}
+
             <Button 
               onClick={() => {
                 onFileUpload();
@@ -99,6 +188,7 @@ const AttachmentOptionsDialog = ({
             >
               <Upload className="h-4 w-4" /> Attach Image
             </Button>
+
             <Button 
               onClick={() => {
                 onDocumentUpload();
@@ -109,6 +199,7 @@ const AttachmentOptionsDialog = ({
             >
               <File className="h-4 w-4" /> Attach Document
             </Button>
+
             <Button 
               onClick={() => {
                 onCameraCapture();
@@ -119,6 +210,33 @@ const AttachmentOptionsDialog = ({
             >
               <Camera className="h-4 w-4" /> Take a Picture
             </Button>
+
+            {onCalendarImport && (
+              <Button 
+                onClick={() => {
+                  onCalendarImport();
+                  onOpenChange(false);
+                }}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Calendar className="h-4 w-4" /> Import from Calendar
+              </Button>
+            )}
+
+            {onCategorySelect && (
+              <Button 
+                onClick={() => {
+                  onCategorySelect();
+                  onOpenChange(false);
+                }}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Tag className="h-4 w-4" /> Select by Category
+              </Button>
+            )}
+
             <Button variant="ghost" className="w-full mt-2" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
