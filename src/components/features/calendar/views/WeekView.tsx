@@ -1,9 +1,13 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Toggle } from '@/components/ui/toggle';
+
 interface Event {
   id: string;
   title: string;
@@ -22,6 +26,7 @@ interface Event {
   };
   reminder?: string;
 }
+
 interface WeekViewProps {
   date: Date;
   setDate: (date: Date) => void;
@@ -30,6 +35,7 @@ interface WeekViewProps {
   theme: string;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }
+
 const WeekView: React.FC<WeekViewProps> = ({
   date,
   setDate,
@@ -41,22 +47,28 @@ const WeekView: React.FC<WeekViewProps> = ({
   const [startHour, setStartHour] = useState(0);
   const [endHour, setEndHour] = useState(23);
   const [showFullDay, setShowFullDay] = useState(true);
+  
   const weekStart = startOfWeek(date, {
     weekStartsOn
   });
+  
   const weekEnd = endOfWeek(date, {
     weekStartsOn
   });
+  
   const daysInWeek = eachDayOfInterval({
     start: weekStart,
     end: weekEnd
   });
+  
   const prevWeek = () => {
     setDate(subWeeks(date, 1));
   };
+  
   const nextWeek = () => {
     setDate(addWeeks(date, 1));
   };
+  
   const getEventsForDay = (day: Date) => {
     return events.filter(event => isSameDay(event.startDate, day) || isSameDay(event.endDate, day) || event.startDate <= day && event.endDate >= day);
   };
@@ -73,13 +85,40 @@ const WeekView: React.FC<WeekViewProps> = ({
   const hours = Array.from({
     length: endHour - startHour + 1
   }, (_, i) => startHour + i);
-  const handleFullDayToggle = () => {
-    if (!showFullDay) {
-      setStartHour(0);
-      setEndHour(23);
-      setShowFullDay(true);
+  
+  // Check if any events will be hidden with current time range
+  const hiddenEvents = events.filter(event => {
+    if (event.allDay) return false;
+    const eventStartHour = event.startDate.getHours();
+    const eventEndHour = event.endDate.getHours();
+    return eventStartHour < startHour || eventEndHour > endHour;
+  });
+
+  const handleTimeRangeToggle = (preset: string) => {
+    switch (preset) {
+      case 'full':
+        setStartHour(0);
+        setEndHour(23);
+        setShowFullDay(true);
+        break;
+      case 'business':
+        setStartHour(8);
+        setEndHour(18);
+        setShowFullDay(false);
+        break;
+      case 'evening':
+        setStartHour(17);
+        setEndHour(23);
+        setShowFullDay(false);
+        break;
+      case 'morning':
+        setStartHour(4);
+        setEndHour(12);
+        setShowFullDay(false);
+        break;
     }
   };
+
   const handleStartHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
     if (!isNaN(value) && value >= 0 && value <= 23) {
@@ -87,6 +126,7 @@ const WeekView: React.FC<WeekViewProps> = ({
       setShowFullDay(value === 0 && endHour === 23);
     }
   };
+
   const handleEndHourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
     if (!isNaN(value) && value >= 0 && value <= 23) {
@@ -94,6 +134,7 @@ const WeekView: React.FC<WeekViewProps> = ({
       setShowFullDay(startHour === 0 && value === 23);
     }
   };
+  
   return <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className={cn("text-xl font-semibold", theme === 'light' ? "text-foreground" : "text-white")}>
@@ -110,18 +151,57 @@ const WeekView: React.FC<WeekViewProps> = ({
       </div>
 
       {/* Time Range Controls */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <Button size="sm" className={cn("bg-[#9b87f5]", showFullDay ? "hover:bg-[#7E69AB]" : "bg-opacity-70 hover:bg-[#9b87f5] hover:bg-opacity-80")} onClick={handleFullDayToggle}>
-          Full 24h
-        </Button>
-        <div className="flex items-center gap-2">
-          <span className="text-sm">From:</span>
-          <Input type="number" min="0" max="23" value={startHour} onChange={handleStartHourChange} className="w-16 h-9 text-center" />
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-2">
+          <Toggle
+            pressed={showFullDay}
+            onPressedChange={() => handleTimeRangeToggle('full')}
+            className="bg-transparent data-[state=on]:bg-[#9b87f5] data-[state=on]:text-white"
+          >
+            Full day
+          </Toggle>
+          <Toggle
+            pressed={startHour === 8 && endHour === 18}
+            onPressedChange={() => handleTimeRangeToggle('business')}
+            className="bg-transparent data-[state=on]:bg-[#9b87f5] data-[state=on]:text-white"
+          >
+            Business hours
+          </Toggle>
+          <Toggle
+            pressed={startHour === 17 && endHour === 23}
+            onPressedChange={() => handleTimeRangeToggle('evening')}
+            className="bg-transparent data-[state=on]:bg-[#9b87f5] data-[state=on]:text-white"
+          >
+            Evening
+          </Toggle>
+          <Toggle
+            pressed={startHour === 4 && endHour === 12}
+            onPressedChange={() => handleTimeRangeToggle('morning')}
+            className="bg-transparent data-[state=on]:bg-[#9b87f5] data-[state=on]:text-white"
+          >
+            Morning
+          </Toggle>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm">To:</span>
-          <Input type="number" min="0" max="23" value={endHour} onChange={handleEndHourChange} className="w-16 h-9 text-center" />
+        
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">From:</span>
+            <Input type="number" min="0" max="23" value={startHour} onChange={handleStartHourChange} className="w-16 h-9 text-center" />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">To:</span>
+            <Input type="number" min="0" max="23" value={endHour} onChange={handleEndHourChange} className="w-16 h-9 text-center" />
+          </div>
         </div>
+        
+        {hiddenEvents.length > 0 && (
+          <Alert variant="destructive" className="py-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Warning: {hiddenEvents.length} event{hiddenEvents.length > 1 ? 's' : ''} {hiddenEvents.length > 1 ? 'are' : 'is'} outside the selected time range and {hiddenEvents.length > 1 ? 'are' : 'is'} not visible.
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
       
       <div className="border rounded-lg overflow-hidden">
@@ -190,4 +270,5 @@ const WeekView: React.FC<WeekViewProps> = ({
       </div>
     </div>;
 };
+
 export default WeekView;
