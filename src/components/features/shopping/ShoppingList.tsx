@@ -205,11 +205,12 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   const editCameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const newItemFileInputRef = useRef<HTMLInputElement>(null);
-  const isMobile = useIsMobile();
+  const { isMobile, isIOS } = useIsMobile();
   const carouselRef = useRef(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const purchasedSectionRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
+  const listContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     saveToLocalStorage('shoppingItems', items);
@@ -224,9 +225,11 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
       if (isPurchasedSectionCollapsed) {
         setIsPurchasedSectionCollapsed(false);
         
+        const timeout = isMobile ? 400 : 250;
+        
         setTimeout(() => {
           scrollToSection();
-        }, 250);
+        }, timeout);
       } else {
         scrollToSection();
       }
@@ -236,27 +239,54 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   };
 
   const scrollToSection = () => {
-    if (purchasedSectionRef.current) {
+    if (!purchasedSectionRef.current) return;
+    
+    try {
+      if (viewportRef.current) {
+        const sectionPosition = purchasedSectionRef.current.getBoundingClientRect();
+        const viewportPosition = viewportRef.current.getBoundingClientRect();
+        const relativeTop = sectionPosition.top - viewportPosition.top;
+        
+        const offset = isIOS ? 60 : 40;
+        
+        viewportRef.current.scrollBy({
+          top: relativeTop - offset,
+          behavior: 'smooth'
+        });
+        console.log('Scrolling using viewport ref, position:', relativeTop);
+      }
+      else if (listContainerRef.current) {
+        const container = listContainerRef.current;
+        const section = purchasedSectionRef.current;
+        const topPos = section.offsetTop - container.offsetTop;
+        
+        container.scrollTo({
+          top: topPos - 40,
+          behavior: 'smooth'
+        });
+        console.log('Scrolling using container ref, position:', topPos);
+      }
+      else {
+        purchasedSectionRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+        console.log('Scrolling using scrollIntoView');
+      }
+    } catch (error) {
+      console.error('Error scrolling to section:', error);
+      
       try {
-        if (viewportRef.current) {
-          const sectionPosition = purchasedSectionRef.current.getBoundingClientRect();
-          const viewportPosition = viewportRef.current.getBoundingClientRect();
-          const relativeTop = sectionPosition.top - viewportPosition.top;
-          
-          viewportRef.current.scrollBy({
-            top: relativeTop - 40,
-            behavior: 'smooth'
-          });
-          console.log('Scrolling using viewport ref, position:', relativeTop);
-        } else {
-          purchasedSectionRef.current.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
-          });
-          console.log('Scrolling using scrollIntoView');
+        if (purchasedSectionRef.current) {
+          const yOffset = -40;
+          const y = purchasedSectionRef.current.getBoundingClientRect().top + 
+                    window.pageYOffset + yOffset;
+                    
+          window.scrollTo({top: y, behavior: 'smooth'});
+          console.log('Scrolling using window.scrollTo');
         }
-      } catch (error) {
-        console.error('Error scrolling to section:', error);
+      } catch (e) {
+        console.error('All scrolling methods failed:', e);
       }
     }
   };
@@ -764,7 +794,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" ref={listContainerRef}>
       <div className="flex items-center justify-between">
         <div className="flex-1"></div>
         
