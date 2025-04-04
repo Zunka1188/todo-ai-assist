@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog,
@@ -34,6 +35,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTrigger,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 
 interface ItemData {
   id?: string;
@@ -75,6 +84,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (editItem && open) {
@@ -340,201 +350,234 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     );
   }
 
-  return (
+  // The main content of our dialog that both the desktop Dialog and mobile Drawer will use
+  const dialogContent = (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent 
-          className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-hidden")}
-          preventNavigateOnClose={true}
-        >
-          <DialogHeader>
-            <DialogTitle>{isEditing ? "Edit Item" : "Add New Item"}</DialogTitle>
-          </DialogHeader>
+      <div className={cn("space-y-4", isMobile && "pb-4")}>
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">Item Name *</Label>
+            <Input
+              id="name"
+              placeholder="Enter item name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
 
-          <ScrollArea className="max-h-[calc(90vh-10rem)] pr-4">
-            <div className="space-y-4">
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Item Name *</Label>
-                  <Input
-                    id="name"
-                    placeholder="Enter item name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="file">File</Label>
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button 
-                        type="button"
-                        variant="outline"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center justify-center h-10"
-                        disabled={isUploading}
-                      >
-                        {isUploading ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <Upload className="mr-2 h-4 w-4" />
-                        )}
-                        Upload File
-                      </Button>
-                      
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => cameraInputRef.current?.click()}
-                        className="flex items-center justify-center h-10"
-                        disabled={isUploading}
-                      >
-                        <Camera className="mr-2 h-4 w-4" />
-                        Take Photo
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Supported files: images, PDFs, documents, spreadsheets, and more
-                    </p>
-                    
-                    <Input
-                      id="file"
-                      type="file"
-                      accept="*/*"
-                      ref={fileInputRef}
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      ref={cameraInputRef}
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                  </div>
-                  
-                  {file && (
-                    <div className="relative mt-2">
-                      <FilePreview 
-                        file={file}
-                        fileName={fileName}
-                        fileType={fileType}
-                        className="max-h-32 w-full"
-                      />
-                      <div className="absolute top-2 right-2 flex gap-1">
-                        {fileType === 'image' && (
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
-                            onClick={toggleFullScreenPreview}
-                          >
-                            <Maximize2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={clearFile}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
+          <div className="grid gap-2">
+            <Label htmlFor="file">File</Label>
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center justify-center h-10"
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="mr-2 h-4 w-4" />
                   )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="amount">Quantity</Label>
-                    <Input
-                      id="amount"
-                      placeholder="e.g., 2 boxes"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="price">Price</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      placeholder="e.g., 9.99"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="date">Purchase By</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={dateToPurchase}
-                    onChange={(e) => setDateToPurchase(e.target.value)}
-                  />
-                </div>
+                  Upload File
+                </Button>
                 
-                <div className="grid gap-2">
-                  <Label htmlFor="repeat-option">Repeat</Label>
-                  <Select 
-                    value={repeatOption} 
-                    onValueChange={(value) => setRepeatOption(value as 'none' | 'weekly' | 'monthly')}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="flex items-center justify-center h-10"
+                  disabled={isUploading}
+                >
+                  <Camera className="mr-2 h-4 w-4" />
+                  Take Photo
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Supported files: images, PDFs, documents, spreadsheets, and more
+              </p>
+              
+              <Input
+                id="file"
+                type="file"
+                accept="*/*"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <Input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                ref={cameraInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </div>
+            
+            {file && (
+              <div className="relative mt-2">
+                <FilePreview 
+                  file={file}
+                  fileName={fileName}
+                  fileType={fileType}
+                  className="max-h-32 w-full"
+                />
+                <div className="absolute top-2 right-2 flex gap-1">
+                  {fileType === 'image' && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
+                      onClick={toggleFullScreenPreview}
+                    >
+                      <Maximize2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={clearFile}
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select frequency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None (One-off)</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="grid gap-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="Add any additional notes here"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="min-h-[80px]"
-                  />
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-            </div>
-          </ScrollArea>
+            )}
+          </div>
 
-          <DialogFooter className={cn(isMobile && "flex-col gap-2")}>
-            <Button 
-              variant="outline" 
-              className={cn(isMobile && "w-full")}
-              onClick={() => {
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="amount">Quantity</Label>
+              <Input
+                id="amount"
+                placeholder="e.g., 2 boxes"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="price">Price</Label>
+              <Input
+                id="price"
+                type="number"
+                placeholder="e.g., 9.99"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="date">Purchase By</Label>
+            <Input
+              id="date"
+              type="date"
+              value={dateToPurchase}
+              onChange={(e) => setDateToPurchase(e.target.value)}
+            />
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="repeat-option">Repeat</Label>
+            <Select 
+              value={repeatOption} 
+              onValueChange={(value) => setRepeatOption(value as 'none' | 'weekly' | 'monthly')}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select frequency" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None (One-off)</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              placeholder="Add any additional notes here"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="min-h-[80px]"
+            />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  // Render different UI for mobile vs. desktop
+  return (
+    <>
+      {isMobile ? (
+        <Drawer open={open} onOpenChange={onOpenChange}>
+          <DrawerContent className="max-h-[85vh] overflow-hidden">
+            <DrawerHeader className="px-4 py-2">
+              <DrawerTitle>{isEditing ? "Edit Item" : "Add New Item"}</DrawerTitle>
+            </DrawerHeader>
+            
+            <ScrollArea className="p-4 pt-0 flex-1 overflow-auto max-h-[60vh]" scrollRef={scrollRef}>
+              {dialogContent}
+            </ScrollArea>
+            
+            <DrawerFooter className="px-4 py-2 gap-2">
+              <Button variant="outline" className="w-full" onClick={() => {
                 resetForm();
                 onOpenChange(false);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSave}
-              className={cn(isMobile && "w-full")}
-              disabled={name.trim() === '' && !file}
-            >
-              {isEditing ? "Save Changes" : "Add to Shopping List"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              }}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSave}
+                className="w-full"
+                disabled={name.trim() === '' && !file}
+              >
+                {isEditing ? "Save Changes" : "Add to Shopping List"}
+              </Button>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+          <DialogContent 
+            className="sm:max-w-md overflow-hidden max-h-[85vh] flex flex-col"
+            preventNavigateOnClose={true}
+          >
+            <DialogHeader>
+              <DialogTitle>{isEditing ? "Edit Item" : "Add New Item"}</DialogTitle>
+            </DialogHeader>
+
+            <ScrollArea className="flex-1 max-h-[60vh] pr-4 overflow-y-auto" scrollRef={scrollRef}>
+              {dialogContent}
+            </ScrollArea>
+
+            <DialogFooter className="mt-4 pt-2 border-t">
+              <Button variant="outline" onClick={() => {
+                resetForm();
+                onOpenChange(false);
+              }}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSave}
+                disabled={name.trim() === '' && !file}
+              >
+                {isEditing ? "Save Changes" : "Add to Shopping List"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       <ImageAnalysisModal
         imageData={file}
