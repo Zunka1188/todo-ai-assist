@@ -1,6 +1,7 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { ArrowLeft, ShoppingBag, Search, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppHeader from '@/components/layout/AppHeader';
@@ -30,6 +31,7 @@ interface ItemData {
 
 const ShoppingPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isMobile } = useIsMobile();
   const { theme } = useTheme();
   const { toast } = useToast();
@@ -40,15 +42,16 @@ const ShoppingPage = () => {
   const [editItem, setEditItem] = useState<ItemData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Force the "all" tab to be active on initial load and stay there
+  // Check URL search params for tab selection
   useEffect(() => {
-    setActiveTab('all');
-    // The timeout ensures this runs after the component has fully rendered
-    const timer = setTimeout(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    if (tabParam && ['one-off', 'weekly', 'monthly', 'all'].includes(tabParam)) {
+      setActiveTab(tabParam as ShoppingTab);
+    } else if (!activeTab) {
       setActiveTab('all');
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
+    }
+  }, [location.search]);
 
   const goBack = () => {
     navigate('/');
@@ -123,6 +126,17 @@ const ShoppingPage = () => {
     }
   };
 
+  // Update URL when active tab changes
+  const handleTabChange = (value: string) => {
+    const newTab = value as ShoppingTab;
+    setActiveTab(newTab);
+    
+    // Update URL with tab parameter for better navigation
+    const params = new URLSearchParams(location.search);
+    params.set('tab', newTab);
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center space-x-4 py-2 sm:py-4">
@@ -177,9 +191,9 @@ const ShoppingPage = () => {
       {/* Updated Tab Navigation - One-off, Weekly, Monthly, All */}
       <div className="mb-4">
         <Tabs 
-          defaultValue="all" 
+          defaultValue={activeTab} 
           value={activeTab} 
-          onValueChange={(value) => setActiveTab(value as ShoppingTab)} 
+          onValueChange={handleTabChange} 
           className="w-full"
         >
           <TabsList className="grid grid-cols-4 w-full">

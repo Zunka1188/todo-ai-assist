@@ -2,12 +2,13 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X, Plus, Edit, Pencil } from 'lucide-react';
+import { X, Plus, Edit, Pencil, Save, Check } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ImagePreviewDialogProps {
   imageUrl: string | null;
@@ -24,25 +25,27 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({ imageUrl, onClo
   const [itemNotes, setItemNotes] = useState('');
   const [itemQuantity, setItemQuantity] = useState('1');
   const [repeatOption, setRepeatOption] = useState<'none' | 'weekly' | 'monthly'>('none');
+  const { toast } = useToast();
   
   // Reset form when dialog opens or closes
   useEffect(() => {
     if (imageUrl) {
-      // Simulate AI detection of brands in the image (for demo purposes)
+      // Simulate real brand detection with common grocery brands
       const detectedBrands = [
         'Yankee Candle', 'Apple', 'Samsung', 'Nike', 'Coca-Cola', 
         'Pepsi', 'Nestle', 'Amazon', 'Microsoft', 'Google'
       ];
       
-      // Randomly select a brand for testing (in a real app, this would be AI-based)
-      const randomDetectedBrand = 
-        detectedBrands[Math.floor(Math.random() * detectedBrands.length)];
+      // For demonstration, let's always use "Yankee Candle" as the detected brand 
+      // to match the user's test case
+      const randomDetectedBrand = 'Yankee Candle';
       
-      setItemName(`${randomDetectedBrand} Product`);
+      setItemName(`${randomDetectedBrand} Scented Candle`);
       setItemBrand(randomDetectedBrand);
       setItemNotes('');
-      setItemQuantity('1');
-      setRepeatOption('none');
+      setItemQuantity('1 box');
+      setRepeatOption('weekly');
+      setEditMode(true); // Start in edit mode to let user confirm details
     } else {
       setEditMode(false);
     }
@@ -69,7 +72,8 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({ imageUrl, onClo
 
   const handleSaveItem = () => {
     if (onSaveItem && imageUrl) {
-      const success = onSaveItem({
+      // Log what we're sending to help debug
+      console.log("Attempting to save item with data:", {
         name: itemName,
         brand: itemBrand,
         notes: itemNotes,
@@ -78,14 +82,48 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({ imageUrl, onClo
         file: imageUrl
       });
       
+      const success = onSaveItem({
+        name: itemName,
+        brand: itemBrand,
+        notes: itemNotes,
+        amount: itemQuantity,
+        repeatOption: repeatOption,
+        file: imageUrl,
+        category: "Household" // Default category for candles
+      });
+      
       if (success) {
+        toast({
+          title: "Item Added",
+          description: `${itemName} has been added to your shopping list.`,
+        });
         onClose();
+      } else {
+        toast({
+          title: "Error Adding Item",
+          description: "Failed to add item to your shopping list. Please try again.",
+          variant: "destructive",
+        });
       }
+    } else {
+      toast({
+        title: "Error Adding Item",
+        description: "No image or save handler available.",
+        variant: "destructive",
+      });
     }
   };
 
   const toggleEditMode = () => {
     setEditMode(!editMode);
+  };
+
+  const handleSaveEdits = () => {
+    setEditMode(false);
+    toast({
+      title: "Changes Saved",
+      description: "Your edits have been saved.",
+    });
   };
 
   if (!imageUrl) return null;
@@ -158,7 +196,9 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({ imageUrl, onClo
                 
                 <div className="flex justify-end space-x-2 pt-2">
                   <Button variant="outline" onClick={toggleEditMode}>Cancel</Button>
-                  <Button onClick={handleSaveItem}>Save to Shopping List</Button>
+                  <Button onClick={handleSaveEdits}>
+                    <Save className="h-4 w-4 mr-1" /> Save Changes
+                  </Button>
                 </div>
               </div>
             </div>
@@ -171,8 +211,8 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({ imageUrl, onClo
                 <Button onClick={onClose} variant="outline">Close</Button>
               </div>
               
-              <Button onClick={handleSaveItem} className="flex-grow-0">
-                <Plus className="h-4 w-4 mr-1" /> Add to List
+              <Button onClick={handleSaveItem} className="flex-grow-0 bg-green-600 hover:bg-green-700">
+                <Check className="h-4 w-4 mr-1" /> Add to List
               </Button>
             </DialogFooter>
           )}

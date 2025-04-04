@@ -30,6 +30,8 @@ const ShoppingList = ({
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
   
   // Filter items based on search term and filter mode, but don't filter out completed items
   const filteredItems = shoppingItemsContext.items.filter((item) => {
@@ -58,9 +60,11 @@ const ShoppingList = ({
     setSelectedImageUrl(null);
   };
 
-  // New helper function to handle adding items from camera capture or uploads
+  // Enhanced function to handle adding items from camera capture or uploads
   const handleSaveItemFromCapture = (itemData: any) => {
     try {
+      console.log("Handling save from capture:", itemData);
+      
       // Ensure required fields are present
       if (!itemData.name) {
         itemData.name = "Unnamed Item";
@@ -73,7 +77,7 @@ const ShoppingList = ({
       
       // Make sure category exists
       if (!itemData.category) {
-        itemData.category = "Other";
+        itemData.category = "Household";
       }
       
       // Create a new item for the shopping list
@@ -87,21 +91,44 @@ const ShoppingList = ({
         repeatOption: itemData.repeatOption || 'none',
       };
       
+      console.log("Adding item to shopping list:", newItem);
+      
       // Add to shopping list
       const added = addItem(newItem);
       
       if (added) {
+        console.log("Item successfully added:", added);
+        
         toast({
           title: "Item Added",
           description: `${itemData.name} has been added to your shopping list.`,
         });
+        
+        // Force an update to the appropriate tab based on repeatOption
+        if (filterMode !== 'all' && newItem.repeatOption !== filterMode) {
+          if (newItem.repeatOption === 'weekly') {
+            navigate('/shopping?tab=weekly', { replace: true });
+          } else if (newItem.repeatOption === 'monthly') {
+            navigate('/shopping?tab=monthly', { replace: true });
+          } else {
+            navigate('/shopping?tab=one-off', { replace: true });
+          }
+        }
+        
         return true;
+      } else {
+        console.error("Failed to add item - addItem returned falsy value");
+        toast({
+          title: "Error",
+          description: "Failed to add item to shopping list. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error adding item to shopping list:", error);
       toast({
         title: "Error",
-        description: "Failed to add item to shopping list. Please try again.",
+        description: "Error adding item to shopping list: " + (error instanceof Error ? error.message : String(error)),
         variant: "destructive",
       });
     }
