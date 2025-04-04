@@ -501,7 +501,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     setCategoryToDelete('');
     
     toast({
-      description: `Deleted category: ${categoryToDelete}. Items moved to "Other"`,\
+      description: `Deleted category: ${categoryToDelete}. Items moved to "Other"`,
     });
   };
   
@@ -930,3 +930,323 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                 ))}
               </div>
             )}
+          </AnimatePresence>
+          
+          {purchasedItems.length > 0 && (
+            <div className="mt-6" ref={purchasedSectionRef}>
+              <div 
+                className="flex items-center justify-between mb-2 cursor-pointer"
+                onClick={togglePurchasedSection}
+              >
+                <h3 className="text-xs font-medium text-muted-foreground">
+                  Purchased ({purchasedItems.length})
+                </h3>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  {isPurchasedSectionCollapsed ? (
+                    <ChevronRight size={16} />
+                  ) : (
+                    <ChevronDown size={16} />
+                  )}
+                </Button>
+              </div>
+              
+              {!isPurchasedSectionCollapsed && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {purchasedItems.map((item) => (
+                    <motion.div
+                      key={`purchased-${item.id}`}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Card 
+                        className={cn(
+                          "overflow-hidden transition-colors",
+                          "opacity-75 hover:opacity-100 bg-secondary/30 dark:bg-gray-800/50"
+                        )}
+                        onClick={() => !isMultiSelectActive && toggleItem(item.id)}
+                      >
+                        <CardHeader className="p-3 pb-0 flex flex-row items-center space-y-0 gap-2">
+                          <div className="flex-1 flex items-center gap-2">
+                            {isMultiSelectActive ? (
+                              <Checkbox
+                                checked={selectedItems.includes(item.id)}
+                                onCheckedChange={() => handleItemSelect(item.id)}
+                                className="h-4 w-4"
+                              />
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleItem(item.id);
+                                }}
+                                className={cn(
+                                  "flex items-center justify-center w-4 h-4 rounded-full border border-gray-300",
+                                  "bg-gray-100 dark:bg-gray-700 dark:border-gray-500"
+                                )}
+                                aria-label="Mark as not purchased"
+                              >
+                                {item.completed && <Check size={12} />}
+                              </button>
+                            )}
+                            <CardTitle className={cn(
+                              "text-sm font-medium line-through text-gray-500 dark:text-gray-400"
+                            )}>
+                              {item.name}
+                            </CardTitle>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-8 w-8 p-0"
+                              >
+                                <MoreVertical size={14} />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-36">
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditItem(item);
+                              }} className="cursor-pointer">
+                                <Edit size={14} className="mr-2" />
+                                <span className="text-sm">Edit</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                removeItem(item.id);
+                              }} className="cursor-pointer text-red-500">
+                                <Trash2 size={14} className="mr-2" />
+                                <span className="text-sm">Delete</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </CardHeader>
+                        
+                        <CardContent className="p-3 pt-2">
+                          <div className="flex flex-wrap gap-2 text-xs">
+                            {item.category && (
+                              <div className="bg-secondary/20 px-2 py-1 rounded-md flex items-center text-muted-foreground">
+                                <Tag size={10} className="mr-1" /> {item.category}
+                              </div>
+                            )}
+                            
+                            {item.repeatOption && item.repeatOption !== 'none' && (
+                              <div className="bg-primary/10 text-muted-foreground px-2 py-1 rounded-md flex items-center">
+                                <Repeat size={10} className="mr-1" /> 
+                                {item.repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {item.lastPurchased && (
+                            <div className="mt-2 text-xs text-muted-foreground pt-2 flex items-center">
+                              <CircleCheck size={10} className="mr-1" />
+                              Purchased: {item.lastPurchased.toLocaleDateString()}
+                            </div>
+                          )}
+                          
+                          <div className="mt-3 pt-2 border-t border-border/50">
+                            <ShoppingItemButton
+                              completed={item.completed}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleItem(item.id);
+                              }}
+                              className="w-full"
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+
+      <input
+        ref={editImageFileRef}
+        type="file"
+        onChange={handleEditFileChange}
+        accept="image/*"
+        className="hidden"
+      />
+      <input
+        ref={editCameraInputRef}
+        type="file"
+        onChange={handleEditFileChange}
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+      />
+      <input
+        ref={newItemFileInputRef}
+        type="file"
+        onChange={(e) => handleFileChange(e, true)}
+        accept="image/*"
+        className="hidden"
+      />
+      
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Image Preview</DialogTitle>
+          </DialogHeader>
+          {previewImage && (
+            <div className="overflow-hidden rounded-md">
+              <img
+                src={previewImage}
+                alt="Preview"
+                className="w-full object-contain max-h-[60vh]"
+              />
+            </div>
+          )}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="secondary">Close</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isEditItemDialogOpen} onOpenChange={setIsEditItemDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Item</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-name">Name</Label>
+              <Input
+                id="edit-name"
+                value={editItemName}
+                onChange={(e) => setEditItemName(e.target.value)}
+                placeholder="Item name"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-category">Category</Label>
+              <select
+                id="edit-category"
+                value={editItemCategory}
+                onChange={(e) => setEditItemCategory(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-amount">Amount</Label>
+                <Input
+                  id="edit-amount"
+                  value={editItemAmount}
+                  onChange={(e) => setEditItemAmount(e.target.value)}
+                  placeholder="e.g. 2 lbs, 3 boxes"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-price">Price</Label>
+                <Input
+                  id="edit-price"
+                  value={editItemPrice}
+                  onChange={(e) => setEditItemPrice(e.target.value)}
+                  placeholder="e.g. 5.99"
+                  type="number"
+                  step="0.01"
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-date">Purchase By</Label>
+              <Input
+                id="edit-date"
+                value={editItemDate}
+                onChange={(e) => setEditItemDate(e.target.value)}
+                placeholder="e.g. 2023-12-31"
+                type="date"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-repeat">Repeat Purchase</Label>
+              <RadioGroup
+                value={editItemRepeatOption}
+                onValueChange={(value) => setEditItemRepeatOption(value as 'none' | 'weekly' | 'monthly')}
+                className="flex space-x-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="none" id="r1" />
+                  <Label htmlFor="r1">None</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="weekly" id="r2" />
+                  <Label htmlFor="r2">Weekly</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="monthly" id="r3" />
+                  <Label htmlFor="r3">Monthly</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            <div className="grid gap-2">
+              <Label>Image</Label>
+              <div className="flex gap-2">
+                {ImageOptionsDialog()}
+                
+                {editItemImageUrl && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={clearEditImage}
+                    className="flex-1"
+                  >
+                    <X className="mr-2 h-4 w-4" />
+                    Remove Image
+                  </Button>
+                )}
+              </div>
+              {editItemImageUrl && (
+                <div className="mt-2 rounded-md overflow-hidden aspect-video">
+                  <img
+                    src={editItemImageUrl}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-notes">Notes</Label>
+              <Textarea
+                id="edit-notes"
+                value={editItemNotes}
+                onChange={(e) => setEditItemNotes(e.target.value)}
+                placeholder="Add any additional notes here"
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="secondary" onClick={() => setIsEditItemDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={saveEditedItem}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default ShoppingList;
