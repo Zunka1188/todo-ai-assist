@@ -934,4 +934,158 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                             <Button
                               size="sm"
                               variant="secondary"
-                              className="absolute right-2 top-2 h-8 w-
+                              className="absolute right-2 top-2 h-8 w-8 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleImagePreview(item.imageUrl as string, e);
+                              }}
+                            >
+                              <Eye size={14} />
+                            </Button>
+                          </div>
+                        ) : null}
+                        
+                        <div className="flex flex-wrap gap-x-2 gap-y-1 mt-1 text-xs text-muted-foreground">
+                          {item.amount && (
+                            <span className="inline-flex items-center">
+                              Qty: {item.amount}
+                            </span>
+                          )}
+                          {item.price && (
+                            <span className="inline-flex items-center">
+                              ${item.price}
+                            </span>
+                          )}
+                          {item.repeatOption && item.repeatOption !== 'none' && (
+                            <span className="inline-flex items-center">
+                              <Repeat size={10} className="mr-1" />
+                              {item.repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
+                            </span>
+                          )}
+                          {item.notes && (
+                            <div className="w-full text-xs truncate mt-0.5">
+                              {item.notes}
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {purchasedItems.length > 0 && (
+          <div ref={purchasedSectionRef} className="mt-8 mb-4">
+            <div 
+              className="flex items-center justify-between mb-3 cursor-pointer" 
+              onClick={togglePurchasedSection}
+            >
+              <h3 className="text-xs font-medium text-muted-foreground">
+                Purchased ({purchasedItems.length})
+              </h3>
+              <Button variant="ghost" size="icon" className="h-6 w-6">
+                <ChevronDown 
+                  size={16} 
+                  className={cn(
+                    "transition-transform",
+                    !isPurchasedSectionCollapsed && "transform rotate-180"
+                  )} 
+                />
+              </Button>
+            </div>
+            
+            {!isPurchasedSectionCollapsed && (
+              <AnimatePresence>
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {purchasedItems.map((item) => (
+                      <motion.div
+                        key={`purchased-${item.id}`}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <ShoppingItemButton
+                          completed={true}
+                          name={item.name}
+                          quantity={item.amount}
+                          price={item.price}
+                          notes={item.notes}
+                          repeatOption={item.repeatOption}
+                          imageUrl={item.imageUrl}
+                          onClick={() => toggleItem(item.id)}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            )}
+          </div>
+        )}
+      </ScrollArea>
+
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Image Preview</DialogTitle>
+          </DialogHeader>
+          <div className="aspect-auto w-full max-h-[70vh] overflow-hidden flex items-center justify-center">
+            {previewImage && (
+              <img
+                src={previewImage}
+                alt="Preview"
+                className="max-w-full max-h-full object-contain"
+              />
+            )}
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="secondary">Close</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <input
+        ref={editImageFileRef}
+        type="file"
+        accept="image/*"
+        onChange={handleEditFileChange}
+        className="hidden"
+      />
+      <input
+        ref={editCameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleEditFileChange}
+        className="hidden"
+      />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+      />
+      <input
+        ref={newItemFileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+      />
+    </div>
+  );
+};
+
+export default ShoppingList;
