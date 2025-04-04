@@ -19,6 +19,7 @@ import {
   Upload,
   Search,
   Eye,
+  Camera,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,7 +51,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Card,
@@ -60,6 +61,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { 
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetClose,
+} from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
 
 interface ShoppingItem {
   id: string;
@@ -71,14 +87,8 @@ interface ShoppingItem {
   price?: string;
   dateAdded: Date;
   imageUrl?: string;
+  notes?: string;
 }
-
-interface ShoppingListProps {
-  searchTerm?: string;
-  filterMode: 'all' | 'text' | 'image';
-}
-
-type SortOption = 'nameAsc' | 'nameDesc' | 'dateAsc' | 'dateDesc' | 'priceAsc' | 'priceDesc' | 'newest' | 'oldest';
 
 const defaultCategories = [
   "Groceries",
@@ -164,7 +174,12 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   const [editItemImageUrl, setEditItemImageUrl] = useState('');
   const [newItemImage, setNewItemImage] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const { isMobile } = useIsMobile();
+  const [editItemNotes, setEditItemNotes] = useState('');
+  const editImageFileRef = useRef<HTMLInputElement>(null);
+  const editCameraInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const newItemFileInputRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
   const carouselRef = useRef(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -186,6 +201,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     setEditItemDate(item.dateToPurchase || '');
     setEditItemPrice(item.price || '');
     setEditItemImageUrl(item.imageUrl || '');
+    setEditItemNotes(item.notes || '');
     setIsEditItemDialogOpen(true);
   };
 
@@ -209,7 +225,8 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                   amount: editItemAmount || undefined,
                   dateToPurchase: editItemDate || undefined,
                   price: editItemPrice || undefined,
-                  imageUrl: newImageUrl
+                  imageUrl: newImageUrl,
+                  notes: editItemNotes || undefined
                 } 
               : item
           );
@@ -233,7 +250,8 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
               amount: editItemAmount || undefined,
               dateToPurchase: editItemDate || undefined,
               price: editItemPrice || undefined,
-              imageUrl: imageUrl
+              imageUrl: imageUrl || undefined,
+              notes: editItemNotes || undefined
             } 
           : item
       );
@@ -541,6 +559,90 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   const purchasedItems = getSortedItems(filteredItems.filter(item => item.completed));
   
   const allCategories = ['All', ...categories];
+
+  const ImageOptionsDialog = () => {
+    if (isMobile) {
+      return (
+        <Sheet open={imageOptionsOpen} onOpenChange={setImageOptionsOpen}>
+          <SheetTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setImageOptionsOpen(true)}
+              className="flex-1"
+            >
+              <ImageIcon className="mr-2 h-4 w-4" />
+              {editItemImageUrl ? "Change Image" : "Add Image"}
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-auto pb-8">
+            <SheetHeader className="mb-4">
+              <SheetTitle>Choose Image Source</SheetTitle>
+            </SheetHeader>
+            <div className="flex flex-col space-y-3">
+              <Button 
+                onClick={() => {
+                  editImageFileRef.current?.click();
+                  setImageOptionsOpen(false);
+                }}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Upload className="h-4 w-4" /> Upload from Device
+              </Button>
+              <Button 
+                onClick={() => {
+                  editCameraInputRef.current?.click();
+                  setImageOptionsOpen(false);
+                }}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Camera className="h-4 w-4" /> Take a Picture
+              </Button>
+              <SheetClose asChild>
+                <Button variant="ghost" className="w-full mt-2">Cancel</Button>
+              </SheetClose>
+            </div>
+          </SheetContent>
+        </Sheet>
+      );
+    } else {
+      return (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+            >
+              <ImageIcon className="mr-2 h-4 w-4" />
+              {editItemImageUrl ? "Change Image" : "Add Image"}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="max-w-xs">
+            <div className="flex flex-col space-y-3 py-2">
+              <Button 
+                onClick={() => editImageFileRef.current?.click()}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Upload className="h-4 w-4" /> Upload from Device
+              </Button>
+              <Button 
+                onClick={() => editCameraInputRef.current?.click()}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Camera className="h-4 w-4" /> Take a Picture
+              </Button>
+              <Button variant="ghost" className="w-full mt-2">Cancel</Button>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+      );
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -991,45 +1093,214 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
       </ScrollArea>
 
       <Dialog open={isEditItemDialogOpen} onOpenChange={setIsEditItemDialogOpen}>
-        <DialogContent>
+        <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
           <DialogHeader>
             <DialogTitle>Edit Item</DialogTitle>
           </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-name">Item Name</Label>
+                <Input
+                  id="edit-name"
+                  placeholder="Enter item name"
+                  value={editItemName}
+                  onChange={(e) => setEditItemName(e.target.value)}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="edit-category">Category</Label>
+                <select
+                  id="edit-category"
+                  value={editItemCategory}
+                  onChange={(e) => setEditItemCategory(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="edit-image">Image (Optional)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="edit-image"
+                    type="file"
+                    accept="image/*"
+                    ref={editImageFileRef}
+                    onChange={handleEditFileChange}
+                    className="hidden"
+                  />
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    ref={editCameraInputRef}
+                    onChange={handleEditFileChange}
+                    className="hidden"
+                  />
+                  
+                  <ImageOptionsDialog />
+                  
+                  {editItemImageUrl && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={clearEditImage}
+                      className="p-2"
+                      title="Remove image"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                {editItemImageUrl && (
+                  <div className="mt-2 relative rounded-lg overflow-hidden border">
+                    <img 
+                      src={editItemImageUrl} 
+                      alt="Preview" 
+                      className="max-h-32 mx-auto object-contain"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-amount">Quantity (Optional)</Label>
+                  <Input
+                    id="edit-amount"
+                    placeholder="e.g., 2 boxes"
+                    value={editItemAmount}
+                    onChange={(e) => setEditItemAmount(e.target.value)}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-price">Price (Optional)</Label>
+                  <Input
+                    id="edit-price"
+                    type="number"
+                    placeholder="e.g., 9.99"
+                    value={editItemPrice}
+                    onChange={(e) => setEditItemPrice(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="edit-date">Purchase By (Optional)</Label>
+                <Input
+                  id="edit-date"
+                  type="date"
+                  value={editItemDate}
+                  onChange={(e) => setEditItemDate(e.target.value)}
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="edit-notes">Notes (Optional)</Label>
+                <Textarea
+                  id="edit-notes"
+                  placeholder="Add any additional notes here"
+                  value={editItemNotes}
+                  onChange={(e) => setEditItemNotes(e.target.value)}
+                  className="min-h-[80px]"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter className={cn(isMobile && "flex-col gap-2")}>
+            <Button 
+              variant="outline" 
+              className={cn(isMobile && "w-full")}
+              onClick={() => setIsEditItemDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={saveEditedItem}
+              className={cn(isMobile && "w-full")}
+              disabled={editItemName.trim() === ''}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={previewImage !== null} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Image Preview</DialogTitle>
+          </DialogHeader>
+          {previewImage && (
+            <div className="flex justify-center p-2">
+              <img 
+                src={previewImage} 
+                alt="Preview" 
+                className="max-w-full max-h-[70vh] object-contain"
+              />
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setPreviewImage(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Category</DialogTitle>
+          </DialogHeader>
           <div className="grid gap-4 py-4">
             <Input 
-              value={editItemName}
-              onChange={(e) => setEditItemName(e.target.value)}
-              placeholder="Item Name"
-            />
-            <Input 
-              value={editItemCategory}
-              onChange={(e) => setEditItemCategory(e.target.value)}
-              placeholder="Category"
-            />
-            <Input 
-              value={editItemAmount}
-              onChange={(e) => setEditItemAmount(e.target.value)}
-              placeholder="Quantity"
-            />
-            <Input 
-              value={editItemDate}
-              onChange={(e) => setEditItemDate(e.target.value)}
-              placeholder="Date"
-            />
-            <Input 
-              value={editItemPrice}
-              onChange={(e) => setEditItemPrice(e.target.value)}
-              placeholder="Price"
-            />
-            <Input 
-              value={editItemImageUrl}
-              onChange={(e) => setEditItemImageUrl(e.target.value)}
-              placeholder="Image URL"
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+              placeholder="Enter category name"
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditItemDialogOpen(false)}>Cancel</Button>
-            <Button onClick={saveEditedItem}>Save Changes</Button>
+            <Button variant="outline" onClick={() => setIsAddCategoryDialogOpen(false)}>Cancel</Button>
+            <Button onClick={addCategory}>Add Category</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteCategoryDialogOpen} onOpenChange={setIsDeleteCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Category</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <p className="text-sm">Are you sure you want to delete the category "{categoryToDelete}"?</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteCategoryDialogOpen(false)}>Cancel</Button>
+            <Button onClick={confirmDeleteCategory}>Delete Category</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Input 
+              value={editedCategoryName}
+              onChange={(e) => setEditedCategoryName(e.target.value)}
+              placeholder="Enter new category name"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditCategoryDialogOpen(false)}>Cancel</Button>
+            <Button onClick={confirmEditCategory}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
