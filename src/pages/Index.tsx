@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, List, Calendar, File, Upload } from 'lucide-react';
+import { ShoppingBag, Calendar, File, CreditCard } from 'lucide-react';
 import AppHeader from '@/components/layout/AppHeader';
 import ScanButton from '@/components/features/ScanButton';
 import FeatureCard from '@/components/features/FeatureCard';
@@ -25,7 +25,7 @@ const Index = () => {
     {
       title: 'Shopping',
       description: 'Manage items to buy',
-      icon: List,
+      icon: ShoppingBag,
       to: '/shopping'
     },
     {
@@ -41,10 +41,10 @@ const Index = () => {
       to: '/documents'
     },
     {
-      title: 'Upload',
-      description: 'Import existing images',
-      icon: Upload,
-      to: '/upload'
+      title: 'Spending',
+      description: 'Track expenses and budgets',
+      icon: CreditCard,
+      to: '/spending'
     }
   ];
 
