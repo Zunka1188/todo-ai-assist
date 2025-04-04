@@ -14,7 +14,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import ScanButton from '../features/scanning/ScanButton';
 
 interface AppLayoutProps {
   className?: string;
@@ -65,9 +64,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
   }, [isIOS, isAndroid]);
 
   const textColorClass = theme === 'light' ? "text-foreground" : "text-white";
-
-  // Don't show scan button on scan page
-  const showScanButton = location.pathname !== '/scan';
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -136,16 +132,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
         className
       )}>
         <Outlet />
-        
-        {/* Floating Scan Button */}
-        {showScanButton && (
-          <div className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-30">
-            <ScanButton
-              size={isMobile ? "default" : "lg"}
-              className="shadow-xl"
-            />
-          </div>
-        )}
       </main>
       <BottomNavigation />
     </div>
