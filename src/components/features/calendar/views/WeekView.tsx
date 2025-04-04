@@ -287,7 +287,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                         isCurrentHour && "bg-accent/40"
                       )}
                     >
-                      {hourEvents.map(event => (
+                      {hourEvents.length > 0 && hourEvents.map(event => (
                         <div 
                           key={event.id} 
                           className="text-xs p-1 mb-1 rounded truncate cursor-pointer hover:opacity-80" 
