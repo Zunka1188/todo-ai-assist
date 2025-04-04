@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Upload, FileText } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, Folder, Grid3X3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -39,6 +39,10 @@ const DocumentsPage = () => {
     navigate('/');
   };
   
+  const goToCategories = () => {
+    navigate('/documents/categories');
+  };
+  
   const createNote = () => {
     // In a real application, we would save this note
     console.log('Creating note:', { title: noteTitle, content: noteContent, category: noteCategory });
@@ -75,6 +79,15 @@ const DocumentsPage = () => {
         <Button className="flex items-center gap-2 min-h-[44px]">
           <Upload className="h-4 w-4" />
           <span className={isMobile ? "text-sm" : ""}>Upload File</span>
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2 min-h-[44px]"
+          onClick={goToCategories}
+        >
+          <Grid3X3 className="h-4 w-4" />
+          <span className={isMobile ? "text-sm" : ""}>Categories</span>
         </Button>
         
         <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
