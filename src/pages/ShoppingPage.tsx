@@ -27,8 +27,8 @@ const ShoppingPage = () => {
   const categories = ['All', 'Groceries', 'Household', 'Personal', 'Other'];
 
   return (
-    <div className="space-y-4 py-6 h-full flex flex-col max-w-[1200px] mx-auto px-4 sm:px-6">
-      <div className="flex items-center space-x-4">
+    <div className="flex flex-col h-full">
+      <div className="flex items-center space-x-4 py-2 sm:py-4">
         <Button 
           variant="ghost" 
           size="icon" 
@@ -48,35 +48,35 @@ const ShoppingPage = () => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center gap-4 mt-6 flex-wrap sm:flex-nowrap">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 my-4">
         <Button 
-          className="bg-primary text-white hover:bg-primary/90 gap-2 h-10"
-          size="sm"
+          className="bg-primary text-white hover:bg-primary/90 gap-2 h-10 sm:w-auto w-full"
+          size={isMobile ? "default" : "sm"}
         >
           <Plus className="h-5 w-5" />
           <span>Add Item</span>
         </Button>
         
-        <div className="relative flex-1 max-w-md ml-auto">
+        <div className="relative w-full sm:w-auto sm:max-w-md">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
             type="search"
             placeholder="Search items..."
-            className="pl-8 h-10"
+            className="pl-8 h-10 w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="flex space-x-2 overflow-x-auto scrollbar-none pb-2 mt-2">
+      <div className="flex space-x-2 overflow-x-auto hide-scrollbar pb-2 my-3">
         {categories.map((category) => (
           <Button
             key={category}
             variant={activeCategory === category ? "default" : "outline"}
             size="sm"
             className={cn(
-              "rounded-full px-4 py-1 h-8 text-sm font-medium",
+              "rounded-full px-4 py-1 h-8 text-sm font-medium whitespace-nowrap",
               activeCategory === category 
                 ? "bg-primary text-white" 
                 : "bg-secondary text-muted-foreground hover:bg-accent"
@@ -88,7 +88,9 @@ const ShoppingPage = () => {
         ))}
       </div>
       
-      <div className="flex-1 overflow-hidden mt-4">
+      <Separator className="my-2" />
+      
+      <div className="flex-1 overflow-hidden mt-2">
         <ShoppingList searchTerm={searchTerm} />
       </div>
     </div>
