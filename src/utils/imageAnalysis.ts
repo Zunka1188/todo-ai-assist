@@ -23,7 +23,7 @@ export const analyzeImage = async (imageData: string): Promise<AnalysisResult> =
     return a & a;
   }, 0);
   
-  const categories = ['Style', 'Recipes', 'Travel', 'Fitness'];
+  const categories = ['Style', 'Recipes', 'Travel', 'Fitness', 'Other'];
   const randomCategory = categories[Math.abs(hash) % categories.length];
   
   const mockResults: Record<string, AnalysisResult> = {
@@ -53,6 +53,13 @@ export const analyzeImage = async (imageData: string): Promise<AnalysisResult> =
       category: 'Fitness',
       tags: ['exercise', 'health', 'workout'],
       description: 'Weekly fitness routine focusing on core strength.',
+      date: new Date().toISOString().split('T')[0]
+    },
+    'Other': {
+      title: 'General Document',
+      category: 'Other',
+      tags: ['document', 'general', 'misc'],
+      description: 'General purpose document or image.',
       date: new Date().toISOString().split('T')[0]
     }
   };

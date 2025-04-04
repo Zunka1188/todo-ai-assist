@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, Search, Plus, FileText, Image, Tag, ChefHat, Plane, Dumbbell, Shirt } from 'lucide-react';
+import { ArrowLeft, Search, Plus, FileText, Image, Tag, ChefHat, Plane, Dumbbell, Shirt, X, Maximize2, Minimize2, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { ResponsiveButton } from '@/components/ui/responsive-button';
+import ImageAnalysisModal from '@/components/features/documents/ImageAnalysisModal';
+import { AnalysisResult } from '@/utils/imageAnalysis';
 import {
   Dialog,
   DialogContent,
@@ -24,7 +26,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 // Define the tab types
-type DocumentCategory = 'style' | 'recipes' | 'travel' | 'fitness';
+type DocumentCategory = 'style' | 'recipes' | 'travel' | 'fitness' | 'other';
 
 // Define the item type
 interface DocumentItem {
@@ -92,6 +94,15 @@ const initialItems: DocumentItem[] = [
     content: 'https://picsum.photos/id/292/400/300',
     tags: ['dinner', 'pasta'],
     date: new Date(2025, 3, 6)
+  },
+  {
+    id: '7',
+    title: 'General Notes',
+    category: 'other',
+    type: 'note',
+    content: 'Some miscellaneous notes that don\'t fit into other categories.',
+    tags: ['general', 'misc'],
+    date: new Date(2025, 3, 7)
   }
 ];
 
@@ -112,6 +123,14 @@ const DocumentsSubtabPage = () => {
   const [itemTags, setItemTags] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  // Image handling states
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
+  const [imageToAnalyze, setImageToAnalyze] = useState<string | null>(null);
+  
+  // Full screen image preview
+  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
   const goBack = () => {
     navigate('/documents');
@@ -127,6 +146,8 @@ const DocumentsSubtabPage = () => {
         return <Plane className="h-5 w-5" />;
       case 'fitness':
         return <Dumbbell className="h-5 w-5" />;
+      case 'other':
+        return <FileText className="h-5 w-5" />;
       default:
         return null;
     }
@@ -167,11 +188,45 @@ const DocumentsSubtabPage = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       if (event.target?.result) {
-        setImagePreview(event.target.result as string);
-        setContent(event.target.result as string);
+        const imageData = event.target.result as string;
+        setImagePreview(imageData);
+        setContent(imageData);
+        
+        // Trigger AI analysis
+        setIsAnalyzingImage(true);
+        setImageToAnalyze(imageData);
       }
     };
     reader.readAsDataURL(file);
+  };
+  
+  const handleCameraCapture = () => {
+    if (cameraInputRef.current) {
+      cameraInputRef.current.click();
+    }
+  };
+
+  const handleAnalysisComplete = (result: AnalysisResult) => {
+    setIsAnalyzingImage(false);
+    
+    if (result) {
+      // Populate form with AI analysis results
+      if (result.title) setTitle(result.title);
+      if (result.category) {
+        // Update active tab to match the detected category if possible
+        const lowerCategory = result.category.toLowerCase() as DocumentCategory;
+        if (['style', 'recipes', 'travel', 'fitness', 'other'].includes(lowerCategory)) {
+          setActiveTab(lowerCategory);
+        }
+      }
+      if (result.tags) setItemTags(result.tags.join(', '));
+      if (result.description) setContent(result.description);
+      
+      toast({
+        title: "AI Analysis Complete",
+        description: "We've pre-filled some fields based on your image.",
+      });
+    }
   };
 
   const handleSaveItem = () => {
@@ -242,6 +297,14 @@ const DocumentsSubtabPage = () => {
     });
   };
 
+  const openFullScreenImage = (imageUrl: string) => {
+    setFullScreenImage(imageUrl);
+  };
+
+  const closeFullScreenImage = () => {
+    setFullScreenImage(null);
+  };
+
   // Filter items based on active tab and search term
   const filteredItems = items.filter(item => 
     (item.category === activeTab) && 
@@ -274,7 +337,7 @@ const DocumentsSubtabPage = () => {
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 my-3">
         <Button 
-          className="bg-green-500 hover:bg-green-600 text-white gap-2 h-10 sm:w-auto w-full flex justify-center items-center"
+          className="bg-todo-purple hover:bg-todo-purple/90 text-white gap-2 h-10 sm:w-auto w-full flex justify-center items-center"
           size={isMobile ? "default" : "sm"}
           onClick={() => handleOpenAddDialog()}
         >
@@ -304,7 +367,7 @@ const DocumentsSubtabPage = () => {
           onValueChange={(value) => setActiveTab(value as DocumentCategory)} 
           className="w-full"
         >
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-5 w-full">
             <TabsTrigger value="style" className="flex items-center gap-2">
               <Shirt className="h-4 w-4" />
               <span className={isMobile ? "hidden" : "inline"}>Style</span>
@@ -321,6 +384,10 @@ const DocumentsSubtabPage = () => {
               <Dumbbell className="h-4 w-4" />
               <span className={isMobile ? "hidden" : "inline"}>Fitness</span>
             </TabsTrigger>
+            <TabsTrigger value="other" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              <span className={isMobile ? "hidden" : "inline"}>Other</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="style" className="mt-0 pt-4">
@@ -329,6 +396,7 @@ const DocumentsSubtabPage = () => {
               getTypeIcon={getTypeIcon}
               onEdit={handleOpenAddDialog}
               onDelete={handleDeleteItem}
+              onViewImage={openFullScreenImage}
             />
           </TabsContent>
           
@@ -338,6 +406,7 @@ const DocumentsSubtabPage = () => {
               getTypeIcon={getTypeIcon}
               onEdit={handleOpenAddDialog}
               onDelete={handleDeleteItem}
+              onViewImage={openFullScreenImage}
             />
           </TabsContent>
           
@@ -347,6 +416,7 @@ const DocumentsSubtabPage = () => {
               getTypeIcon={getTypeIcon}
               onEdit={handleOpenAddDialog}
               onDelete={handleDeleteItem}
+              onViewImage={openFullScreenImage}
             />
           </TabsContent>
           
@@ -356,6 +426,17 @@ const DocumentsSubtabPage = () => {
               getTypeIcon={getTypeIcon}
               onEdit={handleOpenAddDialog}
               onDelete={handleDeleteItem}
+              onViewImage={openFullScreenImage}
+            />
+          </TabsContent>
+          
+          <TabsContent value="other" className="mt-0 pt-4">
+            <DocumentItemsList 
+              items={filteredItems}
+              getTypeIcon={getTypeIcon}
+              onEdit={handleOpenAddDialog}
+              onDelete={handleDeleteItem}
+              onViewImage={openFullScreenImage}
             />
           </TabsContent>
         </Tabs>
@@ -441,13 +522,42 @@ const DocumentsSubtabPage = () => {
               <div className="grid gap-2">
                 <Label htmlFor="image">Image</Label>
                 <div className="flex flex-col gap-2">
-                  <Input
-                    id="image"
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                  />
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex-1"
+                    >
+                      <Image className="h-4 w-4 mr-2" />
+                      Choose File
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCameraCapture}
+                      className="flex-1"
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Take Photo
+                    </Button>
+                    <input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      ref={cameraInputRef}
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </div>
                   {imagePreview && (
                     <div className="mt-2 relative rounded-lg overflow-hidden border">
                       <img 
@@ -482,13 +592,44 @@ const DocumentsSubtabPage = () => {
             </Button>
             <Button 
               onClick={handleSaveItem}
-              className={cn(isMobile && "w-full")}
+              className={cn("bg-todo-purple hover:bg-todo-purple/90", isMobile && "w-full")}
             >
               {editingItem ? "Update" : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Full Screen Image Viewer */}
+      {fullScreenImage && (
+        <div className="fixed inset-0 bg-black z-50 flex flex-col">
+          <div className="p-4 flex justify-between items-center bg-black/80">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="text-white" 
+              onClick={closeFullScreenImage}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+          <div className="flex-1 flex items-center justify-center overflow-auto">
+            <img 
+              src={fullScreenImage} 
+              alt="Full screen preview" 
+              className="max-h-full max-w-full object-contain"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* AI Image Analysis Modal */}
+      <ImageAnalysisModal
+        imageData={imageToAnalyze}
+        isOpen={isAnalyzingImage}
+        onAnalysisComplete={handleAnalysisComplete}
+        onClose={() => setIsAnalyzingImage(false)}
+      />
     </div>
   );
 };
@@ -499,13 +640,15 @@ interface DocumentItemsListProps {
   getTypeIcon: (type: 'image' | 'note') => React.ReactNode;
   onEdit: (item: DocumentItem) => void;
   onDelete: (id: string) => void;
+  onViewImage: (imageUrl: string) => void;
 }
 
 const DocumentItemsList: React.FC<DocumentItemsListProps> = ({ 
   items, 
   getTypeIcon, 
   onEdit,
-  onDelete
+  onDelete,
+  onViewImage
 }) => {
   if (items.length === 0) {
     return (
@@ -549,6 +692,17 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                   </div>
                 </div>
                 <div className="absolute top-2 right-2 flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-8 w-8 p-0 bg-black/20 hover:bg-black/40"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewImage(item.content);
+                    }}
+                  >
+                    <Maximize2 className="h-4 w-4 text-white" />
+                  </Button>
                   <Button
                     size="sm"
                     variant="secondary"

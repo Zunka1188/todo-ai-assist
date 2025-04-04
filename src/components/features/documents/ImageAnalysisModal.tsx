@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Loader2, Check } from 'lucide-react';
+import { Loader2, Check, Maximize2, Minimize2, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -22,6 +22,7 @@ const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
   const [progress, setProgress] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [fullScreen, setFullScreen] = useState(false);
   
   React.useEffect(() => {
     if (isOpen && imageData && !analyzing && !completed) {
@@ -73,6 +74,43 @@ const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
       setAnalyzing(false);
     }
   };
+
+  const toggleFullScreen = () => {
+    setFullScreen(!fullScreen);
+  };
+  
+  // If in full screen mode, show a simplified view
+  if (fullScreen && imageData) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex flex-col">
+        <div className="p-4 flex justify-between items-center bg-black/80">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-white" 
+            onClick={toggleFullScreen}
+          >
+            <Minimize2 className="h-6 w-6" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-white" 
+            onClick={onClose}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
+        <div className="flex-1 flex items-center justify-center overflow-auto">
+          <img 
+            src={imageData} 
+            alt="Full screen preview" 
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+      </div>
+    );
+  }
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -82,6 +120,24 @@ const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
         </DialogHeader>
         
         <div className="flex flex-col items-center justify-center py-6 space-y-4">
+          {imageData && (
+            <div className="relative w-full">
+              <img 
+                src={imageData} 
+                alt="Preview" 
+                className="w-full h-48 object-contain rounded-md"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="absolute top-2 right-2 bg-white/70 hover:bg-white"
+                onClick={toggleFullScreen}
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+          
           {!completed ? (
             <>
               <Loader2 className="h-10 w-10 text-todo-purple animate-spin" />
