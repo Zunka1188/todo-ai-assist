@@ -11,8 +11,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; 
-import { Image, Upload, X } from 'lucide-react';
+import { Image, Upload, Camera, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetClose,
+} from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface AddItemDialogProps {
   open: boolean;
@@ -21,6 +31,7 @@ interface AddItemDialogProps {
 }
 
 const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
+  const { isMobile } = useIsMobile();
   const [name, setName] = useState('');
   const [category, setCategory] = useState('Groceries');
   const [amount, setAmount] = useState('');
@@ -29,8 +40,10 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'text' | 'image'>('text');
+  const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -46,6 +59,9 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
       }
     };
     reader.readAsDataURL(file);
+    
+    // Close the image options sheet if open
+    setImageOptionsOpen(false);
   };
 
   const handleSave = () => {
@@ -74,6 +90,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
     setImageFile(null);
     setPreviewUrl(null);
     setActiveTab('text');
+    setImageOptionsOpen(false);
   };
 
   const clearImage = () => {
@@ -82,11 +99,100 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = '';
+    }
+  };
+
+  const ImageSourceOptions = () => {
+    // For mobile, use a Sheet component
+    if (isMobile) {
+      return (
+        <Sheet open={imageOptionsOpen} onOpenChange={setImageOptionsOpen}>
+          <SheetTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setImageOptionsOpen(true)}
+              className="flex-1"
+            >
+              <Image className="mr-2 h-4 w-4" />
+              {previewUrl ? "Change Image" : "Attach Image"}
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-auto pb-8">
+            <SheetHeader className="mb-4">
+              <SheetTitle>Choose Image Source</SheetTitle>
+            </SheetHeader>
+            <div className="flex flex-col space-y-3">
+              <Button 
+                onClick={() => {
+                  fileInputRef.current?.click();
+                  setImageOptionsOpen(false);
+                }}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Upload className="h-4 w-4" /> Upload from Device
+              </Button>
+              <Button 
+                onClick={() => {
+                  cameraInputRef.current?.click();
+                  setImageOptionsOpen(false);
+                }}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Camera className="h-4 w-4" /> Take a Picture
+              </Button>
+              <SheetClose asChild>
+                <Button variant="ghost" className="w-full mt-2">Cancel</Button>
+              </SheetClose>
+            </div>
+          </SheetContent>
+        </Sheet>
+      );
+    } else {
+      // For desktop, use a dropdown/alert dialog
+      return (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+            >
+              <Image className="mr-2 h-4 w-4" />
+              {previewUrl ? "Change Image" : "Attach Image"}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="max-w-xs">
+            <div className="flex flex-col space-y-3 py-2">
+              <Button 
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Upload className="h-4 w-4" /> Upload from Device
+              </Button>
+              <Button 
+                onClick={() => cameraInputRef.current?.click()}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Camera className="h-4 w-4" /> Take a Picture
+              </Button>
+              <Button variant="ghost" className="w-full mt-2">Cancel</Button>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+      );
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
         <DialogHeader>
           <DialogTitle>Add New Item</DialogTitle>
         </DialogHeader>
@@ -162,7 +268,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                 />
               </div>
               
-              {/* Optional image for text items */}
+              {/* Optional image for text items with new image selection options */}
               <div className="grid gap-2">
                 <Label htmlFor="image">Attach Image (Optional)</Label>
                 <div className="flex gap-2">
@@ -174,15 +280,17 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                     onChange={handleFileChange}
                     className="hidden"
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex-1"
-                  >
-                    <Image className="mr-2 h-4 w-4" />
-                    {previewUrl ? "Change Image" : "Attach Image"}
-                  </Button>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    ref={cameraInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  
+                  <ImageSourceOptions />
+                  
                   {previewUrl && (
                     <Button
                       type="button"
@@ -214,15 +322,23 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                 <Label>Upload Image</Label>
                 <div 
                   className={cn(
-                    "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-accent transition-colors",
+                    "border-2 border-dashed rounded-lg p-6 text-center hover:bg-accent transition-colors",
                     previewUrl ? "border-primary/50" : "border-muted-foreground/30"
                   )}
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => setImageOptionsOpen(true)}
                 >
                   <Input
                     type="file"
                     accept="image/*"
                     ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    ref={cameraInputRef}
                     onChange={handleFileChange}
                     className="hidden"
                   />
@@ -250,13 +366,47 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                   ) : (
                     <div className="flex flex-col items-center gap-2">
                       <Upload className="h-10 w-10 text-muted-foreground mb-2" />
-                      <p className="text-sm font-medium">Click to upload an image</p>
+                      <p className="text-sm font-medium">Click to upload or take a picture</p>
                       <p className="text-xs text-muted-foreground">
                         JPG, PNG or GIF files supported
                       </p>
                     </div>
                   )}
                 </div>
+
+                {/* Image source selection sheet/dialog for the image tab */}
+                <Sheet open={imageOptionsOpen} onOpenChange={setImageOptionsOpen}>
+                  <SheetContent side="bottom" className={cn("h-auto pb-8", !isMobile && "max-w-sm mx-auto")}>
+                    <SheetHeader className="mb-4">
+                      <SheetTitle>Choose Image Source</SheetTitle>
+                    </SheetHeader>
+                    <div className="flex flex-col space-y-3">
+                      <Button 
+                        onClick={() => {
+                          fileInputRef.current?.click();
+                          setImageOptionsOpen(false);
+                        }}
+                        className="w-full justify-start gap-3"
+                        variant="outline"
+                      >
+                        <Upload className="h-4 w-4" /> Upload from Device
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          cameraInputRef.current?.click();
+                          setImageOptionsOpen(false);
+                        }}
+                        className="w-full justify-start gap-3"
+                        variant="outline"
+                      >
+                        <Camera className="h-4 w-4" /> Take a Picture
+                      </Button>
+                      <Button variant="ghost" className="w-full mt-2" onClick={() => setImageOptionsOpen(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </SheetContent>
+                </Sheet>
               </div>
 
               <div className="grid gap-2">
@@ -291,9 +441,10 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
           </TabsContent>
         </Tabs>
 
-        <DialogFooter>
+        <DialogFooter className={cn(isMobile && "flex-col gap-2")}>
           <Button 
             variant="outline" 
+            className={cn(isMobile && "w-full")}
             onClick={() => {
               resetForm();
               onOpenChange(false);
@@ -303,6 +454,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
           </Button>
           <Button 
             onClick={handleSave}
+            className={cn(isMobile && "w-full")}
             disabled={(activeTab === 'text' && !name.trim()) || (activeTab === 'image' && !previewUrl)}
           >
             Add to Shopping List
