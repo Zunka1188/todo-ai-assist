@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { ArrowLeft, ShoppingBag, Search, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -23,7 +22,6 @@ interface ItemData {
   name: string;
   notes?: string;
   amount?: string;
-  dateToPurchase?: string;
   price?: string;
   file?: string | null;
   fileName?: string;
@@ -98,7 +96,6 @@ const ShoppingPage = () => {
         name: item.name,
         notes: item.notes || '',
         amount: item.amount || '',
-        dateToPurchase: item.dateToPurchase || '',
         price: item.price || '',
         file: item.imageUrl || null,
         fileName: '',
@@ -116,7 +113,6 @@ const ShoppingPage = () => {
         name: itemName || `Item ${id}`,
         notes: `Some notes for item ${id}`,
         amount: '1',
-        dateToPurchase: '2025-05-15',
         price: '9.99',
         file: null,
         fileName: '',

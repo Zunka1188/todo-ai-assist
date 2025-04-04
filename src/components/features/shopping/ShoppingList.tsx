@@ -192,7 +192,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   const [showDetailedEntry, setShowDetailedEntry] = useState(false);
   const [newItemAmount, setNewItemAmount] = useState('');
-  const [newItemDate, setNewItemDate] = useState('');
   const [newItemPrice, setNewItemPrice] = useState('');
   const [isMultiSelectActive, setIsMultiSelectActive] = useState(false);
   const [isDeleteCategoryDialogOpen, setIsDeleteCategoryDialogOpen] = useState(false);
@@ -315,7 +314,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     setEditItemName(item.name);
     setEditItemCategory(item.category);
     setEditItemAmount(item.amount || '');
-    setEditItemDate(''); // Clear the date field as we're removing it
     setEditItemPrice(item.price || '');
     setEditItemImageUrl(item.imageUrl || '');
     setEditItemNotes(item.notes || '');
@@ -437,7 +435,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
       setItems([...items, newItem]);
       setNewItemName('');
       setNewItemAmount('');
-      setNewItemDate('');
       setNewItemPrice('');
       setNewItemImage(null);
       
@@ -643,15 +640,8 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         case 'nameDesc':
           return b.name.localeCompare(a.name);
         case 'dateAsc':
-          if (!a.dateToPurchase && !b.dateToPurchase) return 0;
-          if (!a.dateToPurchase) return 1;
-          if (!b.dateToPurchase) return -1;
-          return new Date(a.dateToPurchase).getTime() - new Date(b.dateToPurchase).getTime();
         case 'dateDesc':
-          if (!a.dateToPurchase && !b.dateToPurchase) return 0;
-          if (!a.dateToPurchase) return 1;
-          if (!b.dateToPurchase) return -1;
-          return new Date(b.dateToPurchase).getTime() - new Date(a.dateToPurchase).getTime();
+          return a.name.localeCompare(b.name);
         case 'priceAsc':
           if (!a.price && !b.price) return 0;
           if (!a.price) return 1;
