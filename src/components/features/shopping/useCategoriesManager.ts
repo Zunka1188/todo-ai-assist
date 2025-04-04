@@ -61,7 +61,8 @@ export const useCategoriesManager = () => {
   };
 
   return {
-    categories: ['All', ...categories],
+    // Changed order here to put 'All' at the end
+    categories: [...categories, 'All'],
     newCategory,
     categoryToDelete,
     categoryToEdit,

@@ -25,14 +25,15 @@ const ShoppingPage: React.FC = () => {
   // Get the tab from URL query parameters
   const searchParams = new URLSearchParams(location.search);
   const tabFromUrl = searchParams.get('tab');
-  const validTabs = ['all', 'one-off', 'weekly', 'monthly'];
-  const defaultTab = validTabs.includes(tabFromUrl || '') ? tabFromUrl : 'all';
+  // Updated valid tabs order - "All" moved to the end
+  const validTabs = ['one-off', 'weekly', 'monthly', 'all'];
+  const defaultTab = validTabs.includes(tabFromUrl || '') ? tabFromUrl : 'one-off'; // Default changed to one-off
   
   const [activeTab, setActiveTab] = useState(defaultTab);
 
   // Sync tab with URL when URL changes
   useEffect(() => {
-    const newTab = validTabs.includes(tabFromUrl || '') ? tabFromUrl : 'all';
+    const newTab = validTabs.includes(tabFromUrl || '') ? tabFromUrl : 'one-off'; // Default changed to one-off
     console.log(`URL tab param changed to: ${tabFromUrl}, setting active tab to: ${newTab}`);
     setActiveTab(newTab);
   }, [location.search, tabFromUrl]);
@@ -135,10 +136,10 @@ const ShoppingPage: React.FC = () => {
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full grid grid-cols-4 mb-6">
-          <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="one-off">One-off</TabsTrigger>
           <TabsTrigger value="weekly">Weekly</TabsTrigger>
           <TabsTrigger value="monthly">Monthly</TabsTrigger>
+          <TabsTrigger value="all">All</TabsTrigger>
         </TabsList>
         <TabsContent value="all">
           <ShoppingList 
