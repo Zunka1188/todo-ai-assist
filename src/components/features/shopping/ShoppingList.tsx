@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
@@ -77,6 +78,7 @@ import {
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 
+// Define the missing interfaces
 interface ShoppingListProps {
   searchTerm?: string;
   filterMode: 'all' | 'text' | 'image';
@@ -154,6 +156,7 @@ const saveToLocalStorage = (key: string, value: any): void => {
 };
 
 const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode }) => {
+  // Added state for image options dialog
   const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
   
   const [items, setItems] = useState<ShoppingItem[]>(() => 
@@ -193,6 +196,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [editItemNotes, setEditItemNotes] = useState('');
   
+  // Fixed duplicate ref declarations
   const editImageFileRef = useRef<HTMLInputElement>(null);
   const editCameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -221,6 +225,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     setIsEditItemDialogOpen(true);
   };
 
+  // Added missing clearEditImage function
   const clearEditImage = () => {
     setEditItemImage(null);
     setEditItemImageUrl('');
@@ -313,6 +318,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     }
   };
   
+  // Added missing handleEditFileChange function
   const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileChange(e, false);
   };
@@ -770,6 +776,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
       </div>
 
       <ScrollArea className="h-[calc(100vh-320px)] pr-4 shopping-items-scroll-area smooth-scroll" ref={scrollAreaRef}>
+        {/* Not Purchased Items */}
         <div className="mb-4">
           <h3 className="text-xs font-medium mb-3 text-muted-foreground">Not Purchased ({notPurchasedItems.length})</h3>
           
@@ -934,171 +941,197 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
           </AnimatePresence>
         </div>
         
-        <div className="mb-4">
-          <h3 className="text-xs font-medium mb-3 text-muted-foreground">Purchased ({purchasedItems.length})</h3>
+        {/* Purchased Items */}
+        <div className="mb-2">
+          <div 
+            className="flex items-center justify-between cursor-pointer mb-3"
+            onClick={togglePurchasedSection}
+          >
+            <h3 className="text-xs font-medium text-muted-foreground">
+              Purchased ({purchasedItems.length})
+            </h3>
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+              <ChevronDown 
+                size={14} 
+                className={cn(
+                  "transition-transform",
+                  isPurchasedSectionCollapsed && "transform rotate-180"
+                )}
+              />
+            </Button>
+          </div>
           
           <AnimatePresence>
-            {purchasedItems.length === 0 ? (
-              <div className="text-center py-3 text-muted-foreground text-sm">
-                No items purchased.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {purchasedItems.map((item) => (
-                  <motion.div 
-                    key={`purchased-${item.id}`}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Card 
-                      className={cn(
-                        "overflow-hidden transition-all hover:shadow-md",
-                        "bg-white dark:bg-gray-800"
-                      )}
-                      onClick={() => !isMultiSelectActive && toggleItem(item.id)}
-                    >
-                      <CardHeader className="p-3 pb-0 flex flex-row items-center space-y-0 gap-2">
-                        <div className="flex-1 flex items-center gap-2">
-                          {isMultiSelectActive ? (
-                            <Checkbox
-                              checked={selectedItems.includes(item.id)}
-                              onCheckedChange={() => handleItemSelect(item.id)}
-                              className="h-4 w-4"
-                            />
-                          ) : (
-                            <button
+            {!isPurchasedSectionCollapsed && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {purchasedItems.length === 0 ? (
+                  <div className="text-center py-3 text-muted-foreground text-sm">
+                    No items purchased yet.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {purchasedItems.map((item) => (
+                      <motion.div
+                        key={`purchased-${item.id}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Card 
+                          className={cn(
+                            "overflow-hidden transition-all hover:shadow-md opacity-70",
+                            "bg-gray-100 dark:bg-gray-700/50"
+                          )}
+                          onClick={() => !isMultiSelectActive && toggleItem(item.id)}
+                        >
+                          <CardHeader className="p-3 pb-0 flex flex-row items-center space-y-0 gap-2">
+                            <div className="flex-1 flex items-center gap-2">
+                              {isMultiSelectActive ? (
+                                <Checkbox
+                                  checked={selectedItems.includes(item.id)}
+                                  onCheckedChange={() => handleItemSelect(item.id)}
+                                  className="h-4 w-4"
+                                />
+                              ) : (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleItem(item.id);
+                                  }}
+                                  className={cn(
+                                    "flex items-center justify-center w-4 h-4 rounded-full",
+                                    "bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500"
+                                  )}
+                                  aria-label="Mark as not purchased"
+                                >
+                                  <Check size={12} className="text-white" />
+                                </button>
+                              )}
+                              <CardTitle className={cn(
+                                "text-sm font-medium line-through text-gray-500 dark:text-gray-400"
+                              )}>
+                                {item.name}
+                              </CardTitle>
+                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <MoreVertical size={14} />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-36">
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditItem(item);
+                                }} className="cursor-pointer">
+                                  <Edit size={14} className="mr-2" />
+                                  <span className="text-sm">Edit</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeItem(item.id);
+                                }} className="cursor-pointer text-red-500">
+                                  <Trash2 size={14} className="mr-2" />
+                                  <span className="text-sm">Delete</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </CardHeader>
+                          
+                          <CardContent className="p-3 pt-2">
+                            {item.imageUrl ? (
+                              <div className="relative w-full">
+                                <div className="aspect-[3/2] rounded-md overflow-hidden mb-2">
+                                  <img 
+                                    src={item.imageUrl} 
+                                    alt={item.name} 
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  className="absolute right-2 top-2 h-8 w-8 p-0 bg-black/40 hover:bg-black/60 text-white rounded-full"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleImagePreview(item.imageUrl!);
+                                  }}
+                                >
+                                  <Eye size={14} />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="mb-2 flex items-center text-xs text-muted-foreground">
+                                <ImageIcon size={14} className="mr-1 text-muted-foreground" /> No image attached
+                              </div>
+                            )}
+                            
+                            <div className="flex items-center flex-wrap gap-2 mt-1">
+                              <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground">
+                                {item.category}
+                              </span>
+                              
+                              {item.price && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300">
+                                  ${item.price}
+                                </span>
+                              )}
+                              
+                              {item.amount && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                                  Qty: {item.amount}
+                                </span>
+                              )}
+                            </div>
+                          </CardContent>
+                          
+                          <CardFooter className="p-3 pt-0 flex justify-between items-center">
+                            {item.dateToPurchase ? (
+                              <span className="text-xs text-muted-foreground flex items-center">
+                                <Calendar size={12} className="mr-1" />
+                                {new Date(item.dateToPurchase).toLocaleDateString()}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">
+                                Added {item.dateAdded.toLocaleDateString()}
+                              </span>
+                            )}
+                            
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 text-xs"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 toggleItem(item.id);
                               }}
-                              className={cn(
-                                "flex items-center justify-center w-4 h-4 rounded-full border",
-                                "border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
-                              )}
-                              aria-label="Mark as purchased"
                             >
-                              {item.completed && <Check size={12} />}
-                            </button>
-                          )}
-                          <CardTitle className={cn(
-                            "text-sm font-medium",
-                            item.completed && "line-through text-gray-500 dark:text-gray-400"
-                          )}>
-                            {item.name}
-                          </CardTitle>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-8 w-8 p-0"
-                            >
-                              <MoreVertical size={14} />
+                              <X size={12} className="mr-1" />
+                              Mark as Not Purchased
                             </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-36">
-                            <DropdownMenuItem onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditItem(item);
-                            }} className="cursor-pointer">
-                              <Edit size={14} className="mr-2" />
-                              <span className="text-sm">Edit</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={(e) => {
-                              e.stopPropagation();
-                              removeItem(item.id);
-                            }} className="cursor-pointer text-red-500">
-                              <Trash2 size={14} className="mr-2" />
-                              <span className="text-sm">Delete</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </CardHeader>
-                      
-                      <CardContent className="p-3 pt-2">
-                        {item.imageUrl ? (
-                          <div className="relative w-full">
-                            <div className="aspect-[3/2] rounded-md overflow-hidden mb-2">
-                              <img 
-                                src={item.imageUrl} 
-                                alt={item.name} 
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              className="absolute right-2 top-2 h-8 w-8 p-0 bg-black/40 hover:bg-black/60 text-white rounded-full"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleImagePreview(item.imageUrl!);
-                              }}
-                            >
-                              <Eye size={14} />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="mb-2 flex items-center text-xs text-muted-foreground">
-                            <ImageIcon size={14} className="mr-1 text-muted-foreground" /> No image attached
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center flex-wrap gap-2 mt-1">
-                          <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground">
-                            {item.category}
-                          </span>
-                          
-                          {item.price && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300">
-                              ${item.price}
-                            </span>
-                          )}
-                          
-                          {item.amount && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                              Qty: {item.amount}
-                            </span>
-                          )}
-                        </div>
-                      </CardContent>
-                      
-                      <CardFooter className="p-3 pt-0 flex justify-between items-center">
-                        {item.dateToPurchase ? (
-                          <span className="text-xs text-muted-foreground flex items-center">
-                            <Calendar size={12} className="mr-1" />
-                            {new Date(item.dateToPurchase).toLocaleDateString()}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">
-                            Added {item.dateAdded.toLocaleDateString()}
-                          </span>
-                        )}
-                        
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 text-xs bg-green-500 hover:bg-green-600 text-white border-green-500"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleItem(item.id);
-                          }}
-                        >
-                          <Check size={12} className="mr-1" />
-                          Mark as Purchased
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
+                          </CardFooter>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
       </ScrollArea>
 
+      {/* Edit Item Dialog */}
       <Dialog open={isEditItemDialogOpen} onOpenChange={setIsEditItemDialogOpen}>
         <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
           <DialogHeader>
@@ -1239,22 +1272,42 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </DialogContent>
       </Dialog>
 
+      {/* Image Preview Dialog */}
+      <Dialog open={previewImage !== null} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Image Preview</DialogTitle>
+          </DialogHeader>
+          {previewImage && (
+            <div className="flex justify-center p-2">
+              <img 
+                src={previewImage} 
+                alt="Preview" 
+                className="max-w-full max-h-[70vh] object-contain"
+              />
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setPreviewImage(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Category Dialog */}
       <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
         <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
           <DialogHeader>
             <DialogTitle>Add Category</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="new-category">Category Name</Label>
-                <Input
-                  id="new-category"
-                  placeholder="Enter category name"
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                />
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="new-category">Category Name</Label>
+              <Input
+                id="new-category"
+                placeholder="Enter category name"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+              />
             </div>
           </div>
           <DialogFooter className={cn(isMobile && "flex-col gap-2")}>
@@ -1276,26 +1329,27 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </DialogContent>
       </Dialog>
 
+      {/* Delete Category Dialog */}
       <Dialog open={isDeleteCategoryDialogOpen} onOpenChange={setIsDeleteCategoryDialogOpen}>
         <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
           <DialogHeader>
             <DialogTitle>Delete Category</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="delete-category">Category Name</Label>
-                <select
-                  id="delete-category"
-                  value={categoryToDelete}
-                  onChange={(e) => setCategoryToDelete(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="delete-category">Category to Delete</Label>
+              <select
+                id="delete-category"
+                value={categoryToDelete}
+                onChange={(e) => setCategoryToDelete(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="">Select a category</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+              <p className="text-sm mt-2">Items in this category will be moved to "Other"</p>
             </div>
           </div>
           <DialogFooter className={cn(isMobile && "flex-col gap-2")}>
@@ -1308,6 +1362,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
             </Button>
             <Button 
               onClick={confirmDeleteCategory}
+              variant="destructive"
               className={cn(isMobile && "w-full")}
               disabled={categoryToDelete === ''}
             >
@@ -1317,6 +1372,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </DialogContent>
       </Dialog>
 
+      {/* Edit Category Dialog */}
       <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
         <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
           <DialogHeader>
@@ -1325,17 +1381,31 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
           <div className="space-y-4">
             <div className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="edit-category">Category Name</Label>
+                <Label htmlFor="category-to-edit">Category</Label>
                 <select
-                  id="edit-category"
-                  value={editedCategoryName}
-                  onChange={(e) => setEditedCategoryName(e.target.value)}
+                  id="category-to-edit"
+                  value={categoryToEdit}
+                  onChange={(e) => {
+                    setCategoryToEdit(e.target.value);
+                    setEditedCategoryName(e.target.value);
+                  }}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
+                  <option value="">Select a category</option>
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="edit-category-name">New Category Name</Label>
+                <Input
+                  id="edit-category-name"
+                  placeholder="Enter new category name"
+                  value={editedCategoryName}
+                  onChange={(e) => setEditedCategoryName(e.target.value)}
+                />
               </div>
             </div>
           </div>
@@ -1350,7 +1420,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
             <Button 
               onClick={confirmEditCategory}
               className={cn(isMobile && "w-full")}
-              disabled={editedCategoryName.trim() === ''}
+              disabled={categoryToEdit === '' || editedCategoryName.trim() === ''}
             >
               Save Changes
             </Button>
