@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, addDays, subDays, isSameDay, isToday } from 'date-fns';
@@ -276,7 +277,7 @@ const DayView: React.FC<DayViewProps> = ({
       
       {hiddenEvents.length > 0 && (
         <Alert variant="destructive" className="py-2 bg-white border border-red-400 dark:bg-white">
-          <AlertDescription className="text-sm text-red-600 dark:text-red-600 font-medium">
+          <AlertDescription className="text-sm text-red-600 dark:text-red-600 font-medium flex items-center justify-center">
             Warning! Not all tasks/events are visible
           </AlertDescription>
         </Alert>
