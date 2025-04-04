@@ -45,11 +45,11 @@ const ShoppingItemButton = ({
       {completed ? (
         <div className="flex items-center w-full">
           <Check size={16} className="mr-2" />
-          <span className="truncate">{name ? name : "Purchased"}</span>
+          <span className="truncate font-medium">{name ? name : "Purchased"}</span>
         </div>
       ) : (
         <div className="flex items-center w-full">
-          <span className="truncate">{name ? name : "Mark as Purchased"}</span>
+          <span className="truncate font-medium">{name ? name : "Mark as Purchased"}</span>
         </div>
       )}
       
