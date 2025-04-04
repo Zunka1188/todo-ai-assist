@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Settings, FileText, CheckSquare, Menu, Home, Calendar, ShoppingBag, Camera, CreditCard, ScanLine } from 'lucide-react';
+import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, CreditCard } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -95,21 +95,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to="/scan" className="cursor-pointer flex items-center gap-2">
-                <Camera className="h-4 w-4" />
-                <span className={textColorClass}>Scan</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
               <Link to="/documents" className="cursor-pointer flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 <span className={textColorClass}>Documents</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/tasks" className="cursor-pointer flex items-center gap-2">
-                <CheckSquare className="h-4 w-4" />
-                <span className={textColorClass}>Tasks</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
