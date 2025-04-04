@@ -2,7 +2,6 @@
 import React from 'react';
 import { EllipsisVertical, Repeat } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 
 interface ResponsiveButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string;
@@ -53,47 +52,110 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     
     // Using the exact grocery item widget style per specifications
     return (
-      <div className="shopping-item-button">
+      <div style={{
+        width: '320px',
+        height: '96px',
+        border: '2px solid var(--border-color, #e2e8f0)',
+        borderRadius: '6px',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        backgroundColor: 'var(--bg-color, white)'
+      }}>
         {/* Top Section: Product Image & Details (64px height) */}
-        <div className="flex h-[64px] w-full">
+        <div style={{
+          display: 'flex',
+          height: '64px',
+          width: '100%'
+        }}>
           {/* Left Column - Product Image (48x48px with 8px margin) */}
-          <div className="w-[48px] h-[48px] my-auto ml-2 flex-shrink-0">
+          <div style={{
+            width: '48px',
+            height: '48px',
+            margin: '8px',
+            flexShrink: 0
+          }}>
             {imageUrl ? (
               <div 
-                className="w-full h-full rounded-md bg-cover bg-center border border-muted"
-                style={{ backgroundImage: `url(${imageUrl})` }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '4px',
+                  backgroundImage: `url(${imageUrl})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  border: '1px solid #e2e8f0'
+                }}
                 aria-hidden="true"
               />
             ) : (
-              <div className="w-full h-full rounded-md bg-slate-200 dark:bg-slate-700 flex items-center justify-center" aria-hidden="true">
-                <span className="text-xs text-muted-foreground">No img</span>
+              <div style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: '4px',
+                backgroundColor: '#e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }} aria-hidden="true">
+                <span style={{
+                  fontSize: '10px',
+                  color: '#64748b'
+                }}>No img</span>
               </div>
             )}
           </div>
           
-          {/* Right Column - Product Details (with 8px gap from image) */}
-          <div className="flex flex-col justify-center ml-2 flex-1 overflow-hidden pr-2 max-w-[256px]">
-            <div className="flex w-full items-center justify-between">
-              <span className="text-base font-bold truncate mr-1">
+          {/* Right Column - Product Details */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            marginLeft: '8px',
+            flexGrow: 1,
+            overflow: 'hidden',
+            paddingRight: '8px',
+            maxWidth: '256px'
+          }}>
+            <div style={{
+              display: 'flex',
+              width: '100%',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <span style={{
+                fontSize: '16px',
+                fontWeight: 'bold',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                marginRight: '4px'
+              }}>
                 {text}
               </span>
               
               {!hideIcon && (
                 <div 
                   onClick={handleIconClick}
-                  className={cn(
-                    "flex items-center justify-center ml-auto rounded-full",
-                    "hover:bg-black/10 dark:hover:bg-white/20",
-                    "transition-colors p-0.5 cursor-pointer shrink-0",
-                    iconClassName
-                  )}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginLeft: 'auto',
+                    borderRadius: '50%',
+                    padding: '2px',
+                    cursor: 'pointer',
+                    flexShrink: 0
+                  }}
                   aria-label="More options"
                   role="button"
                   tabIndex={0}
                 >
                   <EllipsisVertical 
                     size={iconSize} 
-                    className="text-current dark:text-primary-foreground" 
+                    style={{ color: 'currentColor' }} 
                   />
                 </div>
               )}
@@ -101,25 +163,40 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
 
             {/* Additional Details */}
             {hasDetails && (
-              <div className="flex flex-wrap gap-x-2 gap-y-1 w-full text-xs text-muted-foreground mt-1">
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px',
+                width: '100%',
+                fontSize: '12px',
+                color: '#64748b',
+                marginTop: '4px'
+              }}>
                 {quantity && (
-                  <span className="inline-flex items-center">
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                     Qty: {quantity}
                   </span>
                 )}
                 {price && (
-                  <span className="inline-flex items-center">
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                     ${price}
                   </span>
                 )}
                 {repeatOption && repeatOption !== 'none' && (
-                  <span className="inline-flex items-center">
-                    <Repeat size={10} className="mr-1" />
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <Repeat size={10} style={{ marginRight: '4px' }} />
                     {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
                   </span>
                 )}
                 {notes && (
-                  <div className="w-full text-xs text-muted-foreground truncate">
+                  <div style={{
+                    width: '100%',
+                    fontSize: '12px',
+                    color: '#64748b',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}>
                     {notes}
                   </div>
                 )}
@@ -129,15 +206,31 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         </div>
         
         {/* Bottom Section: Button (32px height) */}
-        <Button
+        <button
           ref={ref}
-          variant={variant === 'default' ? 'purchase' : variant}
           onClick={onClick}
-          className="purchase-button"
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '32px',
+            backgroundColor: variant === 'default' ? '#28a745' : '#6c757d',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderTop: '1px solid #e2e8f0',
+            color: 'white',
+            fontWeight: 500,
+            fontSize: '14px',
+            width: '100%',
+            border: 'none',
+            cursor: 'pointer'
+          }}
           {...props}
         >
           {props.children || "Action"}
-        </Button>
+        </button>
       </div>
     );
   }
