@@ -26,7 +26,7 @@ const ShoppingList = ({
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const { isMobile } = useIsMobile();
   
-  // Filter items based on search term and filter mode
+  // Filter items based on search term and filter mode, but don't filter out completed items
   const filteredItems = shoppingItemsContext.items.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     
