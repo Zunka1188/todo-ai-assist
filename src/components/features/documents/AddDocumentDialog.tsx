@@ -1,6 +1,6 @@
 
-import React, { useState, useRef } from 'react';
-import { Plus, X, Camera, Upload, Loader2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Plus, X, Camera, Upload, Loader2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -17,12 +17,24 @@ import {
 import ImageAnalysisModal from './ImageAnalysisModal';
 import { AnalysisResult } from '@/utils/imageAnalysis';
 
+interface DocumentItem {
+  id: string;
+  title: string;
+  description?: string;
+  category: string;
+  tags: string[];
+  date: string;
+  image?: string | null;
+}
+
 interface AddDocumentDialogProps {
   open: boolean;
   onClose: () => void;
-  onAdd: (item: any) => void;
+  onAdd: (item: DocumentItem) => void;
   currentCategory: string;
   categories: string[];
+  isEditing?: boolean;
+  editItem?: DocumentItem | null;
 }
 
 const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
@@ -30,7 +42,9 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   onClose,
   onAdd,
   currentCategory,
-  categories
+  categories,
+  isEditing = false,
+  editItem = null
 }) => {
   const { toast } = useToast();
   const [title, setTitle] = useState('');
@@ -44,17 +58,27 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Reset form when dialog opens/closes
-  React.useEffect(() => {
+  // Reset form when dialog opens/closes or when editing mode changes
+  useEffect(() => {
     if (open) {
-      setTitle('');
-      setDescription('');
-      setCategory(currentCategory);
-      setTags('');
-      setDate('');
-      setImage(null);
+      if (isEditing && editItem) {
+        setTitle(editItem.title);
+        setDescription(editItem.description || '');
+        setCategory(editItem.category);
+        setTags(editItem.tags ? editItem.tags.join(', ') : '');
+        setDate(editItem.date);
+        setImage(editItem.image || null);
+      } else {
+        // New item - reset form
+        setTitle('');
+        setDescription('');
+        setCategory(currentCategory);
+        setTags('');
+        setDate('');
+        setImage(null);
+      }
     }
-  }, [open, currentCategory]);
+  }, [open, currentCategory, isEditing, editItem]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,10 +92,10 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       return;
     }
 
-    const newItem = {
-      id: Date.now().toString(),
+    const newItem: DocumentItem = {
+      id: isEditing && editItem ? editItem.id : Date.now().toString(),
       title,
-      description,
+      description: description || undefined,
       category,
       tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
       date: date || new Date().toISOString().split('T')[0],
@@ -82,8 +106,10 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     onClose();
 
     toast({
-      title: "Item added",
-      description: `${title} has been added to ${category}`,
+      title: isEditing ? "Item updated" : "Item added",
+      description: isEditing 
+        ? `${title} has been updated successfully` 
+        : `${title} has been added to ${category}`,
     });
   };
 
@@ -179,7 +205,9 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add New Item</DialogTitle>
+            <DialogTitle>
+              {isEditing ? "Edit Item" : "Add New Item"}
+            </DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -304,8 +332,17 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
                 Cancel
               </Button>
               <Button type="submit" className="bg-todo-purple hover:bg-todo-purple/90">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Item
+                {isEditing ? (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Update Item
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Item
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </form>
