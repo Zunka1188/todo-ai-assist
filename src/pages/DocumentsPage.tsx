@@ -1,6 +1,5 @@
-
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, Search, Plus, FileText, Image, Tag, ChefHat, Plane, Dumbbell, Shirt } from 'lucide-react';
+import { ArrowLeft, Search, Plus, FileText, Image, ChefHat, Plane, Dumbbell, Shirt, Upload, Camera, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,11 +20,21 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetClose,
+} from '@/components/ui/sheet';
+import {
+  AlertDialog, 
+  AlertDialogContent,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog';
 
-// Define the tab types
 type DocumentCategory = 'style' | 'recipes' | 'travel' | 'fitness';
 
-// Define the item type
 interface DocumentItem {
   id: string;
   title: string;
@@ -34,9 +43,10 @@ interface DocumentItem {
   content: string;
   tags: string[];
   date: Date;
+  notes?: string;
+  dateToRemember?: string;
 }
 
-// Sample initial data
 const initialItems: DocumentItem[] = [
   {
     id: '1',
@@ -103,14 +113,19 @@ const DocumentsPage = () => {
   const [activeTab, setActiveTab] = useState<DocumentCategory>('style');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<DocumentItem | null>(null);
-  
-  // Form state
+  const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
   const [title, setTitle] = useState('');
   const [itemType, setItemType] = useState<'note' | 'image'>('note');
   const [content, setContent] = useState('');
   const [itemTags, setItemTags] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [notes, setNotes] = useState('');
+  const [dateToRemember, setDateToRemember] = useState('');
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const goBack = () => {
     navigate('/');
@@ -144,6 +159,9 @@ const DocumentsPage = () => {
       setItemType(editing.type);
       setContent(editing.content);
       setItemTags(editing.tags.join(', '));
+      setNotes(editing.notes || '');
+      setDateToRemember(editing.dateToRemember || '');
+      
       if (editing.type === 'image') {
         setImagePreview(editing.content);
       }
@@ -154,6 +172,8 @@ const DocumentsPage = () => {
       setContent('');
       setItemTags('');
       setImagePreview(null);
+      setNotes('');
+      setDateToRemember('');
     }
     setAddDialogOpen(true);
   };
@@ -162,32 +182,37 @@ const DocumentsPage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Generate preview URL
+    setImageFile(file);
+    
     const reader = new FileReader();
     reader.onload = (event) => {
       if (event.target?.result) {
+        setItemType('image');
         setImagePreview(event.target.result as string);
         setContent(event.target.result as string);
       }
     };
     reader.readAsDataURL(file);
+    
+    setImageOptionsOpen(false);
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = '';
+    }
   };
 
   const handleSaveItem = () => {
-    if (title.trim() === '') {
+    if (title.trim() === '' && !imagePreview) {
       toast({
-        title: "Title Required",
-        description: "Please enter a title for your item",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if ((itemType === 'note' && content.trim() === '') || 
-        (itemType === 'image' && !imagePreview)) {
-      toast({
-        title: "Content Required",
-        description: `Please add ${itemType === 'note' ? 'text content' : 'an image'}`,
+        title: "Input Required",
+        description: "Please enter a title or add an image",
         variant: "destructive",
       });
       return;
@@ -199,38 +224,50 @@ const DocumentsPage = () => {
 
     const newItem: DocumentItem = {
       id: editingItem ? editingItem.id : Date.now().toString(),
-      title: title.trim(),
+      title: title.trim() || (imagePreview ? 'Untitled Item' : ''),
       category: activeTab,
       type: itemType,
-      content: content,
+      content: itemType === 'image' ? (imagePreview || '') : content,
       tags: tags,
-      date: editingItem ? editingItem.date : new Date()
+      date: editingItem ? editingItem.date : new Date(),
+      notes: notes.trim() || undefined,
+      dateToRemember: dateToRemember || undefined
     };
 
     if (editingItem) {
-      // Update existing item
       setItems(items.map(item => 
         item.id === editingItem.id ? newItem : item
       ));
       toast({
         title: "Item Updated",
-        description: `"${title}" has been updated`,
+        description: `"${newItem.title}" has been updated`,
       });
     } else {
-      // Add new item
       setItems([...items, newItem]);
       toast({
         title: "Item Added",
-        description: `"${title}" has been added to your ${activeTab} collection`,
+        description: `"${newItem.title}" has been added to your ${activeTab} collection`,
       });
     }
 
-    // Clear form and close dialog
     setAddDialogOpen(false);
+    resetForm();
+  };
+
+  const resetForm = () => {
     setTitle('');
+    setItemType('note');
     setContent('');
     setItemTags('');
     setImagePreview(null);
+    setNotes('');
+    setDateToRemember('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = '';
+    }
   };
 
   const handleDeleteItem = (id: string) => {
@@ -241,7 +278,88 @@ const DocumentsPage = () => {
     });
   };
 
-  // Filter items based on active tab and search term
+  const ImageSourceOptions = () => {
+    if (isMobile) {
+      return (
+        <Sheet open={imageOptionsOpen} onOpenChange={setImageOptionsOpen}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setImageOptionsOpen(true)}
+            className="flex-1"
+          >
+            <Image className="mr-2 h-4 w-4" />
+            {imagePreview ? "Change Image" : "Add Image"}
+          </Button>
+          <SheetContent side="bottom" className="h-auto pb-8">
+            <SheetHeader className="mb-4">
+              <SheetTitle>Choose Image Source</SheetTitle>
+            </SheetHeader>
+            <div className="flex flex-col space-y-3">
+              <Button 
+                onClick={() => {
+                  fileInputRef.current?.click();
+                  setImageOptionsOpen(false);
+                }}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Upload className="h-4 w-4" /> Upload from Device
+              </Button>
+              <Button 
+                onClick={() => {
+                  cameraInputRef.current?.click();
+                  setImageOptionsOpen(false);
+                }}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Camera className="h-4 w-4" /> Take a Picture
+              </Button>
+              <SheetClose asChild>
+                <Button variant="ghost" className="w-full mt-2">Cancel</Button>
+              </SheetClose>
+            </div>
+          </SheetContent>
+        </Sheet>
+      );
+    } else {
+      return (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+            >
+              <Image className="mr-2 h-4 w-4" />
+              {imagePreview ? "Change Image" : "Add Image"}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="max-w-xs">
+            <div className="flex flex-col space-y-3 py-2">
+              <Button 
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Upload className="h-4 w-4" /> Upload from Device
+              </Button>
+              <Button 
+                onClick={() => cameraInputRef.current?.click()}
+                className="w-full justify-start gap-3"
+                variant="outline"
+              >
+                <Camera className="h-4 w-4" /> Take a Picture
+              </Button>
+              <Button variant="ghost" className="w-full mt-2">Cancel</Button>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+      );
+    }
+  };
+
   const filteredItems = items.filter(item => 
     (item.category === activeTab) && 
     (searchTerm === '' || 
@@ -273,7 +391,7 @@ const DocumentsPage = () => {
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 my-3">
         <Button 
-          className="bg-green-500 hover:bg-green-600 text-white gap-2 h-10 sm:w-auto w-full flex justify-center items-center"
+          className="bg-todo-purple hover:bg-todo-purple/90 text-white gap-2 h-10 sm:w-auto w-full flex justify-center items-center"
           size={isMobile ? "default" : "sm"}
           onClick={() => handleOpenAddDialog()}
         >
@@ -295,7 +413,6 @@ const DocumentsPage = () => {
       
       <Separator className="my-2" />
       
-      {/* Category Tabs */}
       <div className="mb-4">
         <Tabs 
           defaultValue="style" 
@@ -360,7 +477,6 @@ const DocumentsPage = () => {
         </Tabs>
       </div>
 
-      {/* Add/Edit Item Dialog */}
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
         <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
           <DialogHeader>
@@ -374,7 +490,7 @@ const DocumentsPage = () => {
 
           <div className="space-y-4">
             <div className="grid gap-2">
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="title">Title (Optional if image is provided)</Label>
               <Input
                 id="title"
                 placeholder="Enter a title"
@@ -401,7 +517,12 @@ const DocumentsPage = () => {
                     value="note"
                     className="sr-only"
                     checked={itemType === "note"}
-                    onChange={() => setItemType("note")}
+                    onChange={() => {
+                      setItemType("note");
+                      setImagePreview(null);
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                      if (cameraInputRef.current) cameraInputRef.current.value = '';
+                    }}
                   />
                 </Label>
                 <Label
@@ -439,26 +560,70 @@ const DocumentsPage = () => {
             ) : (
               <div className="grid gap-2">
                 <Label htmlFor="image">Image</Label>
-                <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
                   <Input
                     id="image"
                     type="file"
                     accept="image/*"
                     ref={fileInputRef}
                     onChange={handleFileChange}
+                    className="hidden"
                   />
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    ref={cameraInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  
+                  <ImageSourceOptions />
+                  
                   {imagePreview && (
-                    <div className="mt-2 relative rounded-lg overflow-hidden border">
-                      <img 
-                        src={imagePreview} 
-                        alt="Preview" 
-                        className="max-h-32 mx-auto object-contain"
-                      />
-                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={clearImage}
+                      className="p-2"
+                      title="Remove image"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   )}
                 </div>
+                {imagePreview && (
+                  <div className="mt-2 relative rounded-lg overflow-hidden border">
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      className="max-h-32 mx-auto object-contain"
+                    />
+                  </div>
+                )}
               </div>
             )}
+
+            <div className="grid gap-2">
+              <Label htmlFor="date-remember">Date to Remember (Optional)</Label>
+              <Input
+                id="date-remember"
+                type="date"
+                value={dateToRemember}
+                onChange={(e) => setDateToRemember(e.target.value)}
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="notes">Additional Notes (Optional)</Label>
+              <Textarea
+                id="notes"
+                placeholder="Add any additional notes here"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="min-h-[80px]"
+              />
+            </div>
 
             <div className="grid gap-2">
               <Label htmlFor="tags">Tags (comma separated)</Label>
@@ -474,14 +639,18 @@ const DocumentsPage = () => {
           <DialogFooter className={cn(isMobile && "flex-col gap-2")}>
             <Button 
               variant="outline" 
-              onClick={() => setAddDialogOpen(false)}
+              onClick={() => {
+                resetForm();
+                setAddDialogOpen(false);
+              }}
               className={cn(isMobile && "w-full")}
             >
               Cancel
             </Button>
             <Button 
               onClick={handleSaveItem}
-              className={cn(isMobile && "w-full")}
+              className={cn("bg-todo-purple hover:bg-todo-purple/90", isMobile && "w-full")}
+              disabled={itemType === 'note' && content.trim() === '' && title.trim() === '' && !imagePreview}
             >
               {editingItem ? "Update" : "Save"}
             </Button>
@@ -492,7 +661,6 @@ const DocumentsPage = () => {
   );
 };
 
-// Extracted DocumentItemsList component
 interface DocumentItemsListProps {
   items: DocumentItem[];
   getTypeIcon: (type: 'image' | 'note') => React.ReactNode;
@@ -586,6 +754,11 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                     </svg>
                   </Button>
                 </div>
+                {item.dateToRemember && (
+                  <div className="absolute top-2 left-2 bg-todo-purple text-white px-2 py-1 text-xs rounded-md">
+                    {new Date(item.dateToRemember).toLocaleDateString()}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="p-4">
@@ -603,6 +776,11 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                         </span>
                       ))}
                     </div>
+                    {item.notes && (
+                      <p className="text-muted-foreground text-xs mt-2 line-clamp-1 italic">
+                        {item.notes}
+                      </p>
+                    )}
                   </div>
                   <div className="flex gap-1 ml-2 shrink-0">
                     <Button
@@ -635,7 +813,7 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                         className="h-4 w-4"
                       >
                         <path
-                          d="M5.5 1C5.22386 1 5 1.22386 5 1.5C5 1.77614 5.22386 2 5.5 2H9.5C9.77614 2 10 1.77614 10 1.5C10 1.22386 9.77614 1 9.5 1H5.5ZM3 3.5C3 3.22386 3.22386 3 3.5 3H11.5C11.7761 3 12 3.22386 12 3.5C12 3.77614 11.7761 4 11.5 4H3.5C3.22386 4 3 3.77614 3 3.5ZM3.5 5C3.22386 5 3 5.22386 3 5.5C3 5.77614 3.22386 6 3.5 6H4V12C4 12.5523 4.44772 13 5 13H10C10.5523 13 11 12.5523 11 12V6H11.5C11.7761 6 12 5.77614 12 5.5C12 5.22386 11.7761 5 11.5 5H3.5ZM5 6H10V12H5V6Z"
+                          d="M5.5 1C5.22386 1 5 1.22386 5 1.5C5 1.77614 5.22386 2 5.5 2H9.5C9.77614 2 10 1.77614 10 1.5C10 1.22386 9.77614 1 9.5 1H5.5ZM3 3.5C3 3.22386 3.22386 3 3.5 3H11.5C11.7761 3 12 3.22386 12 3.5C12 3.77614 11.7761 4 11.5 4H3.5C3.22386 4 3 3.77614 3 3.5ZM3.5 5C3.22386 5 3 5.22386 3 5.5C3 5.77614 3.22386 6 3.5 6H4V12C4 12.5523 4.44772 13 5 13H10C10.5523 13 11 12.5523 11 12V6H11.5C11.7761 6 12 5.777614 12 5.5C12 5.22386 11.7761 5 11.5 5H3.5ZM5 6H10V12H5V6Z"
                           fill="currentColor"
                           fillRule="evenodd"
                           clipRule="evenodd"
@@ -644,8 +822,13 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                     </Button>
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground mt-2">
-                  {item.date.toLocaleDateString()}
+                <div className="flex justify-between items-center text-xs text-muted-foreground mt-2">
+                  <span>{item.date.toLocaleDateString()}</span>
+                  {item.dateToRemember && (
+                    <span className="bg-todo-purple/15 text-todo-purple px-2 py-0.5 rounded-full">
+                      {new Date(item.dateToRemember).toLocaleDateString()}
+                    </span>
+                  )}
                 </div>
               </div>
             )}
