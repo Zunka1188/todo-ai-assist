@@ -7,7 +7,6 @@ import ScanButton from '@/components/features/ScanButton';
 import FeatureCard from '@/components/features/FeatureCard';
 import CalendarWidget from '@/components/widgets/CalendarWidget';
 import TaskWidget from '@/components/widgets/TaskWidget';
-import SpendingWidget from '@/components/widgets/SpendingWidget';
 import { useTheme } from '@/hooks/use-theme';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -75,10 +74,9 @@ const Index = () => {
           className={theme === 'light' ? "text-primary font-semibold section-header" : "text-white font-semibold section-header"}
         />
         
-        <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 lg:grid-cols-2">
           <CalendarWidget />
           <TaskWidget />
-          <SpendingWidget />
         </div>
       </div>
 
