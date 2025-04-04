@@ -49,7 +49,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     };
 
     // Determine if we have details to show
-    const hasDetails = quantity || price || notes || (repeatOption && repeatOption !== 'none') || imageUrl;
+    const hasDetails = quantity || price || notes || (repeatOption && repeatOption !== 'none');
     
     return (
       <Button
@@ -60,12 +60,16 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
           "w-auto max-w-[200px] h-auto min-h-[80px] px-3 py-2 flex flex-col items-start justify-center gap-1 transition-all duration-200",
           "rounded-lg overflow-hidden relative",
           active && "bg-primary text-primary-foreground hover:bg-primary/90",
+          imageUrl && "bg-cover bg-center text-white",
           className
         )}
+        style={imageUrl ? {
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url(${imageUrl})`
+        } : undefined}
         {...props}
         aria-label={`${text} options`}
       >
-        <div className="flex w-full items-center justify-between">
+        <div className="flex w-full items-center justify-between z-10">
           <span className="truncate text-base font-medium mr-1">
             {text}
           </span>
@@ -92,7 +96,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
 
         {/* Display additional details when available */}
         {hasDetails && (
-          <div className="flex flex-wrap gap-x-2 gap-y-1 w-full text-xs text-muted-foreground mt-0.5">
+          <div className="flex flex-wrap gap-x-2 gap-y-1 w-full text-xs text-muted-foreground mt-0.5 z-10">
             {quantity && (
               <span className="inline-flex items-center">
                 Qty: {quantity}
@@ -113,19 +117,8 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         )}
         
         {notes && (
-          <div className="w-full text-xs text-muted-foreground mt-0.5 truncate">
+          <div className="w-full text-xs text-muted-foreground mt-0.5 truncate z-10">
             {notes}
-          </div>
-        )}
-        
-        {imageUrl && (
-          <div className="w-full mt-2 h-[48px] overflow-hidden">
-            <img 
-              src={imageUrl} 
-              alt={text} 
-              className="rounded-md object-cover h-full max-w-[30%]"
-              loading="lazy"
-            />
           </div>
         )}
       </Button>
