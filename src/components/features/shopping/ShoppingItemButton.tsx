@@ -60,7 +60,6 @@ const ShoppingItemButton = ({
     <>
       <div className="shopping-item-container" style={{
         width: '240px',
-        height: '128px', // Increased height to accommodate the item name at top
         border: `2px solid ${borderColor}`,
         borderRadius: '6px',
         overflow: 'hidden',
@@ -70,11 +69,15 @@ const ShoppingItemButton = ({
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.2)',
         backgroundColor: bgColor
       }}>
-        {/* Top Section: Item Name (new) */}
+        {/* Top Section: Item Name - 40px height */}
         <div style={{
-          padding: '8px 12px',
+          height: '40px',
+          padding: '0 12px',
           borderBottom: `1px solid ${borderColor}`,
-          backgroundColor: bgColor
+          backgroundColor: bgColor,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
         }}>
           <div style={{
             fontSize: '16px',
@@ -82,23 +85,24 @@ const ShoppingItemButton = ({
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            color: textColor
+            color: textColor,
+            textAlign: 'center',
+            width: '100%'
           }}>
             {name || "Unnamed Product"}
           </div>
         </div>
         
-        {/* Middle Section: Product Image & Details */}
+        {/* Middle Section: Product Image & Details - 80px height */}
         <div style={{
           display: 'flex',
-          flex: 1,
+          height: '80px',
           width: '100%'
         }}>
-          {/* Left Column - Product Image (48x48px with 8px margin) */}
+          {/* Left Column - Product Image (80x80px) */}
           <div style={{
-            width: '48px',
-            height: '48px',
-            margin: '8px',
+            width: '80px',
+            height: '80px',
             flexShrink: 0,
             cursor: imageUrl ? 'pointer' : 'default'
           }} onClick={handleImageClick}>
@@ -107,7 +111,6 @@ const ShoppingItemButton = ({
                 style={{
                   width: '100%',
                   height: '100%',
-                  borderRadius: '4px',
                   backgroundImage: `url(${imageUrl})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
@@ -119,14 +122,13 @@ const ShoppingItemButton = ({
               <div style={{
                 width: '100%',
                 height: '100%',
-                borderRadius: '4px',
                 backgroundColor: theme === 'dark' ? '#333333' : '#e2e8f0',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }} aria-hidden="true">
                 <span style={{
-                  fontSize: '10px',
+                  fontSize: '12px',
                   color: secondaryTextColor
                 }}>No image</span>
               </div>
@@ -138,136 +140,152 @@ const ShoppingItemButton = ({
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            marginLeft: '8px',
-            flex: 1,
-            padding: '8px 0',
-            gap: '6px', // Equal spacing between lines (4-6px as requested)
+            width: '160px',
+            height: '80px',
+            position: 'relative'
           }}>
-            {/* First line: Qty & Price - Bold and larger (14-16px) */}
+            {/* Menu (⋮) Icon - positioned at top right */}
+            {(onEdit || onDelete) && (
+              <div style={{
+                position: 'absolute',
+                top: '5px',
+                right: '5px',
+                zIndex: 5
+              }}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild onClick={handleDropdownClick}>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 p-0"
+                      style={{ color: theme === 'dark' ? '#B0B0B0' : undefined }}
+                    >
+                      <MoreVertical className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="end"
+                    style={{ 
+                      zIndex: 100,
+                      backgroundColor: theme === 'dark' ? '#333333' : 'white',
+                      border: `1px solid ${theme === 'dark' ? '#555555' : '#e2e8f0'}`,
+                      minWidth: '150px',
+                      boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.3)'
+                    }}
+                  >
+                    {imageUrl && (
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setImagePreviewOpen(true);
+                        }}
+                        className={theme === 'dark' ? 'text-zinc-200 hover:bg-zinc-800' : ''}
+                      >
+                        <Maximize2 className="mr-2 h-4 w-4" />
+                        View Image
+                      </DropdownMenuItem>
+                    )}
+                    {onEdit && (
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onEdit();
+                        }}
+                        className={theme === 'dark' ? 'text-zinc-200 hover:bg-zinc-800' : ''}
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                    )}
+                    {onDelete && (
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onDelete();
+                        }}
+                        className={theme === 'dark' ? 'text-zinc-200 hover:bg-zinc-800' : ''}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
+            
+            {/* Quantity Line - 30px height, centered vertically */}
             <div style={{ 
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-              paddingRight: '12px'
+              height: '30px',
+              paddingLeft: '10px',
+              paddingRight: '20px' // Additional space for the menu icon
             }}>
-              <div style={{ 
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                fontSize: '15px',
-                fontWeight: 600,
-                color: textColor
-              }}>
-                {quantity && (
-                  <div className="flex items-center">
-                    <span>Qty: {quantity}</span>
-                    <ChevronDown size={14} className="ml-1 opacity-70" />
-                  </div>
-                )}
-                {price && quantity && (
-                  <span className="mx-2">•</span>
-                )}
-                {price && (
-                  <span>${price}</span>
-                )}
-              </div>
-              
-              {/* Three-dot Menu - Always visible and right-aligned */}
-              {(onEdit || onDelete) && (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  justifyContent: 'center',
+              {quantity && (
+                <div className="flex items-center" style={{
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  color: textColor
                 }}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={handleDropdownClick}>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 p-0"
-                        style={{ color: theme === 'dark' ? '#B0B0B0' : undefined }}
-                      >
-                        <MoreVertical className="h-5 w-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent 
-                      align="end"
-                      style={{ 
-                        zIndex: 100,
-                        backgroundColor: theme === 'dark' ? '#333333' : 'white',
-                        border: `1px solid ${theme === 'dark' ? '#555555' : '#e2e8f0'}`,
-                        minWidth: '150px',
-                        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.3)'
-                      }}
-                    >
-                      {imageUrl && (
-                        <DropdownMenuItem 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setImagePreviewOpen(true);
-                          }}
-                          className={theme === 'dark' ? 'text-zinc-200 hover:bg-zinc-800' : ''}
-                        >
-                          <Maximize2 className="mr-2 h-4 w-4" />
-                          View Image
-                        </DropdownMenuItem>
-                      )}
-                      {onEdit && (
-                        <DropdownMenuItem 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            onEdit();
-                          }}
-                          className={theme === 'dark' ? 'text-zinc-200 hover:bg-zinc-800' : ''}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                      )}
-                      {onDelete && (
-                        <DropdownMenuItem 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            onDelete();
-                          }}
-                          className={theme === 'dark' ? 'text-zinc-200 hover:bg-zinc-800' : ''}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <span>Qty: {quantity}</span>
+                  <ChevronDown size={14} className="ml-1 opacity-70" />
+                </div>
+              )}
+              {price && quantity && (
+                <span className="mx-2" style={{color: textColor}}>•</span>
+              )}
+              {price && (
+                <span style={{color: textColor}}>${price}</span>
+              )}
+            </div>
+            
+            {/* Repeat Option Line - 30px height, centered vertically */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              height: '30px',
+              paddingLeft: '10px'
+            }}>
+              {repeatOption && repeatOption !== 'none' && (
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  fontSize: '14px', 
+                  fontWeight: 400,
+                  color: textColor
+                }}>
+                  <Repeat size={14} style={{ marginRight: '4px' }} />
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
+                    <ChevronDown size={14} className="ml-1 opacity-70" />
+                  </span>
+                </div>
+              )}
+              
+              {/* Notes - show if there's space and no repeat option */}
+              {!repeatOption && notes && (
+                <div style={{
+                  fontSize: '12px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  color: secondaryTextColor
+                }}>
+                  {notes}
                 </div>
               )}
             </div>
             
-            {/* Second line: Repeat Frequency - Same size, lighter weight */}
-            {repeatOption && repeatOption !== 'none' && (
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center',
-                fontSize: '14px', 
-                fontWeight: 400,
-                color: textColor
-              }}>
-                <Repeat size={14} style={{ marginRight: '4px' }} />
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
-                  <ChevronDown size={14} className="ml-1 opacity-70" />
-                </span>
-              </div>
-            )}
-            
-            {/* Third line: Notes - Smallest font (12px) */}
-            {notes && (
+            {/* Notes Line - show if there's both repeat option and notes */}
+            {repeatOption && repeatOption !== 'none' && notes && (
               <div style={{
                 fontSize: '12px',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                color: secondaryTextColor
+                color: secondaryTextColor,
+                paddingLeft: '10px'
               }}>
                 {notes}
               </div>
@@ -275,10 +293,10 @@ const ShoppingItemButton = ({
           </div>
         </div>
         
-        {/* Bottom Section: Purchase Button - Full width, increased height, shadow for depth */}
+        {/* Bottom Section: Purchase Button - 40px height */}
         <div style={{
-          height: '36px', // Increased height to 36px as requested
-          backgroundColor: completed ? '#6c757d' : '#3B9E47', // Using the green color specified
+          height: '40px',
+          backgroundColor: completed ? '#6c757d' : '#28A745', // Using green color exactly as specified
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -296,7 +314,7 @@ const ShoppingItemButton = ({
           if (!completed) e.currentTarget.style.backgroundColor = '#23963F' // Darker green on hover
         }}
         onMouseOut={(e) => { 
-          if (!completed) e.currentTarget.style.backgroundColor = '#3B9E47' // Back to original green
+          if (!completed) e.currentTarget.style.backgroundColor = '#28A745' // Back to original green
         }}
         >
           {completed ? (
