@@ -31,7 +31,17 @@ const ShoppingPage = () => {
     navigate('/');
   };
 
-  const handleAddItem = (item: { name: string, category: string, notes?: string, amount?: string, dateToPurchase?: string, price?: string, image?: string | null }) => {
+  const handleAddItem = (item: { 
+    name: string, 
+    category: string, 
+    notes?: string, 
+    amount?: string, 
+    dateToPurchase?: string, 
+    price?: string, 
+    file?: string | null,
+    fileName?: string,
+    fileType?: string
+  }) => {
     // In a real app, this would add the item to a database
     console.log('Adding item:', item);
     
@@ -41,9 +51,9 @@ const ShoppingPage = () => {
       variant: "default",
     });
     
-    // Determine if the item has an image to update the appropriate tab
-    if (item.image) {
-      // If we're in text mode but adding an image item, switch to all view
+    // Determine if the item has a file to update the appropriate tab
+    if (item.file) {
+      // If we're in text mode but adding an item with file, switch to all view
       if (activeTab === 'text') {
         setActiveTab('all');
       }
