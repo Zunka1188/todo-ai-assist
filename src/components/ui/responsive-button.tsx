@@ -20,6 +20,7 @@ interface ResponsiveButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEle
   notes?: string;
   dateToPurchase?: string;
   repeatOption?: 'none' | 'weekly' | 'monthly';
+  imageUrl?: string; // Added imageUrl prop
 }
 
 const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonProps>(
@@ -38,6 +39,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     notes,
     dateToPurchase,
     repeatOption,
+    imageUrl,
     ...props 
   }, ref) => {
     
@@ -49,7 +51,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     };
 
     // Determine if we have details to show
-    const hasDetails = quantity || price || dateToPurchase || notes || (repeatOption && repeatOption !== 'none');
+    const hasDetails = quantity || price || dateToPurchase || notes || (repeatOption && repeatOption !== 'none') || imageUrl;
     
     return (
       <Button
@@ -121,6 +123,17 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         {notes && (
           <div className="w-full text-xs text-muted-foreground mt-0.5 truncate">
             {notes}
+          </div>
+        )}
+        
+        {imageUrl && (
+          <div className="w-full mt-2">
+            <img 
+              src={imageUrl} 
+              alt={text} 
+              className="rounded-md w-[30%]" // Reduced size by 70%
+              loading="lazy"
+            />
           </div>
         )}
       </Button>

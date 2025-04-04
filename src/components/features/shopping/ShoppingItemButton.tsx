@@ -14,6 +14,7 @@ interface ShoppingItemButtonProps {
   dateToPurchase?: string;
   repeatOption?: 'none' | 'weekly' | 'monthly';
   name?: string;
+  imageUrl?: string; // Added imageUrl prop
 }
 
 const ShoppingItemButton = ({ 
@@ -25,10 +26,11 @@ const ShoppingItemButton = ({
   notes,
   dateToPurchase,
   repeatOption,
-  name
+  name,
+  imageUrl
 }: ShoppingItemButtonProps) => {
   // Determine if we need to show additional info
-  const hasAdditionalInfo = quantity || price || notes || dateToPurchase || (repeatOption && repeatOption !== 'none');
+  const hasAdditionalInfo = quantity || price || notes || dateToPurchase || (repeatOption && repeatOption !== 'none') || imageUrl;
   
   return (
     <Button
@@ -81,6 +83,16 @@ const ShoppingItemButton = ({
           {notes && (
             <div className="w-full text-xs truncate mt-0.5">
               {notes}
+            </div>
+          )}
+          {imageUrl && (
+            <div className="w-full mt-2">
+              <img 
+                src={imageUrl} 
+                alt={name || "Product"} 
+                className="rounded-md w-[30%]" // Reduced size by 70%
+                loading="lazy"
+              />
             </div>
           )}
         </div>
