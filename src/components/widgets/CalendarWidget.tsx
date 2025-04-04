@@ -102,9 +102,7 @@ const CalendarWidget = () => {
   const [open, setOpen] = useState(false);
   const [viewEventDialogOpen, setViewEventDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const {
-    theme
-  } = useTheme();
+  const { theme } = useTheme();
 
   const isDayWithEvent = (day: Date) => {
     return upcomingEvents.some(event => isSameDay(event.startDate, day) || isSameDay(event.endDate, day) || event.startDate <= day && event.endDate >= day);
@@ -156,7 +154,7 @@ const CalendarWidget = () => {
       <CardContent className="pb-3">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <div>
+            <div className="flex justify-center">
               <Calendar mode="single" selected={date} onSelect={handleDaySelect} weekStartsOn={1}
             modifiers={{
               event: date => isDayWithEvent(date)
