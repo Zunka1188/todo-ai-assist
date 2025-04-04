@@ -20,14 +20,14 @@ const ShoppingList = ({
   className,
   onEditItem
 }: ShoppingListProps) => {
-  const shoppingItemsContext = useShoppingItems();
-  const { items, toggleItemCompletion, deleteItem } = shoppingItemsContext;
+  const shoppingItemsContext = useShoppingItems('all', '');
+  const { removeItem: deleteItem, toggleItem: toggleItemCompletion } = shoppingItemsContext;
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const { isMobile } = useIsMobile();
   
   // Filter items based on search term and filter mode
-  const filteredItems = items.filter((item) => {
+  const filteredItems = shoppingItemsContext.items.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (!matchesSearch) return false;
