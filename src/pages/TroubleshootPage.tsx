@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
@@ -21,7 +20,8 @@ import {
   Bell, 
   RefreshCw, 
   Settings, 
-  HelpCircle 
+  HelpCircle,
+  CalendarIcon 
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
@@ -90,7 +90,7 @@ const TroubleshootPage = () => {
       ),
       category: "calendar",
       platform: "all",
-      icon: <Calendar className="h-5 w-5" />
+      icon: <CalendarIcon className="h-5 w-5" />
     },
     {
       title: "Notifications not working",
@@ -179,7 +179,6 @@ const TroubleshootPage = () => {
     }
   ];
 
-  // Filter items based on search query, category, and platform
   const filteredItems = troubleshootItems.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
@@ -188,7 +187,6 @@ const TroubleshootPage = () => {
     return matchesSearch && matchesCategory && matchesPlatform;
   });
 
-  // Get unique categories for the filter
   const categories = ['all', ...Array.from(new Set(troubleshootItems.map(item => item.category)))];
 
   return (
@@ -199,7 +197,6 @@ const TroubleshootPage = () => {
         icon={<HelpCircle className="h-6 w-6 text-todo-purple" />}
       />
 
-      {/* Search bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input 
@@ -210,7 +207,6 @@ const TroubleshootPage = () => {
         />
       </div>
 
-      {/* Platform filter buttons */}
       <div className="flex flex-wrap gap-2">
         <Button 
           variant={activePlatform === 'all' ? 'default' : 'outline'}
@@ -240,7 +236,6 @@ const TroubleshootPage = () => {
         </Button>
       </div>
 
-      {/* Category filter (horizontal scrollable on mobile) */}
       <div className={cn(
         "flex gap-2 py-1",
         isMobile && "overflow-x-auto pb-2 hide-scrollbar"
@@ -261,7 +256,6 @@ const TroubleshootPage = () => {
         ))}
       </div>
 
-      {/* No results state */}
       {filteredItems.length === 0 && (
         <Card className="p-6 text-center">
           <HelpCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
@@ -272,7 +266,6 @@ const TroubleshootPage = () => {
         </Card>
       )}
 
-      {/* Troubleshooting items */}
       <Accordion type="single" collapsible className="w-full">
         {filteredItems.map((item, index) => (
           <AccordionItem key={index} value={`item-${index}`}>
@@ -305,7 +298,6 @@ const TroubleshootPage = () => {
         ))}
       </Accordion>
 
-      {/* Contact support */}
       <div className={cn(
         "rounded-xl p-4 border border-dashed border-todo-purple/30 mt-6 text-center",
         theme === 'light' ? "bg-todo-purple/5" : "bg-todo-purple/10"
@@ -319,7 +311,7 @@ const TroubleshootPage = () => {
         </Button>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
         }
