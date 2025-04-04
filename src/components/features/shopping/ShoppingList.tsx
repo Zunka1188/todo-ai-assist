@@ -222,14 +222,31 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     if (purchasedSectionRef.current && scrollAreaRef.current) {
       if (isPurchasedSectionCollapsed) {
         setIsPurchasedSectionCollapsed(false);
+        
         setTimeout(() => {
-          const sectionTop = purchasedSectionRef.current?.offsetTop || 0;
-          scrollAreaRef.current?.scrollTo({ top: sectionTop - 20, behavior: 'smooth' });
-        }, 100);
+          if (purchasedSectionRef.current && scrollAreaRef.current) {
+            const sectionTop = purchasedSectionRef.current.offsetTop;
+            if (sectionTop > 0) {
+              scrollAreaRef.current.scrollTo({ 
+                top: sectionTop - 20, 
+                behavior: 'smooth' 
+              });
+              console.log('Scrolling to purchased section at position:', sectionTop);
+            }
+          }
+        }, 150);
       } else {
-        const sectionTop = purchasedSectionRef.current.offsetTop || 0;
-        scrollAreaRef.current.scrollTo({ top: sectionTop - 20, behavior: 'smooth' });
+        const sectionTop = purchasedSectionRef.current.offsetTop;
+        if (sectionTop > 0) {
+          scrollAreaRef.current.scrollTo({ 
+            top: sectionTop - 20, 
+            behavior: 'smooth' 
+          });
+          console.log('Scrolling to purchased section at position:', sectionTop);
+        }
       }
+    } else {
+      console.log('Purchase section or scroll area ref not found');
     }
   };
 
@@ -746,7 +763,10 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
               variant="outline" 
               size="sm" 
               className="h-8 flex items-center gap-1" 
-              onClick={scrollToPurchasedSection}
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToPurchasedSection();
+              }}
             >
               <ShoppingCart size={12} />
               <span className="text-xs">Go to Purchased</span>
@@ -755,7 +775,10 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         )}
       </div>
 
-      <ScrollArea className="h-[calc(100vh-320px)] pr-4 shopping-items-scroll-area smooth-scroll" ref={scrollAreaRef}>
+      <ScrollArea 
+        className="h-[calc(100vh-320px)] pr-4 shopping-items-scroll-area smooth-scroll" 
+        ref={scrollAreaRef}
+      >
         <div className="mb-4">
           <h3 className="text-xs font-medium mb-3 text-muted-foreground">Not Purchased ({notPurchasedItems.length})</h3>
           
@@ -933,7 +956,11 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
           </AnimatePresence>
           
           {purchasedItems.length > 0 && (
-            <div className="mt-6" ref={purchasedSectionRef}>
+            <div 
+              className="mt-6" 
+              ref={purchasedSectionRef}
+              id="purchased-section"
+            >
               <div 
                 className="flex items-center justify-between mb-2 cursor-pointer"
                 onClick={togglePurchasedSection}
