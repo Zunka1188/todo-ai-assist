@@ -21,6 +21,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         green: "bg-green-500 text-white hover:bg-green-600",  // Added green variant
         gray: "bg-gray-400 text-white hover:bg-gray-500",    // Added gray variant
+        purple: "bg-purple-600 text-white hover:bg-purple-700", // Added purple variant
       },
       size: {
         default: "h-10 px-4 py-2",

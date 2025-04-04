@@ -1061,6 +1061,246 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
           </DialogContent>
         </Dialog>
       )}
+      
+      {/* Edit Item Dialog */}
+      <Dialog open={isEditItemDialogOpen} onOpenChange={setIsEditItemDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Item</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-name">Name</Label>
+              <Input
+                id="edit-name"
+                type="text"
+                value={editItemName}
+                onChange={(e) => setEditItemName(e.target.value)}
+                className="w-full"
+                placeholder="Item name"
+                autoFocus
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="edit-category">Category</Label>
+              <select
+                id="edit-category"
+                value={editItemCategory}
+                onChange={(e) => setEditItemCategory(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="edit-amount">Amount (optional)</Label>
+              <Input
+                id="edit-amount"
+                type="text"
+                value={editItemAmount}
+                onChange={(e) => setEditItemAmount(e.target.value)}
+                className="w-full"
+                placeholder="e.g. 2 kg, 3 bottles"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="edit-date">Date to Purchase (optional)</Label>
+              <Input
+                id="edit-date"
+                type="date"
+                value={editItemDate}
+                onChange={(e) => setEditItemDate(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="edit-price">Price (optional)</Label>
+              <Input
+                id="edit-price"
+                type="number"
+                value={editItemPrice}
+                onChange={(e) => setEditItemPrice(e.target.value)}
+                className="w-full"
+                placeholder="$"
+                step="0.01"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label>Image (optional)</Label>
+              <div className="flex flex-col gap-4">
+                {editItemImageUrl && (
+                  <div className="relative aspect-[3/2] rounded-md overflow-hidden mb-2 border border-input">
+                    <img 
+                      src={editItemImageUrl} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover"
+                    />
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="absolute right-2 top-2 h-8 w-8 p-0 bg-black/40 hover:bg-black/60 text-white rounded-full"
+                      onClick={clearEditImage}
+                    >
+                      <X size={14} />
+                    </Button>
+                  </div>
+                )}
+                <ImageOptionsDialog />
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="edit-notes">Notes (optional)</Label>
+              <Textarea
+                id="edit-notes"
+                value={editItemNotes}
+                onChange={(e) => setEditItemNotes(e.target.value)}
+                className="w-full"
+                rows={3}
+                placeholder="Add any additional details"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="edit-repeat">Repeat</Label>
+              <RadioGroup 
+                value={editItemRepeatOption} 
+                onValueChange={(value) => setEditItemRepeatOption(value as 'none' | 'weekly' | 'monthly')}
+                className="flex space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="none" id="r1" />
+                  <Label htmlFor="r1">None</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="weekly" id="r2" />
+                  <Label htmlFor="r2">Weekly</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="monthly" id="r3" />
+                  <Label htmlFor="r3">Monthly</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-end">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button 
+              type="button" 
+              disabled={editItemName.trim() === ''} 
+              onClick={saveEditedItem}
+              variant="green"
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Category Confirmation */}
+      <Dialog open={isDeleteCategoryDialogOpen} onOpenChange={setIsDeleteCategoryDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Category</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm">
+              Are you sure you want to delete <strong>{categoryToDelete}</strong>? 
+              All items in this category will be moved to "Other".
+            </p>
+          </div>
+          <DialogFooter className="sm:justify-end">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDeleteCategory}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Category Dialog */}
+      <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-category-name">Category Name</Label>
+              <Input
+                id="edit-category-name"
+                value={editedCategoryName}
+                onChange={(e) => setEditedCategoryName(e.target.value)}
+                className="w-full"
+                placeholder="Category name"
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-end">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button 
+              variant="green" 
+              onClick={confirmEditCategory}
+              disabled={editedCategoryName.trim() === ''}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Add Category Dialog */}
+      <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Category</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="new-category">Category Name</Label>
+              <Input
+                id="new-category"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                className="w-full"
+                placeholder="New category name"
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-end">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button 
+              variant="default" 
+              onClick={addCategory}
+              disabled={newCategory.trim() === '' || categories.includes(newCategory.trim())}
+            >
+              Add
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
