@@ -19,12 +19,15 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose 
 import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import ShoppingItemButton from './ShoppingItemButton';
+
 interface ShoppingListProps {
   searchTerm?: string;
   filterMode: 'one-off' | 'weekly' | 'monthly' | 'all';
   onEditItem?: (id: string, name: string, item: ShoppingItem) => void;
 }
+
 type SortOption = 'nameAsc' | 'nameDesc' | 'dateAsc' | 'dateDesc' | 'priceAsc' | 'priceDesc' | 'newest' | 'oldest';
+
 interface ShoppingItem {
   id: string;
   name: string;
@@ -39,6 +42,7 @@ interface ShoppingItem {
   repeatOption?: 'none' | 'weekly' | 'monthly';
   lastPurchased?: Date;
 }
+
 const defaultCategories = ["Groceries", "Household", "Electronics", "Clothing", "Other"];
 const initialItems: ShoppingItem[] = [{
   id: '5',
@@ -82,6 +86,7 @@ const initialItems: ShoppingItem[] = [{
   imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
   repeatOption: 'monthly'
 }];
+
 const parseStoredItems = (items: any[]): ShoppingItem[] => {
   return items.map(item => ({
     ...item,
@@ -89,6 +94,7 @@ const parseStoredItems = (items: any[]): ShoppingItem[] => {
     lastPurchased: item.lastPurchased ? new Date(item.lastPurchased) : undefined
   }));
 };
+
 const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
   try {
     const storedValue = localStorage.getItem(key);
@@ -103,6 +109,7 @@ const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
     return defaultValue;
   }
 };
+
 const saveToLocalStorage = (key: string, value: any): void => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
@@ -110,6 +117,7 @@ const saveToLocalStorage = (key: string, value: any): void => {
     console.error("Error saving to localStorage:", error);
   }
 };
+
 const ShoppingList: React.FC<ShoppingListProps> = ({
   searchTerm = '',
   filterMode,
@@ -164,12 +172,15 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
   const purchasedSectionRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const listContainerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     saveToLocalStorage('shoppingItems', items);
   }, [items]);
+
   useEffect(() => {
     saveToLocalStorage('shoppingCategories', categories);
   }, [categories]);
+
   const scrollToPurchasedSection = () => {
     if (purchasedSectionRef.current) {
       if (isPurchasedSectionCollapsed) {
@@ -185,6 +196,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       console.log('Purchase section ref not found');
     }
   };
+
   const scrollToSection = () => {
     if (!purchasedSectionRef.current) return;
     try {
@@ -231,6 +243,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       }
     }
   };
+
   const handleEditItem = (item: ShoppingItem) => {
     if (onEditItem) {
       onEditItem(item.id, item.name, item);
@@ -246,6 +259,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
     setEditItemRepeatOption(item.repeatOption || 'none');
     setIsEditItemDialogOpen(true);
   };
+
   const clearEditImage = () => {
     setEditItemImage(null);
     setEditItemImageUrl('');
@@ -256,6 +270,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       editCameraInputRef.current.value = '';
     }
   };
+
   const saveEditedItem = () => {
     if (!itemToEdit || editItemName.trim() === '') return;
     let imageUrl = editItemImageUrl;
@@ -300,6 +315,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       });
     }
   };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, isNew: boolean = false) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -317,9 +333,11 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       }
     }
   };
+
   const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileChange(e, false);
   };
+
   const addItem = () => {
     if (newItemName.trim() === '') return;
     const createNewItem = (imageUrl?: string) => {
@@ -365,6 +383,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       createNewItem();
     }
   };
+
   const toggleItem = (id: string) => {
     if (isMultiSelectActive) {
       handleItemSelect(id);
@@ -410,6 +429,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       }
     }
   };
+
   const removeItem = (id: string) => {
     const itemToRemove = items.find(item => item.id === id);
     setItems(items.filter(item => item.id !== id));
@@ -419,6 +439,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       });
     }
   };
+
   const addCategory = () => {
     if (newCategory.trim() === '' || categories.includes(newCategory.trim())) {
       return;
@@ -432,10 +453,12 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       description: `Added category: ${newCategory.trim()}`
     });
   };
+
   const handleDeleteCategory = (category: string) => {
     setCategoryToDelete(category);
     setIsDeleteCategoryDialogOpen(true);
   };
+
   const confirmDeleteCategory = () => {
     if (!categoryToDelete || categoryToDelete === 'All') return;
     const updatedItems = items.map(item => item.category === categoryToDelete ? {
@@ -454,6 +477,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       description: `Deleted category: ${categoryToDelete}. Items moved to "Other"`
     });
   };
+
   const handleItemSelect = (id: string) => {
     if (selectedItems.includes(id)) {
       setSelectedItems(selectedItems.filter(itemId => itemId !== id));
@@ -461,6 +485,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       setSelectedItems([...selectedItems, id]);
     }
   };
+
   const deleteSelectedItems = () => {
     const count = selectedItems.length;
     setItems(items.filter(item => !selectedItems.includes(item.id)));
@@ -470,9 +495,11 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       description: `Deleted ${count} item${count !== 1 ? 's' : ''}`
     });
   };
+
   const handleSort = (option: SortOption) => {
     setSortOption(option);
   };
+
   const getFilteredItems = () => {
     let filtered = items;
     switch (filterMode) {
@@ -498,6 +525,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
     }
     return filtered;
   };
+
   const getSortedItems = (filteredItems: ShoppingItem[]) => {
     return filteredItems.sort((a, b) => {
       switch (sortOption) {
@@ -527,14 +555,17 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       }
     });
   };
+
   const togglePurchasedSection = () => {
     setIsPurchasedSectionCollapsed(!isPurchasedSectionCollapsed);
   };
+
   const handleEditCategory = (category: string) => {
     setCategoryToEdit(category);
     setEditedCategoryName(category);
     setIsEditCategoryDialogOpen(true);
   };
+
   const confirmEditCategory = () => {
     if (!categoryToEdit || categoryToEdit === 'All' || editedCategoryName.trim() === '') return;
     if (categories.includes(editedCategoryName.trim()) && editedCategoryName.trim() !== categoryToEdit) {
@@ -558,16 +589,19 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       description: `Updated category from "${categoryToEdit}" to "${editedCategoryName}"`
     });
   };
+
   const handleImagePreview = (imageUrl: string, event?: React.MouseEvent) => {
     if (event) {
       event.stopPropagation();
     }
     setPreviewImage(imageUrl);
   };
+
   const filteredItems = getFilteredItems();
   const notPurchasedItems = getSortedItems(filteredItems.filter(item => !item.completed));
   const purchasedItems = getSortedItems(filteredItems.filter(item => item.completed));
   const allCategories = ['All', ...categories];
+
   const ImageOptionsDialog = () => {
     if (isMobile) {
       return <Sheet open={imageOptionsOpen} onOpenChange={setImageOptionsOpen}>
@@ -622,6 +656,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
         </AlertDialog>;
     }
   };
+
   return <div className="space-y-4" ref={listContainerRef}>
       <div className="flex items-center justify-between">
         <div className="flex-1"></div>
@@ -667,6 +702,8 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
                       repeatOption={item.repeatOption}
                       imageUrl={item.imageUrl}
                       onClick={() => toggleItem(item.id)}
+                      onEdit={() => handleEditItem(item)}
+                      onDelete={() => removeItem(item.id)}
                     />
                   </motion.div>)}
               </div>}
@@ -709,7 +746,18 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
               }} transition={{
                 duration: 0.2
               }}>
-                        <ShoppingItemButton completed={true} name={item.name} quantity={item.amount} price={item.price} notes={item.notes} repeatOption={item.repeatOption} imageUrl={item.imageUrl} onClick={() => toggleItem(item.id)} />
+                        <ShoppingItemButton 
+                          completed={true} 
+                          name={item.name} 
+                          quantity={item.amount} 
+                          price={item.price} 
+                          notes={item.notes} 
+                          repeatOption={item.repeatOption} 
+                          imageUrl={item.imageUrl} 
+                          onClick={() => toggleItem(item.id)}
+                          onEdit={() => handleEditItem(item)}
+                          onDelete={() => removeItem(item.id)}
+                        />
                       </motion.div>)}
                   </div>
                 </motion.div>
@@ -739,4 +787,5 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       <input ref={newItemFileInputRef} type="file" accept="image/*" className="hidden" />
     </div>;
 };
+
 export default ShoppingList;
