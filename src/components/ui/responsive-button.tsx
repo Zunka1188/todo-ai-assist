@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { EllipsisVertical } from 'lucide-react';
+import { EllipsisVertical, Calendar, Repeat } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -14,11 +14,12 @@ interface ResponsiveButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEle
   iconClassName?: string;
   active?: boolean;
   hideIcon?: boolean;
-  // Add additional props for shopping items
+  // Properties for shopping items
   quantity?: string;
   price?: string;
   notes?: string;
   dateToPurchase?: string;
+  repeatOption?: 'none' | 'weekly' | 'monthly';
 }
 
 const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonProps>(
@@ -36,6 +37,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     price,
     notes,
     dateToPurchase,
+    repeatOption,
     ...props 
   }, ref) => {
     
@@ -47,7 +49,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     };
 
     // Determine if we have details to show
-    const hasDetails = quantity || price || dateToPurchase;
+    const hasDetails = quantity || price || dateToPurchase || notes || (repeatOption && repeatOption !== 'none');
     
     return (
       <Button
@@ -103,7 +105,14 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
             )}
             {dateToPurchase && (
               <span className="inline-flex items-center">
-                By: {new Date(dateToPurchase).toLocaleDateString()}
+                <Calendar size={10} className="mr-1" />
+                {new Date(dateToPurchase).toLocaleDateString()}
+              </span>
+            )}
+            {repeatOption && repeatOption !== 'none' && (
+              <span className="inline-flex items-center">
+                <Repeat size={10} className="mr-1" />
+                {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
               </span>
             )}
           </div>

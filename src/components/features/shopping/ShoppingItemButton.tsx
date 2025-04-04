@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Check } from 'lucide-react';
+import { Check, Calendar, Repeat } from 'lucide-react';
 
 interface ShoppingItemButtonProps {
   completed: boolean;
@@ -12,6 +12,8 @@ interface ShoppingItemButtonProps {
   price?: string;
   notes?: string;
   dateToPurchase?: string;
+  repeatOption?: 'none' | 'weekly' | 'monthly';
+  name?: string;
 }
 
 const ShoppingItemButton = ({ 
@@ -21,10 +23,12 @@ const ShoppingItemButton = ({
   quantity,
   price,
   notes,
-  dateToPurchase
+  dateToPurchase,
+  repeatOption,
+  name
 }: ShoppingItemButtonProps) => {
   // Determine if we need to show additional info
-  const hasAdditionalInfo = quantity || price || notes || dateToPurchase;
+  const hasAdditionalInfo = quantity || price || notes || dateToPurchase || (repeatOption && repeatOption !== 'none');
   
   return (
     <Button
@@ -41,11 +45,11 @@ const ShoppingItemButton = ({
       {completed ? (
         <div className="flex items-center w-full">
           <Check size={16} className="mr-2" />
-          <span>Purchased</span>
+          <span>{name ? name : "Purchased"}</span>
         </div>
       ) : (
         <div className="flex items-center w-full">
-          <span>Mark as Purchased</span>
+          <span>{name ? name : "Mark as Purchased"}</span>
         </div>
       )}
       
@@ -64,7 +68,14 @@ const ShoppingItemButton = ({
           )}
           {dateToPurchase && (
             <span className="inline-flex items-center">
-              By: {new Date(dateToPurchase).toLocaleDateString()}
+              <Calendar size={10} className="mr-1" />
+              {new Date(dateToPurchase).toLocaleDateString()}
+            </span>
+          )}
+          {repeatOption && repeatOption !== 'none' && (
+            <span className="inline-flex items-center">
+              <Repeat size={10} className="mr-1" />
+              {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
             </span>
           )}
           {notes && (

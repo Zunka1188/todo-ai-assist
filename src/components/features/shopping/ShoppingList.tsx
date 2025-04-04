@@ -993,6 +993,12 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                               toggleItem(item.id);
                             }}
                             className="w-full"
+                            name={item.name}
+                            quantity={item.amount}
+                            price={item.price}
+                            dateToPurchase={item.dateToPurchase}
+                            notes={item.notes}
+                            repeatOption={item.repeatOption}
                           />
                         </div>
                       </CardContent>
@@ -1131,6 +1137,12 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                                 toggleItem(item.id);
                               }}
                               className="w-full"
+                              name={item.name}
+                              quantity={item.amount}
+                              price={item.price}
+                              dateToPurchase={item.dateToPurchase}
+                              notes={item.notes}
+                              repeatOption={item.repeatOption}
                             />
                           </div>
                         </CardContent>
