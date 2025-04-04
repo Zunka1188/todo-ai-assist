@@ -11,6 +11,7 @@ import { useDebugMode } from '@/hooks/useDebugMode';
 import { useShoppingItems } from '@/components/features/shopping/useShoppingItems';
 import { useToast } from '@/components/ui/use-toast';
 import { ArrowLeft } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const ShoppingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -22,6 +23,7 @@ const ShoppingPage: React.FC = () => {
   const { enabled: debugEnabled } = useDebugMode();
   const { toast } = useToast();
   const { updateItem, addItem, categories } = useShoppingItems('all', '');
+  const { isMobile } = useIsMobile();
   
   // Get the tab from URL query parameters
   const searchParams = new URLSearchParams(location.search);
@@ -120,7 +122,7 @@ const ShoppingPage: React.FC = () => {
       <div className="mb-4 flex flex-col gap-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Link to="/" className="p-1 rounded-md hover:bg-secondary">
+            <Link to="/" className="p-1 rounded-md hover:bg-secondary touch-manipulation">
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <h1 className="text-2xl font-bold">Shopping List</h1>
