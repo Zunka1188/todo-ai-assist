@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingBag, Calendar, File, CreditCard } from 'lucide-react';
+import { ShoppingBag, Calendar, File, CreditCard, HelpCircle } from 'lucide-react';
 import AppHeader from '@/components/layout/AppHeader';
 import ScanButton from '@/components/features/ScanButton';
 import FeatureCard from '@/components/features/FeatureCard';
@@ -113,10 +113,19 @@ const Index = () => {
         )}>
           Your AI-Powered Assistant
         </h3>
-        <p className="text-sm text-muted-foreground dark:text-gray-300">
+        <p className="text-sm text-muted-foreground dark:text-gray-300 mb-4">
           ToDo helps you scan, organize, and manage everything in your life. 
           Use the camera to scan items, documents, or receipts, and let AI do the rest.
         </p>
+        <div className="flex justify-center">
+          <a 
+            href="/troubleshoot" 
+            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-todo-purple/10 hover:bg-todo-purple/20 transition-colors text-todo-purple"
+          >
+            <HelpCircle className="h-4 w-4" />
+            Need help? Visit our troubleshooting page
+          </a>
+        </div>
       </div>
     </div>
   );

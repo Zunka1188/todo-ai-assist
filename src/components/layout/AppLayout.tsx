@@ -7,7 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, CreditCard } from 'lucide-react';
+import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, CreditCard, HelpCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -104,6 +104,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
               <Link to="/spending" className="cursor-pointer flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
                 <span className={textColorClass}>Spending</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/troubleshoot" className="cursor-pointer flex items-center gap-2">
+                <HelpCircle className="h-4 w-4" />
+                <span className={textColorClass}>Troubleshoot</span>
               </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -15,6 +15,7 @@ import UploadPage from "./pages/UploadPage";
 import TasksPage from "./pages/TasksPage";
 import SettingsPage from "./pages/SettingsPage";
 import SpendingPage from "./pages/SpendingPage";
+import TroubleshootPage from "./pages/TroubleshootPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/tasks" element={<TasksPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/spending" element={<SpendingPage />} />
+              <Route path="/troubleshoot" element={<TroubleshootPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
