@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, X, Camera, Upload, Loader2, Save } from 'lucide-react';
+import { Plus, X, Camera, Upload, Loader2, Save, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -55,6 +55,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   const [image, setImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+  const [fullScreenPreview, setFullScreenPreview] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -183,6 +184,10 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     setImage(null);
   };
 
+  const toggleFullScreenPreview = () => {
+    setFullScreenPreview(!fullScreenPreview);
+  };
+
   const handleAnalysisComplete = (result: AnalysisResult) => {
     // Apply AI analysis results to form fields
     if (result.title) setTitle(result.title);
@@ -200,12 +205,45 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     });
   };
 
+  // If in full screen mode for image preview, show a simplified view
+  if (fullScreenPreview && image) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex flex-col">
+        <div className="p-4 flex justify-between items-center bg-black/80">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-white" 
+            onClick={toggleFullScreenPreview}
+          >
+            <Minimize2 className="h-6 w-6" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-white" 
+            onClick={onClose}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
+        <div className="flex-1 flex items-center justify-center overflow-auto">
+          <img 
+            src={image} 
+            alt="Full screen preview" 
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-md bg-background text-foreground border-gray-700">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle>
               {isEditing ? "Edit Item" : "Add New Item"}
             </DialogTitle>
           </DialogHeader>
@@ -282,15 +320,26 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
                     alt="Preview" 
                     className="w-full h-48 object-contain border rounded-md border-gray-700"
                   />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    className="absolute top-2 right-2"
-                    onClick={handleRemoveImage}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
+                      onClick={toggleFullScreenPreview}
+                    >
+                      <Maximize2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={handleRemoveImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="flex gap-2">

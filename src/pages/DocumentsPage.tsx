@@ -180,7 +180,7 @@ const DocumentsPage: React.FC = () => {
           variant="ghost" 
           size="icon" 
           onClick={goBack} 
-          className="mr-2 text-white"
+          className="mr-2"
           aria-label="Go back to home"
         >
           <ArrowLeft className="h-5 w-5" />
