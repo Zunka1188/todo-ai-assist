@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, Maximize2, Pencil, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AddDocumentDialog from './AddDocumentDialog';
 import { DocumentFile, DocumentCategory } from './types';
@@ -73,16 +73,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button 
-          onClick={() => setIsAddDialogOpen(true)} 
-          className="bg-todo-purple hover:bg-todo-purple/90 text-white"
-          size={isMobile ? "default" : "sm"}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Item
-        </Button>
-      </div>
+      {/* Removed the Add button here as it will be moved to DocumentsPage */}
       
       <div className="space-y-3">
         {documents.map((doc) => (
