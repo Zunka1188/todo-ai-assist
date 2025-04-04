@@ -13,6 +13,7 @@ interface ResponsiveButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEle
   className?: string;
   iconClassName?: string;
   active?: boolean;
+  hideIcon?: boolean;
 }
 
 const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonProps>(
@@ -25,6 +26,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     className = '', 
     iconClassName = '',
     active = false,
+    hideIcon = false,
     ...props 
   }, ref) => {
     
@@ -52,23 +54,25 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         <span className="truncate text-base font-medium mr-1">
           {text}
         </span>
-        <div 
-          onClick={handleIconClick}
-          className={cn(
-            "flex items-center justify-center ml-2 rounded-full",
-            "hover:bg-black/10 dark:hover:bg-white/20",
-            "transition-colors p-0.5 cursor-pointer",
-            iconClassName
-          )}
-          aria-label="More options"
-          role="button"
-          tabIndex={0}
-        >
-          <EllipsisVertical 
-            size={iconSize} 
-            className="text-current dark:text-primary-foreground" 
-          />
-        </div>
+        {!hideIcon && (
+          <div 
+            onClick={handleIconClick}
+            className={cn(
+              "flex items-center justify-center ml-2 rounded-full",
+              "hover:bg-black/10 dark:hover:bg-white/20",
+              "transition-colors p-0.5 cursor-pointer",
+              iconClassName
+            )}
+            aria-label="More options"
+            role="button"
+            tabIndex={0}
+          >
+            <EllipsisVertical 
+              size={iconSize} 
+              className="text-current dark:text-primary-foreground" 
+            />
+          </div>
+        )}
       </Button>
     );
   }

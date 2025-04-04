@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
@@ -21,9 +22,13 @@ import {
   RefreshCw, 
   Settings, 
   HelpCircle,
-  CalendarIcon 
+  CalendarIcon,
+  Filter
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Toggle, toggleVariants } from '@/components/ui/toggle';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { ResponsiveButton } from '@/components/ui/responsive-button';
 
 interface TroubleshootItemProps {
   title: string;
@@ -39,6 +44,7 @@ const TroubleshootPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [activePlatform, setActivePlatform] = useState<'all' | 'mobile' | 'desktop'>('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   const troubleshootItems: TroubleshootItemProps[] = [
     {
@@ -207,54 +213,65 @@ const TroubleshootPage = () => {
         />
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Button 
-          variant={activePlatform === 'all' ? 'default' : 'outline'}
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium">Platform</h3>
+        <Button
+          variant="ghost"
           size="sm"
-          onClick={() => setActivePlatform('all')}
-          className="flex items-center gap-1"
+          className="flex gap-1 items-center"
+          onClick={() => setShowFilters(!showFilters)}
         >
-          All Platforms
-        </Button>
-        <Button 
-          variant={activePlatform === 'mobile' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setActivePlatform('mobile')}
-          className="flex items-center gap-1"
-        >
-          <Smartphone className="h-4 w-4" />
-          Mobile
-        </Button>
-        <Button 
-          variant={activePlatform === 'desktop' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setActivePlatform('desktop')}
-          className="flex items-center gap-1"
-        >
-          <Laptop className="h-4 w-4" />
-          Desktop
+          <Filter size={16} />
+          <span className="text-xs">{showFilters ? "Hide filters" : "Show filters"}</span>
         </Button>
       </div>
 
-      <div className={cn(
-        "flex gap-2 py-1",
-        isMobile && "overflow-x-auto pb-2 hide-scrollbar"
-      )}>
-        {categories.map((category) => (
-          <Button 
-            key={category}
-            variant={activeCategory === category ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setActiveCategory(category)}
-            className={cn(
-              "whitespace-nowrap capitalize",
-              isMobile && "flex-shrink-0"
-            )}
-          >
-            {category}
-          </Button>
-        ))}
-      </div>
+      <ToggleGroup 
+        type="single" 
+        value={activePlatform} 
+        onValueChange={(value) => value && setActivePlatform(value as 'all' | 'mobile' | 'desktop')}
+        className="flex flex-wrap gap-2 justify-start"
+      >
+        <ToggleGroupItem value="all" aria-label="All platforms">
+          All Platforms
+        </ToggleGroupItem>
+        <ToggleGroupItem value="mobile" aria-label="Mobile only">
+          <Smartphone className="h-4 w-4 mr-1" />
+          Mobile
+        </ToggleGroupItem>
+        <ToggleGroupItem value="desktop" aria-label="Desktop only">
+          <Laptop className="h-4 w-4 mr-1" />
+          Desktop
+        </ToggleGroupItem>
+      </ToggleGroup>
+
+      {showFilters && (
+        <div className={cn(
+          "flex flex-col gap-2 py-2",
+          isMobile && "overflow-x-auto pb-2"
+        )}>
+          <h3 className="text-sm font-medium">Categories</h3>
+          <div className={cn(
+            "flex gap-2 flex-wrap",
+            isMobile && "flex-nowrap pb-2 hide-scrollbar"
+          )}>
+            {categories.map((category) => (
+              <Toggle
+                key={category}
+                pressed={activeCategory === category}
+                onPressedChange={() => setActiveCategory(category)}
+                className={cn(
+                  "whitespace-nowrap capitalize",
+                  isMobile && "flex-shrink-0"
+                )}
+                size="sm"
+              >
+                {category}
+              </Toggle>
+            ))}
+          </div>
+        </div>
+      )}
 
       {filteredItems.length === 0 && (
         <Card className="p-6 text-center">
@@ -306,9 +323,14 @@ const TroubleshootPage = () => {
         <p className="text-sm text-muted-foreground mb-3">
           If you couldn't find a solution to your problem, contact our support team.
         </p>
-        <Button className="bg-todo-purple hover:bg-todo-purple/90">
-          Contact Support
-        </Button>
+        <ResponsiveButton
+          text="Contact Support"
+          variant="default"
+          className="bg-todo-purple hover:bg-todo-purple/90 w-full md:w-auto"
+          onClick={() => {
+            window.location.href = "mailto:support@example.com";
+          }}
+        />
       </div>
 
       <style>{`
