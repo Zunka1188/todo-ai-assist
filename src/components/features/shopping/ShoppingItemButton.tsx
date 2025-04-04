@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Check, Repeat, MoreVertical, Maximize2, Edit, Trash2, ChevronDown } from 'lucide-react';
+import { Check, Repeat, MoreVertical, Maximize2, Edit, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useTheme } from '@/hooks/use-theme';
@@ -229,7 +229,6 @@ const ShoppingItemButton = ({
                   color: textColor
                 }}>
                   <span>Qty: {quantity}</span>
-                  <ChevronDown size={14} className="ml-1 opacity-70" />
                 </div>
               )}
             </div>
@@ -252,7 +251,6 @@ const ShoppingItemButton = ({
                   <Repeat size={14} style={{ marginRight: '4px' }} />
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
-                    <ChevronDown size={14} className="ml-1 opacity-70" />
                   </span>
                 </div>
               )}
