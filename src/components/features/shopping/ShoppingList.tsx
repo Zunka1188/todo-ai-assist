@@ -121,10 +121,6 @@ const defaultCategories = [
 ];
 
 const initialItems: ShoppingItem[] = [
-  { id: '1', name: 'Dish Soap', completed: false, category: 'Household', dateAdded: new Date('2023-04-01'), repeatOption: 'monthly' },
-  { id: '2', name: 'Apples', completed: false, category: 'Groceries', dateAdded: new Date('2023-04-02'), repeatOption: 'weekly' },
-  { id: '3', name: 'Bread', completed: false, category: 'Groceries', dateAdded: new Date('2023-04-02'), repeatOption: 'weekly' },
-  { id: '4', name: 'Toothpaste', completed: false, category: 'Household', dateAdded: new Date('2023-04-03'), imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60', repeatOption: 'monthly' },
   { 
     id: '5', 
     name: 'Organic Coffee Beans', 
@@ -137,7 +133,11 @@ const initialItems: ShoppingItem[] = [
     imageUrl: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
     notes: 'Dark roast from the local fair trade shop. Get the whole beans, not pre-ground.',
     repeatOption: 'monthly'
-  }
+  },
+  { id: '1', name: 'Dish Soap', completed: false, category: 'Household', dateAdded: new Date('2023-04-01'), repeatOption: 'monthly' },
+  { id: '2', name: 'Apples', completed: false, category: 'Groceries', dateAdded: new Date('2023-04-02'), repeatOption: 'weekly' },
+  { id: '3', name: 'Bread', completed: false, category: 'Groceries', dateAdded: new Date('2023-04-02'), repeatOption: 'weekly' },
+  { id: '4', name: 'Toothpaste', completed: false, category: 'Household', dateAdded: new Date('2023-04-03'), imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60', repeatOption: 'monthly' },
 ];
 
 const parseStoredItems = (items: any[]): ShoppingItem[] => {
@@ -177,9 +177,10 @@ const saveToLocalStorage = (key: string, value: any): void => {
 const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode, onEditItem }) => {
   const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
   
-  const [items, setItems] = useState<ShoppingItem[]>(() => 
-    loadFromLocalStorage<ShoppingItem[]>('shoppingItems', initialItems)
-  );
+  const [items, setItems] = useState<ShoppingItem[]>(() => {
+    localStorage.removeItem('shoppingItems');
+    return loadFromLocalStorage<ShoppingItem[]>('shoppingItems', initialItems);
+  });
   const [newItemName, setNewItemName] = useState('');
   const [newItemCategory, setNewItemCategory] = useState('Groceries');
   const [activeCategory, setActiveCategory] = useState('All');

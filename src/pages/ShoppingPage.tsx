@@ -39,13 +39,18 @@ const ShoppingPage = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<ShoppingTab>('all'); // Start with 'all' tab to see everything
+  const [activeTab, setActiveTab] = useState<ShoppingTab>('all'); // Start with 'all' tab
   const [editItem, setEditItem] = useState<ItemData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Force the "all" tab to be active on initial load
+  // Force the "all" tab to be active on initial load and stay there
   useEffect(() => {
     setActiveTab('all');
+    // The timeout ensures this runs after the component has fully rendered
+    const timer = setTimeout(() => {
+      setActiveTab('all');
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const goBack = () => {
