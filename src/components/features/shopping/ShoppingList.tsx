@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
@@ -16,12 +15,13 @@ import {
   Trash2,
   Edit,
   MoreVertical,
-  Image as ImageIcon,
+  ImageIcon,
   Upload,
   Search,
   Eye,
   Camera,
   Repeat,
+  ShoppingCart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -207,6 +207,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   const isMobile = useIsMobile();
   const carouselRef = useRef(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const purchasedSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     saveToLocalStorage('shoppingItems', items);
@@ -215,6 +216,21 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   useEffect(() => {
     saveToLocalStorage('shoppingCategories', categories);
   }, [categories]);
+
+  const scrollToPurchasedSection = () => {
+    if (purchasedSectionRef.current && scrollAreaRef.current) {
+      if (isPurchasedSectionCollapsed) {
+        setIsPurchasedSectionCollapsed(false);
+        setTimeout(() => {
+          const sectionTop = purchasedSectionRef.current?.offsetTop || 0;
+          scrollAreaRef.current?.scrollTo({ top: sectionTop - 20, behavior: 'smooth' });
+        }, 100);
+      } else {
+        const sectionTop = purchasedSectionRef.current.offsetTop || 0;
+        scrollAreaRef.current.scrollTo({ top: sectionTop - 20, behavior: 'smooth' });
+      }
+    }
+  };
 
   const handleEditItem = (item: ShoppingItem) => {
     setItemToEdit(item);
@@ -393,7 +409,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     if (!item) return;
     
     if (!item.completed) {
-      // When marking as completed, add the lastPurchased date
       const updatedItems = items.map((i) =>
         i.id === id ? { ...i, completed: true, lastPurchased: new Date() } : i
       );
@@ -724,41 +739,19 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
       <div className="flex items-center justify-between">
         <div className="flex-1"></div>
         
-        <div className="flex gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8">
-                <SortAsc size={12} className="mr-1" /> <span className="text-xs">Sort</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleSort('nameAsc')}>
-                <span className="text-xs">Name (A-Z)</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSort('nameDesc')}>
-                <span className="text-xs">Name (Z-A)</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSort('dateAsc')}>
-                <span className="text-xs">Date (Earliest First)</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSort('dateDesc')}>
-                <span className="text-xs">Date (Latest First)</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSort('priceAsc')}>
-                <span className="text-xs">Price (Low to High)</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSort('priceDesc')}>
-                <span className="text-xs">Price (High to Low)</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSort('newest')}>
-                <span className="text-xs">Recently Added</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleSort('oldest')}>
-                <span className="text-xs">Oldest Added</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        {purchasedItems.length > 0 && (
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 flex items-center gap-1" 
+              onClick={scrollToPurchasedSection}
+            >
+              <ShoppingCart size={12} />
+              <span className="text-xs">Go to Purchased</span>
+            </Button>
+          </div>
+        )}
       </div>
 
       <ScrollArea className="h-[calc(100vh-320px)] pr-4 shopping-items-scroll-area smooth-scroll" ref={scrollAreaRef}>
@@ -928,7 +921,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
           </AnimatePresence>
           
           {purchasedItems.length > 0 && (
-            <div className="mt-6">
+            <div className="mt-6" ref={purchasedSectionRef}>
               <div 
                 className="flex items-center justify-between mb-2 cursor-pointer"
                 onClick={togglePurchasedSection}
@@ -1021,7 +1014,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </div>
       </ScrollArea>
       
-      {/* Hidden file inputs */}
       <input 
         type="file"
         accept="image/*"
@@ -1039,30 +1031,34 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         onChange={handleEditFileChange}
       />
       
-      {/* Image Preview Dialog */}
-      {previewImage && (
-        <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
-          <DialogContent className="sm:max-w-xl p-0 overflow-hidden bg-black">
-            <div className="relative w-full aspect-auto max-h-[80vh] flex items-center justify-center">
-              <img
-                src={previewImage}
-                alt="Preview"
-                className="max-w-full max-h-full object-contain"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2 rounded-full bg-black/50 text-white hover:bg-black/70"
-                onClick={() => setPreviewImage(null)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      <input 
+        type="file"
+        accept="image/*"
+        className="hidden"
+        ref={newItemFileInputRef}
+        onChange={handleFileChange}
+      />
       
-      {/* Edit Item Dialog */}
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="sm:max-w-xl p-0 overflow-hidden bg-black">
+          <div className="relative w-full aspect-auto max-h-[80vh] flex items-center justify-center">
+            <img
+              src={previewImage}
+              alt="Preview"
+              className="max-w-full max-h-full object-contain"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 rounded-full bg-black/50 text-white hover:bg-black/70"
+              onClick={() => setPreviewImage(null)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
       <Dialog open={isEditItemDialogOpen} onOpenChange={setIsEditItemDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1208,7 +1204,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </DialogContent>
       </Dialog>
       
-      {/* Delete Category Confirmation */}
       <Dialog open={isDeleteCategoryDialogOpen} onOpenChange={setIsDeleteCategoryDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1234,7 +1229,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </DialogContent>
       </Dialog>
       
-      {/* Edit Category Dialog */}
       <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1268,7 +1262,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </DialogContent>
       </Dialog>
       
-      {/* Add Category Dialog */}
       <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
