@@ -54,7 +54,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
           </Button>
         </div>
         <div className="flex flex-col items-center justify-center p-8 text-center">
-          <getFileTypeIcon className="h-12 w-12 text-muted-foreground opacity-30" fileType="unknown" />
+          {getFileTypeIcon('unknown')}
           <h3 className="mt-4 text-lg font-medium">No documents found</h3>
           <p className="text-sm text-muted-foreground mt-1">
             Add your first document to get started
