@@ -77,7 +77,6 @@ import {
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 
-// Define the missing interfaces
 interface ShoppingListProps {
   searchTerm?: string;
   filterMode: 'all' | 'text' | 'image';
@@ -155,7 +154,6 @@ const saveToLocalStorage = (key: string, value: any): void => {
 };
 
 const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode }) => {
-  // Fix: Added state for image options dialog
   const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
   
   const [items, setItems] = useState<ShoppingItem[]>(() => 
@@ -195,7 +193,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [editItemNotes, setEditItemNotes] = useState('');
   
-  // Fix: Removed duplicate declarations and kept only one set of refs
   const editImageFileRef = useRef<HTMLInputElement>(null);
   const editCameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -224,7 +221,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     setIsEditItemDialogOpen(true);
   };
 
-  // Fix: Added missing clearEditImage function
   const clearEditImage = () => {
     setEditItemImage(null);
     setEditItemImageUrl('');
@@ -317,7 +313,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     }
   };
   
-  // Fix: Added missing handleEditFileChange function, reusing handleFileChange
   const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileChange(e, false);
   };
@@ -491,7 +486,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
       );
     }
     
-    // Apply the filterMode
     switch (filterMode) {
       case 'text':
         filtered = filtered.filter(item => !item.imageUrl);
@@ -501,7 +495,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         break;
       case 'all':
       default:
-        // No additional filtering needed
         break;
     }
     
@@ -923,4 +916,449 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                         <Button
                           size="sm"
                           variant="outline"
-                          className="
+                          className="h-8 text-xs bg-green-500 hover:bg-green-600 text-white border-green-500"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleItem(item.id);
+                          }}
+                        >
+                          <Check size={12} className="mr-1" />
+                          Mark as Purchased
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
+        
+        <div className="mb-4">
+          <h3 className="text-xs font-medium mb-3 text-muted-foreground">Purchased ({purchasedItems.length})</h3>
+          
+          <AnimatePresence>
+            {purchasedItems.length === 0 ? (
+              <div className="text-center py-3 text-muted-foreground text-sm">
+                No items purchased.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {purchasedItems.map((item) => (
+                  <motion.div 
+                    key={`purchased-${item.id}`}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Card 
+                      className={cn(
+                        "overflow-hidden transition-all hover:shadow-md",
+                        "bg-white dark:bg-gray-800"
+                      )}
+                      onClick={() => !isMultiSelectActive && toggleItem(item.id)}
+                    >
+                      <CardHeader className="p-3 pb-0 flex flex-row items-center space-y-0 gap-2">
+                        <div className="flex-1 flex items-center gap-2">
+                          {isMultiSelectActive ? (
+                            <Checkbox
+                              checked={selectedItems.includes(item.id)}
+                              onCheckedChange={() => handleItemSelect(item.id)}
+                              className="h-4 w-4"
+                            />
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleItem(item.id);
+                              }}
+                              className={cn(
+                                "flex items-center justify-center w-4 h-4 rounded-full border",
+                                "border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+                              )}
+                              aria-label="Mark as purchased"
+                            >
+                              {item.completed && <Check size={12} />}
+                            </button>
+                          )}
+                          <CardTitle className={cn(
+                            "text-sm font-medium",
+                            item.completed && "line-through text-gray-500 dark:text-gray-400"
+                          )}>
+                            {item.name}
+                          </CardTitle>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0"
+                            >
+                              <MoreVertical size={14} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-36">
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditItem(item);
+                            }} className="cursor-pointer">
+                              <Edit size={14} className="mr-2" />
+                              <span className="text-sm">Edit</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              removeItem(item.id);
+                            }} className="cursor-pointer text-red-500">
+                              <Trash2 size={14} className="mr-2" />
+                              <span className="text-sm">Delete</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </CardHeader>
+                      
+                      <CardContent className="p-3 pt-2">
+                        {item.imageUrl ? (
+                          <div className="relative w-full">
+                            <div className="aspect-[3/2] rounded-md overflow-hidden mb-2">
+                              <img 
+                                src={item.imageUrl} 
+                                alt={item.name} 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="absolute right-2 top-2 h-8 w-8 p-0 bg-black/40 hover:bg-black/60 text-white rounded-full"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleImagePreview(item.imageUrl!);
+                              }}
+                            >
+                              <Eye size={14} />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="mb-2 flex items-center text-xs text-muted-foreground">
+                            <ImageIcon size={14} className="mr-1 text-muted-foreground" /> No image attached
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center flex-wrap gap-2 mt-1">
+                          <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground">
+                            {item.category}
+                          </span>
+                          
+                          {item.price && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300">
+                              ${item.price}
+                            </span>
+                          )}
+                          
+                          {item.amount && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                              Qty: {item.amount}
+                            </span>
+                          )}
+                        </div>
+                      </CardContent>
+                      
+                      <CardFooter className="p-3 pt-0 flex justify-between items-center">
+                        {item.dateToPurchase ? (
+                          <span className="text-xs text-muted-foreground flex items-center">
+                            <Calendar size={12} className="mr-1" />
+                            {new Date(item.dateToPurchase).toLocaleDateString()}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            Added {item.dateAdded.toLocaleDateString()}
+                          </span>
+                        )}
+                        
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs bg-green-500 hover:bg-green-600 text-white border-green-500"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleItem(item.id);
+                          }}
+                        >
+                          <Check size={12} className="mr-1" />
+                          Mark as Purchased
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
+      </ScrollArea>
+
+      <Dialog open={isEditItemDialogOpen} onOpenChange={setIsEditItemDialogOpen}>
+        <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
+          <DialogHeader>
+            <DialogTitle>Edit Item</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-name">Item Name</Label>
+                <Input
+                  id="edit-name"
+                  placeholder="Enter item name"
+                  value={editItemName}
+                  onChange={(e) => setEditItemName(e.target.value)}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="edit-category">Category</Label>
+                <select
+                  id="edit-category"
+                  value={editItemCategory}
+                  onChange={(e) => setEditItemCategory(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="edit-image">Image (Optional)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="edit-image"
+                    type="file"
+                    accept="image/*"
+                    ref={editImageFileRef}
+                    onChange={handleEditFileChange}
+                    className="hidden"
+                  />
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    ref={editCameraInputRef}
+                    onChange={handleEditFileChange}
+                    className="hidden"
+                  />
+                  
+                  <ImageOptionsDialog />
+                  
+                  {editItemImageUrl && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={clearEditImage}
+                      className="p-2"
+                      title="Remove image"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                {editItemImageUrl && (
+                  <div className="mt-2 relative rounded-lg overflow-hidden border">
+                    <img 
+                      src={editItemImageUrl} 
+                      alt="Preview" 
+                      className="max-h-32 mx-auto object-contain"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-amount">Quantity (Optional)</Label>
+                  <Input
+                    id="edit-amount"
+                    placeholder="e.g., 2 boxes"
+                    value={editItemAmount}
+                    onChange={(e) => setEditItemAmount(e.target.value)}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-price">Price (Optional)</Label>
+                  <Input
+                    id="edit-price"
+                    type="number"
+                    placeholder="e.g., 9.99"
+                    value={editItemPrice}
+                    onChange={(e) => setEditItemPrice(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="edit-date">Purchase By (Optional)</Label>
+                <Input
+                  id="edit-date"
+                  type="date"
+                  value={editItemDate}
+                  onChange={(e) => setEditItemDate(e.target.value)}
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="edit-notes">Notes (Optional)</Label>
+                <Textarea
+                  id="edit-notes"
+                  placeholder="Add any additional notes here"
+                  value={editItemNotes}
+                  onChange={(e) => setEditItemNotes(e.target.value)}
+                  className="min-h-[80px]"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter className={cn(isMobile && "flex-col gap-2")}>
+            <Button 
+              variant="outline" 
+              className={cn(isMobile && "w-full")}
+              onClick={() => setIsEditItemDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={saveEditedItem}
+              className={cn(isMobile && "w-full")}
+              disabled={editItemName.trim() === ''}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
+        <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
+          <DialogHeader>
+            <DialogTitle>Add Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="new-category">Category Name</Label>
+                <Input
+                  id="new-category"
+                  placeholder="Enter category name"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter className={cn(isMobile && "flex-col gap-2")}>
+            <Button 
+              variant="outline" 
+              className={cn(isMobile && "w-full")}
+              onClick={() => setIsAddCategoryDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={addCategory}
+              className={cn(isMobile && "w-full")}
+              disabled={newCategory.trim() === ''}
+            >
+              Add Category
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteCategoryDialogOpen} onOpenChange={setIsDeleteCategoryDialogOpen}>
+        <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
+          <DialogHeader>
+            <DialogTitle>Delete Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="delete-category">Category Name</Label>
+                <select
+                  id="delete-category"
+                  value={categoryToDelete}
+                  onChange={(e) => setCategoryToDelete(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className={cn(isMobile && "flex-col gap-2")}>
+            <Button 
+              variant="outline" 
+              className={cn(isMobile && "w-full")}
+              onClick={() => setIsDeleteCategoryDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={confirmDeleteCategory}
+              className={cn(isMobile && "w-full")}
+              disabled={categoryToDelete === ''}
+            >
+              Delete Category
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
+        <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-category">Category Name</Label>
+                <select
+                  id="edit-category"
+                  value={editedCategoryName}
+                  onChange={(e) => setEditedCategoryName(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className={cn(isMobile && "flex-col gap-2")}>
+            <Button 
+              variant="outline" 
+              className={cn(isMobile && "w-full")}
+              onClick={() => setIsEditCategoryDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={confirmEditCategory}
+              className={cn(isMobile && "w-full")}
+              disabled={editedCategoryName.trim() === ''}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default ShoppingList;
