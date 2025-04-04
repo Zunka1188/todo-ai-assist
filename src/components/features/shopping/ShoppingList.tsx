@@ -149,7 +149,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   const [isMultiSelectActive, setIsMultiSelectActive] = useState(false);
   const [isDeleteCategoryDialogOpen, setIsDeleteCategoryDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState('');
-  // Make purchased section always visible by default
   const [isPurchasedSectionCollapsed, setIsPurchasedSectionCollapsed] = useState(false);
   const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
   const [categoryToEdit, setCategoryToEdit] = useState('');
@@ -802,7 +801,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
           </AnimatePresence>
         </div>
         
-        {/* Always show the Purchased section header */}
         <div className="mb-2">
           <div 
             className="flex items-center justify-between cursor-pointer mb-3"
@@ -847,7 +845,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                         <Card 
                           className={cn(
                             "overflow-hidden transition-all hover:shadow-md opacity-70",
-                            "bg-gray-100 dark:bg-gray-700/50" // Making sure it's clearly gray
+                            "bg-gray-100 dark:bg-gray-700/50"
                           )}
                           onClick={() => !isMultiSelectActive && toggleItem(item.id)}
                         >
@@ -898,3 +896,145 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
                                   <Edit size={14} className="mr-2" />
                                   <span className="text-sm">Edit</span>
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeItem(item.id);
+                                }} className="cursor-pointer text-red-500">
+                                  <Trash2 size={14} className="mr-2" />
+                                  <span className="text-sm">Delete</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </CardHeader>
+                          
+                          <CardContent className="p-3 pt-2">
+                            {item.imageUrl ? (
+                              <div className="relative w-full">
+                                <div className="aspect-[3/2] rounded-md overflow-hidden mb-2">
+                                  <img 
+                                    src={item.imageUrl} 
+                                    alt={item.name} 
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  className="absolute right-2 top-2 h-8 w-8 p-0 bg-black/40 hover:bg-black/60 text-white rounded-full"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleImagePreview(item.imageUrl!);
+                                  }}
+                                >
+                                  <Eye size={14} />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="mb-2 flex items-center text-xs text-muted-foreground">
+                                <ImageIcon size={14} className="mr-1 text-muted-foreground" /> No image attached
+                              </div>
+                            )}
+                            
+                            <div className="flex items-center flex-wrap gap-2 mt-1">
+                              <span className="text-xs px-2 py-1 rounded-full bg-secondary text-secondary-foreground">
+                                {item.category}
+                              </span>
+                              
+                              {item.price && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300">
+                                  ${item.price}
+                                </span>
+                              )}
+                              
+                              {item.amount && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                                  Qty: {item.amount}
+                                </span>
+                              )}
+                            </div>
+                          </CardContent>
+                          
+                          <CardFooter className="p-3 pt-0 flex justify-between items-center">
+                            {item.dateToPurchase ? (
+                              <span className="text-xs text-muted-foreground flex items-center">
+                                <Calendar size={12} className="mr-1" />
+                                {new Date(item.dateToPurchase).toLocaleDateString()}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">
+                                Added {item.dateAdded.toLocaleDateString()}
+                              </span>
+                            )}
+                            
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleItem(item.id);
+                              }}
+                            >
+                              <X size={12} className="mr-1" />
+                              Mark as Not Purchased
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </ScrollArea>
+
+      <Dialog open={isEditItemDialogOpen} onOpenChange={setIsEditItemDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Item</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Input 
+              value={editItemName}
+              onChange={(e) => setEditItemName(e.target.value)}
+              placeholder="Item Name"
+            />
+            <Input 
+              value={editItemCategory}
+              onChange={(e) => setEditItemCategory(e.target.value)}
+              placeholder="Category"
+            />
+            <Input 
+              value={editItemAmount}
+              onChange={(e) => setEditItemAmount(e.target.value)}
+              placeholder="Quantity"
+            />
+            <Input 
+              value={editItemDate}
+              onChange={(e) => setEditItemDate(e.target.value)}
+              placeholder="Date"
+            />
+            <Input 
+              value={editItemPrice}
+              onChange={(e) => setEditItemPrice(e.target.value)}
+              placeholder="Price"
+            />
+            <Input 
+              value={editItemImageUrl}
+              onChange={(e) => setEditItemImageUrl(e.target.value)}
+              placeholder="Image URL"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditItemDialogOpen(false)}>Cancel</Button>
+            <Button onClick={saveEditedItem}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default ShoppingList;
