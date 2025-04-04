@@ -1,18 +1,35 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, ShoppingBag, Calendar, Camera, FileText } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
+import { useToast } from '@/components/ui/use-toast';
 
 const BottomNavigation = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
   const { isMobile } = useIsMobile();
   const { theme } = useTheme();
+  const { toast } = useToast();
 
   const isActive = (path: string) => currentPath === path;
+
+  const handleNavigation = (path: string, label: string) => {
+    // Only show feedback for shopping navigation to help debug
+    if (path === '/shopping') {
+      console.log(`Navigating to: ${path} (${label})`);
+      toast({
+        title: `Navigating to ${label}`,
+        description: `Current URL: ${window.location.href}`,
+        duration: 2000,
+      });
+    }
+    
+    navigate(path);
+  };
 
   const navItems = [
     { path: '/', icon: Home, label: 'Home' },
@@ -31,9 +48,9 @@ const BottomNavigation = () => {
     <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 shadow-md">
       <div className="container mx-auto px-1 py-2 flex justify-between items-center">
         {navItems.map(({ path, icon: Icon, label }) => (
-          <Link 
+          <div 
             key={path}
-            to={path} 
+            onClick={() => handleNavigation(path, label)}
             className={cn(
               "flex flex-col items-center justify-center min-w-[60px] p-2 rounded-md transition-colors",
               "active:bg-secondary/70 touch-manipulation",
@@ -61,7 +78,7 @@ const BottomNavigation = () => {
             )}>
               {label}
             </span>
-          </Link>
+          </div>
         ))}
       </div>
     </nav>

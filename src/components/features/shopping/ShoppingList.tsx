@@ -63,20 +63,23 @@ const ShoppingList = ({
   // Enhanced function to handle adding items from camera capture or uploads
   const handleSaveItemFromCapture = (itemData: any) => {
     try {
-      console.log("Handling save from capture:", itemData);
+      console.log("ShoppingList - Handling save from capture:", itemData);
       
       // Ensure required fields are present
       if (!itemData.name) {
+        console.warn("Name is missing, setting default name");
         itemData.name = "Unnamed Item";
       }
       
       // Add brand name to the item name if it was detected
       if (itemData.brand && !itemData.name.includes(itemData.brand)) {
+        console.log(`Adding brand ${itemData.brand} to item name`);
         itemData.name = `${itemData.brand} ${itemData.name}`;
       }
       
       // Make sure category exists
       if (!itemData.category) {
+        console.log("Category missing, setting default");
         itemData.category = "Household";
       }
       
@@ -92,6 +95,8 @@ const ShoppingList = ({
       };
       
       console.log("Adding item to shopping list:", newItem);
+      console.log("Current filter mode:", filterMode);
+      console.log("Repeat option of item:", newItem.repeatOption);
       
       // Add to shopping list
       const added = addItem(newItem);
@@ -105,14 +110,17 @@ const ShoppingList = ({
         });
         
         // Force an update to the appropriate tab based on repeatOption
-        if (filterMode !== 'all' && newItem.repeatOption !== filterMode) {
-          if (newItem.repeatOption === 'weekly') {
-            navigate('/shopping?tab=weekly', { replace: true });
-          } else if (newItem.repeatOption === 'monthly') {
-            navigate('/shopping?tab=monthly', { replace: true });
-          } else {
-            navigate('/shopping?tab=one-off', { replace: true });
-          }
+        const targetTab = newItem.repeatOption === 'weekly' 
+          ? 'weekly' 
+          : newItem.repeatOption === 'monthly' 
+            ? 'monthly' 
+            : 'one-off';
+            
+        console.log(`Current filter: ${filterMode}, item type: ${newItem.repeatOption}, target tab: ${targetTab}`);
+        
+        if (filterMode !== targetTab && filterMode !== 'all') {
+          console.log(`Navigating to /${targetTab} tab for new item`);
+          navigate(`/shopping?tab=${targetTab}`, { replace: true });
         }
         
         return true;
