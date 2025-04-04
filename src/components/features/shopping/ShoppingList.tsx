@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Check, 
@@ -80,10 +79,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-// Define the missing interfaces
 interface ShoppingListProps {
   searchTerm?: string;
-  filterMode: 'all' | 'weekly' | 'monthly';
+  filterMode: 'one-off' | 'weekly' | 'monthly' | 'all';
 }
 
 type SortOption = 
@@ -159,7 +157,6 @@ const saveToLocalStorage = (key: string, value: any): void => {
 };
 
 const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode }) => {
-  // Added state for image options dialog
   const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
   
   const [items, setItems] = useState<ShoppingItem[]>(() => 
@@ -200,7 +197,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   const [editItemNotes, setEditItemNotes] = useState('');
   const [editItemRepeatOption, setEditItemRepeatOption] = useState<'none' | 'weekly' | 'monthly'>('none');
   
-  // Fixed duplicate ref declarations
   const editImageFileRef = useRef<HTMLInputElement>(null);
   const editCameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -230,7 +226,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     setIsEditItemDialogOpen(true);
   };
 
-  // Added missing clearEditImage function
   const clearEditImage = () => {
     setEditItemImage(null);
     setEditItemImageUrl('');
@@ -325,7 +320,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     }
   };
   
-  // Added missing handleEditFileChange function
   const handleEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileChange(e, false);
   };
@@ -385,7 +379,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     }
   };
 
-  // Modified to handle repeating items
   const toggleItem = (id: string) => {
     if (isMultiSelectActive) {
       handleItemSelect(id);
@@ -396,9 +389,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
     
     if (!item) return;
     
-    // Handle repeating items logic
     if (!item.completed) {
-      // Mark as completed
       const updatedItems = items.map((i) =>
         i.id === id ? { ...i, completed: true } : i
       );
@@ -408,9 +399,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         description: `Moved "${item.name}" to Purchased`,
       });
     } else {
-      // If item is repeating, duplicate it when unmarking
       if (item.repeatOption === 'weekly' || item.repeatOption === 'monthly') {
-        // Create a new item for next week/month
         const newItem: ShoppingItem = {
           ...item,
           id: Date.now().toString(),
@@ -418,7 +407,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
           dateAdded: new Date()
         };
         
-        // Update the original item to be not completed
         const updatedItems = items.map((i) =>
           i.id === id ? { ...i, completed: false } : i
         );
@@ -429,7 +417,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
           description: `Moved "${item.name}" to Not Purchased`,
         });
       } else {
-        // Non-repeating items just get unmarked
         const updatedItems = items.map((i) =>
           i.id === id ? { ...i, completed: false } : i
         );
@@ -522,7 +509,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
   };
   
   const getFilteredItems = () => {
-    // Apply repeating filter first
     let filtered = items;
     
     switch (filterMode) {
@@ -532,17 +518,18 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
       case 'monthly':
         filtered = items.filter(item => item.repeatOption === 'monthly');
         break;
+      case 'one-off':
+        filtered = items.filter(item => !item.repeatOption || item.repeatOption === 'none');
+        break;
       case 'all':
       default:
         break;
     }
     
-    // Then apply category filter
     if (activeCategory !== 'All') {
       filtered = filtered.filter(item => item.category === activeCategory);
     }
     
-    // Finally apply search term
     if (searchTerm.trim() !== '') {
       const lowerSearchTerm = searchTerm.toLowerCase();
       filtered = filtered.filter(item => 
@@ -823,7 +810,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
       </div>
 
       <ScrollArea className="h-[calc(100vh-320px)] pr-4 shopping-items-scroll-area smooth-scroll" ref={scrollAreaRef}>
-        {/* Not Purchased Items */}
         <div className="mb-4">
           <h3 className="text-xs font-medium mb-3 text-muted-foreground">Not Purchased ({notPurchasedItems.length})</h3>
           
@@ -995,7 +981,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
           </AnimatePresence>
         </div>
         
-        {/* Purchased Items */}
         <div className="mb-2">
           <div 
             className="flex items-center justify-between cursor-pointer mb-3"
@@ -1192,7 +1177,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </div>
       </ScrollArea>
 
-      {/* Edit Item Dialog */}
       <Dialog open={isEditItemDialogOpen} onOpenChange={setIsEditItemDialogOpen}>
         <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
           <DialogHeader>
@@ -1357,7 +1341,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </DialogContent>
       </Dialog>
 
-      {/* Image Preview Dialog */}
       <Dialog open={previewImage !== null} onOpenChange={() => setPreviewImage(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -1378,7 +1361,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </DialogContent>
       </Dialog>
 
-      {/* Add Category Dialog */}
       <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
         <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
           <DialogHeader>
@@ -1414,7 +1396,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </DialogContent>
       </Dialog>
 
-      {/* Delete Category Dialog */}
       <Dialog open={isDeleteCategoryDialogOpen} onOpenChange={setIsDeleteCategoryDialogOpen}>
         <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
           <DialogHeader>
@@ -1457,7 +1438,6 @@ const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '', filterMode
         </DialogContent>
       </Dialog>
 
-      {/* Edit Category Dialog */}
       <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
         <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
           <DialogHeader>

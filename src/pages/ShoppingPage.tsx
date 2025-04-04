@@ -14,8 +14,8 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Define the tab types
-type ShoppingTab = 'all' | 'weekly' | 'monthly';
+// Updated tab types to include the new "one-off" option
+type ShoppingTab = 'one-off' | 'weekly' | 'monthly' | 'all';
 
 const ShoppingPage = () => {
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ const ShoppingPage = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<ShoppingTab>('all');
+  const [activeTab, setActiveTab] = useState<ShoppingTab>('one-off');
 
   const goBack = () => {
     navigate('/');
@@ -52,11 +52,13 @@ const ShoppingPage = () => {
       variant: "default",
     });
     
-    // If we have a repeat option, update the appropriate tab
-    if (item.repeatOption === 'weekly' && activeTab !== 'weekly') {
+    // Update tab based on repeat option
+    if (item.repeatOption === 'weekly') {
       setActiveTab('weekly');
-    } else if (item.repeatOption === 'monthly' && activeTab !== 'monthly') {
+    } else if (item.repeatOption === 'monthly') {
       setActiveTab('monthly');
+    } else {
+      setActiveTab('one-off');
     }
   };
 
@@ -106,24 +108,25 @@ const ShoppingPage = () => {
       
       <Separator className="my-2" />
       
-      {/* Tab Navigation - updated with Weekly and Monthly tabs */}
+      {/* Updated Tab Navigation - One-off, Weekly, Monthly, All */}
       <div className="mb-4">
         <Tabs 
-          defaultValue="all" 
+          defaultValue="one-off" 
           value={activeTab} 
           onValueChange={(value) => setActiveTab(value as ShoppingTab)} 
           className="w-full"
         >
-          <TabsList className="grid grid-cols-3 w-full">
-            <TabsTrigger value="all">All</TabsTrigger>
+          <TabsList className="grid grid-cols-4 w-full">
+            <TabsTrigger value="one-off">One-off</TabsTrigger>
             <TabsTrigger value="weekly">Weekly</TabsTrigger>
             <TabsTrigger value="monthly">Monthly</TabsTrigger>
+            <TabsTrigger value="all">All</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="all" className="mt-0 pt-4">
+          <TabsContent value="one-off" className="mt-0 pt-4">
             <ShoppingList 
               searchTerm={searchTerm} 
-              filterMode="all"
+              filterMode="one-off"
             />
           </TabsContent>
           
@@ -138,6 +141,13 @@ const ShoppingPage = () => {
             <ShoppingList 
               searchTerm={searchTerm} 
               filterMode="monthly"
+            />
+          </TabsContent>
+          
+          <TabsContent value="all" className="mt-0 pt-4">
+            <ShoppingList 
+              searchTerm={searchTerm} 
+              filterMode="all"
             />
           </TabsContent>
         </Tabs>
