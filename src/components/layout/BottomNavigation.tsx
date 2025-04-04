@@ -18,16 +18,7 @@ const BottomNavigation = () => {
   const isActive = (path: string) => currentPath === path;
 
   const handleNavigation = (path: string, label: string) => {
-    // Only show feedback for shopping navigation to help debug
-    if (path === '/shopping') {
-      console.log(`Navigating to: ${path} (${label})`);
-      toast({
-        title: `Navigating to ${label}`,
-        description: `Current URL: ${window.location.href}`,
-        duration: 2000,
-      });
-    }
-    
+    // Remove the toast notification for shopping page
     navigate(path);
   };
 
