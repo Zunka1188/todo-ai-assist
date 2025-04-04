@@ -645,7 +645,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
           <AnimatePresence>
             {notPurchasedItems.length === 0 ? <div className="text-center py-3 text-muted-foreground text-sm">
                 No items to purchase. Add some new items!
-              </div> : <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              </div> : <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
                 {notPurchasedItems.map(item => <motion.div key={`not-purchased-${item.id}`} initial={{
               opacity: 0,
               y: -10
@@ -658,74 +658,16 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
             }} transition={{
               duration: 0.2
             }}>
-                    <Card className={cn("overflow-hidden transition-all hover:shadow-md", "bg-white dark:bg-gray-800")} onClick={() => !isMultiSelectActive && toggleItem(item.id)}>
-                      <CardHeader className="p-3 pb-0 flex flex-row items-center space-y-0 gap-2">
-                        <div className="flex-1 flex items-center gap-2">
-                          {isMultiSelectActive ? <Checkbox checked={selectedItems.includes(item.id)} onCheckedChange={() => handleItemSelect(item.id)} className="h-4 w-4" /> : <button onClick={e => {
-                      e.stopPropagation();
-                      toggleItem(item.id);
-                    }} className={cn("flex items-center justify-center w-4 h-4 rounded-full border", "border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700")} aria-label="Mark as purchased">
-                              {item.completed && <Check size={12} />}
-                            </button>}
-                          <CardTitle className={cn("text-sm font-medium", item.completed && "line-through text-gray-500 dark:text-gray-400")}>
-                            {item.name}
-                          </CardTitle>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <MoreVertical size={14} />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-36">
-                            <DropdownMenuItem onClick={e => {
-                        e.stopPropagation();
-                        handleEditItem(item);
-                      }} className="cursor-pointer">
-                              <Edit size={14} className="mr-2" />
-                              <span className="text-sm">Edit</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={e => {
-                        e.stopPropagation();
-                        removeItem(item.id);
-                      }} className="cursor-pointer text-red-500">
-                              <Trash2 size={14} className="mr-2" />
-                              <span className="text-sm">Delete</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </CardHeader>
-                      
-                      <CardContent className="p-3 pt-2 px-[240px] py-0 rounded-none">
-                        {item.imageUrl ? <div className="relative w-full">
-                            <div className="aspect-[3/2] rounded-md overflow-hidden mb-2">
-                              <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                            </div>
-                            <Button size="sm" variant="secondary" className="absolute right-2 top-2 h-8 w-8 p-0" onClick={e => {
-                      e.stopPropagation();
-                      handleImagePreview(item.imageUrl as string, e);
-                    }}>
-                              <Eye size={14} />
-                            </Button>
-                          </div> : null}
-                        
-                        <div className="flex flex-wrap gap-x-2 gap-y-1 mt-1 text-xs text-muted-foreground">
-                          {item.amount && <span className="inline-flex items-center">
-                              Qty: {item.amount}
-                            </span>}
-                          {item.price && <span className="inline-flex items-center">
-                              ${item.price}
-                            </span>}
-                          {item.repeatOption && item.repeatOption !== 'none' && <span className="inline-flex items-center">
-                              <Repeat size={10} className="mr-1" />
-                              {item.repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
-                            </span>}
-                          {item.notes && <div className="w-full text-xs truncate mt-0.5">
-                              {item.notes}
-                            </div>}
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <ShoppingItemButton
+                      completed={false}
+                      name={item.name}
+                      quantity={item.amount}
+                      price={item.price}
+                      notes={item.notes}
+                      repeatOption={item.repeatOption}
+                      imageUrl={item.imageUrl}
+                      onClick={() => toggleItem(item.id)}
+                    />
                   </motion.div>)}
               </div>}
           </AnimatePresence>
@@ -754,7 +696,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
           }} transition={{
             duration: 0.2
           }} className="overflow-hidden">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
                     {purchasedItems.map(item => <motion.div key={`purchased-${item.id}`} initial={{
                 opacity: 0,
                 y: -10

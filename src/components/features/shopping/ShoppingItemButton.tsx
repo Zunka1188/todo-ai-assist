@@ -32,7 +32,7 @@ const ShoppingItemButton = ({
   
   return (
     <div className="shopping-item-container" style={{
-      width: '320px',
+      width: '240px',
       height: '96px',
       border: '2px solid var(--border-color, #e2e8f0)',
       borderRadius: '6px',
@@ -94,7 +94,7 @@ const ShoppingItemButton = ({
           justifyContent: 'center',
           marginLeft: '8px',
           overflow: 'hidden',
-          maxWidth: '256px'
+          maxWidth: '176px' // Adjusted for the smaller width (240px - 48px - 8px - 8px)
         }}>
           {/* Product Name */}
           <div style={{

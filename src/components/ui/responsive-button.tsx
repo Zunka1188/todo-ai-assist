@@ -53,7 +53,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     // Using the exact grocery item widget style per specifications
     return (
       <div style={{
-        width: '320px',
+        width: '240px',
         height: '96px',
         border: '2px solid var(--border-color, #e2e8f0)',
         borderRadius: '6px',
@@ -117,7 +117,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
             flexGrow: 1,
             overflow: 'hidden',
             paddingRight: '8px',
-            maxWidth: '256px'
+            maxWidth: '176px'
           }}>
             <div style={{
               display: 'flex',
