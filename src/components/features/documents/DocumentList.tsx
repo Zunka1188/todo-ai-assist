@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { File, Plus, FileText, FileSpreadsheet, FileCode, Image, FileArchive, Maximize2, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,7 +22,10 @@ interface Document {
   fileUrl?: string;
 }
 
-const DocumentList: React.FC<DocumentListProps> = ({ searchTerm = '', categories = [] }) => {
+const DocumentList: React.FC<DocumentListProps> = ({ 
+  searchTerm = '', 
+  categories = ['other', 'style', 'recipes', 'travel', 'fitness', 'files'] 
+}) => {
   // State for add document dialog
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [fullScreenItem, setFullScreenItem] = useState<Document | null>(null);

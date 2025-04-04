@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { ArrowLeft, Search, Plus, FileText, Image, Tag, ChefHat, Plane, Dumbbell, Shirt, X, Maximize2, Minimize2, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -26,7 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
 // Define the tab types
-type DocumentCategory = 'style' | 'recipes' | 'travel' | 'fitness' | 'other';
+type DocumentCategory = 'style' | 'recipes' | 'travel' | 'fitness' | 'other' | 'files';
 
 // Define the item type
 interface DocumentItem {
@@ -148,6 +147,8 @@ const DocumentsSubtabPage = () => {
         return <Dumbbell className="h-5 w-5" />;
       case 'other':
         return <FileText className="h-5 w-5" />;
+      case 'files':
+        return <Tag className="h-5 w-5" />;
       default:
         return null;
     }
@@ -215,7 +216,7 @@ const DocumentsSubtabPage = () => {
       if (result.category) {
         // Update active tab to match the detected category if possible
         const lowerCategory = result.category.toLowerCase() as DocumentCategory;
-        if (['style', 'recipes', 'travel', 'fitness', 'other'].includes(lowerCategory)) {
+        if (['style', 'recipes', 'travel', 'fitness', 'other', 'files'].includes(lowerCategory)) {
           setActiveTab(lowerCategory);
         }
       }
@@ -388,6 +389,10 @@ const DocumentsSubtabPage = () => {
               <FileText className="h-4 w-4" />
               <span className={isMobile ? "hidden" : "inline"}>Other</span>
             </TabsTrigger>
+            <TabsTrigger value="files" className="flex items-center gap-2">
+              <Tag className="h-4 w-4" />
+              <span className={isMobile ? "hidden" : "inline"}>Files</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="style" className="mt-0 pt-4">
@@ -431,6 +436,16 @@ const DocumentsSubtabPage = () => {
           </TabsContent>
           
           <TabsContent value="other" className="mt-0 pt-4">
+            <DocumentItemsList 
+              items={filteredItems}
+              getTypeIcon={getTypeIcon}
+              onEdit={handleOpenAddDialog}
+              onDelete={handleDeleteItem}
+              onViewImage={openFullScreenImage}
+            />
+          </TabsContent>
+          
+          <TabsContent value="files" className="mt-0 pt-4">
             <DocumentItemsList 
               items={filteredItems}
               getTypeIcon={getTypeIcon}

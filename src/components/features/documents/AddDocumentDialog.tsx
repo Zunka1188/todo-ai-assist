@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, X, Camera, Upload, Loader2, Save, Maximize2, Minimize2, File as FileIcon, Calendar, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -42,8 +41,8 @@ interface AddDocumentDialogProps {
   editItem?: DocumentItem | null;
 }
 
-// Define the available categories to match the Categories tab
-const DEFAULT_CATEGORIES = ['style', 'recipes', 'travel', 'fitness', 'work', 'other'];
+// Define the available categories to match the list requested by the user
+const DEFAULT_CATEGORIES = ['other', 'style', 'recipes', 'travel', 'fitness', 'files'];
 
 const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   open,
