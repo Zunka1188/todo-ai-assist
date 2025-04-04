@@ -14,7 +14,7 @@ const ShoppingItemButton = ({ completed, onClick, className }: ShoppingItemButto
   return (
     <Button
       type="button"
-      variant={completed ? "gray" : "green"} // Green when active, gray when completed
+      variant={completed ? "completed" : "active"} // Using semantic variants for better readability
       size="sm"
       className={cn(
         "flex items-center justify-center gap-2 transition-colors",

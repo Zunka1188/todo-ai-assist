@@ -19,11 +19,15 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        green: "bg-green-500 text-white hover:bg-green-600",  // Active state
-        gray: "bg-gray-400 text-white hover:bg-gray-500",    // Completed/marked state
-        purple: "bg-purple-600 text-white hover:bg-purple-700", // Add Item button
-        active: "bg-green-500 text-white hover:bg-green-600", // Alternative naming for active
-        completed: "bg-gray-400 text-white hover:bg-gray-500", // Alternative naming for completed
+        
+        // Semantic variants for better naming consistency
+        active: "bg-green-500 text-white hover:bg-green-600",    // Active state (was green)
+        completed: "bg-gray-400 text-white hover:bg-gray-500",   // Completed state (was gray)
+        purple: "bg-purple-600 text-white hover:bg-purple-700",  // Add Item button
+        
+        // Legacy variants - kept for backward compatibility
+        green: "bg-green-500 text-white hover:bg-green-600",  
+        gray: "bg-gray-400 text-white hover:bg-gray-500",
       },
       size: {
         default: "h-10 px-4 py-2",

@@ -23,6 +23,7 @@ interface AttachmentOptionsDialogProps {
   onCameraCapture: () => void;
   onFileUpload: () => void;
   onDocumentUpload: () => void;
+  title?: string; // Added for customization
 }
 
 const AttachmentOptionsDialog = ({
@@ -31,6 +32,7 @@ const AttachmentOptionsDialog = ({
   onCameraCapture,
   onFileUpload,
   onDocumentUpload,
+  title = "Add Item Options", // Default title
 }: AttachmentOptionsDialogProps) => {
   const { isMobile } = useIsMobile();
 
@@ -39,7 +41,7 @@ const AttachmentOptionsDialog = ({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="bottom" className="h-auto pb-8">
           <SheetHeader className="mb-4">
-            <SheetTitle>Add Item Options</SheetTitle>
+            <SheetTitle>{title}</SheetTitle>
           </SheetHeader>
           <div className="flex flex-col space-y-3">
             <Button 
@@ -84,7 +86,7 @@ const AttachmentOptionsDialog = ({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Add Item Options</DialogTitle>
+            <DialogTitle>{title}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col space-y-3 py-4">
             <Button 
