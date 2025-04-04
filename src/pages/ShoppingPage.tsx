@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SearchInput from '@/components/ui/search-input';
 import ShoppingList from '@/components/features/shopping/ShoppingList';
 import AddItemDialog from '@/components/features/shopping/AddItemDialog';
@@ -32,7 +32,7 @@ const ShoppingPage: React.FC = () => {
     const newTab = validTabs.includes(tabFromUrl || '') ? tabFromUrl : 'all';
     console.log(`URL tab param changed to: ${tabFromUrl}, setting active tab to: ${newTab}`);
     setActiveTab(newTab);
-  }, [location.search]);
+  }, [location.search, tabFromUrl]);
 
   // When tab changes, update the URL
   const handleTabChange = (value: string) => {
@@ -114,19 +114,24 @@ const ShoppingPage: React.FC = () => {
         </div>
       )}
 
-      {/* Direct Add Test Component (always visible for now) */}
+      {/* Direct Add Test Component */}
       <DirectAddItem />
 
       {showAddDialog && (
-        <AddItemDialog onClose={() => setShowAddDialog(false)} />
+        <AddItemDialog 
+          open={showAddDialog} 
+          onOpenChange={setShowAddDialog}
+          onSave={() => {}} // Implement this based on your logic
+        />
       )}
 
       {editItem && (
         <EditItemDialog 
-          itemId={editItem.id}
-          itemName={editItem.name}
-          item={editItem.item}
+          isOpen={true}
           onClose={handleCloseEditDialog}
+          item={editItem.item}
+          categories={[]}
+          onSave={() => {}} // Implement this based on your logic
         />
       )}
     </div>
