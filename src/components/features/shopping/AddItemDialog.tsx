@@ -58,7 +58,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const predefinedCategories = ["Groceries", "Household", "Electronics", "Clothing", "Files", "Other"];
+  const predefinedCategories = ["Groceries", "Household", "Electronics", "Clothing", "Style", "Recipes", "Travel", "Fitness", "Work", "Files", "Other"];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -68,7 +68,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
     const detectedFileType = getFileTypeFromName(selectedFile.name);
     setFileType(detectedFileType);
     
-    // Generate preview URL
     const reader = new FileReader();
     reader.onload = (event) => {
       if (event.target?.result) {
@@ -77,7 +76,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
     };
     reader.readAsDataURL(selectedFile);
     
-    // Close the image options sheet if open
     setImageOptionsOpen(false);
   };
 
@@ -94,12 +92,10 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   };
 
   const handleSave = () => {
-    // Don't save if both name and file are missing
     if (name.trim() === '' && !file) {
       return;
     }
     
-    // Determine which category to use
     const finalCategory = isCustomCategory ? customCategory : category;
     
     const itemData = {
@@ -147,7 +143,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   };
 
   const FileSourceOptions = () => {
-    // For mobile, use a Sheet component
     if (isMobile) {
       return (
         <Sheet open={imageOptionsOpen} onOpenChange={setImageOptionsOpen}>
@@ -195,7 +190,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
         </Sheet>
       );
     } else {
-      // For desktop, use a dropdown/alert dialog
       return (
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -241,7 +235,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
 
         <div className="space-y-4">
           <div className="grid gap-4">
-            {/* Item Name */}
             <div className="grid gap-2">
               <Label htmlFor="name">Item Name</Label>
               <Input
@@ -252,7 +245,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
               />
             </div>
 
-            {/* Category Selection - with custom option */}
             <div className="grid gap-2">
               <Label htmlFor="category">Category (Optional)</Label>
               <select
@@ -279,7 +271,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
               )}
             </div>
 
-            {/* File Upload */}
             <div className="grid gap-2">
               <Label htmlFor="file">File Attachment (Optional)</Label>
               <div className="flex gap-2">
@@ -326,7 +317,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
               )}
             </div>
 
-            {/* Additional Details */}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="amount">Quantity (Optional)</Label>
