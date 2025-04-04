@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Search } from 'lucide-react';
+import { ArrowLeft, Search, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +41,15 @@ const CalendarPage = () => {
       </div>
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 my-3">
+        <Button 
+          className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white gap-2 h-10 sm:w-auto w-full flex justify-center items-center"
+          size={isMobile ? "default" : "sm"}
+          onClick={() => setCreateDialogOpen(true)}
+        >
+          <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+          <span>New Event</span>
+        </Button>
+        
         <div className="relative w-full sm:w-auto sm:max-w-md">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
