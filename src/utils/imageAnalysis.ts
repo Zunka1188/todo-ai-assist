@@ -8,6 +8,7 @@ export interface AnalysisResult {
   tags?: string[];
   description?: string;
   date?: string;
+  price?: string;
   metadata?: Record<string, any>;
   extractedText?: string;
 }
@@ -124,6 +125,7 @@ function mockPdfAnalysis(hash: number, text: string): AnalysisResult {
     tags: ['financial', 'quarterly', 'report', 'business'],
     description: 'Financial performance report for the first quarter of fiscal year 2025.',
     date: '2025-03-31',
+    price: '0.00',
     extractedText: text,
     metadata: {
       pageCount: Math.floor(Math.random() * 10) + 5,
@@ -147,6 +149,7 @@ function mockDocumentAnalysis(hash: number, text: string): AnalysisResult {
     tags: ['meeting', 'minutes', 'project', 'website'],
     description: 'Minutes from the website redesign project team meeting.',
     date: '2025-04-15',
+    price: '0.00',
     extractedText: text,
     metadata: {
       participants: ['John Smith', 'Sarah Johnson', 'Michael Wong'],
@@ -162,35 +165,40 @@ function getMockResultForCategory(category: string): AnalysisResult {
       category: 'style',
       tags: ['fashion', 'design', 'clothing'],
       description: 'A modern fashion design sketch showing seasonal outfit concept.',
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      price: '59.99'
     },
     'recipes': {
       title: 'Homemade Pasta Recipe',
       category: 'recipes',
       tags: ['cooking', 'italian', 'dinner'],
       description: 'Fresh pasta recipe with simple ingredients.',
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      price: '12.50'
     },
     'travel': {
       title: 'Vacation Destination',
       category: 'travel',
       tags: ['vacation', 'sightseeing', 'landmarks'],
       description: 'Beautiful travel destination for next vacation planning.',
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      price: '899.00'
     },
     'fitness': {
       title: 'Workout Plan',
       category: 'fitness',
       tags: ['exercise', 'health', 'workout'],
       description: 'Weekly fitness routine focusing on core strength.',
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      price: '29.99'
     },
     'other': {
       title: 'General Document',
       category: 'other',
       tags: ['document', 'general', 'misc'],
       description: 'General purpose document or image.',
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      price: '0.00'
     }
   };
   
