@@ -7,7 +7,6 @@ import ScanButton from '@/components/features/ScanButton';
 import FeatureCard from '@/components/features/FeatureCard';
 import CalendarWidget from '@/components/widgets/CalendarWidget';
 import TaskWidget from '@/components/widgets/TaskWidget';
-import SpendingWidget from '@/components/widgets/SpendingWidget';
 import { useTheme } from '@/hooks/use-theme';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -78,12 +77,13 @@ const Index = () => {
           )}
         />
         
-        <div className="grid gap-3 sm:gap-4 grid-cols-1">
+        {/* Calendar and Tasks widgets - horizontal on desktop, vertical on mobile */}
+        <div className={cn(
+          "grid gap-3 sm:gap-4",
+          isMobile ? "grid-cols-1" : "grid-cols-2"
+        )}>
           <CalendarWidget />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-            <TaskWidget />
-            <SpendingWidget />
-          </div>
+          <TaskWidget />
         </div>
       </div>
 
