@@ -44,12 +44,11 @@ const ShoppingItemButton = ({
   const borderColor = theme === 'dark' ? '#333333' : '#e2e8f0';
   const secondaryTextColor = theme === 'dark' ? '#B0B0B0' : '#64748b';
   
-  // Scale factors for mobile (70% of original size)
-  const containerWidth = isMobile ? '168px' : '240px'; // 70% of 240px for mobile
-  const containerHeight = isMobile ? 'auto' : 'auto';
-  const imageSize = isMobile ? '56px' : '80px'; // 70% of 80px
-  const headerHeight = isMobile ? '28px' : '40px'; // 70% of 40px
-  const buttonHeight = isMobile ? '28px' : '40px'; // 70% of 40px
+  // Mobile specific dimensions (70% of original size only on mobile)
+  const containerWidth = isMobile ? '168px' : '240px'; 
+  const imageSize = isMobile ? '56px' : '80px';
+  const headerHeight = isMobile ? '28px' : '40px';
+  const buttonHeight = isMobile ? '28px' : '40px';
   const fontSize = isMobile ? '13px' : '16px';
   const detailsFontSize = isMobile ? '12px' : '15px';
   const iconSize = isMobile ? 12 : 14;
@@ -230,7 +229,7 @@ const ShoppingItemButton = ({
               </div>
             )}
             
-            {/* Quantity Line - centered vertically - MODIFIED TO REMOVE "Qty:" PREFIX */}
+            {/* Quantity Line - centered vertically */}
             <div style={{ 
               display: 'flex',
               alignItems: 'center',

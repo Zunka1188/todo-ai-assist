@@ -42,12 +42,12 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
   }, ref) => {
     const { isMobile } = useIsMobile();
     
-    // Scale dimensions for mobile (70% of original)
-    const containerWidth = isMobile ? '168px' : '240px'; // 70% of 240px
-    const containerHeight = isMobile ? '67px' : '96px'; // 70% of 96px
-    const topSectionHeight = isMobile ? '45px' : '64px'; // 70% of 64px
-    const bottomSectionHeight = isMobile ? '22px' : '32px'; // 70% of 32px
-    const imageSize = isMobile ? '34px' : '48px'; // 70% of 48px
+    // Scale dimensions for mobile only (70% of original)
+    const containerWidth = isMobile ? '168px' : '240px';
+    const containerHeight = isMobile ? '67px' : '96px';
+    const topSectionHeight = isMobile ? '45px' : '64px';
+    const bottomSectionHeight = isMobile ? '22px' : '32px';
+    const imageSize = isMobile ? '34px' : '48px';
     const margin = isMobile ? '5px' : '8px';
     const fontSize = isMobile ? '13px' : '16px';
     const detailsFontSize = isMobile ? '10px' : '12px';
@@ -174,7 +174,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
               )}
             </div>
 
-            {/* Additional Details - Only showing quantity and repeat option - MODIFIED TO REMOVE "Qty:" PREFIX */}
+            {/* Additional Details - Only showing quantity and repeat option */}
             {hasDetails && (
               <div style={{
                 display: 'flex',

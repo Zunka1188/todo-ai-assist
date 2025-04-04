@@ -20,7 +20,8 @@ const ShoppingList = ({
   className,
   onEditItem
 }: ShoppingListProps) => {
-  const { items, toggleItemCompletion, deleteItem } = useShoppingItems();
+  const shoppingItemsContext = useShoppingItems();
+  const { items, toggleItemCompletion, deleteItem } = shoppingItemsContext;
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const { isMobile } = useIsMobile();

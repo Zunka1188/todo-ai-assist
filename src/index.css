@@ -113,23 +113,35 @@
   /* Shopping items grid layout for responsive display */
   .shopping-items-grid {
     display: grid;
-    grid-template-columns: repeat(1, 1fr);
     gap: 1rem;
     width: 100%;
   }
   
-  @media (min-width: 480px) {
+  /* Optimized for mobile - two items per row */
+  @media (max-width: 479px) {
+    .shopping-items-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      justify-items: center;
+      align-items: start;
+    }
+  }
+  
+  /* Optimized for tablets */
+  @media (min-width: 480px) and (max-width: 767px) {
     .shopping-items-grid {
       grid-template-columns: repeat(2, 1fr);
     }
   }
   
-  @media (min-width: 768px) {
+  /* Optimized for desktop */
+  @media (min-width: 768px) and (max-width: 1023px) {
     .shopping-items-grid {
       grid-template-columns: repeat(3, 1fr);
     }
   }
   
+  /* Optimized for large desktop */
   @media (min-width: 1024px) {
     .shopping-items-grid {
       grid-template-columns: repeat(4, 1fr);
