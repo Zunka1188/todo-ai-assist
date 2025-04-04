@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ImagePreviewDialog from './ImagePreviewDialog';
+import { useToast } from '@/components/ui/use-toast';
 
 type ShoppingListProps = {
   searchTerm?: string;
@@ -25,9 +26,10 @@ const ShoppingList = ({
   onEditItem
 }: ShoppingListProps) => {
   const shoppingItemsContext = useShoppingItems(filterMode, searchTerm);
-  const { removeItem: deleteItem, toggleItem: toggleItemCompletion } = shoppingItemsContext;
+  const { removeItem: deleteItem, toggleItem: toggleItemCompletion, addItem } = shoppingItemsContext;
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const { isMobile } = useIsMobile();
+  const { toast } = useToast();
   
   // Filter items based on search term and filter mode, but don't filter out completed items
   const filteredItems = shoppingItemsContext.items.filter((item) => {
@@ -54,6 +56,57 @@ const ShoppingList = ({
   
   const handleCloseImageDialog = () => {
     setSelectedImageUrl(null);
+  };
+
+  // New helper function to handle adding items from camera capture or uploads
+  const handleSaveItemFromCapture = (itemData: any) => {
+    try {
+      // Ensure required fields are present
+      if (!itemData.name) {
+        itemData.name = "Unnamed Item";
+      }
+      
+      // Add brand name to the item name if it was detected
+      if (itemData.brand && !itemData.name.includes(itemData.brand)) {
+        itemData.name = `${itemData.brand} ${itemData.name}`;
+      }
+      
+      // Make sure category exists
+      if (!itemData.category) {
+        itemData.category = "Other";
+      }
+      
+      // Create a new item for the shopping list
+      const newItem = {
+        name: itemData.name,
+        category: itemData.category,
+        amount: itemData.amount || '1', 
+        price: itemData.price,
+        imageUrl: itemData.file || null,
+        notes: itemData.notes,
+        repeatOption: itemData.repeatOption || 'none',
+      };
+      
+      // Add to shopping list
+      const added = addItem(newItem);
+      
+      if (added) {
+        toast({
+          title: "Item Added",
+          description: `${itemData.name} has been added to your shopping list.`,
+        });
+        return true;
+      }
+    } catch (error) {
+      console.error("Error adding item to shopping list:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to shopping list. Please try again.",
+        variant: "destructive",
+      });
+    }
+    
+    return false;
   };
 
   return (
@@ -119,6 +172,7 @@ const ShoppingList = ({
       <ImagePreviewDialog 
         imageUrl={selectedImageUrl}
         onClose={handleCloseImageDialog}
+        onSaveItem={handleSaveItemFromCapture}
       />
     </div>
   );

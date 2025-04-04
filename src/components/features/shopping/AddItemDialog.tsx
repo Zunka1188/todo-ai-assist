@@ -163,6 +163,11 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
 
   const handleSave = () => {
     if (name.trim() === '' && !file) {
+      toast({
+        title: "Input Required",
+        description: "Please enter an item name or add an image.",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -177,9 +182,16 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       repeatOption
     };
     
+    console.log("Saving item with data:", itemData);
+    
     onSave(itemData);
     resetForm();
     onOpenChange(false);
+    
+    toast({
+      title: "Item Saved",
+      description: `${itemData.name} has been added to your ${repeatOption === 'none' ? 'shopping list' : repeatOption === 'weekly' ? 'weekly items' : 'monthly items'}.`,
+    });
   };
 
   const resetForm = () => {
