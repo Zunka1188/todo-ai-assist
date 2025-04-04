@@ -14,6 +14,9 @@ interface ShoppingItemProps {
   onCheck?: (id: string) => void;
   onDelete?: (id: string) => void;
   onEdit?: (id: string) => void;
+  quantity?: string; 
+  notes?: string;
+  repeatOption?: 'none' | 'weekly' | 'monthly';
 }
 
 const ShoppingItem: React.FC<ShoppingItemProps> = ({
@@ -22,6 +25,9 @@ const ShoppingItem: React.FC<ShoppingItemProps> = ({
   image,
   checked = false,
   category,
+  quantity,
+  notes,
+  repeatOption,
   onCheck,
   onDelete,
   onEdit
@@ -58,11 +64,23 @@ const ShoppingItem: React.FC<ShoppingItemProps> = ({
           )}>
             {name}
           </p>
-          {category && (
-            <span className="text-xs text-muted-foreground">
-              {category}
-            </span>
-          )}
+          <div className="flex items-center gap-2 flex-wrap">
+            {category && (
+              <span className="text-xs text-muted-foreground">
+                {category}
+              </span>
+            )}
+            {quantity && (
+              <span className="text-xs text-muted-foreground">
+                {quantity}
+              </span>
+            )}
+            {repeatOption && repeatOption !== 'none' && (
+              <span className="text-xs text-muted-foreground">
+                {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
+              </span>
+            )}
+          </div>
         </div>
       </div>
       

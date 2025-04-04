@@ -7,8 +7,9 @@ import AddItemDialog from '@/components/features/shopping/AddItemDialog';
 import EditItemDialog from '@/components/features/shopping/EditItemDialog';
 import { Button } from '@/components/ui/button';
 import { useLocation, useNavigate } from 'react-router-dom';
-import DirectAddItem from '@/components/features/shopping/DirectAddItem'; // Import our test component
-import { useDebugMode } from '@/hooks/useDebugMode'; // Import debug hook
+import { useDebugMode } from '@/hooks/useDebugMode';
+import { useShoppingItems } from '@/components/features/shopping/useShoppingItems';
+import { useToast } from '@/components/ui/use-toast';
 
 const ShoppingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -18,6 +19,8 @@ const ShoppingPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { enabled: debugEnabled } = useDebugMode();
+  const { toast } = useToast();
+  const { updateItem, addItem, categories } = useShoppingItems('all', '');
   
   // Get the tab from URL query parameters
   const searchParams = new URLSearchParams(location.search);
@@ -47,6 +50,67 @@ const ShoppingPage: React.FC = () => {
 
   const handleCloseEditDialog = () => {
     setEditItem(null);
+  }
+
+  // Handler for saving items
+  const handleSaveItem = (item: any) => {
+    try {
+      const result = addItem({
+        name: item.name,
+        category: item.category || "Other",
+        amount: item.amount,
+        price: item.price,
+        imageUrl: item.file,
+        notes: item.notes,
+        repeatOption: item.repeatOption || 'none'
+      });
+
+      if (result) {
+        toast({
+          title: "Item Added",
+          description: `${item.name} has been added to your shopping list.`
+        });
+        return true;
+      }
+    } catch (error) {
+      console.error("Error adding item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to list",
+        variant: "destructive"
+      });
+    }
+    return false;
+  }
+
+  // Handler for updating items
+  const handleUpdateItem = (updatedItem: any, imageFile: File | null) => {
+    try {
+      if (!editItem || !editItem.id) return;
+      
+      // Prepare the data for update
+      const itemData = {
+        ...updatedItem,
+        // If there's a new image file, use that URL instead
+        imageUrl: imageFile ? URL.createObjectURL(imageFile) : updatedItem.imageUrl
+      };
+      
+      const result = updateItem(editItem.id, itemData);
+      
+      if (result) {
+        toast({
+          title: "Item Updated",
+          description: `${updatedItem.name} has been updated.`
+        });
+      }
+    } catch (error) {
+      console.error("Error updating item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update item",
+        variant: "destructive"
+      });
+    }
   }
 
   return (
@@ -114,14 +178,11 @@ const ShoppingPage: React.FC = () => {
         </div>
       )}
 
-      {/* Direct Add Test Component */}
-      <DirectAddItem />
-
       {showAddDialog && (
         <AddItemDialog 
           open={showAddDialog} 
           onOpenChange={setShowAddDialog}
-          onSave={() => {}} // Implement this based on your logic
+          onSave={handleSaveItem}
         />
       )}
 
@@ -130,8 +191,8 @@ const ShoppingPage: React.FC = () => {
           isOpen={true}
           onClose={handleCloseEditDialog}
           item={editItem.item}
-          categories={[]}
-          onSave={() => {}} // Implement this based on your logic
+          categories={categories || []}
+          onSave={handleUpdateItem}
         />
       )}
     </div>

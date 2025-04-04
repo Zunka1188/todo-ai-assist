@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useCategoriesManager, defaultCategories } from './useCategoriesManager';
 
 export interface ShoppingItem {
   id: string;
@@ -94,19 +95,26 @@ export type SortOption = 'nameAsc' | 'nameDesc' | 'dateAsc' | 'dateDesc' | 'pric
 
 export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 'all', searchTerm: string = '') => {
   const [items, setItems] = useState<ShoppingItem[]>(() => {
-    localStorage.removeItem('shoppingItems');
     return loadFromLocalStorage<ShoppingItem[]>('shoppingItems', initialItems);
   });
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   const [activeCategory, setActiveCategory] = useState('All');
+  
+  // Import the categories manager
+  const categoriesManager = useCategoriesManager();
+  const { categories } = categoriesManager;
 
+  // Save items to localStorage whenever they change
   useEffect(() => {
     saveToLocalStorage('shoppingItems', items);
   }, [items]);
 
+  // Filter items based on filterMode, activeCategory, and searchTerm
   const getFilteredItems = () => {
     let filtered = items;
+    
+    // Apply filter mode
     switch (filterMode) {
       case 'weekly':
         filtered = items.filter(item => item.repeatOption === 'weekly');
@@ -121,16 +129,26 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       default:
         break;
     }
+    
+    // Apply category filter
     if (activeCategory !== 'All') {
       filtered = filtered.filter(item => item.category === activeCategory);
     }
+    
+    // Apply search filter
     if (searchTerm.trim() !== '') {
       const lowerSearchTerm = searchTerm.toLowerCase();
-      filtered = filtered.filter(item => item.name.toLowerCase().includes(lowerSearchTerm) || item.category.toLowerCase().includes(lowerSearchTerm));
+      filtered = filtered.filter(item => 
+        item.name.toLowerCase().includes(lowerSearchTerm) || 
+        item.category.toLowerCase().includes(lowerSearchTerm) ||
+        (item.notes && item.notes.toLowerCase().includes(lowerSearchTerm))
+      );
     }
+    
     return filtered;
   };
 
+  // Sort items based on sortOption
   const getSortedItems = (filteredItems: ShoppingItem[]) => {
     return filteredItems.sort((a, b) => {
       switch (sortOption) {
@@ -161,6 +179,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     });
   };
 
+  // Add a new item to the shopping list
   const addItem = (newItem: Omit<ShoppingItem, 'id' | 'dateAdded' | 'completed'>) => {
     const item: ShoppingItem = {
       id: Date.now().toString(),
@@ -168,10 +187,11 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       dateAdded: new Date(),
       ...newItem
     };
-    setItems([...items, item]);
+    setItems(prevItems => [...prevItems, item]);
     return item;
   };
 
+  // Toggle item completion status
   const toggleItem = (id: string) => {
     const item = items.find(item => item.id === id);
     if (!item) return;
@@ -185,30 +205,23 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       setItems(updatedItems);
       return { completed: true, item };
     } else {
-      if (item.repeatOption === 'weekly' || item.repeatOption === 'monthly') {
-        const updatedItems = items.map(i => i.id === id ? {
-          ...i,
-          completed: false
-        } : i);
-        setItems(updatedItems);
-        return { completed: false, item };
-      } else {
-        const updatedItems = items.map(i => i.id === id ? {
-          ...i,
-          completed: false
-        } : i);
-        setItems(updatedItems);
-        return { completed: false, item };
-      }
+      const updatedItems = items.map(i => i.id === id ? {
+        ...i,
+        completed: false
+      } : i);
+      setItems(updatedItems);
+      return { completed: false, item };
     }
   };
 
+  // Remove an item from the shopping list
   const removeItem = (id: string) => {
     const itemToRemove = items.find(item => item.id === id);
     setItems(items.filter(item => item.id !== id));
     return itemToRemove;
   };
 
+  // Update an existing item
   const updateItem = (id: string, updatedData: Partial<ShoppingItem>) => {
     const updatedItems = items.map(item => 
       item.id === id ? { ...item, ...updatedData } : item
@@ -217,6 +230,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     return updatedItems.find(item => item.id === id);
   };
 
+  // Handle item selection for bulk operations
   const handleItemSelect = (id: string) => {
     if (selectedItems.includes(id)) {
       setSelectedItems(selectedItems.filter(itemId => itemId !== id));
@@ -225,6 +239,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     }
   };
 
+  // Delete all selected items
   const deleteSelectedItems = () => {
     const count = selectedItems.length;
     setItems(items.filter(item => !selectedItems.includes(item.id)));
@@ -237,12 +252,13 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   const purchasedItems = getSortedItems(filteredItems.filter(item => item.completed));
   
   return {
-    items,
+    items: filteredItems,
     selectedItems,
     sortOption,
     activeCategory,
     notPurchasedItems,
     purchasedItems,
+    categories, // Expose categories from the manager
     setActiveCategory,
     setSortOption,
     addItem,
@@ -252,60 +268,5 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     handleItemSelect,
     deleteSelectedItems,
     setSelectedItems,
-  };
-};
-
-export const defaultCategories = ["Groceries", "Household", "Electronics", "Clothing", "Other"];
-
-export const useCategoriesManager = () => {
-  const [categories, setCategories] = useState<string[]>(() => loadFromLocalStorage<string[]>('shoppingCategories', defaultCategories));
-  const [newCategory, setNewCategory] = useState('');
-  const [categoryToDelete, setCategoryToDelete] = useState('');
-  const [categoryToEdit, setCategoryToEdit] = useState('');
-  const [editedCategoryName, setEditedCategoryName] = useState('');
-
-  useEffect(() => {
-    saveToLocalStorage('shoppingCategories', categories);
-  }, [categories]);
-
-  const addCategory = (category: string) => {
-    if (category.trim() === '' || categories.includes(category.trim())) {
-      return false;
-    }
-    const updatedCategories = [...categories, category.trim()];
-    setCategories(updatedCategories);
-    return true;
-  };
-
-  const deleteCategory = (category: string) => {
-    if (!category || category === 'All') return false;
-    const updatedCategories = categories.filter(c => c !== category);
-    setCategories(updatedCategories);
-    return true;
-  };
-
-  const updateCategory = (oldCategory: string, newCategoryName: string) => {
-    if (!oldCategory || oldCategory === 'All' || newCategoryName.trim() === '') return false;
-    if (categories.includes(newCategoryName.trim()) && newCategoryName.trim() !== oldCategory) {
-      return false;
-    }
-    const updatedCategories = categories.map(c => c === oldCategory ? newCategoryName.trim() : c);
-    setCategories(updatedCategories);
-    return true;
-  };
-
-  return {
-    categories: ['All', ...categories],
-    newCategory,
-    categoryToDelete,
-    categoryToEdit,
-    editedCategoryName,
-    setNewCategory,
-    setCategoryToDelete,
-    setCategoryToEdit,
-    setEditedCategoryName,
-    addCategory,
-    deleteCategory,
-    updateCategory,
   };
 };

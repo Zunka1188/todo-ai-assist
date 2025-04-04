@@ -2,15 +2,13 @@
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import ShoppingItemButton from './ShoppingItemButton';
 import { useShoppingItems } from './useShoppingItems';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useNavigate, useLocation } from 'react-router-dom';
 import ImagePreviewDialog from './ImagePreviewDialog';
 import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 type ShoppingListProps = {
   searchTerm?: string;
@@ -25,28 +23,14 @@ const ShoppingList = ({
   className,
   onEditItem
 }: ShoppingListProps) => {
-  const shoppingItemsContext = useShoppingItems(filterMode, searchTerm);
-  const { removeItem: deleteItem, toggleItem: toggleItemCompletion, addItem } = shoppingItemsContext;
+  const { items, removeItem: deleteItem, toggleItem: toggleItemCompletion, addItem } = useShoppingItems(filterMode, searchTerm);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const location = useLocation();
   
-  // Filter items based on search term and filter mode, but don't filter out completed items
-  const filteredItems = shoppingItemsContext.items.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (!matchesSearch) return false;
-    
-    // Apply filter mode
-    if (filterMode === 'all') return true;
-    if (filterMode === 'one-off' && (!item.repeatOption || item.repeatOption === 'none')) return true;
-    if (filterMode === 'weekly' && item.repeatOption === 'weekly') return true;
-    if (filterMode === 'monthly' && item.repeatOption === 'monthly') return true;
-    
-    return false;
-  });
+  // Filter items based on search term (filtering is now handled in the hook)
+  const filteredItems = items;
   
   // Separate unpurchased and purchased items
   const unpurchasedItems = filteredItems.filter(item => !item.completed);
@@ -60,7 +44,7 @@ const ShoppingList = ({
     setSelectedImageUrl(null);
   };
 
-  // Enhanced function to handle adding items from camera capture or uploads
+  // Handle adding items from camera capture or uploads
   const handleSaveItemFromCapture = (itemData: any) => {
     try {
       console.log("ShoppingList - Handling save from capture:", itemData);
@@ -73,20 +57,13 @@ const ShoppingList = ({
       
       // Add brand name to the item name if it was detected
       if (itemData.brand && !itemData.name.includes(itemData.brand)) {
-        console.log(`Adding brand ${itemData.brand} to item name`);
         itemData.name = `${itemData.brand} ${itemData.name}`;
-      }
-      
-      // Make sure category exists
-      if (!itemData.category) {
-        console.log("Category missing, setting default");
-        itemData.category = "Household";
       }
       
       // Create a new item for the shopping list
       const newItem = {
         name: itemData.name,
-        category: itemData.category,
+        category: itemData.category || "Household",
         amount: itemData.amount || '1', 
         price: itemData.price,
         imageUrl: itemData.file || null,
@@ -94,16 +71,10 @@ const ShoppingList = ({
         repeatOption: itemData.repeatOption || 'none',
       };
       
-      console.log("Adding item to shopping list:", newItem);
-      console.log("Current filter mode:", filterMode);
-      console.log("Repeat option of item:", newItem.repeatOption);
-      
       // Add to shopping list
       const added = addItem(newItem);
       
       if (added) {
-        console.log("Item successfully added:", added);
-        
         toast({
           title: "Item Added",
           description: `${itemData.name} has been added to your shopping list.`,
@@ -116,16 +87,13 @@ const ShoppingList = ({
             ? 'monthly' 
             : 'one-off';
             
-        console.log(`Current filter: ${filterMode}, item type: ${newItem.repeatOption}, target tab: ${targetTab}`);
-        
+        // Navigate if needed
         if (filterMode !== targetTab && filterMode !== 'all') {
-          console.log(`Navigating to /${targetTab} tab for new item`);
           navigate(`/shopping?tab=${targetTab}`, { replace: true });
         }
         
         return true;
       } else {
-        console.error("Failed to add item - addItem returned falsy value");
         toast({
           title: "Error",
           description: "Failed to add item to shopping list. Please try again.",
@@ -144,6 +112,30 @@ const ShoppingList = ({
     return false;
   };
 
+  // Shopping items grid renderer
+  const renderShoppingItemsGrid = (items: any[]) => (
+    <div className={cn(
+      "shopping-items-grid grid",
+      isMobile ? "grid-cols-2 sm:grid-cols-3 gap-2" : "grid-cols-3 lg:grid-cols-4 gap-4"
+    )}>
+      {items.map((item) => (
+        <ShoppingItemButton
+          key={item.id}
+          name={item.name}
+          completed={item.completed}
+          quantity={item.amount}
+          repeatOption={item.repeatOption}
+          imageUrl={item.imageUrl}
+          notes={item.notes}
+          onClick={() => toggleItemCompletion(item.id)}
+          onDelete={() => deleteItem(item.id)}
+          onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
+          onImagePreview={item.imageUrl ? () => handleImagePreview(item.imageUrl!) : undefined}
+        />
+      ))}
+    </div>
+  );
+
   return (
     <div className={cn('w-full', className)}>
       {filteredItems.length === 0 ? (
@@ -156,54 +148,20 @@ const ShoppingList = ({
       ) : (
         <ScrollArea className="h-[calc(100vh-280px)]">
           {/* Unpurchased Items Section */}
-          {unpurchasedItems.length > 0 && (
-            <div className={`shopping-items-grid grid ${isMobile ? 'grid-cols-3 gap-2' : 'grid-cols-4 gap-4'}`}>
-              {unpurchasedItems.map((item) => (
-                <ShoppingItemButton
-                  key={item.id}
-                  name={item.name}
-                  completed={item.completed}
-                  quantity={item.amount}
-                  repeatOption={item.repeatOption}
-                  imageUrl={item.imageUrl}
-                  notes={item.notes}
-                  onClick={() => toggleItemCompletion(item.id)}
-                  onDelete={() => deleteItem(item.id)}
-                  onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
-                  onImagePreview={item.imageUrl ? () => handleImagePreview(item.imageUrl!) : undefined}
-                />
-              ))}
-            </div>
-          )}
+          {unpurchasedItems.length > 0 && renderShoppingItemsGrid(unpurchasedItems)}
           
           {/* Purchased Items Section - only show if there are purchased items */}
           {purchasedItems.length > 0 && (
             <div className="mt-6 mb-8">
               <Separator className="mb-4" />
               <h3 className="text-lg font-medium mb-4 px-1">{isMobile ? 'Purchased' : 'Purchased Items'}</h3>
-              <div className={`shopping-items-grid grid ${isMobile ? 'grid-cols-3 gap-2' : 'grid-cols-4 gap-4'}`}>
-                {purchasedItems.map((item) => (
-                  <ShoppingItemButton
-                    key={item.id}
-                    name={item.name}
-                    completed={item.completed}
-                    quantity={item.amount}
-                    repeatOption={item.repeatOption}
-                    imageUrl={item.imageUrl}
-                    notes={item.notes}
-                    onClick={() => toggleItemCompletion(item.id)}
-                    onDelete={() => deleteItem(item.id)}
-                    onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
-                    onImagePreview={item.imageUrl ? () => handleImagePreview(item.imageUrl!) : undefined}
-                  />
-                ))}
-              </div>
+              {renderShoppingItemsGrid(purchasedItems)}
             </div>
           )}
         </ScrollArea>
       )}
 
-      {/* Using the improved ImagePreviewDialog component */}
+      {/* Image preview dialog */}
       <ImagePreviewDialog 
         imageUrl={selectedImageUrl}
         onClose={handleCloseImageDialog}
