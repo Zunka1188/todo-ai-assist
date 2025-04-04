@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, File, Search, Plus } from 'lucide-react';
+import { ArrowLeft, File, Search, Plus, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,8 +44,8 @@ const DocumentsPage = () => {
   };
 
   const subtabs = [
-    { name: 'Files', icon: <File className="h-4 w-4 mr-2" />, path: '/documents' },
-    { name: 'Categories', badge: 'New', path: '/documents/categories' },
+    { name: 'Categories', icon: <Tag className="h-4 w-4 mr-2" />, path: '/documents/categories' },
+    { name: 'Files', icon: <File className="h-4 w-4 mr-2" />, badge: '', path: '/documents' },
   ];
 
   const currentPath = '/documents';
@@ -79,7 +79,7 @@ const DocumentsPage = () => {
           onClick={() => setIsAddDialogOpen(true)}
         >
           <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span>Add Document</span>
+          <span>Add Item</span>
         </Button>
         
         <div className="relative w-full sm:w-auto sm:max-w-md">
