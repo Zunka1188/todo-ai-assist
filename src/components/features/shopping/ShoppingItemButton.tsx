@@ -178,7 +178,8 @@ const ShoppingItemButton = ({
               display: 'flex',
               alignItems: 'flex-start',
               justifyContent: 'center',
-              paddingTop: '8px'
+              paddingTop: '8px',
+              position: 'relative'
             }}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild onClick={handleDropdownClick}>
@@ -186,7 +187,7 @@ const ShoppingItemButton = ({
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 shadow-lg z-50">
                   {imageUrl && (
                     <DropdownMenuItem onClick={(e) => {
                       e.preventDefault();
