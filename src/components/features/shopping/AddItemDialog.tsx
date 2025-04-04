@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog,
@@ -24,7 +23,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import FilePreview, { getFileTypeFromName } from '../documents/FilePreview';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ImageAnalysisModal from '../documents/ImageAnalysisModal';
 import { AnalysisResult } from '@/utils/imageAnalysis';
@@ -361,13 +360,13 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
+        <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-hidden")}>
           <DialogHeader>
             <DialogTitle>Add New Item</DialogTitle>
           </DialogHeader>
 
-          <ScrollArea className="max-h-[calc(90vh-10rem)]">
-            <div className="space-y-4 pr-4">
+          <ScrollArea className="max-h-[calc(90vh-10rem)] pr-4">
+            <div className="space-y-4">
               <div className="grid gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="name">Item Name *</Label>
@@ -380,7 +379,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category">Category *</Label>
                   <select
                     id="category"
                     value={isCustomCategory ? "custom" : category}
@@ -406,8 +405,39 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="file">File Attachment</Label>
-                  <div className="flex gap-2">
+                  <Label htmlFor="file">File</Label>
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center justify-center h-10"
+                        disabled={isUploading}
+                      >
+                        {isUploading ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="mr-2 h-4 w-4" />
+                        )}
+                        Upload File
+                      </Button>
+                      
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => cameraInputRef.current?.click()}
+                        className="flex items-center justify-center h-10"
+                        disabled={isUploading}
+                      >
+                        <Camera className="mr-2 h-4 w-4" />
+                        Take Photo
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Supported files: images, PDFs, documents, spreadsheets, and more
+                    </p>
+                    
                     <Input
                       id="file"
                       type="file"
@@ -424,52 +454,38 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
                       onChange={handleFileChange}
                       className="hidden"
                     />
-                    
-                    {isUploading ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="flex-1"
-                        disabled
-                      >
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Uploading...
-                      </Button>
-                    ) : (
-                      <FileSourceOptions />
-                    )}
-                    
-                    {file && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={clearFile}
-                        className="p-2"
-                        title="Remove file"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
                   </div>
+                  
                   {file && (
                     <div className="relative mt-2">
                       <FilePreview 
                         file={file}
                         fileName={fileName}
                         fileType={fileType}
-                        className="max-h-32"
+                        className="max-h-32 w-full"
                       />
-                      {fileType === 'image' && (
+                      <div className="absolute top-2 right-2 flex gap-1">
+                        {fileType === 'image' && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
+                            onClick={toggleFullScreenPreview}
+                          >
+                            <Maximize2 className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           type="button"
-                          variant="secondary"
+                          variant="destructive"
                           size="sm"
-                          className="absolute top-2 right-2 h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
-                          onClick={toggleFullScreenPreview}
+                          className="h-8 w-8 p-0"
+                          onClick={clearFile}
                         >
-                          <Maximize2 className="h-4 w-4" />
+                          <X className="h-4 w-4" />
                         </Button>
-                      )}
+                      </div>
                     </div>
                   )}
                 </div>
