@@ -1,13 +1,16 @@
 
 import React, { useState } from 'react';
-import { Loader2, Check, Maximize2, Minimize2, X } from 'lucide-react';
+import { Loader2, Check, Maximize2, Minimize2, X, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { analyzeImage, AnalysisResult } from '@/utils/imageAnalysis';
+import { analyzeImage, AnalysisResult, getFileType } from '@/utils/imageAnalysis';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import FilePreview, { getFileTypeFromName } from './FilePreview';
 
 interface ImageAnalysisModalProps {
   imageData: string | null;
+  fileName?: string;
   isOpen: boolean;
   onAnalysisComplete: (result: AnalysisResult) => void;
   onClose: () => void;
@@ -15,6 +18,7 @@ interface ImageAnalysisModalProps {
 
 const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
   imageData,
+  fileName,
   isOpen,
   onAnalysisComplete,
   onClose
@@ -23,9 +27,14 @@ const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
   const [analyzing, setAnalyzing] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [fullScreen, setFullScreen] = useState(false);
+  const [fileType, setFileType] = useState<'image' | 'pdf' | 'document' | 'unknown'>('unknown');
+  const [textPreview, setTextPreview] = useState<string | null>(null);
   
   React.useEffect(() => {
     if (isOpen && imageData && !analyzing && !completed) {
+      // Determine file type
+      const type = getFileType(imageData, fileName);
+      setFileType(type);
       performAnalysis();
     }
     
@@ -53,7 +62,12 @@ const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
     
     try {
       // Perform actual analysis
-      const result = await analyzeImage(imageData);
+      const result = await analyzeImage(imageData, fileName);
+      
+      // If text was extracted, show it
+      if (result.extractedText) {
+        setTextPreview(result.extractedText);
+      }
       
       // Complete progress
       clearInterval(progressInterval);
@@ -66,7 +80,7 @@ const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
       }, 500);
       
     } catch (error) {
-      console.error("Error analyzing image:", error);
+      console.error("Error analyzing file:", error);
       clearInterval(progressInterval);
       // Still close the modal but without results
       onClose();
@@ -116,25 +130,41 @@ const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Analyzing Image</DialogTitle>
+          <DialogTitle>
+            {fileType === 'pdf' ? 'Analyzing PDF' : 
+             fileType === 'document' ? 'Analyzing Document' : 
+             'Analyzing Image'}
+          </DialogTitle>
         </DialogHeader>
         
         <div className="flex flex-col items-center justify-center py-6 space-y-4">
           {imageData && (
             <div className="relative w-full">
-              <img 
-                src={imageData} 
-                alt="Preview" 
-                className="w-full h-48 object-contain rounded-md"
-              />
-              <Button
-                variant="outline"
-                size="icon"
-                className="absolute top-2 right-2 bg-white/70 hover:bg-white"
-                onClick={toggleFullScreen}
-              >
-                <Maximize2 className="h-4 w-4" />
-              </Button>
+              {fileType === 'image' ? (
+                <img 
+                  src={imageData} 
+                  alt="Preview" 
+                  className="w-full h-48 object-contain rounded-md"
+                />
+              ) : (
+                <FilePreview 
+                  file={imageData}
+                  fileName={fileName}
+                  fileType={fileType}
+                  className="w-full h-48"
+                />
+              )}
+              
+              {fileType === 'image' && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute top-2 right-2 bg-white/70 hover:bg-white"
+                  onClick={toggleFullScreen}
+                >
+                  <Maximize2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           )}
           
@@ -143,7 +173,9 @@ const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
               <Loader2 className="h-10 w-10 text-todo-purple animate-spin" />
               <Progress value={progress} className="w-full" />
               <p className="text-sm text-center text-muted-foreground">
-                AI is analyzing your image to extract relevant information
+                AI is analyzing your {fileType === 'pdf' ? 'PDF document' : 
+                                    fileType === 'document' ? 'document' : 
+                                    'image'} to extract relevant information
               </p>
             </>
           ) : (
@@ -153,9 +185,22 @@ const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
               </div>
               <p className="text-center font-medium">Analysis Complete</p>
               <p className="text-sm text-center text-muted-foreground">
-                We've extracted information from your image
+                We've extracted information from your {fileType === 'pdf' ? 'PDF document' : 
+                                                     fileType === 'document' ? 'document' : 
+                                                     'image'}
               </p>
             </>
+          )}
+
+          {textPreview && completed && (
+            <div className="w-full mt-2">
+              <p className="text-sm font-medium mb-2">Extracted Text Preview:</p>
+              <ScrollArea className="h-[100px] w-full border rounded-md bg-muted/20 p-2">
+                <div className="text-xs whitespace-pre-wrap text-muted-foreground">
+                  {textPreview}
+                </div>
+              </ScrollArea>
+            </div>
           )}
         </div>
         

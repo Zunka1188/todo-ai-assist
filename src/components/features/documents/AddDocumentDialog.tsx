@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, X, Camera, Upload, Loader2, Save, Maximize2, Minimize2, File as FileIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -142,8 +142,8 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
           setFile(fileData);
           setIsUploading(false);
           
-          // Only trigger AI analysis for images
-          if (detectedFileType === 'image') {
+          // Trigger AI analysis for images, PDFs and documents
+          if (['image', 'pdf', 'document'].includes(detectedFileType)) {
             setShowAnalysisModal(true);
           }
         }
@@ -225,7 +225,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     
     toast({
       title: "AI Analysis Complete",
-      description: "We've pre-filled the form based on your image",
+      description: "We've pre-filled the form based on your file",
     });
   };
 
@@ -265,7 +265,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md bg-background text-foreground border-gray-700">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden bg-background text-foreground border-gray-700">
           <DialogHeader>
             <DialogTitle>
               {isEditing ? "Edit Item" : "Add New Item"}
@@ -275,27 +275,26 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
             </DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="h-[60vh] pr-4">
+          <ScrollArea className="max-h-[calc(90vh-10rem)] pr-4">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title" className="text-gray-300">Title*</Label>
+                <Label htmlFor="title">Title*</Label>
                 <Input
                   id="title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Enter title"
                   required
-                  className="bg-gray-800 border-gray-700 text-white"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category" className="text-gray-300">Category</Label>
+                <Label htmlFor="category">Category</Label>
                 <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                  <SelectContent>
                     {categories.map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         {cat}
@@ -306,41 +305,38 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-gray-300">Description</Label>
+                <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Enter description"
                   rows={3}
-                  className="bg-gray-800 border-gray-700 text-white"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="tags" className="text-gray-300">Tags (comma separated)</Label>
+                <Label htmlFor="tags">Tags (comma separated)</Label>
                 <Input
                   id="tags"
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
                   placeholder="e.g., important, work, personal"
-                  className="bg-gray-800 border-gray-700 text-white"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="date" className="text-gray-300">Date</Label>
+                <Label htmlFor="date">Date</Label>
                 <Input
                   id="date"
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="bg-gray-800 border-gray-700 text-white"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-gray-300">File</Label>
+                <Label>File</Label>
                 {file ? (
                   <div className="relative">
                     <FilePreview 
@@ -377,7 +373,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
                     <Button
                       type="button"
                       variant="outline"
-                      className="flex-1 bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
+                      className="flex-1"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
                     >
@@ -392,7 +388,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
                     <Button
                       type="button"
                       variant="outline"
-                      className="flex-1 bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
+                      className="flex-1"
                       onClick={handleCameraCapture}
                       disabled={isUploading}
                     >
@@ -409,7 +405,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
                     />
                   </div>
                 )}
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Supported files: images, PDFs, documents, spreadsheets, and more
                 </p>
               </div>
@@ -420,7 +416,6 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
                     type="button" 
                     variant="outline" 
                     onClick={() => onOpenChange(false)}
-                    className="border-gray-700 text-white hover:bg-gray-700"
                   >
                     Cancel
                   </Button>
@@ -448,7 +443,8 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       </Dialog>
       
       <ImageAnalysisModal
-        imageData={fileType === 'image' ? file : null}
+        imageData={file}
+        fileName={fileName}
         isOpen={showAnalysisModal}
         onAnalysisComplete={handleAnalysisComplete}
         onClose={() => setShowAnalysisModal(false)}
