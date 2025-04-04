@@ -14,11 +14,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({ title, subtitle, icon, className 
   const { theme } = useTheme();
   
   return (
-    <header className={cn("flex flex-col space-y-1 py-3 sm:py-4", className)}>
+    <header className={cn("flex flex-col space-y-1", className)}>
       <div className="flex items-center gap-2">
-        {icon && icon}
+        {icon && <div className="flex items-center justify-center">{icon}</div>}
         <h1 className={cn(
-          "text-[24px] font-bold sm:text-[28px] md:text-[32px]",
+          "text-[28px] font-bold sm:text-[32px]",
           theme === 'light' 
             ? "text-todo-black" 
             : "text-white"
