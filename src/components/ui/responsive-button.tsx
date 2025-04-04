@@ -56,7 +56,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
       <div className={cn(
         "w-full max-w-[320px] h-[96px] bg-background rounded-md overflow-hidden flex flex-col",
         "border-2 border-border shadow-md",
-        active && "border-primary border-2",
+        active && "border-primary",
         className
       )}>
         {/* Top Section: Product Image & Details (64px height) */}
@@ -133,12 +133,12 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
           </div>
         </div>
         
-        {/* Bottom Section: Button (32px height) */}
+        {/* Bottom Section: Button (32px height) - Guaranteed to be attached to the bottom */}
         <Button
           ref={ref}
           variant={variant === 'default' ? 'purchase' : variant}
           onClick={onClick}
-          className="w-full h-[32px] rounded-none mt-auto border-t border-border"
+          className="w-full h-[32px] rounded-none mt-auto border-t border-border absolute bottom-0 left-0 right-0"
           {...props}
         >
           {props.children || "Action"}
