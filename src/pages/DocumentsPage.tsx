@@ -22,6 +22,21 @@ const DocumentsPage = () => {
     navigate('/');
   };
 
+  // Define document categories
+  const categories = [
+    'Personal',
+    'Work',
+    'Travel',
+    'Legal',
+    'Finance',
+    'Health',
+    'Education',
+    'Other'
+  ];
+  
+  // Default category for new documents
+  const currentCategory = 'Personal';
+
   const handleAddDocument = (document: any) => {
     console.log('Adding document:', document);
     // Logic to add document would go here
@@ -113,7 +128,9 @@ const DocumentsPage = () => {
       <AddDocumentDialog 
         open={isAddDialogOpen} 
         onOpenChange={setIsAddDialogOpen}
-        onSave={handleAddDocument}
+        onAdd={handleAddDocument}
+        categories={categories}
+        currentCategory={currentCategory}
       />
     </div>
   );

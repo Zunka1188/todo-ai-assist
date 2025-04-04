@@ -29,20 +29,20 @@ interface DocumentItem {
 
 interface AddDocumentDialogProps {
   open: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
   onAdd: (item: DocumentItem) => void;
-  currentCategory: string;
-  categories: string[];
+  currentCategory?: string;
+  categories?: string[];
   isEditing?: boolean;
   editItem?: DocumentItem | null;
 }
 
 const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   open,
-  onClose,
+  onOpenChange,
   onAdd,
-  currentCategory,
-  categories,
+  currentCategory = 'Personal',
+  categories = ['Personal', 'Work'],
   isEditing = false,
   editItem = null
 }) => {
@@ -104,7 +104,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     };
 
     onAdd(newItem);
-    onClose();
+    onOpenChange(false);
 
     toast({
       title: isEditing ? "Item updated" : "Item added",
@@ -222,7 +222,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
             variant="ghost" 
             size="icon"
             className="text-white" 
-            onClick={onClose}
+            onClick={() => onOpenChange(false)}
           >
             <X className="h-6 w-6" />
           </Button>
@@ -240,7 +240,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md bg-background text-foreground border-gray-700">
           <DialogHeader>
             <DialogTitle>
@@ -384,7 +384,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={onClose}
+                onClick={() => onOpenChange(false)}
                 className="border-gray-700 text-white hover:bg-gray-700"
               >
                 Cancel
