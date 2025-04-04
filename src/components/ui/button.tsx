@@ -19,9 +19,11 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        green: "bg-green-500 text-white hover:bg-green-600",  // Added green variant
-        gray: "bg-gray-400 text-white hover:bg-gray-500",    // Added gray variant
-        purple: "bg-purple-600 text-white hover:bg-purple-700", // Added purple variant
+        green: "bg-green-500 text-white hover:bg-green-600",  // Active state
+        gray: "bg-gray-400 text-white hover:bg-gray-500",    // Completed/marked state
+        purple: "bg-purple-600 text-white hover:bg-purple-700", // Add Item button
+        active: "bg-green-500 text-white hover:bg-green-600", // Alternative naming for active
+        completed: "bg-gray-400 text-white hover:bg-gray-500", // Alternative naming for completed
       },
       size: {
         default: "h-10 px-4 py-2",

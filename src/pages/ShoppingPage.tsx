@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Updated tab types to include the new "one-off" option
+// Updated tab types to include the "one-off" option
 type ShoppingTab = 'one-off' | 'weekly' | 'monthly' | 'all';
 
 const ShoppingPage = () => {
@@ -89,7 +89,7 @@ const ShoppingPage = () => {
           className="gap-2 h-10 sm:w-auto w-full flex justify-center items-center"
           size={isMobile ? "default" : "sm"}
           onClick={() => setAddDialogOpen(true)}
-          variant="purple"
+          variant="purple" // Changed from default to purple
         >
           <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
           <span>Add Item</span>
