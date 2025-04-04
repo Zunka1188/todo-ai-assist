@@ -16,7 +16,8 @@ import {
   Edit,
   MoreVertical,
   Image,
-  Upload
+  Upload,
+  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,6 +62,10 @@ interface ShoppingItem {
   price?: string;
   dateAdded: Date;
   imageUrl?: string;
+}
+
+interface ShoppingListProps {
+  searchTerm?: string;
 }
 
 type SortOption = 'nameAsc' | 'nameDesc' | 'dateAsc' | 'dateDesc' | 'priceAsc' | 'priceDesc' | 'newest' | 'oldest';
@@ -113,7 +118,7 @@ const saveToLocalStorage = (key: string, value: any): void => {
   }
 };
 
-const ShoppingList: React.FC = () => {
+const ShoppingList: React.FC<ShoppingListProps> = ({ searchTerm = '' }) => {
   const [items, setItems] = useState<ShoppingItem[]>(() => 
     loadFromLocalStorage<ShoppingItem[]>('shoppingItems', initialItems)
   );
@@ -408,9 +413,19 @@ const ShoppingList: React.FC = () => {
   };
   
   const getFilteredItems = () => {
-    return activeCategory === 'All' 
+    let filtered = activeCategory === 'All' 
       ? items 
       : items.filter(item => item.category === activeCategory);
+    
+    if (searchTerm.trim() !== '') {
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.name.toLowerCase().includes(lowerSearchTerm) || 
+        item.category.toLowerCase().includes(lowerSearchTerm)
+      );
+    }
+    
+    return filtered;
   };
   
   const getSortedItems = (filteredItems: ShoppingItem[]) => {
@@ -520,15 +535,15 @@ const ShoppingList: React.FC = () => {
                 <CarouselItem key={category} className="pl-0.5 md:pl-1 basis-auto">
                   <div className="relative group">
                     <Button
-                      variant="outline"
+                      variant={activeCategory === category ? "default" : "outline"}
                       size="sm"
                       onClick={() => setActiveCategory(category)}
                       className={cn(
-                        "rounded-full whitespace-nowrap h-6 px-2 md:px-3 pr-7",
+                        "rounded-full whitespace-nowrap h-8 px-3 md:px-4",
                         activeCategory === category && "bg-todo-purple text-white hover:bg-todo-purple-dark"
                       )}
                     >
-                      <span className="text-[10px]">{category}</span>
+                      <span className="text-xs">{category}</span>
                       
                       {category !== 'All' && (
                         <DropdownMenu>
@@ -551,14 +566,14 @@ const ShoppingList: React.FC = () => {
                               className="cursor-pointer"
                             >
                               <Edit size={12} className="mr-2" />
-                              <span className="text-[10px]">Edit</span>
+                              <span className="text-xs">Edit</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => handleDeleteCategory(category)}
                               className="cursor-pointer text-red-500 hover:text-red-600"
                             >
                               <Trash2 size={12} className="mr-2" />
-                              <span className="text-[10px]">Delete</span>
+                              <span className="text-xs">Delete</span>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -572,9 +587,9 @@ const ShoppingList: React.FC = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsAddCategoryDialogOpen(true)}
-                  className="rounded-full whitespace-nowrap h-6 px-2 md:px-3"
+                  className="rounded-full whitespace-nowrap h-8 px-3 md:px-4"
                 >
-                  <Plus size={10} className="mr-1" /> <span className="text-[10px]">New Category</span>
+                  <Plus size={12} className="mr-1" /> <span className="text-xs">New Category</span>
                 </Button>
               </CarouselItem>
             </CarouselContent>
@@ -588,7 +603,7 @@ const ShoppingList: React.FC = () => {
               placeholder="Add new item..."
               value={newItemName}
               onChange={(e) => setNewItemName(e.target.value)}
-              className="flex-1 h-7 text-xs"
+              className="flex-1 h-10 text-sm"
               onKeyPress={(e) => {
                 if (e.key === 'Enter' && !showDetailedEntry) addItem();
               }}
@@ -597,22 +612,22 @@ const ShoppingList: React.FC = () => {
               <PopoverTrigger asChild>
                 <Button 
                   variant="outline" 
-                  className="min-w-[32px] h-7"
+                  className="h-10 w-10 px-0"
                   aria-label={showDetailedEntry ? "Hide details" : "Show details"}
                 >
-                  <MoreHorizontal size={12} />
+                  <MoreHorizontal size={16} />
                 </Button>
               </PopoverTrigger>
               <PopoverContent align="end" className="w-60">
                 <div className="space-y-2">
-                  <div className="text-xs font-medium">Item Details</div>
+                  <div className="text-sm font-medium">Item Details</div>
                   <div className="grid gap-2">
                     <div className="grid grid-cols-4 items-center gap-2">
                       <label className="text-xs col-span-1">Category</label>
                       <select
                         value={newItemCategory}
                         onChange={(e) => setNewItemCategory(e.target.value)}
-                        className="rounded-md border border-input bg-background px-2 py-1 text-xs dark:bg-gray-800 dark:border-gray-700 dark:text-white col-span-3"
+                        className="rounded-md border border-input bg-background px-2 py-1.5 text-xs dark:bg-gray-800 dark:border-gray-700 dark:text-white col-span-3"
                       >
                         {categories.map((category) => (
                           <option key={category} value={category}>
@@ -627,7 +642,7 @@ const ShoppingList: React.FC = () => {
                         placeholder="Optional"
                         value={newItemAmount}
                         onChange={(e) => setNewItemAmount(e.target.value)}
-                        className="col-span-3 h-6 text-xs"
+                        className="col-span-3 h-8 text-xs"
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-2">
@@ -637,7 +652,7 @@ const ShoppingList: React.FC = () => {
                         placeholder="Optional"
                         value={newItemDate}
                         onChange={(e) => setNewItemDate(e.target.value)}
-                        className="col-span-3 h-6 text-xs"
+                        className="col-span-3 h-8 text-xs"
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-2">
@@ -647,7 +662,7 @@ const ShoppingList: React.FC = () => {
                         placeholder="Optional"
                         value={newItemPrice}
                         onChange={(e) => setNewItemPrice(e.target.value)}
-                        className="col-span-3 h-6 text-xs"
+                        className="col-span-3 h-8 text-xs"
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-2">
@@ -664,7 +679,7 @@ const ShoppingList: React.FC = () => {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-6 w-full text-xs flex justify-center"
+                          className="h-8 w-full text-xs flex justify-center"
                           onClick={() => newItemFileInputRef.current?.click()}
                         >
                           <Image size={12} className="mr-1" />
@@ -673,14 +688,14 @@ const ShoppingList: React.FC = () => {
                       </div>
                     </div>
                     {newItemImage && (
-                      <div className="text-[10px] text-center text-muted-foreground">
+                      <div className="text-xs text-center text-muted-foreground">
                         Image selected: {newItemImage.name}
                       </div>
                     )}
                     <Button 
                       size="sm" 
                       onClick={addItem} 
-                      className="mt-1 w-full bg-todo-purple hover:bg-todo-purple-dark text-white h-7"
+                      className="mt-1 w-full bg-todo-purple hover:bg-todo-purple-dark text-white h-8"
                     >
                       <span className="text-xs">Add Item with Details</span>
                     </Button>
@@ -690,10 +705,10 @@ const ShoppingList: React.FC = () => {
             </Popover>
             <Button 
               onClick={addItem} 
-              className="bg-todo-purple hover:bg-todo-purple-dark text-white min-w-[32px] h-7"
+              className="bg-todo-purple hover:bg-todo-purple-dark text-white h-10 w-10 px-0"
               aria-label="Add item"
             >
-              <Plus size={12} />
+              <Plus size={16} />
             </Button>
           </div>
         </div>
@@ -706,19 +721,19 @@ const ShoppingList: React.FC = () => {
             size="sm" 
             onClick={() => setIsMultiSelectActive(!isMultiSelectActive)}
             className={cn(
-              "h-6",
+              "h-8",
               isMultiSelectActive && "bg-accent"
             )}
           >
             <Checkbox checked={isMultiSelectActive} className="mr-1 h-3 w-3" /> 
-            <span className="text-[10px]">Select</span>
+            <span className="text-xs">Select</span>
           </Button>
           
           {isMultiSelectActive && selectedItems.length > 0 && (
             <Button 
               variant="destructive" 
               size="sm"
-              className="h-6 text-[10px]"
+              className="h-8 text-xs"
               onClick={deleteSelectedItems}
             >
               Delete Selected ({selectedItems.length})
@@ -728,34 +743,34 @@ const ShoppingList: React.FC = () => {
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-6">
-              <SortAsc size={10} className="mr-1" /> <span className="text-[10px]">Sort</span>
+            <Button variant="outline" size="sm" className="h-8">
+              <SortAsc size={12} className="mr-1" /> <span className="text-xs">Sort</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => handleSort('nameAsc')}>
-              <span className="text-[10px]">Name (A-Z)</span>
+              <span className="text-xs">Name (A-Z)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('nameDesc')}>
-              <span className="text-[10px]">Name (Z-A)</span>
+              <span className="text-xs">Name (Z-A)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('dateAsc')}>
-              <span className="text-[10px]">Date (Earliest First)</span>
+              <span className="text-xs">Date (Earliest First)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('dateDesc')}>
-              <span className="text-[10px]">Date (Latest First)</span>
+              <span className="text-xs">Date (Latest First)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('priceAsc')}>
-              <span className="text-[10px]">Price (Low to High)</span>
+              <span className="text-xs">Price (Low to High)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('priceDesc')}>
-              <span className="text-[10px]">Price (High to Low)</span>
+              <span className="text-xs">Price (High to Low)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('newest')}>
-              <span className="text-[10px]">Recently Added</span>
+              <span className="text-xs">Recently Added</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleSort('oldest')}>
-              <span className="text-[10px]">Oldest Added</span>
+              <span className="text-xs">Oldest Added</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
