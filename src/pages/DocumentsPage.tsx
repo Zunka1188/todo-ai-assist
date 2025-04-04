@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft, File, Search, Plus, Tag, ChefHat, Plane, Dumbbell, Shirt, FileText, Maximize2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -39,6 +38,9 @@ interface DocumentItem {
   content: string;
   tags: string[];
   date: Date;
+  file?: string | null;
+  fileName?: string;
+  fileType?: string;
 }
 
 // Sample initial items for categories
@@ -155,7 +157,15 @@ const DocumentsPage = () => {
       if (editingItem) {
         // Update existing item
         setCategoryItems(categoryItems.map(existingItem => 
-          existingItem.id === editingItem.id ? {...item, category: activeCategoryTab as DocumentCategory} : existingItem
+          existingItem.id === editingItem.id ? {
+            ...item, 
+            category: activeCategoryTab as DocumentCategory,
+            content: item.description || item.content || '',
+            file: item.file || null,
+            fileName: item.fileName || undefined,
+            fileType: item.fileType || undefined,
+            date: new Date(item.date || Date.now())
+          } : existingItem
         ));
         
         toast({
@@ -165,10 +175,16 @@ const DocumentsPage = () => {
       } else {
         // Add new item
         const newItem: DocumentItem = {
-          ...item,
           id: Date.now().toString(),
+          title: item.title,
           category: activeCategoryTab as DocumentCategory,
-          date: new Date()
+          type: item.file && getFileTypeFromName(item.fileName || '') === 'image' ? 'image' : 'note',
+          content: item.description || '',
+          tags: item.tags || [],
+          date: new Date(item.date || Date.now()),
+          file: item.file || null,
+          fileName: item.fileName || undefined,
+          fileType: item.fileType || undefined
         };
         
         setCategoryItems([...categoryItems, newItem]);
@@ -339,7 +355,9 @@ const DocumentsPage = () => {
           category: editingItem.category as string,
           tags: editingItem.tags,
           date: editingItem.date.toISOString().split('T')[0],
-          image: editingItem.type === 'image' ? editingItem.content : null
+          file: editingItem.type === 'image' ? editingItem.content : editingItem.file,
+          fileName: editingItem.fileName,
+          fileType: editingItem.fileType
         } : null}
       />
 
