@@ -1,6 +1,6 @@
 
 import React, { useRef } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import AppHeader from '@/components/layout/AppHeader';
@@ -21,12 +21,12 @@ const ShoppingPage = () => {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex flex-col h-screen">
       <div 
         ref={contentRef}
-        className="flex flex-col pb-20 sm:pb-0 py-1 sm:py-4 px-2 sm:px-6 md:px-8 container mx-auto max-w-4xl overflow-y-auto hide-scrollbar smooth-scroll"
+        className="flex-1 container max-w-5xl mx-auto px-4 sm:px-6 py-4 overflow-y-auto hide-scrollbar"
       >
-        <div className="flex items-center justify-between mb-1 md:mb-4 sticky top-0 z-10 bg-background/80 backdrop-blur-sm py-2">
+        <div className="flex items-center justify-between mb-4 sticky top-0 z-10 bg-background/80 backdrop-blur-sm py-2">
           <div className="flex items-center">
             <Button 
               variant="ghost" 
@@ -43,12 +43,13 @@ const ShoppingPage = () => {
             <AppHeader 
               title="Shopping" 
               subtitle="Track what you need to buy"
+              icon={<ShoppingBag className="h-5 w-5 text-todo-purple" />}
               className="py-0"
             />
           </div>
           {!isMobile && <ThemeToggle />}
         </div>
-        <div className="w-full flex-1 mt-2">
+        <div className="w-full mt-4 pb-16 sm:pb-4">
           <ShoppingList />
         </div>
       </div>
