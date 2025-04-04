@@ -9,6 +9,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+
 interface Event {
   id: string;
   title: string;
@@ -27,30 +28,27 @@ interface Event {
   };
   reminder?: string;
 }
+
 const upcomingEvents: Event[] = [{
   id: '1',
   title: 'Team Meeting',
   description: 'Weekly team sync to discuss project progress',
   startDate: new Date(2025, 3, 5, 10, 0),
-  // April 5, 2025, 10:00 AM
   endDate: new Date(2025, 3, 5, 11, 30),
-  // April 5, 2025, 11:30 AM
   location: 'Conference Room A',
   color: '#4285F4',
   reminder: '30',
   recurring: {
     frequency: 'weekly',
     interval: 1,
-    daysOfWeek: [1] // Monday
+    daysOfWeek: [1]
   }
 }, {
   id: '2',
   title: 'Dentist Appointment',
   description: 'Regular check-up with Dr. Smith',
   startDate: new Date(2025, 3, 8, 14, 30),
-  // April 8, 2025, 2:30 PM
   endDate: new Date(2025, 3, 8, 15, 30),
-  // April 8, 2025, 3:30 PM
   location: 'Dental Clinic',
   color: '#EA4335',
   reminder: '60'
@@ -59,13 +57,12 @@ const upcomingEvents: Event[] = [{
   title: 'Grocery Shopping',
   description: 'Buy weekly groceries',
   startDate: new Date(2025, 3, 3, 18, 0),
-  // April 3, 2025, 6:00 PM
   endDate: new Date(2025, 3, 3, 19, 0),
-  // April 3, 2025, 7:00 PM
   location: 'Supermarket',
   color: '#34A853',
   reminder: '15'
 }];
+
 const reminderOptions = [{
   value: "none",
   label: "No reminder"
@@ -97,6 +94,7 @@ const reminderOptions = [{
   value: "2880",
   label: "2 days before"
 }];
+
 const CalendarWidget = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedDayEvents, setSelectedDayEvents] = useState<typeof upcomingEvents>([]);
@@ -107,9 +105,11 @@ const CalendarWidget = () => {
   const {
     theme
   } = useTheme();
+
   const isDayWithEvent = (day: Date) => {
     return upcomingEvents.some(event => isSameDay(event.startDate, day) || isSameDay(event.endDate, day) || event.startDate <= day && event.endDate >= day);
   };
+
   const handleDaySelect = (day: Date | undefined) => {
     setDate(day);
     if (day) {
@@ -124,24 +124,26 @@ const CalendarWidget = () => {
       }
     }
   };
+
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
     setOpen(false);
     setViewEventDialogOpen(true);
   };
+
   const getReminderLabel = (value: string) => {
     const option = reminderOptions.find(opt => opt.value === value);
     return option ? option.label : "No reminder";
   };
 
-  // Function to get formatted time from date
   const getFormattedTime = (date: Date) => {
     return date.toLocaleTimeString([], {
       hour: '2-digit',
       minute: '2-digit'
     });
   };
-  return <Card className="metallic-card shadow-sm hover:shadow transition-shadow duration-300">
+
+  return <Card className="h-full shadow-sm hover:shadow transition-shadow duration-300">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="flex items-center space-x-2">
           <CalendarIcon className="h-5 w-5 text-todo-purple" />
@@ -155,7 +157,7 @@ const CalendarWidget = () => {
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <div>
-              <Calendar mode="single" selected={date} onSelect={handleDaySelect} weekStartsOn={1} // Start week on Monday
+              <Calendar mode="single" selected={date} onSelect={handleDaySelect} weekStartsOn={1}
             modifiers={{
               event: date => isDayWithEvent(date)
             }} modifiersStyles={{
@@ -165,7 +167,7 @@ const CalendarWidget = () => {
                 color: '#7E69AB',
                 borderColor: '#9b87f5'
               }
-            }} className="rounded-lg border bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 shadow w-full pointer-events-auto px-0 mx-[111px]" />
+            }} className="rounded-lg border bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 shadow w-full pointer-events-auto mx-auto" />
             </div>
           </PopoverTrigger>
           <PopoverContent className="w-[280px] sm:w-80 p-0">
@@ -207,7 +209,6 @@ const CalendarWidget = () => {
           </PopoverContent>
         </Popover>
         
-        {/* Event View Dialog */}
         <Dialog open={viewEventDialogOpen} onOpenChange={setViewEventDialogOpen}>
           {selectedEvent && <DialogContent className="max-w-[320px] sm:max-w-md">
               <DialogHeader>
@@ -272,4 +273,5 @@ const CalendarWidget = () => {
       </CardContent>
     </Card>;
 };
+
 export default CalendarWidget;
