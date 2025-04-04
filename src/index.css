@@ -11,7 +11,7 @@
     --card-foreground: 267 70% 25%;
     --popover: 0 0% 100%;
     --popover-foreground: 267 70% 25%;
-    --primary: 267 75% 52%;
+    --primary: 251 87% 66%; /* #8B5CF6 - Vibrant purple */
     --primary-foreground: 0 0% 100%;
     --secondary: 267 30% 96%;
     --secondary-foreground: 267 70% 30%;
@@ -23,17 +23,17 @@
     --destructive-foreground: 0 0% 98%;
     --border: 267 20% 90%;
     --input: 267 20% 90%;
-    --ring: 267 75% 52%;
+    --ring: 251 87% 66%; /* Same as primary */
     --radius: 0.5rem;
-    --todo-purple: 267 75% 52%;
-    --todo-purple-dark: 267 75% 40%;
-    --todo-purple-light: 267 75% 80%;
+    --todo-purple: 251 87% 66%; /* #8B5CF6 */
+    --todo-purple-dark: 251 87% 55%;
+    --todo-purple-light: 251 87% 80%;
     --todo-charcoal: 222 24% 14%;
     --todo-gray: 220 14% 45%;
   }
   
   .dark {
-    /* Dark theme inspired by Yuka with charcoal background (#1A1F2C) */
+    /* Dark theme with consistent vibrant purple */
     --background: 222 24% 14%; /* #1A1F2C - Dark charcoal */
     --foreground: 267 10% 95%;
     --card: 221 23% 18%; /* Slightly lighter than background */
@@ -52,7 +52,7 @@
     --destructive-foreground: 267 10% 95%;
     --border: 222 24% 24%;
     --input: 222 24% 24%;
-    --ring: 251 87% 66%;
+    --ring: 251 87% 66%; /* Same as primary */
     --todo-purple: 251 87% 66%; /* #8B5CF6 */
     --todo-purple-dark: 251 87% 55%;
     --todo-purple-light: 251 87% 80%;

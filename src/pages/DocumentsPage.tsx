@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Search, Plus, Tag, Shirt, ChefHat, Plane, Dumbbell, FileText, X, Maximize2, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -188,22 +189,11 @@ const DocumentsPage: React.FC = () => {
           title="Documents" 
           subtitle="Organize your personal collection" 
           className="py-0" 
+          icon={<FileText className="text-primary h-8 w-8 mr-2" />}
         />
       </div>
 
-      <div className="flex flex-row justify-between items-center gap-3 my-3">
-        <Button 
-          className="bg-todo-purple hover:bg-todo-purple/90 text-white gap-2 h-10 w-auto flex items-center px-4" 
-          onClick={() => {
-            setIsEditMode(false);
-            setEditItem(null);
-            setIsAddDialogOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" />
-          <span>Add Item</span>
-        </Button>
-        
+      <div className="flex justify-between items-center gap-3 mt-4 mb-6">
         <div className="relative max-w-xs flex-grow">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input 
@@ -214,15 +204,27 @@ const DocumentsPage: React.FC = () => {
             onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
+        
+        <Button 
+          className="bg-primary hover:bg-primary/90 text-white gap-2 h-10" 
+          onClick={() => {
+            setIsEditMode(false);
+            setEditItem(null);
+            setIsAddDialogOpen(true);
+          }}
+        >
+          <Plus className="h-4 w-4" />
+          <span>Add Item</span>
+        </Button>
       </div>
       
-      <div className="flex overflow-x-auto gap-1 pb-2 hide-scrollbar">
+      <div className="flex overflow-x-auto gap-2 pb-3 hide-scrollbar">
         {CATEGORIES.map(category => (
           <Button
             key={category}
-            variant={activeCategory === category ? "default" : "ghost"}
+            variant={activeCategory === category ? "default" : "outline"}
             className={`px-4 py-2 rounded-lg flex items-center gap-2 min-w-fit ${
-              activeCategory === category ? "bg-todo-purple text-white" : "bg-gray-800 text-gray-300"
+              activeCategory === category ? "bg-primary text-white" : ""
             }`}
             onClick={() => setActiveCategory(category)}
           >
@@ -238,7 +240,7 @@ const DocumentsPage: React.FC = () => {
             <p className="text-muted-foreground">No items in this category yet</p>
             <Button 
               variant="link" 
-              className="text-todo-purple mt-2"
+              className="text-primary mt-2"
               onClick={() => {
                 setIsEditMode(false);
                 setEditItem(null);
@@ -253,7 +255,7 @@ const DocumentsPage: React.FC = () => {
             {filteredDocuments.map((doc) => (
               <div 
                 key={doc.id} 
-                className="border border-gray-700 rounded-lg overflow-hidden bg-gray-800"
+                className="border border-border rounded-lg overflow-hidden bg-card"
               >
                 {doc.image ? (
                   <div className="relative h-60 w-full overflow-hidden">
@@ -308,7 +310,7 @@ const DocumentsPage: React.FC = () => {
                       <Button 
                         variant="destructive" 
                         size="sm"
-                        className="h-8 w-8 p-0 bg-red-500/60 hover:bg-red-500/80"
+                        className="h-8 w-8 p-0"
                         onClick={() => handleDeleteItem(doc.id)}
                       >
                         <X className="h-4 w-4" />
@@ -316,10 +318,10 @@ const DocumentsPage: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="p-6 border-l-4 border-gray-600">
+                  <div className="p-6 border-l-4 border-primary">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="text-xl font-medium text-white">{doc.title}</h3>
+                        <h3 className="text-xl font-medium text-foreground">{doc.title}</h3>
                         
                         {doc.description && (
                           <p className="text-muted-foreground mt-2">
@@ -338,7 +340,7 @@ const DocumentsPage: React.FC = () => {
                             {doc.tags.map((tag, index) => (
                               <span 
                                 key={index}
-                                className="bg-gray-700 text-white text-xs px-2 py-1 rounded-full flex items-center"
+                                className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded-full flex items-center"
                               >
                                 <Tag className="h-3 w-3 mr-1 opacity-70" />
                                 {tag}
@@ -352,7 +354,7 @@ const DocumentsPage: React.FC = () => {
                         <Button 
                           variant="secondary" 
                           size="sm"
-                          className="h-8 w-8 p-0 bg-gray-700"
+                          className="h-8 w-8 p-0"
                           onClick={() => handleEditItem(doc)}
                         >
                           <Edit className="h-4 w-4" />
