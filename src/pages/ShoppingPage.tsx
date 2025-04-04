@@ -81,13 +81,17 @@ const ShoppingPage = () => {
 
   const handleEditItem = (id: string) => {
     // In a real app, you would fetch the item data from your database
-    // For this example, we'll use mock data
+    // For this example, we'll create a more complete mock item that matches AddItemDialog expectations
     const mockItem = {
       id,
       name: `Item ${id}`,
       notes: `Some notes for item ${id}`,
       amount: '1',
+      dateToPurchase: '2025-05-15',
       price: '9.99',
+      file: null, // Include the file property to match AddItemDialog
+      fileName: '', // Include filename property
+      fileType: '', // Include filetype property
       repeatOption: 'none' as const,
     };
     
