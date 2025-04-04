@@ -206,6 +206,8 @@ const DocumentList: React.FC<DocumentListProps> = ({ searchTerm = '', categories
           title: editingItem.title,
           category: editingItem.category,
           date: editingItem.date,
+          tags: [], // Add the missing tags property
+          addedDate: new Date().toISOString().split('T')[0], // Add the missing addedDate property
         } : null}
       />
       
