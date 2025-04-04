@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog,
@@ -230,7 +229,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
               {file ? "Change File" : "Add File"}
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-auto pb-8">
+          <SheetContent side="bottom" className="h-auto pb-8" preventNavigateOnClose={true}>
             <SheetHeader className="mb-4">
               <SheetTitle>Choose File Source</SheetTitle>
             </SheetHeader>
@@ -335,7 +334,10 @@ const AddItemDialog = ({ open, onOpenChange, onSave }: AddItemDialogProps) => {
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-hidden")}>
+        <DialogContent 
+          className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-hidden")}
+          preventNavigateOnClose={true}
+        >
           <DialogHeader>
             <DialogTitle>Add New Item</DialogTitle>
           </DialogHeader>
