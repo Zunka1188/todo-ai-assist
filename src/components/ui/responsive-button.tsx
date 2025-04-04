@@ -53,12 +53,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     
     // Using the exact grocery item widget style per specifications
     return (
-      <div className={cn(
-        "w-full max-w-[320px] h-[96px] bg-background rounded-md overflow-hidden flex flex-col",
-        "border-2 border-border shadow-md",
-        active && "border-primary",
-        className
-      )}>
+      <div className="shopping-item-button">
         {/* Top Section: Product Image & Details (64px height) */}
         <div className="flex h-[64px] w-full">
           {/* Left Column - Product Image (48x48px with 8px margin) */}
@@ -133,12 +128,12 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
           </div>
         </div>
         
-        {/* Bottom Section: Button (32px height) - Guaranteed to be attached to the bottom */}
+        {/* Bottom Section: Button (32px height) */}
         <Button
           ref={ref}
           variant={variant === 'default' ? 'purchase' : variant}
           onClick={onClick}
-          className="w-full h-[32px] rounded-none mt-auto border-t border-border absolute bottom-0 left-0 right-0"
+          className="purchase-button"
           {...props}
         >
           {props.children || "Action"}

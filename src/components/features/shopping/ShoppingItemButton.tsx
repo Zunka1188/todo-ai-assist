@@ -31,7 +31,7 @@ const ShoppingItemButton = ({
   const hasAdditionalInfo = quantity || price || notes || (repeatOption && repeatOption !== 'none');
   
   return (
-    <div className="w-full max-w-[320px] h-[96px] bg-background rounded-md overflow-hidden flex flex-col border-2 border-border shadow-md relative">
+    <div className="shopping-item-button">
       {/* Top Section: Product Image & Details (64px height) */}
       <div className="flex h-[64px] w-full">
         {/* Left Column - Product Image (48x48px with 8px margin) */}
@@ -85,17 +85,10 @@ const ShoppingItemButton = ({
         </div>
       </div>
       
-      {/* Bottom Section: Purchase Button (32px height) - Guaranteed to be attached to the bottom */}
+      {/* Bottom Section: Purchase Button (32px height) */}
       <Button
         type="button"
-        variant="purchase" 
-        size="purchase"
-        className={cn(
-          "w-full h-[32px] rounded-none mt-auto border-t border-border",
-          "flex items-center justify-center",
-          "absolute bottom-0 left-0 right-0", // Force positioning at bottom
-          className
-        )}
+        className="purchase-button"
         onClick={onClick}
       >
         {completed ? (
