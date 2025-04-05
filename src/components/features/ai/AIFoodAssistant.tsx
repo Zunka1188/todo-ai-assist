@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Upload, ScanBarcode, Send, X, RotateCcw } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -103,9 +102,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
           
           setMessages(parsedMessages);
           setFoodContext(context);
-          toast.success('Previous conversation restored', { 
-            description: 'Continuing from where you left off' 
-          });
         } else {
           // Session expired, clear storage
           localStorage.removeItem(STORAGE_KEY);

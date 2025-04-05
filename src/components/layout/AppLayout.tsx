@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, HelpCircle, Cloud } from 'lucide-react';
+import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, HelpCircle, Cloud, MessageSquare } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,7 +70,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
         isIOS && "pt-safe-top"
       )}>
         <div className="flex items-center">
-          {/* Chat button removed */}
+          {/* Restore the chat button */}
+          <button
+            onClick={() => setChatOpen(true)}
+            className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
+          >
+            <MessageSquare className={cn("h-5 w-5", textColorClass)} />
+          </button>
         </div>
         
         <div className="flex items-center gap-2">
@@ -133,7 +139,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
       </main>
       <BottomNavigation />
       
-      {/* Chat component still imported but not shown by default */}
+      {/* Re-enable the AIFoodAssistant component */}
       <AIFoodAssistant isOpen={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   );
