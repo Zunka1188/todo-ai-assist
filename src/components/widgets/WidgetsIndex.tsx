@@ -22,32 +22,25 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// Import widget components - DO NOT use these directly in any component maps or exports yet
-import * as CalendarWidgetTemp from './CalendarWidget';
-import * as TaskWidgetTemp from './TaskWidget';
-import * as SpendingWidgetTemp from './SpendingWidget';
-import * as ScannerWidgetTemp from './ScannerWidget';
-import * as WeatherWidgetTemp from './WeatherWidget';
+// Direct imports (most straightforward approach)
+import CalendarWidgetDefault from './CalendarWidget';
+import TaskWidgetDefault from './TaskWidget';
+import SpendingWidgetDefault from './SpendingWidget';
+import ScannerWidgetDefault from './ScannerWidget';
+import WeatherWidgetDefault from './WeatherWidget';
 
-// Now we can safely reference the default exports
-const CalendarWidgetComponent = CalendarWidgetTemp.default;
-const TaskWidgetComponent = TaskWidgetTemp.default;
-const SpendingWidgetComponent = SpendingWidgetTemp.default;
-const ScannerWidgetComponent = ScannerWidgetTemp.default;
-const WeatherWidgetComponent = WeatherWidgetTemp.default;
+// Exports with the desired names
+export const CalendarWidget = CalendarWidgetDefault;
+export const TaskWidget = TaskWidgetDefault;
+export const SpendingWidget = SpendingWidgetDefault;
+export const ScannerWidget = ScannerWidgetDefault;
+export const WeatherWidget = WeatherWidgetDefault;
 
-// Export the components with their desired names
-export const CalendarWidget = CalendarWidgetComponent;
-export const TaskWidget = TaskWidgetComponent;
-export const SpendingWidget = SpendingWidgetComponent;
-export const ScannerWidget = ScannerWidgetComponent;
-export const WeatherWidget = WeatherWidgetComponent;
-
-// Finally, define the widget components map using the assigned component variables
+// Widget components map
 export const WidgetComponents = {
-  calendar: CalendarWidgetComponent,
-  tasks: TaskWidgetComponent,
-  spending: SpendingWidgetComponent,
-  scanner: ScannerWidgetComponent,
-  weather: WeatherWidgetComponent
+  calendar: CalendarWidgetDefault,
+  tasks: TaskWidgetDefault,
+  spending: SpendingWidgetDefault,
+  scanner: ScannerWidgetDefault,
+  weather: WeatherWidgetDefault
 };
