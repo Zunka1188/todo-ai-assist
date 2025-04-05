@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ManualDataEditor from './ManualDataEditor';
 import SaveOptions from './SaveOptions';
 import { useToast } from '@/components/ui/use-toast';
+import FeedbackComponent from './FeedbackComponent';
 
 export type RecognizedItemType = 'invitation' | 'receipt' | 'product' | 'document' | 'unknown';
 
@@ -173,6 +174,17 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
     );
   }
 
+  // Map recognition type to detection type for feedback
+  const getDetectionType = (type: RecognizedItemType): string => {
+    switch (type) {
+      case 'invitation': return 'document';
+      case 'receipt': return 'document';
+      case 'product': return 'product';
+      case 'document': return 'document';
+      default: return 'context';
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg border dark:bg-gray-800 dark:border-gray-700">
       <div className="p-4 border-b dark:border-gray-700">
@@ -209,6 +221,16 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
               Edit
             </Button>
           )}
+        </div>
+
+        {/* Add feedback component in minimal mode */}
+        <div className="mt-2">
+          <FeedbackComponent
+            detectionType={getDetectionType(currentItemType)}
+            detectionLabel={currentItemType}
+            detectionResult={recognizedItem}
+            minimal={true}
+          />
         </div>
       </div>
       

@@ -1,19 +1,35 @@
 
 import React from 'react';
-import { Scan, Camera, Sparkles } from 'lucide-react';
+import { Scan, Camera, Sparkles, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { WidgetWrapper } from './shared/WidgetWrapper';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
+import { useModelUpdates } from '@/utils/detectionEngine/hooks/useModelUpdates';
 
 const ScannerWidget = () => {
   const navigate = useNavigate();
+  const { status } = useModelUpdates();
+  
+  // Check if any model has updates available
+  const hasUpdates = Object.values(status.updatesAvailable).some(Boolean);
   
   return (
     <WidgetWrapper>
       <div className="flex flex-col items-center justify-center space-y-3">
-        <div className="bg-primary bg-opacity-10 p-4 rounded-full">
-          <Scan className="h-6 w-6 text-primary" />
+        <div className="flex items-center">
+          <div className="bg-primary bg-opacity-10 p-4 rounded-full">
+            <Scan className="h-6 w-6 text-primary" />
+          </div>
+          
+          {hasUpdates && (
+            <span className="h-3 w-3 bg-primary rounded-full animate-pulse -mt-3 -ml-2" />
+          )}
         </div>
         <h3 className="font-medium text-lg">Smart Scanner</h3>
         <p className="text-sm text-muted-foreground text-center">
@@ -28,23 +44,44 @@ const ScannerWidget = () => {
             Open Scanner
           </Button>
           
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="outline"
-                  onClick={() => navigate('/upload')}
-                  className="w-full border-dashed border-primary/30 flex items-center"
-                >
-                  <Sparkles className="h-4 w-4 mr-2 text-primary" />
-                  Advanced AI Detection
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Detect barcodes, products, documents, and more with AI</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <div className="flex gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate('/ai-models')}
+                    className="border-dashed border-primary/30 flex items-center"
+                    style={{ flex: '0 0 auto', width: 'auto' }}
+                  >
+                    <Settings className="h-4 w-4" />
+                    {hasUpdates && <span className="h-2 w-2 bg-primary rounded-full ml-1" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{hasUpdates ? 'AI model updates available!' : 'Manage AI detection models'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate('/upload')}
+                    className="flex-1 border-dashed border-primary/30 flex items-center"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2 text-primary" />
+                    Advanced AI Detection
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Detect barcodes, products, documents, and more with AI</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
       </div>
     </WidgetWrapper>

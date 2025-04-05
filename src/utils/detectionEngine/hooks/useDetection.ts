@@ -2,20 +2,21 @@
 import { useState, useCallback } from 'react';
 import { DetectionProcessor } from '../DetectionProcessor';
 import { DetectionResult, DetectionOptions, DetectionStatus } from '../types';
+import { modelManager } from '../ModelManager';
 
 /**
- * Hook for using the detection engine in React components
+ * Unified hook for all detection functionality
  */
 export const useDetection = () => {
   const [status, setStatus] = useState<DetectionStatus>('idle');
   const [result, setResult] = useState<DetectionResult | null>(null);
-  const [results, setResults] = useState<DetectionResult[]>([]);
   const [error, setError] = useState<Error | null>(null);
+  const [confidenceThreshold, setConfidenceThreshold] = useState<number>(0.65);
   
   /**
    * Process an image through the detection engine
    */
-  const detectFromImage = useCallback(async (
+  const detectImage = useCallback(async (
     imageData: string,
     options: DetectionOptions = {}
   ) => {
@@ -23,7 +24,14 @@ export const useDetection = () => {
       setStatus('detecting');
       setError(null);
       
-      const detectionResult = await DetectionProcessor.process(imageData, options);
+      // Apply confidence threshold
+      const detectionOptions = {
+        ...options,
+        confidenceThreshold: options.confidenceThreshold || confidenceThreshold
+      };
+      
+      // Process the image through the detection engine
+      const detectionResult = await DetectionProcessor.process(imageData, detectionOptions);
       
       setResult(detectionResult);
       setStatus(detectionResult ? 'success' : 'error');
@@ -34,12 +42,12 @@ export const useDetection = () => {
       setStatus('error');
       return null;
     }
-  }, []);
+  }, [confidenceThreshold]);
   
   /**
-   * Process an image through multiple detection modules
+   * Process an image and return multiple detection results
    */
-  const detectMultipleFromImage = useCallback(async (
+  const detectMultiple = useCallback(async (
     imageData: string,
     options: DetectionOptions = {}
   ) => {
@@ -47,24 +55,39 @@ export const useDetection = () => {
       setStatus('detecting');
       setError(null);
       
-      const detectionResults = await DetectionProcessor.processMultiple(imageData, options);
+      // Apply confidence threshold
+      const detectionOptions = {
+        ...options,
+        confidenceThreshold: options.confidenceThreshold || confidenceThreshold
+      };
       
-      setResults(detectionResults);
-      setStatus(detectionResults.length > 0 ? 'success' : 'error');
+      // Process the image through the detection engine
+      const results = await DetectionProcessor.processMultiple(imageData, detectionOptions);
       
-      // Also set the top result
-      if (detectionResults.length > 0) {
-        setResult(detectionResults[0]);
-      }
-      
-      return detectionResults;
+      setStatus(results.length > 0 ? 'success' : 'error');
+      setResult(results.length > 0 ? results[0] : null);
+      return results;
     } catch (err: any) {
-      console.error('Multiple detection error:', err);
+      console.error('Detection error:', err);
       setError(err instanceof Error ? err : new Error(err?.message || 'Unknown error'));
       setStatus('error');
       return [];
     }
-  }, []);
+  }, [confidenceThreshold]);
+  
+  /**
+   * Submit feedback about detection results
+   */
+  const submitFeedback = useCallback((isAccurate: boolean, userCorrection?: any) => {
+    if (!result) return;
+    
+    modelManager.addUserFeedback(
+      result.type,
+      result,
+      isAccurate,
+      userCorrection
+    );
+  }, [result]);
   
   /**
    * Reset detection state
@@ -72,20 +95,28 @@ export const useDetection = () => {
   const reset = useCallback(() => {
     setStatus('idle');
     setResult(null);
-    setResults([]);
     setError(null);
+  }, []);
+  
+  /**
+   * Update confidence threshold
+   */
+  const updateConfidenceThreshold = useCallback((threshold: number) => {
+    setConfidenceThreshold(threshold);
   }, []);
   
   return {
     status,
     result,
-    results,
     error,
+    confidenceThreshold,
     isDetecting: status === 'detecting',
     isSuccess: status === 'success',
     isError: status === 'error',
-    detectFromImage,
-    detectMultipleFromImage,
+    detectImage,
+    detectMultiple,
+    submitFeedback,
+    updateConfidenceThreshold,
     reset
   };
 };
