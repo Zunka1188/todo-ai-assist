@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Check, AlertCircle, RefreshCw, Edit, ShoppingBag, Calendar, FileText, Receipt, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,12 +9,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import FeedbackComponent from './FeedbackComponent';
 
-export type RecognizedItemType = 'invitation' | 'receipt' | 'product' | 'document' | 'unknown';
+export type RecognizedItemType = "invitation" | "receipt" | "product" | "document" | "unknown" | "general";
 
 export interface RecognizedItem {
   type: RecognizedItemType;
   confidence: number;
-  data: any;
+  data?: Record<string, any>;
   imageData?: string;
   extractedText?: string;
   detectedObjects?: Array<{name: string, confidence: number}>;
@@ -58,7 +57,6 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
   
   useEffect(() => {
     if (recognizedItem) {
-      // Different fields based on recognized item type
       switch (recognizedItem.type) {
         case 'invitation':
           setTitle(recognizedItem.data.title || '');
@@ -98,7 +96,6 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
     }
   }, [recognizedItem]);
   
-  // Logic specific to item type
   let recognizedTypeDisplay = '';
   let typeIcon = null;
   
@@ -127,7 +124,6 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate required fields
     if (!title.trim()) {
       setIsValidated(false);
       return;
@@ -152,7 +148,6 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
     onSave(formData, recognizedItem!);
   };
   
-  // Don't render anything if we don't have a recognized item
   if (!recognizedItem) return null;
   
   return (
@@ -382,7 +377,6 @@ const DataRecognition: React.FC<DataRecognitionProps> = ({
         </form>
       </div>
       
-      {/* Feedback component for AI detection */}
       <FeedbackComponent 
         detectionType={recognizedItem.type}
         detectionLabel={recognizedTypeDisplay}

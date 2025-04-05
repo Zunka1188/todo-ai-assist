@@ -4,6 +4,7 @@ import { useModelUpdates, ModelVersionInfo } from '@/utils/detectionEngine/hooks
 import { cn } from '@/lib/utils';
 import { ModelType } from '@/utils/detectionEngine/types/ModelType';
 import { Button } from '@/components/ui/button';
+import { Label } from "@/components/ui/label";
 import { Progress } from '@/components/ui/progress';
 import { ArrowUp, ArrowDown, RotateCcw, CheckCircle, AlertTriangle, Clock, RotateCw } from 'lucide-react';
 import {

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Upload, ArrowLeft, Image, Loader2, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import DataRecognition, { RecognizedItem } from '@/components/features/scanning/DataRecognition';
+import DataRecognition, { RecognizedItem, RecognizedItemType } from '@/components/features/scanning/DataRecognition';
 import CategorySelection from '@/components/features/scanning/CategorySelection';
 
 type CategoryOption = 'invitation' | 'receipt' | 'product' | 'document' | 'unknown' | 'general';
@@ -125,10 +124,12 @@ const UploadPage = () => {
   const confirmCategory = () => {
     setCategoryConfirmed(true);
     setCurrentTab('details');
-    processImage(uploadedImage as string, selectedCategory as any);
+    // Convert CategoryOption to RecognizedItemType before passing
+    const recognizedType = selectedCategory === 'general' ? 'unknown' : selectedCategory;
+    processImage(uploadedImage as string, recognizedType);
   };
   
-  const processImage = async (imageDataURL: string, category: CategoryOption) => {
+  const processImage = async (imageDataURL: string, category: RecognizedItemType) => {
     setProcessing(true);
     setProgressValue(0);
     

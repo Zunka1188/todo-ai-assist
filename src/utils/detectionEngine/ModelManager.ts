@@ -1,4 +1,3 @@
-
 /**
  * ModelManager handles the versioning, updating, and monitoring of AI models
  * used in the detection engine
@@ -288,6 +287,45 @@ export class ModelManager {
     } catch (error) {
       console.error('Error storing feedback:', error);
     }
+  }
+
+  /**
+   * Get version history for a model type
+   */
+  public getVersionHistory(modelType: string): any[] {
+    // This method would normally fetch from a server or local storage
+    // For now, we'll return mock data
+    return [
+      {
+        version: "1.0.0",
+        publishedAt: "2024-01-15T12:00:00Z",
+        description: "Initial release",
+        metrics: {
+          accuracy: 0.85
+        }
+      },
+      {
+        version: "1.1.0",
+        publishedAt: "2024-02-20T14:30:00Z", 
+        description: "Performance improvements",
+        changelog: "- Improved recognition speed\n- Fixed minor bugs",
+        metrics: {
+          accuracy: 0.87,
+          precision: 0.89
+        }
+      },
+      {
+        version: "1.2.0",
+        publishedAt: "2024-03-10T09:45:00Z",
+        description: "Feature update",
+        changelog: "- Added support for new formats\n- Enhanced accuracy",
+        metrics: {
+          accuracy: 0.91,
+          precision: 0.92,
+          recall: 0.90
+        }
+      }
+    ];
   }
 }
 
