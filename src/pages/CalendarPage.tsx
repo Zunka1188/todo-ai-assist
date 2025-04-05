@@ -12,7 +12,7 @@ import CalendarView from '@/components/features/calendar/CalendarView';
 const CalendarPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day' | 'agenda'>('month');
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day' | 'agenda'>('day');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { isMobile } = useIsMobile();
 
@@ -44,7 +44,7 @@ const CalendarPage = () => {
       </div>
 
       <div className="flex">
-        <Tabs defaultValue="month" value={viewMode} onValueChange={value => setViewMode(value as 'month' | 'week' | 'day' | 'agenda')} className="w-full">
+        <Tabs defaultValue="day" value={viewMode} onValueChange={value => setViewMode(value as 'month' | 'week' | 'day' | 'agenda')} className="w-full">
           <TabsList className="grid grid-cols-4 w-full">
             <TabsTrigger value="month">Month</TabsTrigger>
             <TabsTrigger value="week">Week</TabsTrigger>

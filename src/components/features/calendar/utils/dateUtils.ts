@@ -32,3 +32,10 @@ export const getEventsForDay = (day: Date, events: Event[]): Event[] => {
     (event.startDate <= day && event.endDate >= day)
   );
 };
+
+export const isOutOfTimeRange = (event: Event, startHour: number, endHour: number): boolean => {
+  if (event.allDay) return false;
+  const eventStartHour = event.startDate.getHours();
+  const eventEndHour = event.endDate.getHours();
+  return eventStartHour < startHour || eventEndHour > endHour;
+};
