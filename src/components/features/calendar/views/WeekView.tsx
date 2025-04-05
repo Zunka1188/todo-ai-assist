@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday } from 'date-fns';
@@ -214,73 +215,79 @@ const WeekView: React.FC<WeekViewProps> = ({
         </div>
       </div>
 
-      {/* Time Range Controls */}
+      {/* Time Range Controls - Updated for alignment and styling */}
       <div className="space-y-3">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           <Toggle
             pressed={showFullDay}
             onPressedChange={() => handleTimeRangeToggle('full')}
-            className="bg-transparent data-[state=on]:bg-[#9b87f5] data-[state=on]:text-white tap-target"
+            className="bg-transparent data-[state=on]:bg-primary data-[state=on]:text-primary-foreground tap-target"
           >
             Full 24h
           </Toggle>
           <Toggle
             pressed={startHour === 8 && endHour === 18}
             onPressedChange={() => handleTimeRangeToggle('business')}
-            className="bg-transparent data-[state=on]:bg-[#9b87f5] data-[state=on]:text-white tap-target"
+            className="bg-transparent data-[state=on]:bg-primary data-[state=on]:text-primary-foreground tap-target"
           >
             Business hours
           </Toggle>
           <Toggle
             pressed={startHour === 17 && endHour === 23}
             onPressedChange={() => handleTimeRangeToggle('evening')}
-            className="bg-transparent data-[state=on]:bg-[#9b87f5] data-[state=on]:text-white tap-target"
+            className="bg-transparent data-[state=on]:bg-primary data-[state=on]:text-primary-foreground tap-target"
           >
             Evening
           </Toggle>
           <Toggle
             pressed={startHour === 4 && endHour === 12}
             onPressedChange={() => handleTimeRangeToggle('morning')}
-            className="bg-transparent data-[state=on]:bg-[#9b87f5] data-[state=on]:text-white tap-target"
+            className="bg-transparent data-[state=on]:bg-primary data-[state=on]:text-primary-foreground tap-target"
           >
             Morning
           </Toggle>
+        
+          {/* From-To selector moved to same line */}
+          <div className={cn(
+            "flex items-center gap-2",
+            isMobile ? "flex-wrap mt-2 w-full" : ""
+          )}>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="weekStartHour" className="text-sm whitespace-nowrap">From:</Label>
+              <Input
+                id="weekStartHour"
+                type="text"
+                inputMode="numeric"
+                value={startInputValue}
+                onChange={(e) => handleTimeRangeChange('start', e.target.value)}
+                onBlur={() => handleInputBlur('start')}
+                className={cn("h-8 text-sm", isMobile ? "w-20" : "w-16")}
+              />
+            </div>
+            
+            <div className="flex items-center gap-1">
+              <Label htmlFor="weekEndHour" className="text-sm whitespace-nowrap">To:</Label>
+              <Input
+                id="weekEndHour"
+                type="text"
+                inputMode="numeric"
+                value={endInputValue}
+                onChange={(e) => handleTimeRangeChange('end', e.target.value)}
+                onBlur={() => handleInputBlur('end')}
+                className={cn("h-8 text-sm", isMobile ? "w-20" : "w-16")}
+              />
+            </div>
+          </div>
         </div>
         
-        <div className={cn(
-          "flex items-center gap-3",
-          isMobile ? "flex-wrap" : ""
-        )}>
-          <div className="flex items-center gap-1">
-            <Label htmlFor="weekStartHour" className="text-sm whitespace-nowrap">From:</Label>
-            <Input
-              id="weekStartHour"
-              type="text"
-              inputMode="numeric"
-              value={startInputValue}
-              onChange={(e) => handleTimeRangeChange('start', e.target.value)}
-              onBlur={() => handleInputBlur('start')}
-              className={cn("h-8 text-sm", isMobile ? "w-20" : "w-16")}
-            />
-          </div>
-          
-          <div className="flex items-center gap-1">
-            <Label htmlFor="weekEndHour" className="text-sm whitespace-nowrap">To:</Label>
-            <Input
-              id="weekEndHour"
-              type="text"
-              inputMode="numeric"
-              value={endInputValue}
-              onChange={(e) => handleTimeRangeChange('end', e.target.value)}
-              onBlur={() => handleInputBlur('end')}
-              className={cn("h-8 text-sm", isMobile ? "w-20" : "w-16")}
-            />
-          </div>
-        </div>
-        
+        {/* Enhanced warning message */}
         {hiddenEvents.length > 0 && (
-          <Alert variant="destructive" className="py-2 bg-white border border-red-400 dark:bg-gray-800">
-            <AlertDescription>
+          <Alert 
+            variant="destructive" 
+            className="py-2 mt-3 bg-amber-50 border border-amber-300 dark:bg-gray-800 dark:border-amber-700 text-amber-800 dark:text-amber-200 flex items-center"
+          >
+            <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+            <AlertDescription className="text-sm">
               Warning: {hiddenEvents.length} event{hiddenEvents.length > 1 ? 's' : ''} {hiddenEvents.length > 1 ? 'are' : 'is'} outside the selected time range and {hiddenEvents.length > 1 ? 'are' : 'is'} not visible.
             </AlertDescription>
           </Alert>
