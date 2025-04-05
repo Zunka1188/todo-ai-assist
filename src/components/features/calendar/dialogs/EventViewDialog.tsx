@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { getFormattedTime, getReminderLabel, weekDays } from '../utils/dateUtils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface EventViewDialogProps {
   isOpen: boolean;
@@ -39,18 +40,26 @@ const EventViewDialog = ({ isOpen, setIsOpen, selectedEvent, onEdit, onDelete }:
             </DialogDescription>
             <div className="flex space-x-1">
               {hasImage && (
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="h-8 w-8"
-                  onClick={() => setShowImagePreview(!showImagePreview)}
-                  title="Toggle image preview"
-                >
-                  <Image className="h-4 w-4" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => setShowImagePreview(!showImagePreview)}
+                    >
+                      <Image className="h-4 w-4" />
+                      <span className="sr-only">Toggle image preview</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {showImagePreview ? 'Hide image' : 'Show image'}
+                  </TooltipContent>
+                </Tooltip>
               )}
               <Button variant="outline" size="icon" onClick={onEdit} className="h-8 w-8">
                 <Edit className="h-4 w-4" />
+                <span className="sr-only">Edit event</span>
               </Button>
             </div>
           </div>

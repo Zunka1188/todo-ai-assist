@@ -60,6 +60,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   // Filter events based on search term
   const filteredEvents = filterEvents(searchTerm);
 
+  // Handle closing view dialog and opening edit dialog
+  const handleViewToEdit = () => {
+    setIsViewDialogOpen(false);
+    setIsEditMode(true);
+    setTimeout(() => {
+      effectiveSetCreateDialogOpen(true);
+    }, 100); // Small delay to ensure dialogs don't conflict
+  };
+
   const handleFileUploadSuccess = (data: any) => {
     // Close file uploader
     setIsFileUploaderOpen(false);
@@ -93,8 +102,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       
       {/* Event Form Dialog */}
       <EventFormDialog
-        isOpen={effectiveCreateDialogOpen && !isFileUploaderOpen && !isViewDialogOpen}
-        setIsOpen={effectiveSetCreateDialogOpen}
+        isOpen={(effectiveCreateDialogOpen || isEditMode) && !isFileUploaderOpen && !isViewDialogOpen}
+        setIsOpen={(open) => {
+          effectiveSetCreateDialogOpen(open);
+          if (!open) setIsEditMode(false);
+        }}
         onSubmit={handleSaveEvent}
         selectedEvent={selectedEvent}
         isEditMode={isEditMode}
@@ -105,7 +117,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         isOpen={isViewDialogOpen && !isFileUploaderOpen}
         setIsOpen={setIsViewDialogOpen}
         selectedEvent={selectedEvent}
-        onEdit={handleEditEvent}
+        onEdit={handleViewToEdit}
         onDelete={handleDeleteEvent}
       />
       

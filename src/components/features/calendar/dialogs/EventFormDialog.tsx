@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CalendarIcon, MapPin, Bell, Upload, Trash, Plus, Save } from 'lucide-react';
+import { CalendarIcon, MapPin, Bell, Upload, Trash, Plus, Save, Image } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,8 @@ import { cn } from '@/lib/utils';
 import { formSchema, colorOptions, reminderOptions, recurringOptions } from '../types/form';
 import { Event } from '../types/event';
 import { weekDays } from '../utils/dateUtils';
+import FileAttachmentField, { FileAttachment } from '../views/FileAttachmentField';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface EventFormDialogProps {
   isOpen: boolean;
@@ -30,6 +32,7 @@ interface EventFormDialogProps {
 
 const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMode }: EventFormDialogProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showImagePreview, setShowImagePreview] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -81,8 +84,26 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
       } else {
         setSelectedImage(null);
       }
+    } else if (!isEditMode) {
+      // Reset form for new event
+      form.reset({
+        title: '',
+        description: '',
+        startDate: new Date(),
+        startTime: '10:00',
+        endDate: new Date(),
+        endTime: '11:00',
+        allDay: false,
+        location: '',
+        color: '#4285F4',
+        image: '',
+        recurringType: 'none',
+        recurringDaysOfWeek: [],
+        reminder: '30'
+      });
+      setSelectedImage(null);
     }
-  }, [selectedEvent, isEditMode, form]);
+  }, [selectedEvent, isEditMode, form, isOpen]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -151,7 +172,7 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden bg-background text-foreground border-gray-700">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden bg-background text-foreground" preventNavigateOnClose>
         <DialogHeader>
           <DialogTitle>
             {isEditMode ? 'Edit Event' : 'Add New Event'}
@@ -263,23 +284,58 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
               
               <FormField control={form.control} name="image" render={({field}) => (
                 <FormItem>
-                  <FormLabel>File</FormLabel>
+                  <FormLabel>Attachment</FormLabel>
                   <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="*/*" />
-                  {selectedImage ? (
-                    <div className="relative">
-                      <img src={selectedImage} alt="Event" className="w-full h-40 object-cover rounded-md" />
-                      <Button type="button" variant="destructive" size="sm" className="absolute top-2 right-2" onClick={handleRemoveImage}>
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <FormControl>
-                      <Button type="button" variant="outline" className="w-full h-12 border-dashed flex gap-2" onClick={handleImageButtonClick}>
-                        <Upload className="h-4 w-4" />
-                        <span>Upload File</span>
-                      </Button>
-                    </FormControl>
-                  )}
+                  
+                  <div className="flex flex-col gap-3">
+                    {selectedImage ? (
+                      <div className="flex items-center gap-3 border rounded-md p-3">
+                        <Avatar className="h-14 w-14 rounded-md">
+                          <AvatarImage src={selectedImage} alt="Attachment preview" />
+                          <AvatarFallback className="bg-muted rounded-md">
+                            <Image className="h-6 w-6 text-muted-foreground" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col flex-1">
+                          <span className="text-sm font-medium">Attachment</span>
+                          <div className="mt-1 flex gap-2">
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => setShowImagePreview(!showImagePreview)}
+                              className="h-7 text-xs"
+                            >
+                              {showImagePreview ? 'Hide preview' : 'Preview'}
+                            </Button>
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={handleRemoveImage}
+                              className="h-7 text-xs text-destructive"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <FormControl>
+                        <Button type="button" variant="outline" className="w-full h-12 border-dashed flex gap-2" onClick={handleImageButtonClick}>
+                          <Upload className="h-4 w-4" />
+                          <span>Upload Attachment</span>
+                        </Button>
+                      </FormControl>
+                    )}
+
+                    {selectedImage && showImagePreview && (
+                      <div className="mt-2">
+                        <img src={selectedImage} alt="Preview" className="w-full max-h-48 object-contain rounded-md border" />
+                      </div>
+                    )}
+                  </div>
+                  
                   <FormMessage />
                 </FormItem>
               )} />
@@ -331,7 +387,7 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
               <FormField control={form.control} name="recurringType" render={({field}) => (
                 <FormItem>
                   <FormLabel>Recurrence</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select recurrence pattern" />
@@ -388,7 +444,7 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
                     <Bell className="h-4 w-4 mr-2 text-muted-foreground" />
                     Reminder
                   </FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a reminder time" />
