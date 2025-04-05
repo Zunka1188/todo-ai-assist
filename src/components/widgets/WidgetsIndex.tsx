@@ -3,14 +3,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// Import the widgets directly without renaming
-import CalendarWidgetOriginal from './CalendarWidget';
-import TaskWidgetOriginal from './TaskWidget';
-import SpendingWidgetOriginal from './SpendingWidget';
-import ScannerWidgetOriginal from './ScannerWidget';
-import WeatherWidgetOriginal from './WeatherWidget';
-
-// Define the WidgetWrapper component first
+// First define the WidgetWrapper component
 export const WidgetWrapper: React.FC<{
   children: React.ReactNode;
   className?: string;
@@ -29,19 +22,25 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// Separate the exports and imports to avoid any circular reference issues
-export const CalendarWidget = CalendarWidgetOriginal;
-export const TaskWidget = TaskWidgetOriginal;
-export const SpendingWidget = SpendingWidgetOriginal;
-export const ScannerWidget = ScannerWidgetOriginal;
-export const WeatherWidget = WeatherWidgetOriginal;
+// Import all components at the end to avoid circular dependencies
+import CalendarWidgetComponent from './CalendarWidget';
+import TaskWidgetComponent from './TaskWidget';
+import SpendingWidgetComponent from './SpendingWidget';
+import ScannerWidgetComponent from './ScannerWidget';
+import WeatherWidgetComponent from './WeatherWidget';
 
-// Define the widget components map separately using the original imports
-// to avoid any reference to identifiers that haven't been initialized
+// Export them with the desired names
+export const CalendarWidget = CalendarWidgetComponent;
+export const TaskWidget = TaskWidgetComponent;
+export const SpendingWidget = SpendingWidgetComponent;
+export const ScannerWidget = ScannerWidgetComponent;
+export const WeatherWidget = WeatherWidgetComponent;
+
+// Define the widget components map using the imported components
 export const WidgetComponents = {
-  calendar: CalendarWidgetOriginal,
-  tasks: TaskWidgetOriginal,
-  spending: SpendingWidgetOriginal,
-  scanner: ScannerWidgetOriginal,
-  weather: WeatherWidgetOriginal
+  calendar: CalendarWidgetComponent,
+  tasks: TaskWidgetComponent,
+  spending: SpendingWidgetComponent,
+  scanner: ScannerWidgetComponent,
+  weather: WeatherWidgetComponent
 };
