@@ -47,19 +47,25 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
     const topPosition = (visibleStartHourDecimal - startHour) * HOUR_HEIGHT;
     const heightValue = Math.max((visibleEndHourDecimal - visibleStartHourDecimal) * HOUR_HEIGHT, 20);
     
-    // Calculate width based on overlapping events
-    const baseWidth = 88; // Base width percentage for the event column
-    const widthPerEvent = baseWidth / totalOverlapping;
+    // Calculate horizontal positioning for all events
+    // Fixed width of 90% of column with 5% margin on each side
+    const leftOffset = 5;
     
-    // Calculate left position based on event index
-    const leftOffset = (index * widthPerEvent) + 12;
+    // If there are overlapping events, adjust the width
+    const widthValue = totalOverlapping > 1 ? 
+      (90 / totalOverlapping) : 90;
+    
+    // For overlapping events, calculate position based on index
+    const leftPosition = totalOverlapping > 1 ? 
+      leftOffset + (index * (90 / totalOverlapping)) : 
+      leftOffset;
     
     return {
       position: 'absolute',
       top: `${topPosition}px`,
       height: `${heightValue}px`,
-      left: `${leftOffset}%`,
-      width: `${widthPerEvent - 1}%`,
+      left: `${leftPosition}%`,
+      width: `${widthValue}%`,
       zIndex: 20,
     };
   };

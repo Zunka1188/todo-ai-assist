@@ -30,6 +30,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
       "overflow-y-auto relative",
       isMobile ? "max-h-[calc(100vh-320px)]" : "max-h-[600px]"
     )}>
+      {/* Event Overlay Layer */}
       <div className="absolute w-full h-full z-10 pointer-events-none">
         {eventGroups.map((group, groupIndex) => (
           <React.Fragment key={`group-${groupIndex}`}>
@@ -47,6 +48,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
         ))}
       </div>
       
+      {/* Time Grid Background */}
       {hours.map(hour => {
         const hourDate = new Date(date);
         hourDate.setHours(hour, 0, 0, 0);
