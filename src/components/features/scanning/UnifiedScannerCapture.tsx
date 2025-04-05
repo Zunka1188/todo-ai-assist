@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Camera, X, CameraOff, Settings, Image, Loader2, AlertCircle, Scan, ZoomIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,8 @@ import {
   BarcodeResult,
   ProductResult,
   DocumentResult,
-  ScannerRecognizedItem
+  ScannerRecognizedItem,
+  mapDetectedObjectsFormats
 } from '@/utils/detectionEngine/types';
 import { 
   generateMockExtractedText, 
@@ -276,24 +278,32 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
     const mockExtractedText = generateMockExtractedText(recognizedType);
     const detectedObjects = generateDetectedObjects(recognizedType);
     
-    const recognizedItem: ScannerRecognizedItem = {
+    const scannerItem: ScannerRecognizedItem = {
       type: recognizedType,
       confidence,
       data: mockData,
       imageData: imageDataURL,
       extractedText: mockExtractedText,
-      detectedObjects,
-      // Add detection-specific info
+      detectedObjects: mapDetectedObjectsFormats(detectedObjects),
       detectionSource: result.type
     };
     
-    // Cast to RecognizedItem since we've added the missing fields
-    setRecognizedItem(recognizedItem as RecognizedItem);
+    // Convert to RecognizedItem format for the DataRecognition component
+    const recognizedItemData: RecognizedItem = {
+      type: scannerItem.type as RecognizedItemType,
+      confidence: scannerItem.confidence,
+      data: scannerItem.data,
+      imageData: scannerItem.imageData,
+      extractedText: scannerItem.extractedText,
+      detectedObjects: scannerItem.detectedObjects
+    };
+    
+    setRecognizedItem(recognizedItemData);
     setProcessing(false);
     
     toast({
       title: "Analysis Complete",
-      description: `Detected: ${recognizedItem.type} (${Math.round(recognizedItem.confidence * 100)}% confidence)`,
+      description: `Detected: ${recognizedItemData.type} (${Math.round(recognizedItemData.confidence * 100)}% confidence)`,
     });
   };
   
@@ -330,23 +340,22 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
     const mockExtractedText = generateMockExtractedText(determinedType);
     const detectedObjects = generateDetectedObjects(determinedType);
     
-    const result: ScannerRecognizedItem = {
+    // Create a properly formatted item 
+    const recognizedItemData: RecognizedItem = {
       type: determinedType,
       confidence,
       data: mockData,
       imageData: imageDataURL,
       extractedText: mockExtractedText,
-      detectedObjects,
-      detectionSource: 'mock'
+      detectedObjects: mapDetectedObjectsFormats(detectedObjects)
     };
     
-    // Cast to RecognizedItem since we've added the missing fields
-    setRecognizedItem(result as RecognizedItem);
+    setRecognizedItem(recognizedItemData);
     setProcessing(false);
     
     toast({
       title: "Analysis Complete",
-      description: `Detected: ${result.type} (${Math.round(result.confidence * 100)}% confidence)`,
+      description: `Detected: ${recognizedItemData.type} (${Math.round(recognizedItemData.confidence * 100)}% confidence)`,
     });
   };
   
@@ -381,13 +390,15 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
         setIsSaving(false);
         
         if (onSaveSuccess) {
+          // Store detection source temporarily in a variable,
+          // since it's not part of the RecognizedItem type
           const savedData = {
             ...formData,
             originalType: originalItem.type,
             imageData: formData.keepImage ? originalItem.imageData : null,
             savedAt: new Date().toISOString(),
-            // Safe to access detectionSource since we're using our extended type
-            detectionSource: (originalItem as ScannerRecognizedItem).detectionSource
+            // Add any additional fields needed
+            detectionSource: 'camera' // Default value
           };
           onSaveSuccess(savedData);
         }

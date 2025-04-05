@@ -119,13 +119,33 @@ export interface DetectionOptions {
 export type DetectionStatus = 'idle' | 'detecting' | 'success' | 'error';
 
 // This interface extends RecognizedItem from DataRecognition component
-// to include detectionSource field
+// to include detectionSource field and match the detectedObjects structure
 export interface ScannerRecognizedItem {
   type: string;
   confidence: number;
   data: any;
   imageData: string;
   extractedText?: string;
-  detectedObjects?: Array<{ label: string; confidence: number }>;
+  detectedObjects?: Array<{ name: string; confidence: number }>;
   detectionSource?: string;
 }
+
+// Define a mapper function to convert between different object formats
+export const mapDetectedObjectsFormats = (
+  objects: Array<{ label: string; confidence: number }> | Array<{ name: string; confidence: number }> | undefined
+): Array<{ name: string; confidence: number }> => {
+  if (!objects) return [];
+  
+  return objects.map(obj => {
+    if ('name' in obj) {
+      return obj;
+    } else if ('label' in obj) {
+      return {
+        name: obj.label,
+        confidence: obj.confidence
+      };
+    }
+    return { name: 'Unknown', confidence: 0 };
+  });
+};
+
