@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import { WeatherWidget } from '@/components/widgets/WidgetsIndex';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { RefreshCw, MapPin } from 'lucide-react';
 import { useTheme } from '@/hooks/use-theme';
 
 const WeatherPage = () => {
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const { theme } = useTheme();
 
   const handleRefresh = () => {
@@ -16,8 +16,8 @@ const WeatherPage = () => {
   };
 
   return (
-    <PageLayout>
-      <div className="space-y-4">
+    <PageLayout maxWidth="full">
+      <div className="space-y-4 w-full">
         <div className="flex flex-col space-y-2">
           <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-foreground'}`}>
             Weather
@@ -47,8 +47,8 @@ const WeatherPage = () => {
           </Button>
         </div>
 
-        <div className="space-y-6">
-          <WeatherWidget />
+        <div className="w-full">
+          <WeatherWidget className="w-full" />
         </div>
       </div>
     </PageLayout>

@@ -48,7 +48,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className }) => {
   };
   
   return (
-    <WidgetWrapper className={className}>
+    <WidgetWrapper className={cn("w-full", className)}>
       <div className="space-y-4">
         {/* Current Weather */}
         <div className="flex items-center justify-between">
