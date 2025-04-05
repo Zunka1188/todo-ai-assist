@@ -3,7 +3,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// First, define the WidgetWrapper component
+// First define the WidgetWrapper component
 export const WidgetWrapper: React.FC<{
   children: React.ReactNode;
   className?: string;
@@ -22,25 +22,25 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// Import the widgets directly from their respective files
-import CalendarWidgetComponent from './CalendarWidget';
-import TaskWidgetComponent from './TaskWidget';
-import SpendingWidgetComponent from './SpendingWidget';
-import ScannerWidgetComponent from './ScannerWidget';
-import WeatherWidgetComponent from './WeatherWidget';
+// Import all widget components first, with unique import names
+import CalendarWidgetOriginal from './CalendarWidget';
+import TaskWidgetOriginal from './TaskWidget';
+import SpendingWidgetOriginal from './SpendingWidget';
+import ScannerWidgetOriginal from './ScannerWidget';
+import WeatherWidgetOriginal from './WeatherWidget';
 
-// Export the widgets
-export const CalendarWidget = CalendarWidgetComponent;
-export const TaskWidget = TaskWidgetComponent;
-export const SpendingWidget = SpendingWidgetComponent;
-export const ScannerWidget = ScannerWidgetComponent;
-export const WeatherWidget = WeatherWidgetComponent;
+// Re-export the widgets with their original names
+export const CalendarWidget = CalendarWidgetOriginal;
+export const TaskWidget = TaskWidgetOriginal;
+export const SpendingWidget = SpendingWidgetOriginal;
+export const ScannerWidget = ScannerWidgetOriginal;
+export const WeatherWidget = WeatherWidgetOriginal;
 
-// Define the widget components map separately
+// Define the widget components map using the imported components
 export const WidgetComponents = {
-  calendar: CalendarWidgetComponent,
-  tasks: TaskWidgetComponent,
-  spending: SpendingWidgetComponent,
-  scanner: ScannerWidgetComponent,
-  weather: WeatherWidgetComponent
+  calendar: CalendarWidgetOriginal,
+  tasks: TaskWidgetOriginal,
+  spending: SpendingWidgetOriginal,
+  scanner: ScannerWidgetOriginal,
+  weather: WeatherWidgetOriginal
 };
