@@ -22,34 +22,25 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// First, import all widget components
-import CalendarWidgetComponent from './CalendarWidget';
-import TaskWidgetComponent from './TaskWidget';
-import SpendingWidgetComponent from './SpendingWidget';
-import ScannerWidgetComponent from './ScannerWidget';
-import WeatherWidgetComponent from './WeatherWidget';
+// Import each widget component
+import CalendarWidgetImpl from './CalendarWidget';
+import TaskWidgetImpl from './TaskWidget';
+import SpendingWidgetImpl from './SpendingWidget';
+import ScannerWidgetImpl from './ScannerWidget';
+import WeatherWidgetImpl from './WeatherWidget';
 
-// Then, create renamed constants to avoid initialization issues
-const CalendarWidget = CalendarWidgetComponent;
-const TaskWidget = TaskWidgetComponent;
-const SpendingWidget = SpendingWidgetComponent;
-const ScannerWidget = ScannerWidgetComponent;
-const WeatherWidget = WeatherWidgetComponent;
+// Export all components
+export const CalendarWidget = CalendarWidgetImpl;
+export const TaskWidget = TaskWidgetImpl;
+export const SpendingWidget = SpendingWidgetImpl;
+export const ScannerWidget = ScannerWidgetImpl;
+export const WeatherWidget = WeatherWidgetImpl;
 
-// Re-export all the components
-export { 
-  CalendarWidget, 
-  TaskWidget, 
-  SpendingWidget, 
-  ScannerWidget, 
-  WeatherWidget 
-};
-
-// Define the widget components map with direct references
+// Define the widget components map using the exported constants
 export const WidgetComponents = {
-  calendar: CalendarWidget,
-  tasks: TaskWidget,
-  spending: SpendingWidget,
-  scanner: ScannerWidget,
-  weather: WeatherWidget
+  calendar: CalendarWidgetImpl,
+  tasks: TaskWidgetImpl,
+  spending: SpendingWidgetImpl,
+  scanner: ScannerWidgetImpl,
+  weather: WeatherWidgetImpl
 };
