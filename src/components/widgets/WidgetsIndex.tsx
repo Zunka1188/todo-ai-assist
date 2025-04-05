@@ -3,12 +3,12 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// First, import all widget components
-import CalendarWidgetComponent from './CalendarWidget';
-import TaskWidgetComponent from './TaskWidget';
-import SpendingWidgetComponent from './SpendingWidget';
-import ScannerWidgetComponent from './ScannerWidget';
-import WeatherWidgetComponent from './WeatherWidget';
+// Import components with different import names to avoid initialization issues
+import CalendarComp from './CalendarWidget';
+import TaskComp from './TaskWidget';
+import SpendingComp from './SpendingWidget';
+import ScannerComp from './ScannerWidget';
+import WeatherComp from './WeatherWidget';
 
 // Define the WidgetWrapper component
 export const WidgetWrapper: React.FC<{
@@ -29,18 +29,18 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// Export the widget components directly
-export const CalendarWidget = CalendarWidgetComponent;
-export const TaskWidget = TaskWidgetComponent;
-export const SpendingWidget = SpendingWidgetComponent;
-export const ScannerWidget = ScannerWidgetComponent;
-export const WeatherWidget = WeatherWidgetComponent;
+// Export the components with their public names
+export const CalendarWidget = CalendarComp;
+export const TaskWidget = TaskComp;
+export const SpendingWidget = SpendingComp;
+export const ScannerWidget = ScannerComp;
+export const WeatherWidget = WeatherComp;
 
-// Create the widget components map last, using the imported components
+// Now define the widget components map
 export const WidgetComponents = {
-  calendar: CalendarWidgetComponent,
-  tasks: TaskWidgetComponent,
-  spending: SpendingWidgetComponent,
-  scanner: ScannerWidgetComponent,
-  weather: WeatherWidgetComponent
+  calendar: CalendarComp,
+  tasks: TaskComp,
+  spending: SpendingComp,
+  scanner: ScannerComp,
+  weather: WeatherComp
 };
