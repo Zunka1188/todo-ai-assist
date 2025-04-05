@@ -7,9 +7,10 @@ import TaskWidget from './TaskWidget';
 import SpendingWidget from './SpendingWidget';
 import ScannerWidget from './ScannerWidget';
 
+// For convenience, also export the components
 export { CalendarWidget, TaskWidget, SpendingWidget, ScannerWidget };
 
-// For convenience, also export a components map
+// Export a components map
 export const WidgetComponents = {
   calendar: CalendarWidget,
   tasks: TaskWidget,
