@@ -5,7 +5,8 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Input } from '@/components/ui/input';
 
-interface SearchBarProps extends React.InputHTMLAttributes<HTMLInputElement> {
+// Omit the 'size' property from InputHTMLAttributes to avoid the conflict
+interface SearchBarProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClear?: () => void;
@@ -14,7 +15,7 @@ interface SearchBarProps extends React.InputHTMLAttributes<HTMLInputElement> {
   showIcon?: boolean;
   showClearButton?: boolean;
   variant?: 'default' | 'minimal';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg'; // Now this won't conflict with the InputHTMLAttributes size
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ 
