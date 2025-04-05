@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
@@ -28,9 +27,10 @@ interface EventFormDialogProps {
   onSubmit: (event: Event) => void;
   selectedEvent: Event | null;
   isEditMode: boolean;
+  onDeleteEvent?: () => void;
 }
 
-const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMode }: EventFormDialogProps) => {
+const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMode, onDeleteEvent }: EventFormDialogProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -85,7 +85,6 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
         setSelectedImage(null);
       }
     } else if (!isEditMode) {
-      // Reset form for new event
       form.reset({
         title: '',
         description: '',
@@ -463,6 +462,17 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
               )} />
               
               <DialogFooter className="pt-4">
+                {isEditMode && onDeleteEvent && (
+                  <Button 
+                    type="button" 
+                    variant="destructive"
+                    onClick={onDeleteEvent}
+                    className="mr-auto"
+                  >
+                    <Trash className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                )}
                 <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
                   Cancel
                 </Button>

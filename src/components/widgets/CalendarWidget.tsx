@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Calendar as CalendarIcon, ChevronRight, Bell, Clock, MapPin, Edit, Image } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -64,6 +63,14 @@ const CalendarWidget = () => {
     console.log("Event saved:", updatedEvent);
     setIsEditMode(false);
     // In a real app, you would update the event in your state or database here
+  };
+
+  // Handle delete event
+  const handleDeleteEvent = () => {
+    console.log("Event deleted:", selectedEvent?.id);
+    setIsEditMode(false);
+    setSelectedEvent(null);
+    // In a real app, you would remove the event from your state or database here
   };
 
   return (
@@ -257,6 +264,7 @@ const CalendarWidget = () => {
             onSubmit={handleSaveEvent}
             selectedEvent={selectedEvent}
             isEditMode={true}
+            onDeleteEvent={handleDeleteEvent}
           />
         )}
       </div>
