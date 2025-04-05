@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday } from 'date-fns';
@@ -38,6 +37,10 @@ const WeekView: React.FC<WeekViewProps> = ({
   const { toast } = useToast();
   const { isMobile } = useIsMobile();
   
+  const HOUR_HEIGHT = 60; // Height in pixels for each hour block in Week View
+  const MINUTES_PER_HOUR = 60;
+  const TIME_COLUMN_WIDTH = 12.5; // Percentage width of time column
+  
   const weekStart = startOfWeek(date, { weekStartsOn });
   const weekEnd = endOfWeek(date, { weekStartsOn });
   
@@ -66,7 +69,6 @@ const WeekView: React.FC<WeekViewProps> = ({
     length: endHour - startHour + 1
   }, (_, i) => startHour + i);
   
-  // Check if an event is visible in the current view
   const isEventVisible = (event: Event): boolean => {
     if (event.allDay) return true;
     
@@ -75,11 +77,9 @@ const WeekView: React.FC<WeekViewProps> = ({
     const eventStartMinute = event.startDate.getMinutes();
     const eventEndMinute = event.endDate.getMinutes();
     
-    // For precise comparison include minutes as decimal
-    const eventStart = eventStartHour + (eventStartMinute / 60);
-    const eventEnd = eventEndHour + (eventEndMinute / 60);
+    const eventStart = eventStartHour + (eventStartMinute / MINUTES_PER_HOUR);
+    const eventEnd = eventEndHour + (eventEndMinute / MINUTES_PER_HOUR);
     
-    // Check if at least part of the event falls within visible hours
     return eventStart < endHour && eventEnd > startHour;
   };
   
@@ -87,11 +87,9 @@ const WeekView: React.FC<WeekViewProps> = ({
     !event.allDay && !isEventVisible(event)
   );
 
-  // Group overlapping events
   const groupOverlappingEvents = (events: Event[]): Event[][] => {
     if (events.length === 0) return [];
     
-    // Sort events by start time
     const sortedEvents = [...events].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
     
     const groups: Event[][] = [];
@@ -101,7 +99,6 @@ const WeekView: React.FC<WeekViewProps> = ({
       const event = sortedEvents[i];
       const previousEvent = sortedEvents[i - 1];
       
-      // Check if current event overlaps with previous event in the current group
       if (event.startDate < previousEvent.endDate) {
         currentGroup.push(event);
       } else {
@@ -110,7 +107,6 @@ const WeekView: React.FC<WeekViewProps> = ({
       }
     }
     
-    // Add the last group if not empty
     if (currentGroup.length > 0) {
       groups.push(currentGroup);
     }
@@ -118,87 +114,64 @@ const WeekView: React.FC<WeekViewProps> = ({
     return groups;
   };
 
-  // Get multi-day/multi-hour events for a specific day
   const getMultiHourEventsForDay = (day: Date) => {
     return events.filter(event => {
       if (event.allDay) return false;
       
-      // Check if event is on this day
       const sameDay = isSameDay(event.startDate, day) || 
                       isSameDay(event.endDate, day) || 
                       (event.startDate <= day && event.endDate >= day);
       
       if (!sameDay) return false;
       
-      // Check if the event is visible in the current time range
       if (!isEventVisible(event)) return false;
       
       return true;
     });
   };
 
-  // Updated for precise minute-level positioning
   const getMultiHourEventStyle = (event: Event, day: Date, totalOverlapping = 1, index = 0): React.CSSProperties => {
     const eventStart = new Date(event.startDate);
     const eventEnd = new Date(event.endDate);
     
-    // Set up date objects for the current day
     const dayStart = new Date(day);
     dayStart.setHours(0, 0, 0, 0);
     
     const dayEnd = new Date(day);
     dayEnd.setHours(23, 59, 59, 999);
     
-    // If event starts before this day, use day start as event start
     const effectiveStartDate = eventStart < dayStart ? dayStart : eventStart;
-    
-    // If event ends after this day, use day end as event end
     const effectiveEndDate = eventEnd > dayEnd ? dayEnd : eventEnd;
     
-    // Get exact hours and minutes for precise positioning
-    const startHourDecimal = effectiveStartDate.getHours() + (effectiveStartDate.getMinutes() / 60);
-    const endHourDecimal = effectiveEndDate.getHours() + (effectiveEndDate.getMinutes() / 60);
+    const startHourDecimal = effectiveStartDate.getHours() + (effectiveStartDate.getMinutes() / MINUTES_PER_HOUR);
+    const endHourDecimal = effectiveEndDate.getHours() + (effectiveEndDate.getMinutes() / MINUTES_PER_HOUR);
     
-    // Calculate visible range with minute precision
     const visibleStartHourDecimal = Math.max(startHourDecimal, startHour);
-    const visibleEndHourDecimal = Math.min(endHourDecimal, endHour + 1); // Add 1 to include the full end hour
+    const visibleEndHourDecimal = Math.min(endHourDecimal, endHour + 1);
     
-    // Calculate how many hours (with minute precision) into the visible range this event starts
     const hoursFromVisibleStart = visibleStartHourDecimal - startHour;
     
-    // Calculate visible event duration with minute precision
     const visibleDurationHours = visibleEndHourDecimal - visibleStartHourDecimal;
     
-    // Each hour is 60px high
-    const hourHeight = 60;
-    const topPx = hoursFromVisibleStart * hourHeight;
-    const heightPx = Math.max(visibleDurationHours * hourHeight, 20); // Min height for very short events
+    const topPx = hoursFromVisibleStart * HOUR_HEIGHT;
+    const heightPx = Math.max(visibleDurationHours * HOUR_HEIGHT, 20);
     
-    // Calculate width to prevent overlap with time column
-    // Each day column should be ~12% wide (100% / 8) with the first column for time
-    const dayColumnWidth = 12.5;
-    
-    // Calculate the column index (0-6) for the current day
     const dayColumnIndex = daysInWeek.findIndex(d => isSameDay(d, day));
     
-    // Calculate width for overlapping events and prevent time column overlap
-    const eventWidth = 10.0 / totalOverlapping; // Narrower width for better spacing
+    const eventWidth = 10.5 / totalOverlapping;
     
-    // Left position: start after time column + current day position + offset for overlapping events
-    // Add small margin to prevent overlap with column dividers
-    const leftOffset = (dayColumnWidth * (dayColumnIndex + 1)) + 1 + (index * eventWidth);
+    const leftOffset = (TIME_COLUMN_WIDTH * (dayColumnIndex + 1)) + 1 + (index * eventWidth);
     
     return {
       position: 'absolute',
       top: `${topPx}px`,
       height: `${heightPx}px`, 
       left: `${leftOffset}%`,
-      width: `${eventWidth - 0.5}%`, // Leave small space between columns
+      width: `${eventWidth - 0.5}%`,
       zIndex: 20,
     };
   };
 
-  // Helper to get visible multi-hour events grouped by overlapping
   const getVisibleMultiHourEventGroups = (day: Date): Event[][] => {
     const dayEvents = getMultiHourEventsForDay(day);
     return groupOverlappingEvents(dayEvents);
@@ -263,7 +236,6 @@ const WeekView: React.FC<WeekViewProps> = ({
       if (hour >= startHour) newEnd = hour;
     }
     
-    // Check for hidden events with new time range
     const hidden = events.filter(event => {
       if (event.allDay) return false;
       
@@ -272,9 +244,8 @@ const WeekView: React.FC<WeekViewProps> = ({
       const eventEndHour = event.endDate.getHours();
       const eventEndMinute = event.endDate.getMinutes();
       
-      // For precise comparison include minutes as decimal
-      const eventStart = eventStartHour + (eventStartMinute / 60);
-      const eventEnd = eventEndHour + (eventEndMinute / 60);
+      const eventStart = eventStartHour + (eventStartMinute / MINUTES_PER_HOUR);
+      const eventEnd = eventEndHour + (eventEndMinute / MINUTES_PER_HOUR);
       
       return eventEnd <= newStart || eventStart >= newEnd;
     });
@@ -489,7 +460,6 @@ const WeekView: React.FC<WeekViewProps> = ({
           "overflow-y-auto relative",
           isMobile ? "max-h-[calc(100vh-320px)]" : "max-h-[600px]"
         )}>
-          {/* Multi-hour events container overlay */}
           <div className="absolute w-full h-full z-10 pointer-events-none">
             {daysInWeek.map((day, dayIndex) => {
               const eventGroups = getVisibleMultiHourEventGroups(day);
@@ -529,7 +499,6 @@ const WeekView: React.FC<WeekViewProps> = ({
             })}
           </div>
           
-          {/* Hour rows */}
           {hours.map(hour => {
             const hourDate = new Date();
             hourDate.setHours(hour, 0, 0, 0);
@@ -542,7 +511,6 @@ const WeekView: React.FC<WeekViewProps> = ({
                   {format(hourDate, 'h a')}
                 </div>
                 
-                {/* Day columns */}
                 {daysInWeek.map((day, dayIndex) => {
                   const isCurrentDate = isToday(day);
                   const now = new Date();
@@ -557,7 +525,6 @@ const WeekView: React.FC<WeekViewProps> = ({
                         isCurrentHour && "bg-accent/40"
                       )}
                     >
-                      {/* Events are rendered in the overlay */}
                     </div>
                   );
                 })}
