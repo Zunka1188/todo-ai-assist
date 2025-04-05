@@ -3,14 +3,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// Import the widget components directly 
-import CalendarWidgetImpl from './CalendarWidget';
-import TaskWidgetImpl from './TaskWidget';
-import SpendingWidgetImpl from './SpendingWidget';
-import ScannerWidgetImpl from './ScannerWidget';
-import WeatherWidgetImpl from './WeatherWidget';
-
-// Define the WidgetWrapper component
+// First, define the WidgetWrapper component
 export const WidgetWrapper: React.FC<{
   children: React.ReactNode;
   className?: string;
@@ -29,18 +22,25 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// Define widget components directly using the imported implementations
-export const CalendarWidget = CalendarWidgetImpl;
-export const TaskWidget = TaskWidgetImpl;
-export const SpendingWidget = SpendingWidgetImpl;
-export const ScannerWidget = ScannerWidgetImpl;
-export const WeatherWidget = WeatherWidgetImpl;
+// Import the widgets directly from their respective files
+import CalendarWidgetComponent from './CalendarWidget';
+import TaskWidgetComponent from './TaskWidget';
+import SpendingWidgetComponent from './SpendingWidget';
+import ScannerWidgetComponent from './ScannerWidget';
+import WeatherWidgetComponent from './WeatherWidget';
 
-// Use the imported implementations directly in the widget components map
+// Export the widgets
+export const CalendarWidget = CalendarWidgetComponent;
+export const TaskWidget = TaskWidgetComponent;
+export const SpendingWidget = SpendingWidgetComponent;
+export const ScannerWidget = ScannerWidgetComponent;
+export const WeatherWidget = WeatherWidgetComponent;
+
+// Define the widget components map separately
 export const WidgetComponents = {
-  calendar: CalendarWidgetImpl,
-  tasks: TaskWidgetImpl,
-  spending: SpendingWidgetImpl,
-  scanner: ScannerWidgetImpl,
-  weather: WeatherWidgetImpl
+  calendar: CalendarWidgetComponent,
+  tasks: TaskWidgetComponent,
+  spending: SpendingWidgetComponent,
+  scanner: ScannerWidgetComponent,
+  weather: WeatherWidgetComponent
 };
