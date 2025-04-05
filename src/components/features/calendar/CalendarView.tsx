@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
@@ -6,7 +5,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 import MonthView from './views/MonthView';
 import WeekView from './views/WeekView';
-import DayView from './views/DayView';
+import DayView from './views/day-view';
 import AgendaView from './views/AgendaView';
 import EventViewDialog from './dialogs/EventViewDialog';
 import EventFormDialog from './dialogs/EventFormDialog';
@@ -53,33 +52,28 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     filterEvents
   } = useCalendarEvents();
   
-  // Use externally controlled dialog state if provided
   const effectiveCreateDialogOpen = isCreateDialogOpen !== undefined ? isCreateDialogOpen : localCreateDialogOpen;
   const effectiveSetCreateDialogOpen = setIsCreateDialogOpen || setLocalCreateDialogOpen;
   
-  // Filter events based on search term
   const filteredEvents = filterEvents(searchTerm);
 
-  // Handle closing view dialog and opening edit dialog
   const handleViewToEdit = () => {
     setIsViewDialogOpen(false);
     setIsEditMode(true);
     setTimeout(() => {
       effectiveSetCreateDialogOpen(true);
-    }, 100); // Small delay to ensure dialogs don't conflict
+    }, 100);
   };
 
   const handleFileUploadSuccess = (data: any) => {
-    // Close file uploader
     setIsFileUploaderOpen(false);
     
-    // Create a new event from file data
     const newEvent = {
       id: `event-${Date.now()}`,
       title: data.title || 'Event from file',
       description: data.description || '',
       startDate: data.date ? new Date(data.date) : new Date(),
-      endDate: data.endDate ? new Date(data.endDate) : new Date(Date.now() + 3600000), // Default 1 hour
+      endDate: data.endDate ? new Date(data.endDate) : new Date(Date.now() + 3600000),
       location: data.location || '',
       color: data.color || '#4285F4',
       allDay: false,
@@ -92,7 +86,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
   return (
     <div className="space-y-4 w-full">
-      {/* File Uploader */}
       {isFileUploaderOpen && (
         <FileUploader
           onClose={() => setIsFileUploaderOpen(false)}
@@ -100,7 +93,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         />
       )}
       
-      {/* Event Form Dialog */}
       <EventFormDialog
         isOpen={(effectiveCreateDialogOpen || isEditMode) && !isFileUploaderOpen && !isViewDialogOpen}
         setIsOpen={(open) => {
@@ -113,7 +105,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         onDeleteEvent={handleDeleteEvent}
       />
       
-      {/* Event View Dialog */}
       <EventViewDialog
         isOpen={isViewDialogOpen && !isFileUploaderOpen}
         setIsOpen={setIsViewDialogOpen}
@@ -122,7 +113,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         onDelete={handleDeleteEvent}
       />
       
-      {/* Calendar views */}
       {!isFileUploaderOpen && (
         <>
           {viewMode === 'month' && (
