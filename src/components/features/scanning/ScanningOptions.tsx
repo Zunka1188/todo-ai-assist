@@ -91,9 +91,16 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
 
   const handleTakePhoto = (mode?: string) => {
     setCurrentScanMode(mode);
-    setShowScannerCapture(true);
-    setShowBarcodeScannerOnly(false);
-    setShowControlledScanner(false);
+    // Always use controlled scanner for desktop to ensure manual capture
+    if (!isMobile) {
+      setShowControlledScanner(true);
+      setShowScannerCapture(false);
+      setShowBarcodeScannerOnly(false);
+    } else {
+      setShowScannerCapture(true);
+      setShowBarcodeScannerOnly(false);
+      setShowControlledScanner(false);
+    }
     
     toast({
       title: "Take Picture",
@@ -115,6 +122,9 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
   
   const handleUploadFile = () => {
     setShowFileUploader(true);
+    setShowScannerCapture(false);
+    setShowBarcodeScannerOnly(false);
+    setShowControlledScanner(false);
     
     toast({
       title: "File Upload",

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, X, CameraOff, Settings, Image, Loader2, AlertCircle, Scan, ZoomIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -39,7 +38,7 @@ const ControlledScannerCapture: React.FC<ControlledScannerCaptureProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [scanResult, setScanResult] = useState<BarcodeResult | null>(null);
   
-  // Camera hook
+  // Camera hook with autoStart explicitly set to false
   const { 
     cameraActive,
     isInitializing,

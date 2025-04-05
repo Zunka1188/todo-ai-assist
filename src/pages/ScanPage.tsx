@@ -77,7 +77,7 @@ const ScanPage = () => {
           <ScanningOptions 
             onScreenSelectionClick={() => setShowScreenSelection(false)}
             preferredMode={preferredMode}
-            noAutomaticActivation={true} // Keep this prop to prevent automatic camera activation
+            noAutomaticActivation={true} // Always keep this as true to prevent automatic camera activation
           />
         )}
       </div>

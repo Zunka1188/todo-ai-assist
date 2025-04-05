@@ -44,6 +44,7 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
+  const [cameraActivated, setCameraActivated] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [recognizedItem, setRecognizedItem] = useState<RecognizedItem | null>(null);
@@ -100,7 +101,7 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
   });
 
   useEffect(() => {
-    if (cameraActive && videoRef.current && canvasRef.current && !capturedImage) {
+    if (cameraActive && videoRef.current && canvasRef.current && !capturedImage && cameraActivated) {
       console.log("Starting continuous scan");
       const cleanupScan = startContinuousScan(
         videoRef.current,
@@ -111,7 +112,7 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       
       return cleanupScan;
     }
-  }, [cameraActive, capturedImage]);
+  }, [cameraActive, capturedImage, cameraActivated]);
 
   const handleDetectionResult = (result: DetectionResult) => {
     console.log("Detection result:", result);
@@ -160,17 +161,27 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       });
     }
   };
+
+  const activateCamera = () => {
+    setCameraActivated(true);
+    requestCameraPermission();
+    toast({
+      title: "Camera Activated",
+      description: "Camera is now active. Position your device to capture the image.",
+    });
+  };
   
   const retakeImage = () => {
     setCapturedImage(null);
     setRecognizedItem(null);
     setProcessing(false);
     setRetryCount(0);
-    requestCameraPermission();
+    setCameraActivated(false);
   };
 
   const retryCamera = () => {
     setRetryCount(prev => prev + 1);
+    setCameraActivated(true);
     requestCameraPermission();
     
     toast({
@@ -421,21 +432,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
     }
     
     console.log("UnifiedScannerCapture mounted");
-    
-    const timer = setTimeout(() => {
-      if (videoRef.current) {
-        console.log("Video element is ready");
-        requestCameraPermission();
-      } else {
-        console.error("Video element still not available after timeout");
-      }
-    }, 300);
-    
-    return () => {
-      clearTimeout(timer);
-      stopCamera();
-      stopContinuousScan();
-    };
   }, []);
 
   const getTitle = () => {
@@ -464,7 +460,7 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
           <X className="h-5 w-5" />
         </Button>
         <h2 className="text-xl font-medium">{getTitle()}</h2>
-        {!capturedImage && !permissionDenied && !cameraError && (
+        {cameraActivated && !capturedImage && !permissionDenied && !cameraError && (
           <Button
             variant="outline"
             size="sm"
@@ -484,10 +480,10 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
           autoPlay 
           playsInline
           muted
-          className={cameraActive && !capturedImage ? "w-full h-full object-cover" : "hidden"}
+          className={cameraActive && !capturedImage && cameraActivated ? "w-full h-full object-cover" : "hidden"}
         />
         
-        {cameraActive && !capturedImage && (
+        {cameraActive && !capturedImage && cameraActivated && (
           <>
             <div className="absolute inset-0 pointer-events-none">
               {isSmartScanActive || !barcodeOnly ? (
@@ -570,7 +566,7 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
           </div>
         )}
         
-        {!cameraActive && !capturedImage && !permissionDenied && !cameraError && (
+        {(!cameraActive || !cameraActivated) && !capturedImage && !permissionDenied && !cameraError && (
           <div className="text-white text-center p-4">
             <Camera className="mx-auto h-12 w-12 mb-4" />
             <p className="mb-2">Camera is not active</p>
@@ -578,7 +574,7 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
               Press the button below to start the camera
             </p>
             <Button 
-              onClick={requestCameraPermission}
+              onClick={activateCamera}
               className="bg-todo-purple hover:bg-todo-purple/90 text-white"
             >
               <Camera className="h-4 w-4 mr-2" />
@@ -617,7 +613,7 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
           </div>
         )}
         
-        {isInitializing && !capturedImage && (
+        {isInitializing && !capturedImage && cameraActivated && (
           <div className="text-white text-center p-4">
             <Camera className="mx-auto h-12 w-12 mb-2 animate-pulse" />
             <p>Initializing camera...</p>

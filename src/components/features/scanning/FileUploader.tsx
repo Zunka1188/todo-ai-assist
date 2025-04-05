@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback } from 'react';
 import { X, Upload, File, Paperclip, FileText, Image as ImageIcon, Loader2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -42,15 +41,48 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onClose, onSaveSuccess }) =
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
-          const result = event.target.result as string;
-          setFileData(result);
-          const detectedType = getFileType(result, selectedFile.name);
+          const result = event.target.result;
+          let dataUrl: string;
+          
+          if (typeof result === 'string') {
+            dataUrl = result;
+          } else {
+            const bytes = new Uint8Array(result);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+              binary += String.fromCharCode(bytes[i]);
+            }
+            dataUrl = 'data:' + selectedFile.type + ';base64,' + window.btoa(binary);
+          }
+          
+          setFileData(dataUrl);
+          
+          let detectedType: 'image' | 'pdf' | 'document' | 'unknown' = 'unknown';
+          
+          if (selectedFile.type.startsWith('image/')) {
+            detectedType = 'image';
+          } else if (selectedFile.type === 'application/pdf' || selectedFile.name.endsWith('.pdf')) {
+            detectedType = 'pdf';
+          } else if (
+            selectedFile.type.includes('word') || 
+            selectedFile.type.includes('document') ||
+            selectedFile.name.endsWith('.doc') ||
+            selectedFile.name.endsWith('.docx') ||
+            selectedFile.name.endsWith('.txt')
+          ) {
+            detectedType = 'document';
+          }
+          
           setFileType(detectedType);
-          analyzeContent(result, selectedFile.name);
+          analyzeContent(dataUrl, selectedFile.name);
         }
       };
       
-      if (selectedFile.type.startsWith('image/')) {
+      if (selectedFile.type.startsWith('image/') || 
+          selectedFile.type.includes('text/') || 
+          selectedFile.type.includes('application/pdf') ||
+          selectedFile.type.includes('word') ||
+          selectedFile.type.includes('document')) {
         reader.readAsDataURL(selectedFile);
       } else {
         reader.readAsArrayBuffer(selectedFile);
@@ -73,15 +105,48 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onClose, onSaveSuccess }) =
       const reader = new FileReader();
       reader.onload = (event) => {
         if (event.target?.result) {
-          const result = event.target.result as string;
-          setFileData(result);
-          const detectedType = getFileType(result, droppedFile.name);
+          const result = event.target.result;
+          let dataUrl: string;
+          
+          if (typeof result === 'string') {
+            dataUrl = result;
+          } else {
+            const bytes = new Uint8Array(result);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+              binary += String.fromCharCode(bytes[i]);
+            }
+            dataUrl = 'data:' + droppedFile.type + ';base64,' + window.btoa(binary);
+          }
+          
+          setFileData(dataUrl);
+          
+          let detectedType: 'image' | 'pdf' | 'document' | 'unknown' = 'unknown';
+          
+          if (droppedFile.type.startsWith('image/')) {
+            detectedType = 'image';
+          } else if (droppedFile.type === 'application/pdf' || droppedFile.name.endsWith('.pdf')) {
+            detectedType = 'pdf';
+          } else if (
+            droppedFile.type.includes('word') || 
+            droppedFile.type.includes('document') ||
+            droppedFile.name.endsWith('.doc') ||
+            droppedFile.name.endsWith('.docx') ||
+            droppedFile.name.endsWith('.txt')
+          ) {
+            detectedType = 'document';
+          }
+          
           setFileType(detectedType);
-          analyzeContent(result, droppedFile.name);
+          analyzeContent(dataUrl, droppedFile.name);
         }
       };
       
-      if (droppedFile.type.startsWith('image/')) {
+      if (droppedFile.type.startsWith('image/') || 
+          droppedFile.type.includes('text/') || 
+          droppedFile.type.includes('application/pdf') ||
+          droppedFile.type.includes('word') ||
+          droppedFile.type.includes('document')) {
         reader.readAsDataURL(droppedFile);
       } else {
         reader.readAsArrayBuffer(droppedFile);
@@ -120,12 +185,10 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onClose, onSaveSuccess }) =
     }, 100);
     
     try {
-      // Simulating initial content analysis
       await new Promise(r => setTimeout(r, 1500));
       
-      // Generate randomized category suggestions with confidence
       const detectionTypes: RecognizedItemType[] = ['document', 'receipt', 'invitation', 'product', 'unknown'];
-      const randomIndex = Math.floor(Math.random() * 4); // Exclude 'unknown' for better demo
+      const randomIndex = Math.floor(Math.random() * 4);
       const detectedType = detectionTypes[randomIndex];
       const confidence = 0.65 + (Math.random() * 0.30);
       
@@ -181,10 +244,8 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onClose, onSaveSuccess }) =
     }, 80);
     
     try {
-      // Generate mock detected text based on category
       const mockExtractedText = generateMockExtractedText(category);
       
-      // Use timeout to simulate API call
       setTimeout(() => {
         clearInterval(interval);
         setProgressValue(100);
@@ -365,7 +426,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onClose, onSaveSuccess }) =
               </p>
             </div>
             <label className="cursor-pointer">
-              <Button>Select Files</Button>
+              <Button onClick={openFilePicker}>Select Files</Button>
               <input
                 type="file"
                 className="hidden"
@@ -382,7 +443,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onClose, onSaveSuccess }) =
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Display the file preview or icon */}
           <div className="relative bg-black rounded-lg overflow-hidden aspect-[4/3] flex items-center justify-center">
             {fileType === 'image' && fileData ? (
               <img src={fileData} alt="Uploaded" className="w-full h-full object-contain" />
@@ -394,7 +454,6 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onClose, onSaveSuccess }) =
               </div>
             )}
             
-            {/* Processing overlay */}
             {processing && (
               <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-4">
                 <Loader2 className="h-10 w-10 text-white animate-spin mb-4" />
