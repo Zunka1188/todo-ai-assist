@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Camera, Scan, FileText, Calendar, ShoppingBag } from 'lucide-react';
+import { Camera, Scan, FileText, Calendar, ShoppingBag, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -11,7 +11,7 @@ interface ScanButtonProps {
   onScan?: () => void;
   isProcessing?: boolean;
   label?: string;
-  scanMode?: 'product' | 'receipt' | 'invitation' | 'document' | 'shopping' | 'barcode' | 'smart';
+  scanMode?: 'product' | 'receipt' | 'invitation' | 'document' | 'shopping' | 'barcode' | 'smart' | 'upload';
   size?: 'default' | 'lg' | 'sm';
   variant?: 'default' | 'primary' | 'outline';
 }
@@ -35,33 +35,37 @@ const ScanButton: React.FC<ScanButtonProps> = ({
     // Store the scan mode and return path
     sessionStorage.setItem('preferredScanMode', scanMode);
       
-    let toastTitle = "Smart Scanner Activated";
-    let toastDescription = "Looking for products and barcodes...";
+    let toastTitle = "Smart Scanner";
+    let toastDescription = "Choose your scanning method";
     
     switch(scanMode) {
       case 'product':
-        toastTitle = "Product Scan";
-        toastDescription = "Point camera at a product";
+        toastTitle = "Take Picture";
+        toastDescription = "Capture a product with the camera";
         break;
       case 'barcode':
-        toastTitle = "Barcode Scan";
-        toastDescription = "Aligning with barcode...";
+        toastTitle = "Barcode Scanner";
+        toastDescription = "Scan a barcode with the camera";
         break;
       case 'receipt':
-        toastTitle = "Receipt Scan";
-        toastDescription = "Capturing expense information";
+        toastTitle = "Receipt Scanner";
+        toastDescription = "Capture a receipt with the camera";
         break;
       case 'invitation':
-        toastTitle = "Invitation Scan";
-        toastDescription = "Capturing event details";
+        toastTitle = "Invitation Scanner";
+        toastDescription = "Capture event details";
         break;
       case 'document':
-        toastTitle = "Document Scan";
-        toastDescription = "Capturing document content";
+        toastTitle = "Document Scanner";
+        toastDescription = "Capture document content";
         break;
       case 'shopping':
-        toastTitle = "Shopping Item Scan";
+        toastTitle = "Shopping Scanner";
         toastDescription = "Add items to your shopping list";
+        break;
+      case 'upload':
+        toastTitle = "File Upload";
+        toastDescription = "Upload images or documents";
         break;
       case 'smart':
       default:
@@ -87,7 +91,7 @@ const ScanButton: React.FC<ScanButtonProps> = ({
       case 'barcode':
         return <Scan size={isMobile ? 22 : 28} />;
       case 'product':
-        return <ShoppingBag size={isMobile ? 22 : 28} />;
+        return <Camera size={isMobile ? 22 : 28} />;
       case 'receipt':
         return <FileText size={isMobile ? 22 : 28} />;
       case 'invitation':
@@ -96,6 +100,8 @@ const ScanButton: React.FC<ScanButtonProps> = ({
         return <FileText size={isMobile ? 22 : 28} />;
       case 'shopping':
         return <ShoppingBag size={isMobile ? 22 : 28} />;
+      case 'upload':
+        return <Upload size={isMobile ? 22 : 28} />;
       case 'smart':
       default:
         return <Camera size={isMobile ? 24 : 32} />;
@@ -147,7 +153,7 @@ const ScanButton: React.FC<ScanButtonProps> = ({
         </div>
       ) : label ? (
         <div className="flex items-center">
-          <Camera size={isMobile ? 22 : 28} />
+          {getScanIcon()}
           <span className="ml-2">{label}</span>
         </div>
       ) : (

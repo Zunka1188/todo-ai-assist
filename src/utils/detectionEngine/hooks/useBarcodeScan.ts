@@ -10,6 +10,7 @@ export const useBarcodeScan = () => {
   const [status, setStatus] = useState<DetectionStatus>('idle');
   const [result, setResult] = useState<BarcodeResult | null>(null);
   const [error, setError] = useState<Error | null>(null);
+  const [scanningActive, setScanningActive] = useState(false);
   
   /**
    * Scan an image for barcodes
@@ -44,12 +45,66 @@ export const useBarcodeScan = () => {
   }, []);
   
   /**
+   * Start continuous barcode scanning
+   */
+  const startContinuousScan = useCallback((
+    scanFunction: () => Promise<BarcodeResult | null>,
+    intervalMs: number = 500,
+    onDetected?: (result: BarcodeResult) => void
+  ) => {
+    setScanningActive(true);
+    setStatus('detecting');
+    
+    const intervalId = setInterval(async () => {
+      if (!scanningActive) {
+        clearInterval(intervalId);
+        return;
+      }
+      
+      try {
+        const result = await scanFunction();
+        
+        if (result && result.confidence >= 0.6) {
+          // Valid barcode found
+          clearInterval(intervalId);
+          setScanningActive(false);
+          setResult(result);
+          setStatus('success');
+          
+          if (onDetected) {
+            onDetected(result);
+          }
+        }
+      } catch (err) {
+        console.error('Error during continuous scan:', err);
+        // Continue scanning despite errors
+      }
+    }, intervalMs);
+    
+    // Return function to stop scanning
+    return () => {
+      clearInterval(intervalId);
+      setScanningActive(false);
+      setStatus('idle');
+    };
+  }, [scanningActive]);
+  
+  /**
+   * Stop continuous scanning
+   */
+  const stopContinuousScan = useCallback(() => {
+    setScanningActive(false);
+    setStatus('idle');
+  }, []);
+  
+  /**
    * Reset the scan state
    */
   const reset = useCallback(() => {
     setStatus('idle');
     setResult(null);
     setError(null);
+    setScanningActive(false);
   }, []);
   
   return {
@@ -59,7 +114,10 @@ export const useBarcodeScan = () => {
     isScanning: status === 'detecting',
     isSuccess: status === 'success',
     isError: status === 'error',
+    scanningActive,
     scanBarcode,
+    startContinuousScan,
+    stopContinuousScan,
     reset
   };
 };

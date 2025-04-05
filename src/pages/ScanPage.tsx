@@ -30,6 +30,7 @@ const ScanPage = () => {
     const mode = sessionStorage.getItem('preferredScanMode');
     if (mode) {
       setPreferredMode(mode);
+      console.log("Using preferred scan mode from session storage:", mode);
     }
   }, []);
 
