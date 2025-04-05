@@ -16,11 +16,11 @@ const BottomNavigation = () => {
   const isActive = (path: string) => currentPath === path;
 
   const navItems = [
-    { path: '/', icon: Home, label: 'Home' },
-    { path: '/shopping', icon: ShoppingBag, label: 'Shopping' },
-    { path: '/scan', icon: Camera, label: 'Smart Scanner' },
-    { path: '/calendar', icon: Calendar, label: 'Calendar' },
-    { path: '/documents', icon: FileText, label: 'Documents' },
+    { path: '/', icon: Home, label: 'Home', action: () => navigate('/') },
+    { path: '/shopping', icon: ShoppingBag, label: 'Shopping', action: () => navigate('/shopping') },
+    { path: '/scan', icon: Camera, label: 'Smart Scanner', action: () => navigate('/scan') },
+    { path: '/calendar', icon: Calendar, label: 'Calendar', action: () => navigate('/calendar') },
+    { path: '/documents', icon: FileText, label: 'Documents', action: () => navigate('/documents') },
   ];
 
   // If not mobile, don't render the bottom navigation
@@ -31,7 +31,7 @@ const BottomNavigation = () => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 shadow-md safe-bottom">
       <div className="container mx-auto px-1 py-2 flex justify-between items-center">
-        {navItems.map(({ path, icon: Icon, label }) => (
+        {navItems.map(({ path, icon: Icon, label, action }) => (
           <Link 
             key={path}
             to={path}
