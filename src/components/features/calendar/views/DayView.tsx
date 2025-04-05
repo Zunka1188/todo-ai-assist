@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, addDays, subDays, isSameDay, isToday } from 'date-fns';
@@ -119,30 +120,36 @@ const DayView: React.FC<DayViewProps> = ({
     return groups;
   };
 
+  // Updated for precise minute-level positioning
   const getMultiHourEventStyle = (event: Event, totalOverlapping = 1, index = 0): React.CSSProperties => {
     const eventStart = new Date(event.startDate);
     const eventEnd = new Date(event.endDate);
     
-    const visibleStartHour = Math.max(eventStart.getHours(), startHour);
-    const visibleEndHour = Math.min(eventEnd.getHours(), endHour);
+    // Calculate positions with minute precision
+    const startHourDecimal = eventStart.getHours() + (eventStart.getMinutes() / 60);
+    const endHourDecimal = eventEnd.getHours() + (eventEnd.getMinutes() / 60);
     
-    const startMinutes = eventStart.getMinutes() / 60;
-    const endMinutes = eventEnd.getMinutes() / 60;
+    // Calculate visible portions of the event
+    const visibleStartHourDecimal = Math.max(startHourDecimal, startHour);
+    const visibleEndHourDecimal = Math.min(endHourDecimal, endHour + 1); // Add 1 to include the full end hour
     
-    const eventStartDecimal = visibleStartHour + (eventStart.getHours() === visibleStartHour ? startMinutes : 0);
-    const eventEndDecimal = visibleEndHour + (eventEnd.getHours() === visibleEndHour ? endMinutes : 0);
+    // Calculate top position based on visible start time
+    const hoursFromVisibleStart = visibleStartHourDecimal - startHour;
     
-    const visibleRangeStart = startHour;
-    const hoursFromVisibleStart = eventStartDecimal - visibleRangeStart;
-    const visibleDurationHours = Math.min(24, Math.max(0, eventEndDecimal - eventStartDecimal));
+    // Calculate visible duration in hours (with minute precision)
+    const visibleDurationHours = Math.max(0, visibleEndHourDecimal - visibleStartHourDecimal);
     
+    // Each hour height is 80px
     const hourHeight = 80;
     const topPx = hoursFromVisibleStart * hourHeight;
-    const heightPx = Math.max(visibleDurationHours * hourHeight, 20);
+    const heightPx = Math.max(visibleDurationHours * hourHeight, 20); // Minimum height for very short events
     
-    const baseWidth = 92;
+    // Calculate width to prevent overlap with time column (left side)
+    const baseWidth = 88; // Reduced width percentage to avoid overlapping with time column
     const widthPerEvent = baseWidth / totalOverlapping;
-    const leftOffset = (index * widthPerEvent) + 8;
+    
+    // Position events side by side based on their index in the group
+    const leftOffset = (index * widthPerEvent) + 12; // Add 12% offset to prevent overlapping with time column
     
     return {
       position: 'absolute',
@@ -446,6 +453,7 @@ const DayView: React.FC<DayViewProps> = ({
           "overflow-y-auto relative",
           isMobile ? "max-h-[calc(100vh-320px)]" : "max-h-[600px]"
         )}>
+          {/* Multi-hour event container that overlays the time grid */}
           <div className="absolute w-full h-full z-10 pointer-events-none">
             {eventGroups.map((group, groupIndex) => (
               <React.Fragment key={`group-${groupIndex}`}>
