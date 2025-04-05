@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Scan, X, Check } from 'lucide-react';
 import { useUnifiedDetection } from '@/utils/detectionEngine/hooks/useUnifiedDetection';
@@ -10,9 +11,8 @@ interface UnifiedScannerCaptureProps {
   onCapture: (result: any) => void;
   onSaveSuccess?: (data: any) => void;
   onClose?: () => void;
-  mode?: 'smart' | 'barcode';
+  mode?: 'smart';
   initialCameraActive?: boolean;
-  barcodeOnly?: boolean;
   manualCapture?: boolean;
   autoStart?: boolean;
   preferredMode?: string;
@@ -24,7 +24,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
   onClose,
   mode = 'smart',
   initialCameraActive = false,
-  barcodeOnly = false,
   manualCapture = true,
   autoStart = true,
   preferredMode,
@@ -38,9 +37,8 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
   const { toast } = useToast();
 
   const { 
-    detectBarcode,
-    detectProduct,
-    isDetecting: isBusy
+    detectImage,
+    isDetecting
   } = useUnifiedDetection();
 
   const initializeCamera = async (videoElement: HTMLVideoElement): Promise<void> => {
@@ -93,19 +91,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
     return '';
   };
 
-  const detectInImage = async (imageData: string, detectionMode: string): Promise<DetectionResult | null> => {
-    try {
-      if (detectionMode === 'barcode') {
-        return await detectBarcode(imageData);
-      } else {
-        return await detectProduct(imageData);
-      }
-    } catch (error) {
-      console.error("Error detecting in image:", error);
-      return null;
-    }
-  };
-
   useEffect(() => {
     let mounted = true;
 
@@ -139,19 +124,19 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
   }, [cameraActive, toast]);
 
   const handleCapture = async () => {
-    if (!videoRef.current || !canvasRef.current || isBusy) return;
+    if (!videoRef.current || !canvasRef.current || isDetecting) return;
 
     try {
       setScanning(true);
       const imageData = captureImageFromVideo(videoRef.current, canvasRef.current);
       setCapturedImage(imageData);
       
-      const result = await detectInImage(imageData, mode);
+      const result = await detectImage(imageData);
       setDetectionResult(result);
       setScanning(false);
       
       if (result && Object.keys(result).length > 0) {
-        const detectionName = result.name || result.text || "Detected item";
+        const detectionName = "Detected item";
         toast({
           title: "Detection Successful",
           description: `${detectionName} was identified.`,
@@ -167,55 +152,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       toast({
         title: "Detection Error",
         description: "An error occurred while processing the image.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleBarcodeScan = async () => {
-    if (!videoRef.current || !canvasRef.current || isBusy) return;
-    
-    try {
-      setScanning(true);
-      const scanInterval = setInterval(async () => {
-        if (!videoRef.current || !canvasRef.current) {
-          clearInterval(scanInterval);
-          return;
-        }
-        
-        const imageData = captureImageFromVideo(videoRef.current, canvasRef.current);
-        const result = await detectInImage(imageData, 'barcode');
-        
-        if (result && result.barcode) {
-          clearInterval(scanInterval);
-          setCapturedImage(imageData);
-          setDetectionResult(result);
-          setScanning(false);
-          
-          toast({
-            title: "Barcode Found",
-            description: `Barcode ${result.barcode} detected.`,
-          });
-        }
-      }, 1000);
-      
-      setTimeout(() => {
-        if (scanning) {
-          clearInterval(scanInterval);
-          setScanning(false);
-          toast({
-            description: "No barcode found. Please try again or enter details manually.",
-            variant: "default",
-          });
-        }
-      }, 20000);
-      
-      return () => clearInterval(scanInterval);
-    } catch (error) {
-      setScanning(false);
-      toast({
-        title: "Scan Error",
-        description: "An error occurred while scanning for barcodes.",
         variant: "destructive"
       });
     }
@@ -274,25 +210,14 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
           )}
           
           <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-4">
-            {(mode === 'smart' || !barcodeOnly) ? (
-              <Button 
-                onClick={handleCapture} 
-                disabled={scanning || isBusy} 
-                size="lg" 
-                className="rounded-full h-16 w-16"
-              >
-                <Camera className="h-8 w-8" />
-              </Button>
-            ) : (
-              <Button 
-                onClick={handleBarcodeScan} 
-                disabled={scanning || isBusy} 
-                size="lg" 
-                className="rounded-full h-16 w-16"
-              >
-                <Scan className="h-8 w-8" />
-              </Button>
-            )}
+            <Button 
+              onClick={handleCapture} 
+              disabled={scanning || isDetecting} 
+              size="lg" 
+              className="rounded-full h-16 w-16"
+            >
+              <Camera className="h-8 w-8" />
+            </Button>
           </div>
           
           <Button 
@@ -322,15 +247,7 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       
       {!cameraActive && !capturedImage && (
         <Button onClick={handleStartCamera} className="mt-4">
-          {mode === 'smart' || !barcodeOnly ? (
-            <>
-              <Camera className="mr-2 h-5 w-5" /> Start Camera
-            </>
-          ) : (
-            <>
-              <Scan className="mr-2 h-5 w-5" /> Scan Barcode
-            </>
-          )}
+          <Camera className="mr-2 h-5 w-5" /> Start Camera
         </Button>
       )}
     </div>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Scan, Camera, Sparkles, Settings } from 'lucide-react';
+import { Scan, Camera, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { WidgetWrapper } from './shared/WidgetWrapper';
@@ -24,11 +24,6 @@ const ScannerWidget = () => {
     navigate('/scan');
   };
   
-  const handleBarcodeScan = () => {
-    sessionStorage.setItem('preferredScanMode', 'barcode');
-    navigate('/scan');
-  };
-  
   return (
     <WidgetWrapper>
       <div className="flex flex-col items-center justify-center space-y-3">
@@ -43,7 +38,7 @@ const ScannerWidget = () => {
         </div>
         <h3 className="font-medium text-lg">Smart Scanner</h3>
         <p className="text-sm text-muted-foreground text-center">
-          Scan products, barcodes, documents, and more with AI
+          Scan products, documents, and more with AI
         </p>
         <div className="space-y-2 w-full">
           <Button 
@@ -70,24 +65,6 @@ const ScannerWidget = () => {
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{hasUpdates ? 'AI model updates available!' : 'Manage AI detection models'}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="outline"
-                    onClick={handleBarcodeScan}
-                    className="flex-1 border-dashed border-primary/30 flex items-center"
-                  >
-                    <Scan className="h-4 w-4 mr-2 text-primary" />
-                    Barcode Scanner
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Scan product barcodes for quick recognition</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

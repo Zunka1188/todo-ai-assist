@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Camera, ScanBarcode, Upload, Calendar, FileText, Scan, ShoppingBag, Image, PlusCircle } from 'lucide-react';
+import { Camera, Upload, Calendar, FileText, ShoppingBag, Image, PlusCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -33,7 +33,6 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
   
   const [showScannerCapture, setShowScannerCapture] = useState(false);
   const [showControlledScanner, setShowControlledScanner] = useState(false);
-  const [showBarcodeScannerOnly, setShowBarcodeScannerOnly] = useState(false);
   const [showFileUploader, setShowFileUploader] = useState(false);
   const [currentScanMode, setCurrentScanMode] = useState<string | undefined>(preferredMode);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -65,11 +64,7 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
   // It will only check if there's a preferred mode and set it
   useEffect(() => {
     if (preferredMode && !noAutomaticActivation) {
-      if (preferredMode === 'barcode') {
-        handleBarcodeScan();
-      } else {
-        handleTakePhoto(preferredMode);
-      }
+      handleTakePhoto(preferredMode);
     }
   }, [preferredMode, noAutomaticActivation]);
 
@@ -99,28 +94,14 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
     if (!isMobile) {
       setShowControlledScanner(true);
       setShowScannerCapture(false);
-      setShowBarcodeScannerOnly(false);
     } else {
       setShowScannerCapture(true);
-      setShowBarcodeScannerOnly(false);
       setShowControlledScanner(false);
     }
     
     toast({
       title: "Camera Ready",
       description: "Press the capture button when ready to take a photo.",
-    });
-  };
-
-  const handleBarcodeScan = () => {
-    setCurrentScanMode('barcode');
-    setShowBarcodeScannerOnly(true);
-    setShowScannerCapture(true);
-    setShowControlledScanner(false);
-    
-    toast({
-      title: "Barcode Scanner Activated",
-      description: "Position a barcode in the viewfinder for automatic scanning.",
     });
   };
   
@@ -130,12 +111,11 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
     } else {
       setShowFileUploader(true);
       setShowScannerCapture(false);
-      setShowBarcodeScannerOnly(false);
       setShowControlledScanner(false);
       
       toast({
         title: "File Upload",
-        description: "Select an image file to scan for information or barcodes.",
+        description: "Select an image file to scan for information.",
       });
     }
   };
@@ -146,11 +126,9 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
         <UnifiedScannerCapture 
           onClose={() => {
             setShowScannerCapture(false);
-            setShowBarcodeScannerOnly(false);
           }} 
           onCapture={handleSaveSuccess} 
           preferredMode={currentScanMode}
-          barcodeOnly={showBarcodeScannerOnly}
           manualCapture={manualCapture} 
           autoStart={false} 
         />
@@ -185,10 +163,6 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
                     <Camera className="h-4 w-4 mr-2" />
                     Take Picture
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleBarcodeScan} className="cursor-pointer">
-                    <ScanBarcode className="h-4 w-4 mr-2" />
-                    Scan Barcode
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleUploadFile} className="cursor-pointer">
                     <Upload className="h-4 w-4 mr-2" />
                     Upload File
@@ -199,11 +173,11 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
 
             <div className="flex flex-col items-center text-center p-6 space-y-2 mb-6">
               <div className="bg-primary bg-opacity-10 p-4 rounded-full mb-2">
-                <Scan className="h-8 w-8 text-primary" />
+                <Camera className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-2xl font-semibold">Smart Scanner</h3>
               <p className="text-muted-foreground max-w-md">
-                Choose how you want to scan: take a picture, scan a barcode, or upload a file
+                Choose how you want to scan: take a picture or upload a file
               </p>
             </div>
             
@@ -216,16 +190,6 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
                 <Camera className="h-5 w-5 mr-3" />
                 Take Picture
                 <span className="text-xs ml-2 opacity-75">(Manual Capture)</span>
-              </Button>
-
-              <Button 
-                onClick={handleBarcodeScan}
-                className="w-full max-w-md bg-secondary hover:bg-secondary/90 h-14 text-lg"
-                disabled={!hasCamera}
-              >
-                <ScanBarcode className="h-5 w-5 mr-3" />
-                Scan Barcode
-                <span className="text-xs ml-2 opacity-75">(Manual Activation)</span>
               </Button>
 
               <Button 
@@ -292,10 +256,6 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
                   <div className="flex items-center">
                     <FileText className="h-4 w-4 mr-2 text-primary" />
                     <span>Documents (.pdf, .docx)</span>
-                  </div>
-                  <div className="flex items-center">
-                    <ScanBarcode className="h-4 w-4 mr-2 text-primary" />
-                    <span>QR & Barcodes</span>
                   </div>
                 </div>
               </div>

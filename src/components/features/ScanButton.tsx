@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Camera, Scan, FileText, Calendar, ShoppingBag, Upload } from 'lucide-react';
+import { Camera, FileText, Calendar, ShoppingBag, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -11,7 +11,7 @@ interface ScanButtonProps {
   onScan?: () => void;
   isProcessing?: boolean;
   label?: string;
-  scanMode?: 'product' | 'receipt' | 'invitation' | 'document' | 'shopping' | 'barcode' | 'smart' | 'upload';
+  scanMode?: 'product' | 'receipt' | 'invitation' | 'document' | 'shopping' | 'smart' | 'upload';
   size?: 'default' | 'lg' | 'sm';
   variant?: 'default' | 'primary' | 'outline';
 }
@@ -42,10 +42,6 @@ const ScanButton: React.FC<ScanButtonProps> = ({
       case 'product':
         toastTitle = "Take Picture";
         toastDescription = "Capture a product with the camera";
-        break;
-      case 'barcode':
-        toastTitle = "Barcode Scanner";
-        toastDescription = "Scan a barcode with the camera";
         break;
       case 'receipt':
         toastTitle = "Receipt Scanner";
@@ -88,8 +84,6 @@ const ScanButton: React.FC<ScanButtonProps> = ({
 
   const getScanIcon = () => {
     switch(scanMode) {
-      case 'barcode':
-        return <Scan size={isMobile ? 22 : 28} />;
       case 'product':
         return <Camera size={isMobile ? 22 : 28} />;
       case 'receipt':
