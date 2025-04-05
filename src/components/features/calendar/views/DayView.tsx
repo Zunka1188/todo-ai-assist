@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Clock, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Toggle } from '@/components/ui/toggle';
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -103,6 +104,43 @@ const DayView: React.FC<DayViewProps> = ({
     }
     
     return hidden;
+  };
+
+  const handleTimeRangeToggle = (preset: string) => {
+    switch (preset) {
+      case 'full':
+        setStartHour(0);
+        setEndHour(23);
+        setStartInputValue("0");
+        setEndInputValue("23");
+        setShowAllHours(true);
+        setHiddenEvents([]);
+        break;
+      case 'business':
+        setStartHour(8);
+        setEndHour(18);
+        setStartInputValue("8");
+        setEndInputValue("18");
+        setShowAllHours(false);
+        checkForHiddenEvents(8, 18);
+        break;
+      case 'evening':
+        setStartHour(17);
+        setEndHour(23);
+        setStartInputValue("17");
+        setEndInputValue("23");
+        setShowAllHours(false);
+        checkForHiddenEvents(17, 23);
+        break;
+      case 'morning':
+        setStartHour(4);
+        setEndHour(12);
+        setStartInputValue("4");
+        setEndInputValue("12");
+        setShowAllHours(false);
+        checkForHiddenEvents(4, 12);
+        break;
+    }
   };
 
   const handleTimeRangeChange = (type: 'start' | 'end', value: string) => {
@@ -217,31 +255,41 @@ const DayView: React.FC<DayViewProps> = ({
         </div>
       </div>
       
-      <div className={cn(
-        "flex items-center gap-4",
-        isMobile ? "flex-col items-start" : "flex-wrap"
-      )}>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant={showAllHours ? "default" : "outline"} 
-            size="sm"
-            onClick={() => {
-              setStartHour(0);
-              setEndHour(23);
-              setStartInputValue("0");
-              setEndInputValue("23");
-              setShowAllHours(true);
-              setHiddenEvents([]);
-            }}
-            className="tap-target"
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-2">
+          <Toggle
+            pressed={showAllHours}
+            onPressedChange={() => handleTimeRangeToggle('full')}
+            className="bg-transparent data-[state=on]:bg-[#9b87f5] data-[state=on]:text-white tap-target"
           >
             Full 24h
-          </Button>
+          </Toggle>
+          <Toggle
+            pressed={startHour === 8 && endHour === 18}
+            onPressedChange={() => handleTimeRangeToggle('business')}
+            className="bg-transparent data-[state=on]:bg-[#9b87f5] data-[state=on]:text-white tap-target"
+          >
+            Business hours
+          </Toggle>
+          <Toggle
+            pressed={startHour === 17 && endHour === 23}
+            onPressedChange={() => handleTimeRangeToggle('evening')}
+            className="bg-transparent data-[state=on]:bg-[#9b87f5] data-[state=on]:text-white tap-target"
+          >
+            Evening
+          </Toggle>
+          <Toggle
+            pressed={startHour === 4 && endHour === 12}
+            onPressedChange={() => handleTimeRangeToggle('morning')}
+            className="bg-transparent data-[state=on]:bg-[#9b87f5] data-[state=on]:text-white tap-target"
+          >
+            Morning
+          </Toggle>
         </div>
         
         <div className={cn(
           "flex items-center gap-3",
-          isMobile ? "w-full" : ""
+          isMobile ? "flex-wrap" : ""
         )}>
           <div className="flex items-center gap-1">
             <Label htmlFor="startHour" className="text-sm whitespace-nowrap">From:</Label>
@@ -273,15 +321,15 @@ const DayView: React.FC<DayViewProps> = ({
             />
           </div>
         </div>
+        
+        {hiddenEvents.length > 0 && (
+          <Alert variant="destructive" className="py-2 bg-white border border-red-400 dark:bg-gray-800">
+            <AlertDescription>
+              Warning: {hiddenEvents.length} event{hiddenEvents.length > 1 ? 's' : ''} {hiddenEvents.length > 1 ? 'are' : 'is'} outside the selected time range and {hiddenEvents.length > 1 ? 'are' : 'is'} not visible.
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
-      
-      {hiddenEvents.length > 0 && (
-        <Alert variant="destructive" className="py-2 bg-white border border-red-400 dark:bg-white">
-          <AlertDescription className="text-sm text-red-600 dark:text-red-600 font-medium flex items-center justify-center">
-            Warning! Not all tasks/events are visible
-          </AlertDescription>
-        </Alert>
-      )}
       
       {allDayEvents.length > 0 && (
         <div className="border rounded-lg overflow-hidden mb-4">
