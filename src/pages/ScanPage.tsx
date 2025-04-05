@@ -31,6 +31,9 @@ const ScanPage = () => {
     if (mode) {
       setPreferredMode(mode);
       console.log("Using preferred scan mode from session storage:", mode);
+      
+      // Important: We're not initializing the camera automatically here anymore
+      // This ensures the user sees the three buttons first
     }
   }, []);
 
@@ -74,6 +77,7 @@ const ScanPage = () => {
           <ScanningOptions 
             onScreenSelectionClick={() => setShowScreenSelection(false)}
             preferredMode={preferredMode}
+            noAutomaticActivation={true} // Add this prop to prevent automatic camera activation
           />
         )}
       </div>

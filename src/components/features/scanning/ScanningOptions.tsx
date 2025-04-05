@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Camera, ScanBarcode, Upload, Calendar, FileText, Scan, ShoppingBag, Image } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -15,11 +14,13 @@ import { Button } from '@/components/ui/button';
 interface ScanningOptionsProps {
   onScreenSelectionClick?: () => void;
   preferredMode?: string;
+  noAutomaticActivation?: boolean;
 }
 
 const ScanningOptions: React.FC<ScanningOptionsProps> = ({ 
   onScreenSelectionClick,
-  preferredMode 
+  preferredMode,
+  noAutomaticActivation = false
 }) => {
   const { toast } = useToast();
   const { isMobile, hasCamera } = useIsMobile();
@@ -56,14 +57,14 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
   }, [hasCamera]);
 
   useEffect(() => {
-    if (preferredMode) {
+    if (preferredMode && !noAutomaticActivation) {
       if (preferredMode === 'barcode') {
         handleBarcodeScan();
       } else {
         handleTakePhoto(preferredMode);
       }
     }
-  }, [preferredMode]);
+  }, [preferredMode, noAutomaticActivation]);
 
   const handleSaveSuccess = (data: any) => {
     console.log("Item processed successfully:", data);
