@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShoppingList from '@/components/features/shopping/ShoppingList';
@@ -10,6 +9,7 @@ import { useShoppingItems } from '@/components/features/shopping/useShoppingItem
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import PageHeader from '@/components/ui/page-header';
+import { cn } from '@/lib/utils';
 
 const ShoppingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -23,23 +23,19 @@ const ShoppingPage: React.FC = () => {
   const { updateItem, addItem } = useShoppingItems('all', '');
   const { isMobile } = useIsMobile();
   
-  // Get the tab from URL query parameters
   const searchParams = new URLSearchParams(location.search);
   const tabFromUrl = searchParams.get('tab');
-  // Updated valid tabs order - "All" moved to the end
   const validTabs = ['one-off', 'weekly', 'monthly', 'all'];
-  const defaultTab = validTabs.includes(tabFromUrl || '') ? tabFromUrl : 'one-off'; // Default changed to one-off
-  
+  const defaultTab = validTabs.includes(tabFromUrl || '') ? tabFromUrl : 'one-off';
+
   const [activeTab, setActiveTab] = useState(defaultTab);
 
-  // Sync tab with URL when URL changes
   useEffect(() => {
-    const newTab = validTabs.includes(tabFromUrl || '') ? tabFromUrl : 'one-off'; // Default changed to one-off
+    const newTab = validTabs.includes(tabFromUrl || '') ? tabFromUrl : 'one-off';
     console.log(`URL tab param changed to: ${tabFromUrl}, setting active tab to: ${newTab}`);
     setActiveTab(newTab);
   }, [location.search, tabFromUrl]);
 
-  // When tab changes, update the URL
   const handleTabChange = (value: string) => {
     console.log(`Tab changed to: ${value}`);
     setActiveTab(value);
@@ -54,7 +50,6 @@ const ShoppingPage: React.FC = () => {
     setEditItem(null);
   }
 
-  // Handler for saving items
   const handleSaveItem = (item: any) => {
     try {
       const result = addItem({
@@ -84,12 +79,10 @@ const ShoppingPage: React.FC = () => {
     return false;
   }
 
-  // Handler for updating items
   const handleUpdateItem = (updatedItem: any, imageFile: File | null) => {
     try {
       if (!editItem || !editItem.id) return false;
       
-      // Prepare the data for update
       const itemData = {
         name: updatedItem.name,
         amount: updatedItem.amount,
@@ -120,7 +113,6 @@ const ShoppingPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Using our new PageHeader component */}
       <PageHeader 
         title="Shopping List"
         searchTerm={searchTerm}
@@ -137,7 +129,6 @@ const ShoppingPage: React.FC = () => {
           <TabsTrigger value="all">All</TabsTrigger>
         </TabsList>
         
-        {/* Tab content with improved spacing for mobile */}
         <div className={cn("pb-16", isMobile ? "pb-20" : "")}>
           <TabsContent value="all">
             <ShoppingList 
@@ -170,7 +161,6 @@ const ShoppingPage: React.FC = () => {
         </div>
       </Tabs>
 
-      {/* Current URL Debugging Info (only shown in debug mode) */}
       {debugEnabled && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-200 text-black p-1 text-xs z-50 opacity-80">
           <div>Tab from URL: "{tabFromUrl}", Active Tab: "{activeTab}"</div>
@@ -178,7 +168,6 @@ const ShoppingPage: React.FC = () => {
         </div>
       )}
 
-      {/* Add Item Dialog - ensuring consistent experience with Edit Dialog */}
       {showAddDialog && (
         <AddItemDialog 
           open={showAddDialog} 
@@ -187,7 +176,6 @@ const ShoppingPage: React.FC = () => {
         />
       )}
 
-      {/* Edit Item Dialog - using the updated EditItemDialog component */}
       {editItem && editItem.item && (
         <EditItemDialog 
           isOpen={true}
