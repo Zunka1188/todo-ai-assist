@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
@@ -110,6 +109,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         onSubmit={handleSaveEvent}
         selectedEvent={selectedEvent}
         isEditMode={isEditMode}
+        onDeleteEvent={handleDeleteEvent}
       />
       
       {/* Event View Dialog */}

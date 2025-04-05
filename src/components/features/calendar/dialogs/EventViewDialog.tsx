@@ -120,13 +120,6 @@ const EventViewDialog = ({ isOpen, setIsOpen, selectedEvent, onEdit, onDelete }:
           <DialogClose asChild>
             <Button variant="outline" className="flex-1">Close</Button>
           </DialogClose>
-          <Button 
-            variant="destructive" 
-            onClick={onDelete}
-            className="flex-1"
-          >
-            Delete Event
-          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
