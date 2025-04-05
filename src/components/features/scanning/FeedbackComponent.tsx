@@ -30,6 +30,7 @@ const FeedbackComponent: React.FC<FeedbackComponentProps> = ({
   minimal = false,
   className
 }) => {
+  // Updated to use the addFeedback function from useModelUpdates
   const { addFeedback } = useModelUpdates();
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackType, setFeedbackType] = useState<'positive' | 'negative' | null>(null);
