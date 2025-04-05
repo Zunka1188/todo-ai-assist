@@ -71,5 +71,16 @@ export const initialEvents: Event[] = [
       interval: 1,
       daysOfWeek: [1, 3, 5] // Monday, Wednesday, Friday
     }
+  },
+  {
+    id: '7',
+    title: 'Coffee Tasting Event',
+    description: 'Join us for an exclusive coffee bean tasting experience featuring specialty beans from around the world. Learn brewing techniques and flavor profiles from expert baristas.',
+    startDate: new Date(), // Today's date
+    endDate: new Date(new Date().getTime() + 2 * 60 * 60 * 1000), // Today's date + 2 hours
+    location: 'Artisan Coffee House',
+    color: '#795548', // Coffee brown color
+    reminder: '60',
+    image: 'https://picsum.photos/id/766/800/600' // Coffee beans image
   }
 ];
