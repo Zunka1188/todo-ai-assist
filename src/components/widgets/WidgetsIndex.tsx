@@ -3,7 +3,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// First define the WidgetWrapper component
+// Define and export the WidgetWrapper component first
 export const WidgetWrapper: React.FC<{
   children: React.ReactNode;
   className?: string;
@@ -22,7 +22,7 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// Import all widget components separately using explicit imports
+// Import all widget components - make sure these files use default exports
 import CalendarWidget from './CalendarWidget';
 import TaskWidget from './TaskWidget';
 import SpendingWidget from './SpendingWidget';
