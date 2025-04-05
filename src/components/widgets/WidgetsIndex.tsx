@@ -3,12 +3,12 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// Import all widgets directly
-import CalendarWidgetComponent from './CalendarWidget';
-import TaskWidgetComponent from './TaskWidget';
-import SpendingWidgetComponent from './SpendingWidget';
-import ScannerWidgetComponent from './ScannerWidget';
-import WeatherWidgetComponent from './WeatherWidget';
+// First import all widget components with different names to avoid conflicts
+import CalendarWidgetOriginal from './CalendarWidget';
+import TaskWidgetOriginal from './TaskWidget';
+import SpendingWidgetOriginal from './SpendingWidget';
+import ScannerWidgetOriginal from './ScannerWidget';
+import WeatherWidgetOriginal from './WeatherWidget';
 
 // Define the WidgetWrapper component
 export const WidgetWrapper: React.FC<{
@@ -29,18 +29,18 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// Export renamed components to avoid naming conflicts
-export const CalendarWidget = CalendarWidgetComponent;
-export const TaskWidget = TaskWidgetComponent;
-export const SpendingWidget = SpendingWidgetComponent;
-export const ScannerWidget = ScannerWidgetComponent;
-export const WeatherWidget = WeatherWidgetComponent;
+// Re-export the components with their original names
+export const CalendarWidget = CalendarWidgetOriginal;
+export const TaskWidget = TaskWidgetOriginal;
+export const SpendingWidget = SpendingWidgetOriginal;
+export const ScannerWidget = ScannerWidgetOriginal;
+export const WeatherWidget = WeatherWidgetOriginal;
 
-// Define the widget components map with the imported components
+// Define the widget components map using the original imports
 export const WidgetComponents = {
-  calendar: CalendarWidgetComponent,
-  tasks: TaskWidgetComponent,
-  spending: SpendingWidgetComponent,
-  scanner: ScannerWidgetComponent,
-  weather: WeatherWidgetComponent
+  calendar: CalendarWidgetOriginal,
+  tasks: TaskWidgetOriginal,
+  spending: SpendingWidgetOriginal,
+  scanner: ScannerWidgetOriginal,
+  weather: WeatherWidgetOriginal
 };
