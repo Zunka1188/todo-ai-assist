@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday } from 'date-fns';
@@ -62,12 +61,10 @@ const WeekView: React.FC<WeekViewProps> = ({
     );
   };
 
-  // Create hours array for the time column based on current start/end hour settings
   const hours = Array.from({
     length: endHour - startHour + 1
   }, (_, i) => startHour + i);
   
-  // Check if any events will be hidden with current time range
   const hiddenEvents = events.filter(event => isOutOfTimeRange(event, startHour, endHour));
 
   const handleTimeRangeToggle = (preset: string) => {
@@ -225,7 +222,7 @@ const WeekView: React.FC<WeekViewProps> = ({
             onPressedChange={() => handleTimeRangeToggle('full')}
             className="bg-transparent data-[state=on]:bg-[#9b87f5] data-[state=on]:text-white tap-target"
           >
-            Full day
+            Full 24h
           </Toggle>
           <Toggle
             pressed={startHour === 8 && endHour === 18}
@@ -283,7 +280,6 @@ const WeekView: React.FC<WeekViewProps> = ({
         
         {hiddenEvents.length > 0 && (
           <Alert variant="destructive" className="py-2 bg-white border border-red-400 dark:bg-gray-800">
-            <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               Warning: {hiddenEvents.length} event{hiddenEvents.length > 1 ? 's' : ''} {hiddenEvents.length > 1 ? 'are' : 'is'} outside the selected time range and {hiddenEvents.length > 1 ? 'are' : 'is'} not visible.
             </AlertDescription>
@@ -292,7 +288,6 @@ const WeekView: React.FC<WeekViewProps> = ({
       </div>
       
       <div className="border rounded-lg overflow-hidden">
-        {/* All-day events section */}
         <div className="grid grid-cols-8 divide-x border-b">
           <div className="p-2 text-sm font-medium bg-muted/30">All Day</div>
           {daysInWeek.map((day, index) => {
@@ -318,7 +313,6 @@ const WeekView: React.FC<WeekViewProps> = ({
           })}
         </div>
         
-        {/* Day headers */}
         <div className="grid grid-cols-8 divide-x border-b">
           <div className="p-2 text-sm font-medium bg-muted/30">Time / Day</div>
           {daysInWeek.map((day, index) => {
@@ -339,7 +333,6 @@ const WeekView: React.FC<WeekViewProps> = ({
           })}
         </div>
         
-        {/* Time grid */}
         <div className={cn(
           "overflow-y-auto",
           isMobile ? "max-h-[calc(100vh-320px)]" : "max-h-[600px]"
