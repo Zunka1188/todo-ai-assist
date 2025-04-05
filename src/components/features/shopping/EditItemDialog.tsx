@@ -316,16 +316,22 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
     <>
       {isMobile ? (
         <Drawer open={isOpen} onOpenChange={onClose}>
-          <DrawerContent className="max-h-[85vh] overflow-hidden">
+          <DrawerContent className="max-h-[90vh] overflow-hidden">
             <DrawerHeader className="px-4 py-2">
               <DrawerTitle>Edit Item</DrawerTitle>
             </DrawerHeader>
             
-            <ScrollArea className="p-4 pt-0 flex-1 overflow-auto max-h-[60vh]" scrollRef={scrollRef}>
+            <ScrollArea 
+              className="p-4 pt-0 flex-1 overflow-auto max-h-[65vh]" 
+              scrollRef={scrollRef}
+              style={{ WebkitOverflowScrolling: 'touch', paddingBottom: '100px' }}
+            >
               {dialogContent}
+              {/* Add extra padding at the bottom to ensure content is scrollable */}
+              <div className="h-16"></div>
             </ScrollArea>
             
-            <DrawerFooter className="px-4 py-2 gap-2">
+            <DrawerFooter className="px-4 py-2 gap-2 border-t mt-auto">
               <Button variant="outline" className="w-full" onClick={onClose}>
                 Cancel
               </Button>
