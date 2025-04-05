@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -92,6 +92,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Item</DialogTitle>
+            <DialogDescription>Make changes to your shopping item here.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">

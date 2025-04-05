@@ -3,12 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShoppingList from '@/components/features/shopping/ShoppingList';
 import AddItemDialog from '@/components/features/shopping/AddItemDialog';
+import EditItemDialog from '@/components/features/shopping/EditItemDialog';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { useShoppingItems } from '@/components/features/shopping/useShoppingItems';
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import PageHeader from '@/components/ui/page-header';
+import { useCategoriesManager } from '@/components/features/shopping/useCategoriesManager';
 
 const ShoppingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -21,6 +23,7 @@ const ShoppingPage: React.FC = () => {
   const { toast } = useToast();
   const { updateItem, addItem } = useShoppingItems('all', '');
   const { isMobile } = useIsMobile();
+  const { categories } = useCategoriesManager();
   
   // Get the tab from URL query parameters
   const searchParams = new URLSearchParams(location.search);
@@ -62,7 +65,8 @@ const ShoppingPage: React.FC = () => {
         price: item.price,
         imageUrl: item.file,
         notes: item.notes,
-        repeatOption: item.repeatOption || 'none'
+        repeatOption: item.repeatOption || 'none',
+        category: item.category || categories[0]
       });
 
       if (result) {
@@ -84,7 +88,7 @@ const ShoppingPage: React.FC = () => {
   }
 
   // Handler for updating items
-  const handleUpdateItem = (updatedItem: any) => {
+  const handleUpdateItem = (updatedItem: any, imageFile: File | null) => {
     try {
       if (!editItem || !editItem.id) return false;
       
@@ -92,9 +96,10 @@ const ShoppingPage: React.FC = () => {
       const itemData = {
         name: updatedItem.name,
         amount: updatedItem.amount,
-        imageUrl: updatedItem.file,
+        imageUrl: updatedItem.imageUrl,
         notes: updatedItem.notes,
-        repeatOption: updatedItem.repeatOption || 'none'
+        repeatOption: updatedItem.repeatOption || 'none',
+        category: updatedItem.category
       };
       
       const result = updateItem(editItem.id, itemData);
@@ -182,23 +187,14 @@ const ShoppingPage: React.FC = () => {
         />
       )}
 
-      {/* Edit Item Dialog - now using the same AddItemDialog component */}
-      {editItem && (
-        <AddItemDialog 
-          open={true}
-          onOpenChange={handleCloseEditDialog}
+      {/* Edit Item Dialog - now using the proper EditItemDialog component */}
+      {editItem && editItem.item && (
+        <EditItemDialog 
+          isOpen={true}
+          onClose={handleCloseEditDialog}
           onSave={handleUpdateItem}
-          editItem={{
-            id: editItem.id,
-            name: editItem.item?.name || '',
-            notes: editItem.item?.notes || '',
-            amount: editItem.item?.amount || '',
-            file: editItem.item?.imageUrl || null,
-            fileName: editItem.item?.fileName || '',
-            fileType: 'image',
-            repeatOption: editItem.item?.repeatOption || 'none'
-          }}
-          isEditing={true}
+          item={editItem.item}
+          categories={categories.filter(c => c !== 'All')}
         />
       )}
     </div>
