@@ -1,14 +1,16 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, RefObject } from 'react';
 
 interface UseCameraOptions {
   facingMode?: 'environment' | 'user';
   onError?: (error: string, isPermissionDenied: boolean) => void;
+  videoRef?: RefObject<HTMLVideoElement>;
+  canvasRef?: RefObject<HTMLCanvasElement>;
 }
 
 interface UseCameraReturn {
-  videoRef: React.RefObject<HTMLVideoElement>;
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  videoRef: RefObject<HTMLVideoElement>;
+  canvasRef: RefObject<HTMLCanvasElement>;
   cameraActive: boolean;
   isInitializing: boolean;
   permissionDenied: boolean;
@@ -20,8 +22,13 @@ interface UseCameraReturn {
 }
 
 export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  // Use passed refs or create new ones
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const localCanvasRef = useRef<HTMLCanvasElement>(null);
+  
+  const videoRef = options.videoRef || localVideoRef;
+  const canvasRef = options.canvasRef || localCanvasRef;
+  
   const [cameraActive, setCameraActive] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -54,6 +61,14 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
       
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         handleError("Camera API not supported in this browser", false);
+        setIsInitializing(false);
+        return;
+      }
+      
+      // Check if video ref is available
+      if (!videoRef.current) {
+        console.error("Video reference not available");
+        handleError("Camera initialization failed - video element not found", false);
         setIsInitializing(false);
         return;
       }
@@ -127,8 +142,8 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
             setIsInitializing(false);
           };
         } else {
-          console.error("Video reference not available");
-          handleError("Camera initialization failed - video element not found", false);
+          console.error("Video reference not available after stream");
+          handleError("Camera initialization failed - video element not found after obtaining stream", false);
           setIsInitializing(false);
         }
       } catch (err: any) {
@@ -178,6 +193,10 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
                   });
               }
             };
+          } else {
+            console.error("Video reference not available for fallback");
+            handleError("Camera initialization failed - video element not found for fallback", false);
+            setIsInitializing(false);
           }
         } catch (fallbackErr: any) {
           console.error("Both camera initialization attempts failed:", fallbackErr);

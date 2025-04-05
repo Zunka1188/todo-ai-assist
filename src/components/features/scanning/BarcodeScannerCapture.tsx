@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ScanBarcode, X, Camera, AlertCircle, Loader2, ShoppingBag, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,9 +26,10 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
   const [detectedBarcode, setDetectedBarcode] = useState<string | null>(null);
   const [scanningActive, setScanningActive] = useState(true);
 
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   const { 
-    videoRef,
-    canvasRef,
     cameraActive,
     isInitializing,
     permissionDenied,
@@ -39,6 +39,8 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
     captureImage: captureCameraImage,
     requestCameraPermission
   } = useCamera({
+    videoRef,
+    canvasRef,
     onError: (error, isPermissionDenied) => {
       toast({
         title: isPermissionDenied ? "Camera Permission Denied" : "Camera Error",
@@ -48,16 +50,12 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
     }
   });
 
-  // Mock barcode detection
   useEffect(() => {
     let scanInterval: NodeJS.Timeout;
     
     if (cameraActive && scanningActive) {
-      // Simulate periodic barcode scanning attempts
       scanInterval = setInterval(() => {
-        // Random chance of detecting a barcode (for demo)
         if (Math.random() > 0.85) {
-          // Generate random barcode
           const barcodeTypes = ['UPC-A', 'EAN-13', 'QR'];
           const randomType = barcodeTypes[Math.floor(Math.random() * barcodeTypes.length)];
           const randomDigits = Array(12).fill(0).map(() => Math.floor(Math.random() * 10)).join('');
@@ -76,18 +74,15 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
     setScanningActive(false);
     setDetectedBarcode(barcodeValue);
     
-    // Capture the current frame
     const imageDataURL = captureCameraImage();
     if (imageDataURL) {
       setCapturedImage(imageDataURL);
       processBarcode(imageDataURL, barcodeValue);
     }
     
-    // Play a success sound
-    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhbAYAAAD//wIA9v8EAPn/+//q//3/CwDw//X/BQDv/+v/9P8DAAgAAgDm//X/BwDx/wQA//8BAO//7/8RAPL/5P/8/wcACQD9/+3/+P8JAAEA7f/8/xoA+P/V/+3/FQAbAOr/3v/3/w4AFQDw/+v//v8LABYACQDW/+P/IQAhAPX/zv/x/yQAGQDz/9r/9f8iAB0A8P/Y//j/JAAcAAAA1P/j/yAALgDr/8z/9/8LACsA///j//j/BgAYAP//6v/w/wEAFQALAOf/5//0/xAACQDc/+//9v8EAAQA7P/e//z/EgD+/+b/5v8HAAcA9//5//L/8P8KAAQA4//x//r/AgAIAPb/7//0/wIACgD///D/7f/8/xIAAwDk/+f/AQALAPj/8P/0//n/BwAGAO//8f///wEABQD6//D/9v8GAAIA7v/0//7/AwAEAPr/9//4/wQABAD0//T/+/8CAAMAAAD2//P/AQAGAPv/9f/2/wMABAD7//X/+v8EAAQA9//1//z/AwAEAPj/9v/9/wIABAD6//f//P8BAAUA/P/3//3/AQAFAP3/9//8/wIABAD9//j//P8CAAUA/v/4//z/AgAFAP//+f/8/wEABAAAAAD7//z/AAAEAAEA+//8/wAABAACAPv//P8AAAQAA//8//v/AQADAAD//P/9/wEAAwD///z//f8CAAMAAP/9//3/AgACAP///f/+/wIAAgD///7//v8BAAIA/////v/+/wEAAQAAAP///v8AAAEAAAD///3/AAABAAAA///+/wAAAAAAAAD+/wAAAAAAAP///v8AAAAAAAAAAP//AAAAAAAAAAAAAAAA');
+    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhbAYAAAD//wIA9v8EAPn/+//q//3/CwDw//X/BQDv/+v/9P8DAAgAAgDm//X/BwDx/wQA//8BAO//7/8RAPL/5P/8/wcACQD9/+3/+P8JAAEA7f/8/xoA+P/V/+3/FQAbAOr/3v/3/w4AFQDw/+v//v8LABYACQDW/+P/IQAhAPX/zv/x/yQAGQDz/9r/9f8iAB0A8P/Y//j/JAAcAAAA1P/j/yAALgDr/8z/9/8LACsA///j//j/BgAYAP//6v/w/wEAFQALAOf/5//0/xAACQDc/+//9v8EAAQA7P/e//z/EgD+/+b/5v8HAAcA9//5//L/8P8KAAQA4//x//r/AgAIAPb/7//0/wIACgD///D/7f/8/xIAAwDk/+f/AQALAPj/8P/0//n/BwAGAO//8f///wEABQD6//D/9v8GAAIA7v/0//7/AwAEAPr/9//4/wQABAD0//T/+/8CAAMAAAD2//P/AQAGAPv/9f/2/wMABAD7//X/+v8EAAQA9//1//z/AwAEAPj/9v/9/wIABAD6//f//P8BAAUA/P/3//3/AQAFAP3/9//8/wIABAD9//j//P8CAAUA/v/4//z/AgAFAP///f/+/wIAAgD///7//v8BAAIA/////v/+/wEAAQAAAP///v8AAAEAAAD///3/AAABAAAA///+/wAAAAAAAAD+/wAAAAAAAP///v8AAAAAAAAAAP//AAAAAAAAAAAAAAAA');
     audio.play();
     
-    // Show toast notification
     toast({
       title: "Barcode Detected",
       description: `Processing barcode: ${barcodeValue.substring(0, 25)}...`,
@@ -108,12 +103,10 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
       });
     }, 80);
     
-    // Simulate API call to product database
     setTimeout(() => {
       clearInterval(interval);
       setProgressValue(100);
       
-      // Generate mock product data based on "barcode"
       const mockProductData = {
         name: "Organic Cranberry Juice",
         price: "$4.99",
@@ -183,7 +176,12 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
   };
   
   useEffect(() => {
+    console.log("BarcodeScannerCapture mounted, initializing camera...");
     requestCameraPermission();
+    
+    return () => {
+      stopCamera();
+    };
   }, []);
   
   return (
@@ -211,7 +209,6 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
       </div>
       
       <div className="relative bg-black rounded-lg overflow-hidden aspect-[4/3] flex items-center justify-center">
-        {/* Camera active view */}
         {cameraActive && !capturedImage ? (
           <>
             <video 
@@ -222,7 +219,6 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
               className="w-full h-full object-cover"
             />
             
-            {/* Scanning overlay */}
             <div className="absolute inset-0 pointer-events-none">
               <div className="w-full h-full border-2 border-dashed border-white/40 rounded-lg"></div>
               <div className="absolute top-[45%] left-0 right-0 h-[10%] border-t-2 border-b-2 border-red-500/70"></div>
@@ -278,7 +274,6 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
           </div>
         )}
         
-        {/* Processing overlay */}
         {processing && (
           <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-4">
             <Loader2 className="h-10 w-10 text-white animate-spin mb-4" />
@@ -292,7 +287,6 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
         <canvas ref={canvasRef} className="hidden" />
       </div>
       
-      {/* Camera permission error alert */}
       {(cameraError || permissionDenied) && !capturedImage && (
         <Alert variant="destructive" className="mt-4">
           <AlertCircle className="h-4 w-4" />
@@ -308,7 +302,6 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
         </Alert>
       )}
       
-      {/* Barcode info */}
       {detectedBarcode && !processing && !recognizedItem && (
         <Alert className="mt-4">
           <ShoppingBag className="h-4 w-4" />
@@ -319,7 +312,6 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
         </Alert>
       )}
       
-      {/* Data recognition form when barcode is processed */}
       {recognizedItem && !processing && (
         <div className="space-y-4">
           <DataRecognition
@@ -332,7 +324,6 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
         </div>
       )}
       
-      {/* Retry scanning button */}
       {capturedImage && !processing && !recognizedItem && (
         <div className="flex justify-center mt-4">
           <Button 
@@ -345,7 +336,6 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
         </div>
       )}
       
-      {/* Instructions when scanning */}
       {cameraActive && !capturedImage && !permissionDenied && !cameraError && (
         <div className="text-center text-sm text-muted-foreground">
           <p>Point your camera at a barcode to scan.</p>

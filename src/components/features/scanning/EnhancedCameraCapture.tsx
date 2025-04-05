@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, X, CameraOff, Settings, Image, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -42,9 +41,10 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     preferredMode as RecognizedItemType || null
   );
 
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   const { 
-    videoRef,
-    canvasRef,
     cameraActive,
     isInitializing,
     permissionDenied,
@@ -54,6 +54,8 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     captureImage: captureCameraImage,
     requestCameraPermission
   } = useCamera({
+    videoRef,
+    canvasRef,
     onError: (error, isPermissionDenied) => {
       console.log("Camera error in EnhancedCameraCapture:", error, isPermissionDenied);
       if (!isPermissionDenied) {
@@ -242,7 +244,8 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
       sessionStorage.removeItem('preferredScanMode');
     }
     
-    // Add a small delay before initializing camera to allow component to fully mount
+    console.log("EnhancedCameraCapture mounted, initializing camera...");
+    
     const timer = setTimeout(() => {
       requestCameraPermission();
     }, 100);
@@ -280,7 +283,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
       </div>
       
       <div className="relative bg-black rounded-lg overflow-hidden aspect-[4/3] flex items-center justify-center">
-        {/* Camera active view */}
         {cameraActive && !capturedImage ? (
           <>
             <video 
@@ -291,23 +293,18 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
               className="w-full h-full object-cover"
             />
             
-            {/* Mode indicator */}
-            {preferredScanMode && (
-              <div className="absolute top-0 left-0 p-2">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-todo-purple text-white">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  {preferredScanMode.charAt(0).toUpperCase() + preferredScanMode.slice(1)} Mode
-                </span>
-              </div>
-            )}
+            <div className="absolute top-0 left-0 p-2">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-todo-purple text-white">
+                <Sparkles className="w-3 h-3 mr-1" />
+                {preferredScanMode.charAt(0).toUpperCase() + preferredScanMode.slice(1)} Mode
+              </span>
+            </div>
             
-            {/* Scanning overlay */}
             <div className="absolute inset-0 pointer-events-none">
               <div className="w-full h-full border-2 border-dashed border-white/40 rounded-lg"></div>
               <div className="absolute left-0 right-0 h-1 bg-todo-purple opacity-50 animate-scan"></div>
             </div>
             
-            {/* Capture button */}
             <Button
               onClick={handleImageCapture}
               className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white text-black hover:bg-gray-200 rounded-full w-16 h-16 flex items-center justify-center"
@@ -372,7 +369,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
           </div>
         )}
         
-        {/* Processing overlay */}
         {processing && (
           <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-4">
             <Loader2 className="h-10 w-10 text-white animate-spin mb-4" />
@@ -393,7 +389,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         />
       </div>
       
-      {/* Camera permission error alert */}
       {(cameraError || permissionDenied) && !capturedImage && (
         <Alert variant="destructive" className="mt-4">
           <AlertCircle className="h-4 w-4" />
@@ -418,7 +413,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         </Alert>
       )}
       
-      {/* Data recognition form when image is captured */}
       {capturedImage && !processing && (
         <div className="space-y-4">
           <DataRecognition
@@ -430,7 +424,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         </div>
       )}
       
-      {/* Upload button */}
       {!capturedImage && !permissionDenied && !cameraError && (
         <div className="flex justify-center mt-4">
           <Button 
