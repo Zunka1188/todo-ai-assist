@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, addDays, subDays, isSameDay, isToday } from 'date-fns';
@@ -124,21 +125,32 @@ const DayView: React.FC<DayViewProps> = ({
   };
 
   const getMultiHourEventStyle = (event: Event, totalOverlapping = 1, index = 0): React.CSSProperties => {
-    const eventStart = new Date(event.startDate);
-    const eventEnd = new Date(event.endDate);
+    const eventStartDate = new Date(event.startDate);
+    const eventEndDate = new Date(event.endDate);
     
-    const startHourDecimal = eventStart.getHours() + (eventStart.getMinutes() / MINUTES_PER_HOUR);
-    const endHourDecimal = eventEnd.getHours() + (eventEnd.getMinutes() / MINUTES_PER_HOUR);
+    // Calculate precise start and end positions with minute-level accuracy
+    const eventStartHour = eventStartDate.getHours();
+    const eventStartMinute = eventStartDate.getMinutes();
+    const eventEndHour = eventEndDate.getHours();
+    const eventEndMinute = eventEndDate.getMinutes();
     
+    // Calculate exact decimal positions for start and end
+    const startHourDecimal = eventStartHour + (eventStartMinute / MINUTES_PER_HOUR);
+    const endHourDecimal = eventEndHour + (eventEndMinute / MINUTES_PER_HOUR);
+    
+    // Determine which parts of the event are visible in the current view
     const visibleStartHourDecimal = Math.max(startHourDecimal, startHour);
     const visibleEndHourDecimal = Math.min(endHourDecimal, endHour + 1);
     
+    // Calculate top position and height with exact minute precision
     const topPosition = (visibleStartHourDecimal - startHour) * HOUR_HEIGHT;
     const heightValue = Math.max((visibleEndHourDecimal - visibleStartHourDecimal) * HOUR_HEIGHT, 20);
     
-    const baseWidth = 88;
+    // Calculate width based on overlapping events
+    const baseWidth = 88; // Base width percentage for the event column
     const widthPerEvent = baseWidth / totalOverlapping;
     
+    // Calculate left position based on event index
     const leftOffset = (index * widthPerEvent) + 12;
     
     return {
