@@ -14,6 +14,7 @@ import { Event } from '../features/calendar/types/event';
 import { getReminderLabel, getFormattedTime } from '../features/calendar/utils/dateUtils';
 import { WidgetWrapper } from './shared/WidgetWrapper';
 import { useIsMobile } from '@/hooks/use-mobile';
+import EventFormDialog from '../features/calendar/dialogs/EventFormDialog';
 
 const CalendarWidget = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -22,6 +23,7 @@ const CalendarWidget = () => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isEventDetailOpen, setIsEventDetailOpen] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
 
@@ -49,6 +51,19 @@ const CalendarWidget = () => {
     setSelectedEvent(event);
     setIsEventDetailOpen(true);
     setShowImagePreview(false); // Reset image preview state
+  };
+
+  // Handle edit button click
+  const handleEditClick = () => {
+    setIsEventDetailOpen(false);
+    setIsEditMode(true);
+  };
+
+  // Handle saving event after edit
+  const handleSaveEvent = (updatedEvent: Event) => {
+    console.log("Event saved:", updatedEvent);
+    setIsEditMode(false);
+    // In a real app, you would update the event in your state or database here
   };
 
   return (
@@ -164,11 +179,14 @@ const CalendarWidget = () => {
                         <Image className="h-4 w-4" />
                       </Button>
                     )}
-                    <Link to="/calendar">
-                      <Button variant="outline" size="icon" className="h-8 w-8">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={handleEditClick}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
                 
@@ -221,20 +239,26 @@ const CalendarWidget = () => {
                   <Button 
                     variant="outline" 
                     onClick={() => setIsEventDetailOpen(false)}
-                    className="flex-1"
+                    className="w-full"
                   >
                     Close
                   </Button>
-                  <Link to="/calendar" className="flex-1">
-                    <Button className="bg-todo-purple hover:bg-todo-purple/90 w-full">
-                      View in Calendar
-                    </Button>
-                  </Link>
                 </DialogFooter>
               </div>
             </DialogContent>
           )}
         </Dialog>
+        
+        {/* Event Edit Dialog */}
+        {selectedEvent && (
+          <EventFormDialog
+            isOpen={isEditMode}
+            setIsOpen={(open) => setIsEditMode(open)}
+            onSubmit={handleSaveEvent}
+            selectedEvent={selectedEvent}
+            isEditMode={true}
+          />
+        )}
       </div>
     </WidgetWrapper>
   );
