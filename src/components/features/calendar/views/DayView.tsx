@@ -67,6 +67,7 @@ const DayView: React.FC<DayViewProps> = ({
   
   const isCurrentDate = isToday(date);
 
+  // Get multi-hour events that span across multiple hour blocks
   const getMultiHourEvents = (): Event[] => {
     return timeEvents.filter(event => {
       const startHour = event.startDate.getHours();
@@ -78,6 +79,7 @@ const DayView: React.FC<DayViewProps> = ({
     });
   };
 
+  // Check if an event should be visible in the current time range
   const isEventVisible = (event: Event): boolean => {
     if (event.allDay) return true;
     
@@ -92,11 +94,13 @@ const DayView: React.FC<DayViewProps> = ({
     return eventStart < endHour && eventEnd > startHour;
   };
 
+  // Get multi-hour events that are visible in the current time range
   const getVisibleMultiHourEvents = (): Event[] => {
     const multiHourEvents = getMultiHourEvents();
     return multiHourEvents.filter(event => isEventVisible(event));
   };
 
+  // Group events that overlap in time
   const groupOverlappingEvents = (events: Event[]): Event[][] => {
     if (events.length === 0) return [];
     
@@ -124,6 +128,7 @@ const DayView: React.FC<DayViewProps> = ({
     return groups;
   };
 
+  // Calculate the style for multi-hour events with precise minute-level positioning
   const getMultiHourEventStyle = (event: Event, totalOverlapping = 1, index = 0): React.CSSProperties => {
     const eventStartDate = new Date(event.startDate);
     const eventEndDate = new Date(event.endDate);
@@ -163,6 +168,7 @@ const DayView: React.FC<DayViewProps> = ({
     };
   };
 
+  // Check for events that would be hidden with the current time range
   const checkForHiddenEvents = (start: number, end: number) => {
     const hidden = timeEvents.filter(event => {
       const eventStartHour = event.startDate.getHours();
@@ -189,6 +195,7 @@ const DayView: React.FC<DayViewProps> = ({
     return hidden;
   };
 
+  // Handle time range toggle for preset time periods
   const handleTimeRangeToggle = (preset: string) => {
     switch (preset) {
       case 'full':
@@ -226,6 +233,7 @@ const DayView: React.FC<DayViewProps> = ({
     }
   };
 
+  // Handle manual time range input changes
   const handleTimeRangeChange = (type: 'start' | 'end', value: string) => {
     if (type === 'start') {
       setStartInputValue(value);
@@ -260,6 +268,7 @@ const DayView: React.FC<DayViewProps> = ({
     setShowAllHours(newStart === 0 && newEnd === 23);
   };
 
+  // Handle input blur for time range inputs
   const handleInputBlur = (type: 'start' | 'end') => {
     if (type === 'start') {
       const value = startInputValue.trim();
@@ -298,6 +307,7 @@ const DayView: React.FC<DayViewProps> = ({
     setShowAllHours(startHour === 0 && endHour === 23);
   };
 
+  // Group events by overlapping time to handle layout
   const eventGroups = groupOverlappingEvents(getVisibleMultiHourEvents());
 
   return (
