@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, addDays, subDays, isSameDay, isToday } from 'date-fns';
@@ -137,12 +138,20 @@ const DayView: React.FC<DayViewProps> = ({
     const eventEnd = new Date(event.endDate);
     
     // Calculate visible time range
-    const visibleStartHour = Math.max(eventStart.getHours() + (eventStart.getMinutes() / 60), startHour);
-    const visibleEndHour = Math.min(eventEnd.getHours() + (eventEnd.getMinutes() / 60), endHour + (59/60));
+    const visibleStartHour = Math.max(eventStart.getHours(), startHour);
+    const visibleEndHour = Math.min(eventEnd.getHours(), endHour);
+    
+    // Include minutes for precise positioning
+    const startMinutes = eventStart.getMinutes() / 60;
+    const endMinutes = eventEnd.getMinutes() / 60;
+    
+    // For precise comparison include minutes as decimal
+    const eventStartDecimal = visibleStartHour + (eventStart.getHours() === visibleStartHour ? startMinutes : 0);
+    const eventEndDecimal = visibleEndHour + (eventEnd.getHours() === visibleEndHour ? endMinutes : 1);
     
     // Calculate position within the visible hours
-    const hoursFromVisibleStart = visibleStartHour - startHour;
-    const visibleDurationHours = visibleEndHour - visibleStartHour;
+    const hoursFromVisibleStart = eventStartDecimal - startHour;
+    const visibleDurationHours = eventEndDecimal - eventStartDecimal;
     
     // Each hour row is 80px height
     const hourHeight = 80;

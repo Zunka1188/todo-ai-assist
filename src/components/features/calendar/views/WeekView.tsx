@@ -150,46 +150,47 @@ const WeekView: React.FC<WeekViewProps> = ({
     dayEnd.setHours(23, 59, 59, 999);
     
     // If event starts before this day, use day start as event start
-    const effectiveStartDate = isSameDay(eventStart, day) ? eventStart : new Date(day);
-    effectiveStartDate.setHours(
-      isSameDay(eventStart, day) ? eventStart.getHours() : startHour,
-      isSameDay(eventStart, day) ? eventStart.getMinutes() : 0,
-      0, 0
-    );
+    const effectiveStartDate = isSameDay(eventStart, day) ? eventStart : dayStart;
     
     // If event ends after this day, use day end as event end
-    const effectiveEndDate = isSameDay(eventEnd, day) ? eventEnd : new Date(day);
-    effectiveEndDate.setHours(
-      isSameDay(eventEnd, day) ? eventEnd.getHours() : endHour,
-      isSameDay(eventEnd, day) ? eventEnd.getMinutes() : 59,
-      59, 999
-    );
+    const effectiveEndDate = isSameDay(eventEnd, day) ? eventEnd : dayEnd;
+    
+    // Get hours and minutes for precise positioning
+    const startHourValue = effectiveStartDate.getHours();
+    const startMinValue = effectiveStartDate.getMinutes() / 60;
+    const endHourValue = effectiveEndDate.getHours();
+    const endMinValue = effectiveEndDate.getMinutes() / 60;
     
     // Calculate visible range (use precise decimal hours)
-    const visibleStartHour = Math.max(
-      effectiveStartDate.getHours() + (effectiveStartDate.getMinutes() / 60), 
-      startHour
-    );
-    const visibleEndHour = Math.min(
-      effectiveEndDate.getHours() + (effectiveEndDate.getMinutes() / 60), 
-      endHour + (59/60)
-    );
+    const visibleStartHour = Math.max(startHourValue, startHour);
+    const visibleEndHour = Math.min(endHourValue, endHour);
+    
+    // Include minutes for precise positioning
+    const visibleStartDecimal = visibleStartHour + (startHourValue === visibleStartHour ? startMinValue : 0);
+    const visibleEndDecimal = visibleEndHour + (endHourValue === visibleEndHour ? endMinValue : 1);
     
     // Calculate top position - how many hours into the visible range this event starts
-    const hoursFromVisibleStart = visibleStartHour - startHour;
+    const hoursFromVisibleStart = visibleStartDecimal - startHour;
     
     // Calculate visible event duration
-    const visibleDurationHours = visibleEndHour - visibleStartHour;
+    const visibleDurationHours = visibleEndDecimal - visibleStartDecimal;
     
     // Each cell height is fixed at 60px
     const hourHeight = 60;
     const topPx = hoursFromVisibleStart * hourHeight;
     const heightPx = Math.max(visibleDurationHours * hourHeight, 20); // Min height for very short events
     
-    // Calculate width for overlapping events
-    const baseWidth = 11; // Base width percentage
+    // Calculate width and position for overlapping events
+    const baseWidth = 11.5; // Base width percentage
     const widthPerEvent = baseWidth / totalOverlapping;
-    const leftOffset = (index * widthPerEvent) + (12.5 * (daysInWeek.findIndex(d => isSameDay(d, day)) + 1));
+    
+    // Calculate the column index (0-6) for the current day
+    const dayColumnIndex = daysInWeek.findIndex(d => isSameDay(d, day));
+    
+    // Calculate left position based on day column and overlap index
+    // Each day column should be 12.5% wide (100% / 8) with the first column for time
+    const dayColumnWidth = 12.5;
+    const leftOffset = (dayColumnWidth * (dayColumnIndex + 1)) + (index * (widthPerEvent / totalOverlapping));
     
     return {
       position: 'absolute',
