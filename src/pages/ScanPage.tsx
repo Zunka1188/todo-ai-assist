@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Camera, Upload, Scan as ScanIcon, FileText, Calendar, ShoppingBag, PanelTop } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AppHeader from '@/components/layout/AppHeader';
 import ScanningOptions from '@/components/features/scanning/ScanningOptions';
@@ -8,15 +8,12 @@ import { Button } from '@/components/ui/button';
 import ScreenSelection from '@/components/features/scanning/ScreenSelection';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
-import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
 
 const ScanPage = () => {
   const navigate = useNavigate();
   const [showScreenSelection, setShowScreenSelection] = useState(false);
   const { isMobile } = useIsMobile();
   const { theme } = useTheme();
-  const [activeTab, setActiveTab] = useState<string>("options");
 
   // Get return destination from session storage if available
   const returnDestination = sessionStorage.getItem('returnToAfterScan');
@@ -36,38 +33,29 @@ const ScanPage = () => {
   };
 
   return (
-    <div className="space-y-3 sm:space-y-6 py-1 sm:py-4 h-full flex flex-col">
-      <div className="flex items-center mb-2">
+    <div className="h-full flex flex-col">
+      <div className="flex items-center mb-4">
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={goBack} 
-          className="mr-2 min-h-[44px] min-w-[44px]"
+          className="mr-2"
           aria-label={returnDestination ? `Go back to ${returnDestination}` : "Go back to home"}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <AppHeader 
           title={showScreenSelection ? "Screen Selection" : "Scan"} 
-          subtitle={showScreenSelection 
-            ? "Select any part of the screen for processing" 
-            : isMobile 
-              ? "Scan and analyze items" 
-              : "Automatically recognize items and take action"
-          }
           className="py-0"
         />
       </div>
-
-      <Separator className="mb-4" />
       
       <div className="flex-1">
         {showScreenSelection ? (
           <ScreenSelection onClose={() => setShowScreenSelection(false)} />
         ) : (
           <ScanningOptions 
-            onScreenSelectionClick={() => setShowScreenSelection(true)}
-            preferredMode={activeTab !== 'options' ? activeTab : undefined}
+            onScreenSelectionClick={() => setShowScreenSelection(false)}
           />
         )}
       </div>
