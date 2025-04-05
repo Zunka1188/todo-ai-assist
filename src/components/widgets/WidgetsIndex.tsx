@@ -10,14 +10,12 @@ export { WidgetWrapper };
 // Import widget components directly
 import CalendarWidgetImpl from './CalendarWidget';
 import TaskWidgetImpl from './TaskWidget';
-import SpendingWidgetImpl from './SpendingWidget';
 import ScannerWidgetImpl from './ScannerWidget';
 import WeatherWidgetImpl from './WeatherWidget';
 
 // Create specific exports for each widget
 export const CalendarWidget = CalendarWidgetImpl;
 export const TaskWidget = TaskWidgetImpl;
-export const SpendingWidget = SpendingWidgetImpl;
 export const ScannerWidget = ScannerWidgetImpl;
 export const WeatherWidget = WeatherWidgetImpl;
 
@@ -25,7 +23,6 @@ export const WeatherWidget = WeatherWidgetImpl;
 export const WidgetComponents = {
   calendar: CalendarWidgetImpl,
   tasks: TaskWidgetImpl,
-  spending: SpendingWidgetImpl,
   scanner: ScannerWidgetImpl,
   weather: WeatherWidgetImpl
 };

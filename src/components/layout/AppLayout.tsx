@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import BottomNavigation from './BottomNavigation';
@@ -7,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, CreditCard, HelpCircle, MessageCircle } from 'lucide-react';
+import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, HelpCircle, MessageCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,25 +26,20 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
   const location = useLocation();
   const [chatOpen, setChatOpen] = useState(false);
   
-  // Set the theme to dark by default as specified in the requirements
   useEffect(() => {
-    // Only set it once when the app first loads
     if (localStorage.getItem('theme') === null) {
       setTheme('dark');
     }
   }, []);
   
-  // Handle iOS safe areas and viewport issues
   useEffect(() => {
     if (isIOS) {
-      // Set viewport meta to prevent unwanted zooming
       const viewportMeta = document.querySelector('meta[name="viewport"]');
       if (viewportMeta) {
         viewportMeta.setAttribute('content', 
           'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
       }
       
-      // Add iOS safe area classes
       document.body.classList.add('ios-device');
     }
     
@@ -53,7 +47,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
       document.body.classList.add('android-device');
     }
     
-    // Remove the splash screen on mobile devices if it exists
     const splashScreen = document.getElementById('app-splash-screen');
     if (splashScreen) {
       setTimeout(() => {
@@ -78,7 +71,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
         isMobile ? "h-10" : "h-12 sm:h-14",
         isIOS && "pt-safe-top"
       )}>
-        {/* AI Chat Icon */}
         <div className="flex items-center">
           <button 
             onClick={handleToggleChat}
@@ -89,7 +81,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
           </button>
         </div>
         
-        {/* Right side icons */}
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation">
@@ -121,12 +112,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/spending" className="cursor-pointer flex items-center gap-2">
-                  <CreditCard className="h-4 w-4" />
-                  <span className={textColorClass}>Spending</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
                 <Link to="/troubleshoot" className="cursor-pointer flex items-center gap-2">
                   <HelpCircle className="h-4 w-4" />
                   <span className={textColorClass}>Troubleshoot</span>
@@ -150,7 +135,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
       </main>
       <BottomNavigation />
       
-      {/* AI Food Assistant Chat Panel */}
       <AIFoodAssistant isOpen={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   );

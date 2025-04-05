@@ -6,7 +6,6 @@ import UploadPage from '@/pages/UploadPage';
 import CalendarPage from '@/pages/CalendarPage';
 import ShoppingPage from '@/pages/ShoppingPage';
 import TasksPage from '@/pages/TasksPage';
-import SpendingPage from '@/pages/SpendingPage';
 import DocumentsPage from '@/pages/DocumentsPage';
 import DocumentsSubtabPage from '@/pages/DocumentsSubtabPage';
 import SettingsPage from '@/pages/SettingsPage';
@@ -23,7 +22,6 @@ const Router = () => {
       <Route path="/calendar" element={<CalendarPage />} />
       <Route path="/shopping" element={<ShoppingPage />} />
       <Route path="/tasks" element={<TasksPage />} />
-      <Route path="/spending" element={<SpendingPage />} />
       <Route path="/documents" element={<DocumentsPage />} />
       <Route path="/documents/:subtab" element={<DocumentsSubtabPage />} />
       <Route path="/settings" element={<SettingsPage />} />
