@@ -3,14 +3,14 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// Import components with different import names to avoid initialization issues
-import CalendarComp from './CalendarWidget';
-import TaskComp from './TaskWidget';
-import SpendingComp from './SpendingWidget';
-import ScannerComp from './ScannerWidget';
-import WeatherComp from './WeatherWidget';
+// Import the widgets directly without renaming
+import CalendarWidgetOriginal from './CalendarWidget';
+import TaskWidgetOriginal from './TaskWidget';
+import SpendingWidgetOriginal from './SpendingWidget';
+import ScannerWidgetOriginal from './ScannerWidget';
+import WeatherWidgetOriginal from './WeatherWidget';
 
-// Define the WidgetWrapper component
+// Define the WidgetWrapper component first
 export const WidgetWrapper: React.FC<{
   children: React.ReactNode;
   className?: string;
@@ -29,18 +29,19 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// Export the components with their public names
-export const CalendarWidget = CalendarComp;
-export const TaskWidget = TaskComp;
-export const SpendingWidget = SpendingComp;
-export const ScannerWidget = ScannerComp;
-export const WeatherWidget = WeatherComp;
+// Separate the exports and imports to avoid any circular reference issues
+export const CalendarWidget = CalendarWidgetOriginal;
+export const TaskWidget = TaskWidgetOriginal;
+export const SpendingWidget = SpendingWidgetOriginal;
+export const ScannerWidget = ScannerWidgetOriginal;
+export const WeatherWidget = WeatherWidgetOriginal;
 
-// Now define the widget components map
+// Define the widget components map separately using the original imports
+// to avoid any reference to identifiers that haven't been initialized
 export const WidgetComponents = {
-  calendar: CalendarComp,
-  tasks: TaskComp,
-  spending: SpendingComp,
-  scanner: ScannerComp,
-  weather: WeatherComp
+  calendar: CalendarWidgetOriginal,
+  tasks: TaskWidgetOriginal,
+  spending: SpendingWidgetOriginal,
+  scanner: ScannerWidgetOriginal,
+  weather: WeatherWidgetOriginal
 };
