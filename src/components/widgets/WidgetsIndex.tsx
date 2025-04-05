@@ -22,21 +22,28 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// Import all components at the end to avoid circular dependencies
-import CalendarWidgetComponent from './CalendarWidget';
-import TaskWidgetComponent from './TaskWidget';
-import SpendingWidgetComponent from './SpendingWidget';
-import ScannerWidgetComponent from './ScannerWidget';
-import WeatherWidgetComponent from './WeatherWidget';
+// Import widget components - DO NOT use these directly in any component maps or exports yet
+import * as CalendarWidgetTemp from './CalendarWidget';
+import * as TaskWidgetTemp from './TaskWidget';
+import * as SpendingWidgetTemp from './SpendingWidget';
+import * as ScannerWidgetTemp from './ScannerWidget';
+import * as WeatherWidgetTemp from './WeatherWidget';
 
-// Export them with the desired names
+// Now we can safely reference the default exports
+const CalendarWidgetComponent = CalendarWidgetTemp.default;
+const TaskWidgetComponent = TaskWidgetTemp.default;
+const SpendingWidgetComponent = SpendingWidgetTemp.default;
+const ScannerWidgetComponent = ScannerWidgetTemp.default;
+const WeatherWidgetComponent = WeatherWidgetTemp.default;
+
+// Export the components with their desired names
 export const CalendarWidget = CalendarWidgetComponent;
 export const TaskWidget = TaskWidgetComponent;
 export const SpendingWidget = SpendingWidgetComponent;
 export const ScannerWidget = ScannerWidgetComponent;
 export const WeatherWidget = WeatherWidgetComponent;
 
-// Define the widget components map using the imported components
+// Finally, define the widget components map using the assigned component variables
 export const WidgetComponents = {
   calendar: CalendarWidgetComponent,
   tasks: TaskWidgetComponent,
