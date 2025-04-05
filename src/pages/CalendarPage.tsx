@@ -1,14 +1,13 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Search, Plus } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import SearchInput from '@/components/ui/search-input';
-import AppHeader from '@/components/layout/AppHeader';
-import CalendarView from '@/components/features/calendar/CalendarView';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
+import CalendarView from '@/components/features/calendar/CalendarView';
 
 const CalendarPage = () => {
   const navigate = useNavigate();
@@ -32,7 +31,8 @@ const CalendarPage = () => {
             onClick={() => setCreateDialogOpen(true)}
             className="shrink-0"
           >
-            + Add Item
+            <Plus className="h-4 w-4 mr-1.5" />
+            Add Event
           </Button>
         </div>
         <SearchInput 
@@ -49,7 +49,7 @@ const CalendarPage = () => {
             <TabsTrigger value="month">Month</TabsTrigger>
             <TabsTrigger value="week">Week</TabsTrigger>
             <TabsTrigger value="day">Day</TabsTrigger>
-            <TabsTrigger value="agenda">Upcoming Events</TabsTrigger>
+            <TabsTrigger value="agenda">Upcoming</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
