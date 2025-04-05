@@ -40,7 +40,7 @@ export const WeatherWidget = WeatherWidgetImport.default;
 export const WidgetComponents = {
   calendar: CalendarWidgetImport.default,
   tasks: TaskWidgetImport.default,
-  spending: SpendWidgetImport.default,
+  spending: SpendingWidgetImport.default, // Fixed the typo here: was SpendWidgetImport
   scanner: ScannerWidgetImport.default,
   weather: WeatherWidgetImport.default
 };
