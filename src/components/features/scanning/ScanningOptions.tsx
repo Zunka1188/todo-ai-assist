@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Camera, Upload, List, Calendar, Receipt, Crop, Image, FileText, Scan, ShoppingBag } from 'lucide-react';
+import { Camera, ScanBarcode, Upload, Calendar, FileText, Scan, ShoppingBag, Image } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -9,24 +9,14 @@ import { useTheme } from '@/hooks/use-theme';
 import ScanToCalendar from './ScanToCalendar';
 import EnhancedCameraCapture from './EnhancedCameraCapture';
 import ScreenshotDetection from './ScreenshotDetection';
+import FileUploader from './FileUploader';
+import BarcodeScannerCapture from './BarcodeScannerCapture';
 import ResponsiveContainer from '@/components/ui/responsive-container';
-import PageLayout from '@/components/layout/PageLayout';
-import { WidgetWrapper } from '@/components/widgets/WidgetsIndex';
+import { Button } from '@/components/ui/button';
 
 interface ScanningOptionsProps {
   onScreenSelectionClick?: () => void;
   preferredMode?: string;
-}
-
-interface ScanOption {
-  icon: React.ElementType;
-  label: string;
-  description: string;
-  action: () => void;
-  highlight?: boolean;
-  mobileOnly?: boolean;
-  desktopOnly?: boolean;
-  mode?: string;
 }
 
 const ScanningOptions: React.FC<ScanningOptionsProps> = ({ 
@@ -34,12 +24,13 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
   preferredMode 
 }) => {
   const { toast } = useToast();
-  const { isMobile, hasCamera, isIOS, isAndroid, isTouchDevice } = useIsMobile();
+  const { isMobile, hasCamera } = useIsMobile();
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const [showScanToCalendar, setShowScanToCalendar] = useState(false);
+  
   const [showSmartScan, setShowSmartScan] = useState(false);
-  const [showScreenshotDetection, setShowScreenshotDetection] = useState(false);
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  const [showFileUploader, setShowFileUploader] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -66,45 +57,16 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
 
   useEffect(() => {
     if (preferredMode) {
-      const option = scanOptions.find(opt => opt.mode === preferredMode);
-      if (option) {
-        setTimeout(() => option.action(), 100);
+      if (preferredMode === 'barcode') {
+        handleBarcodeScan();
+      } else {
+        handleTakePhoto(preferredMode);
       }
     }
   }, [preferredMode]);
 
-  const showToast = (message: string) => {
-    toast({
-      title: "Scan Processing",
-      description: message,
-    });
-  };
-
-  const handleScanToCalendar = () => {
-    setShowScanToCalendar(true);
-  };
-
-  const handleSmartScan = (mode?: string) => {
-    if (mode) {
-      sessionStorage.setItem('preferredScanMode', mode);
-    }
-    setShowSmartScan(true);
-  };
-
-  const handleScreenSelection = () => {
-    if (onScreenSelectionClick) {
-      onScreenSelectionClick();
-    } else {
-      showToast("Screen selection tool activated...");
-    }
-  };
-
-  const handleScreenshotDetection = () => {
-    setShowScreenshotDetection(true);
-  };
-
   const handleSaveSuccess = (data: any) => {
-    console.log("Item saved successfully:", data);
+    console.log("Item processed successfully:", data);
     
     toast({
       title: "Item Processed Successfully",
@@ -123,78 +85,22 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
     }
   };
 
-  const scanOptions: ScanOption[] = [
-    {
-      icon: Camera,
-      label: "Smart Scan",
-      description: hasCamera ? 
-        "Auto-recognize items and suggested actions" : 
-        "Camera not available on this device",
-      action: () => handleSmartScan(),
-      highlight: true
-    },
-    {
-      icon: ShoppingBag,
-      label: "Scan Shopping Item",
-      description: "Add products to your shopping list",
-      action: () => handleSmartScan('shopping'),
-      mode: 'shopping'
-    },
-    {
-      icon: Calendar,
-      label: "Scan to Calendar",
-      description: "Extract event details from invitation",
-      action: handleScanToCalendar,
-      mode: 'calendar'
-    },
-    {
-      icon: FileText,
-      label: "Document Scanner",
-      description: "Scan and digitize physical documents",
-      action: () => handleSmartScan('document'),
-      mode: 'document'
-    },
-    {
-      icon: Upload,
-      label: "Upload Image",
-      description: "Select an image from your gallery",
-      action: () => navigate('/upload')
-    },
-    {
-      icon: Crop,
-      label: "Screen Selection",
-      description: "Select part of screen for processing",
-      action: handleScreenSelection,
-      desktopOnly: true
-    },
-    {
-      icon: Image,
-      label: "Screenshot Detection",
-      description: "Auto-detect and process screenshots",
-      action: handleScreenshotDetection
-    },
-    {
-      icon: List,
-      label: "Shopping List",
-      description: "View and manage your shopping list",
-      action: () => navigate('/shopping')
-    },
-    {
-      icon: Receipt,
-      label: "Scan Receipt",
-      description: "Extract and save receipt information",
-      action: () => handleSmartScan('receipt')
+  const handleTakePhoto = (mode?: string) => {
+    if (mode) {
+      sessionStorage.setItem('preferredScanMode', mode);
     }
-  ];
+    setShowSmartScan(true);
+  };
 
-  const filteredOptions = scanOptions.filter(option => {
-    if (option.mobileOnly && !isMobile) return false;
-    if (option.desktopOnly && isMobile) return false;
-    if (option.icon === Camera && !hasCamera) return true;
-    if (preferredMode && option.mode && option.mode !== preferredMode) return false;
-    return true;
-  });
+  const handleBarcodeScan = () => {
+    setShowBarcodeScanner(true);
+  };
+  
+  const handleUploadFile = () => {
+    setShowFileUploader(true);
+  };
 
+  // Main component rendering
   return (
     <>
       {showSmartScan ? (
@@ -203,16 +109,23 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
           onSaveSuccess={handleSaveSuccess}
           preferredMode={sessionStorage.getItem('preferredScanMode') || undefined}
         />
-      ) : showScanToCalendar ? (
-        <ScanToCalendar onClose={() => setShowScanToCalendar(false)} />
-      ) : showScreenshotDetection ? (
-        <ScreenshotDetection onClose={() => setShowScreenshotDetection(false)} />
+      ) : showBarcodeScanner ? (
+        <BarcodeScannerCapture 
+          onClose={() => setShowBarcodeScanner(false)} 
+          onSaveSuccess={handleSaveSuccess} 
+        />
+      ) : showFileUploader ? (
+        <FileUploader
+          onClose={() => setShowFileUploader(false)}
+          onSaveSuccess={handleSaveSuccess}
+        />
       ) : (
         <div className="flex flex-col h-full">
           <div className={cn(
             "flex-1 overflow-auto",
             theme === 'light' ? "text-foreground" : "text-white"
           )}>
+            {/* Central banner with icon and title */}
             <div className="flex flex-col items-center text-center p-6 space-y-2 mb-6">
               <div className="bg-primary bg-opacity-10 p-4 rounded-full mb-2">
                 <Scan className="h-8 w-8 text-primary" />
@@ -223,48 +136,98 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
               </p>
             </div>
             
-            <ResponsiveContainer
-              className={cn(
-                "grid gap-3",
-                isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3"
-              )}
-            >
-              {filteredOptions.map((option, index) => {
-                const Icon = option.icon;
-                const isDisabled = option.icon === Camera && !hasCamera;
-                
-                return (
-                  <button
-                    key={index}
-                    onClick={option.action}
-                    disabled={isDisabled}
-                    className={cn(
-                      "flex items-center p-4 rounded-xl transition-all duration-300",
-                      "border border-border hover:border-primary/30",
-                      "bg-card hover:shadow-lg active:scale-95 touch-action-manipulation",
-                      option.highlight && !isDisabled && "ring-2 ring-primary ring-opacity-40",
-                      isDisabled && "opacity-60 cursor-not-allowed"
-                    )}
+            {/* Main action buttons */}
+            <div className="flex flex-col items-center gap-4 mb-8 px-4">
+              <Button 
+                onClick={() => handleTakePhoto()}
+                className="w-full max-w-md bg-primary hover:bg-primary/90 h-14 text-lg"
+                disabled={!hasCamera}
+              >
+                <Camera className="h-5 w-5 mr-3" />
+                Take a Photo
+              </Button>
+
+              <Button 
+                onClick={handleBarcodeScan}
+                className="w-full max-w-md bg-secondary hover:bg-secondary/90 h-14 text-lg"
+                disabled={!hasCamera}
+              >
+                <ScanBarcode className="h-5 w-5 mr-3" />
+                Scan Barcode
+              </Button>
+
+              <Button 
+                onClick={handleUploadFile}
+                className="w-full max-w-md bg-accent hover:bg-accent/90 h-14 text-lg"
+              >
+                <Upload className="h-5 w-5 mr-3" />
+                Upload File
+              </Button>
+            </div>
+            
+            {/* Secondary options */}
+            <ResponsiveContainer className="mb-6">
+              <div className="flex flex-col space-y-4">
+                <h4 className="font-medium text-lg">Quick Actions</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <Button 
+                    variant="outline"
+                    className="flex items-center justify-start border-dashed border-primary/30 h-auto py-3"
+                    onClick={() => handleTakePhoto('shopping')}
                   >
-                    <div className={cn(
-                      "bg-primary bg-opacity-10 p-3 rounded-full mr-4 flex-shrink-0 flex items-center justify-center",
-                      option.highlight && !isDisabled && "bg-opacity-20"
-                    )} style={{minWidth: "46px", minHeight: "46px"}}>
-                      <Icon className={cn(
-                        "text-primary", 
-                        isDisabled && "opacity-50"
-                      )} size={isMobile ? 20 : 24} />
+                    <ShoppingBag className="h-4 w-4 mr-2 text-primary" />
+                    <div className="text-left">
+                      <span className="block">Scan Shopping Item</span>
+                      <span className="text-xs text-muted-foreground">Add to shopping list</span>
                     </div>
-                    <div className="text-left min-w-0 flex-1">
-                      <h3 className={cn(
-                        "font-medium text-base truncate",
-                        theme === 'light' ? "text-foreground" : "text-white"
-                      )}>{option.label}</h3>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{option.description}</p>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    className="flex items-center justify-start border-dashed border-primary/30 h-auto py-3"
+                    onClick={() => handleTakePhoto('document')}
+                  >
+                    <FileText className="h-4 w-4 mr-2 text-primary" />
+                    <div className="text-left">
+                      <span className="block">Scan Document</span>
+                      <span className="text-xs text-muted-foreground">Save to documents</span>
                     </div>
-                  </button>
-                );
-              })}
+                  </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    className="flex items-center justify-start border-dashed border-primary/30 h-auto py-3"
+                    onClick={() => handleTakePhoto('invitation')}
+                  >
+                    <Calendar className="h-4 w-4 mr-2 text-primary" />
+                    <div className="text-left">
+                      <span className="block">Scan Invitation</span>
+                      <span className="text-xs text-muted-foreground">Add to calendar</span>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+            </ResponsiveContainer>
+            
+            {/* Info box */}
+            <ResponsiveContainer className="mb-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border dark:border-gray-700">
+                <h4 className="font-medium text-foreground dark:text-white mb-3">File Types Supported</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                  <div className="flex items-center">
+                    <Image className="h-4 w-4 mr-2 text-primary" />
+                    <span>Images (.jpg, .png, etc)</span>
+                  </div>
+                  <div className="flex items-center">
+                    <FileText className="h-4 w-4 mr-2 text-primary" />
+                    <span>Documents (.pdf, .docx)</span>
+                  </div>
+                  <div className="flex items-center">
+                    <ScanBarcode className="h-4 w-4 mr-2 text-primary" />
+                    <span>QR & Barcodes</span>
+                  </div>
+                </div>
+              </div>
             </ResponsiveContainer>
           </div>
         </div>

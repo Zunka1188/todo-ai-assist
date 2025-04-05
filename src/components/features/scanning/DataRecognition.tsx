@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, Receipt, List, FileText, Image as ImageIcon, Check, Edit, ArrowRight, Loader2, Save } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Check, AlertCircle, RefreshCw, Edit, ShoppingBag, Calendar, FileText, Receipt, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import ManualDataEditor from './ManualDataEditor';
-import SaveOptions from './SaveOptions';
-import { useToast } from '@/components/ui/use-toast';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import FeedbackComponent from './FeedbackComponent';
 
 export type RecognizedItemType = 'invitation' | 'receipt' | 'product' | 'document' | 'unknown';
@@ -16,9 +16,9 @@ export interface RecognizedItem {
   type: RecognizedItemType;
   confidence: number;
   data: any;
-  imageData: string;
+  imageData?: string;
   extractedText?: string;
-  detectedObjects?: Array<{ name: string; confidence: number }>;
+  detectedObjects?: Array<{name: string, confidence: number}>;
 }
 
 interface DataRecognitionProps {
@@ -26,349 +26,370 @@ interface DataRecognitionProps {
   isProcessing: boolean;
   onSave: (formData: any, originalItem: RecognizedItem) => void;
   onCancel: () => void;
+  onChangeCategory?: () => void;
+  showAddToShoppingList?: boolean;
+  showAddToCalendar?: boolean;
+  showSaveToDocuments?: boolean;
 }
 
 const DataRecognition: React.FC<DataRecognitionProps> = ({
   recognizedItem,
   isProcessing,
   onSave,
-  onCancel
+  onCancel,
+  onChangeCategory,
+  showAddToShoppingList = false,
+  showAddToCalendar = false,
+  showSaveToDocuments = false
 }) => {
-  const [editMode, setEditMode] = useState(false);
-  const [currentItemType, setCurrentItemType] = useState<RecognizedItemType>('unknown');
-  const [currentData, setCurrentData] = useState<any>({});
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [location, setLocation] = useState('');
+  const [price, setPrice] = useState('');
+  const [category, setCategory] = useState('');
   const [keepImage, setKeepImage] = useState(true);
-  const [currentTab, setCurrentTab] = useState('data');
-  const [saveLocations, setSaveLocations] = useState({
-    addToShoppingList: false,
-    addToCalendar: false,
-    saveToDocuments: false,
-    saveToSpending: false
-  });
-  const [editsSaved, setEditsSaved] = useState(false);
-  const { toast } = useToast();
+  const [addToShoppingList, setAddToShoppingList] = useState(false);
+  const [addToCalendar, setAddToCalendar] = useState(false);
+  const [saveToDocuments, setSaveToDocuments] = useState(false);
+  const [saveToSpending, setSaveToSpending] = useState(false);
+  const [isValidated, setIsValidated] = useState(true);
   
-  // Initialize data from recognized item
   useEffect(() => {
     if (recognizedItem) {
-      setCurrentItemType(recognizedItem.type);
-      setCurrentData(recognizedItem.data || {});
-      setEditsSaved(false);
-      
-      // Set default save location based on item type
-      if (recognizedItem.type === 'invitation') {
-        setSaveLocations(prev => ({ ...prev, addToCalendar: true }));
-      } else if (recognizedItem.type === 'receipt') {
-        setSaveLocations(prev => ({ ...prev, saveToSpending: true }));
-      } else if (recognizedItem.type === 'product') {
-        setSaveLocations(prev => ({ ...prev, addToShoppingList: true }));
-      } else if (recognizedItem.type === 'document') {
-        setSaveLocations(prev => ({ ...prev, saveToDocuments: true }));
-      }
-      
-      // If confidence is low, enable edit mode by default
-      if (recognizedItem.confidence < 0.8) {
-        setEditMode(true);
+      // Different fields based on recognized item type
+      switch (recognizedItem.type) {
+        case 'invitation':
+          setTitle(recognizedItem.data.title || '');
+          setDate(recognizedItem.data.date || '');
+          setTime(recognizedItem.data.time || '');
+          setLocation(recognizedItem.data.location || '');
+          setDescription(recognizedItem.data.notes || '');
+          setAddToCalendar(true);
+          break;
+        case 'receipt':
+          setTitle(recognizedItem.data.store || 'Receipt');
+          setDate(recognizedItem.data.date || '');
+          setPrice(recognizedItem.data.total || '');
+          setCategory(recognizedItem.data.category || '');
+          setDescription('');
+          setSaveToSpending(true);
+          break;
+        case 'product':
+          setTitle(recognizedItem.data.name || '');
+          setPrice(recognizedItem.data.price || '');
+          setCategory(recognizedItem.data.category || '');
+          setDescription(recognizedItem.data.description || '');
+          setAddToShoppingList(true);
+          break;
+        case 'document':
+          setTitle(recognizedItem.data.title || '');
+          setDate(recognizedItem.data.date || '');
+          setCategory(recognizedItem.data.type || '');
+          setDescription(recognizedItem.data.content || '');
+          setSaveToDocuments(true);
+          break;
+        default:
+          setTitle(recognizedItem.data.title || '');
+          setDescription(recognizedItem.data.description || '');
+          break;
       }
     }
   }, [recognizedItem]);
   
-  const getLowConfidenceMessage = () => {
-    if (!recognizedItem || recognizedItem.confidence >= 0.8) return null;
-    
-    return (
-      <div className="text-sm text-amber-600 font-normal mt-1 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-md">
-        <p>AI confidence is low. Please review the detected information.</p>
-      </div>
-    );
-  };
-
-  const getCategoryIcon = (type: RecognizedItemType) => {
-    switch (type) {
-      case 'invitation':
-        return <Calendar className="h-5 w-5 text-todo-purple" />;
-      case 'receipt':
-        return <Receipt className="h-5 w-5 text-green-600" />;
-      case 'product':
-        return <List className="h-5 w-5 text-blue-600" />;
-      case 'document':
-        return <FileText className="h-5 w-5 text-amber-600" />;
-      default:
-        return <ImageIcon className="h-5 w-5 text-gray-600" />;
-    }
-  };
-
-  const handleSaveEdits = () => {
-    setEditsSaved(true);
-    setEditMode(false);
-    toast({
-      title: "Edits Saved",
-      description: "Your changes have been saved. You can now proceed to save the item.",
-    });
-  };
-
-  const handleSave = () => {
-    if (!recognizedItem) return;
-    
-    // Prepare form data
-    const formData = {
-      title: currentData.title || currentData.name || "Unnamed Item",
-      itemType: currentItemType,
-      data: currentData,
-      keepImage: keepImage,
-      imageData: keepImage ? recognizedItem.imageData : null,
-      ...saveLocations
-    };
-    
-    onSave(formData, recognizedItem);
-  };
+  // Logic specific to item type
+  let recognizedTypeDisplay = '';
+  let typeIcon = null;
   
-  const handleTypeChange = (newType: RecognizedItemType) => {
-    setCurrentItemType(newType);
-    setEditsSaved(false);
-    
-    // Reset save locations when type changes
-    setSaveLocations({
-      addToShoppingList: newType === 'product',
-      addToCalendar: newType === 'invitation',
-      saveToDocuments: newType === 'document',
-      saveToSpending: newType === 'receipt'
-    });
-  };
+  switch (recognizedItem?.type) {
+    case 'invitation':
+      recognizedTypeDisplay = 'Event/Invitation';
+      typeIcon = <Calendar className="h-5 w-5 text-blue-500" />;
+      break;
+    case 'receipt':
+      recognizedTypeDisplay = 'Receipt';
+      typeIcon = <Receipt className="h-5 w-5 text-green-500" />;
+      break;
+    case 'product':
+      recognizedTypeDisplay = 'Product';
+      typeIcon = <ShoppingBag className="h-5 w-5 text-purple-500" />;
+      break;
+    case 'document':
+      recognizedTypeDisplay = 'Document';
+      typeIcon = <FileText className="h-5 w-5 text-yellow-500" />;
+      break;
+    default:
+      recognizedTypeDisplay = 'Item';
+      typeIcon = <AlertCircle className="h-5 w-5 text-gray-500" />;
+  }
   
-  const handleEditButtonClick = () => {
-    setEditMode(true);
-    setEditsSaved(false);
-    setCurrentTab('data'); // Switch to data tab when edit is clicked
-  };
-
-  const handleSaveTabClick = () => {
-    if (editMode) {
-      toast({
-        title: "Save Edits First",
-        description: "Please save your edits before proceeding to save options.",
-        variant: "destructive"
-      });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate required fields
+    if (!title.trim()) {
+      setIsValidated(false);
       return;
     }
-    setCurrentTab('save');
+    
+    const formData = {
+      title,
+      description,
+      date,
+      time,
+      location,
+      price,
+      category,
+      keepImage,
+      addToShoppingList,
+      addToCalendar,
+      saveToDocuments,
+      saveToSpending,
+      itemType: recognizedItem?.type
+    };
+    
+    onSave(formData, recognizedItem!);
   };
   
-  // If no recognized item, show empty state
-  if (!recognizedItem) {
-    return (
-      <div className="p-6 text-center">
-        <FileText className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-        <h3 className="text-lg font-medium">No Item Detected</h3>
-        <p className="text-sm text-muted-foreground mt-1">
-          Try capturing a clearer image
-        </p>
-        <Button 
-          variant="outline" 
-          onClick={onCancel} 
-          className="mt-4"
-        >
-          Try Again
-        </Button>
-      </div>
-    );
-  }
-
-  // Map recognition type to detection type for feedback
-  const getDetectionType = (type: RecognizedItemType): string => {
-    switch (type) {
-      case 'invitation': return 'document';
-      case 'receipt': return 'document';
-      case 'product': return 'product';
-      case 'document': return 'document';
-      default: return 'context';
-    }
-  };
-
+  // Don't render anything if we don't have a recognized item
+  if (!recognizedItem) return null;
+  
   return (
-    <div className="bg-white rounded-lg border dark:bg-gray-800 dark:border-gray-700">
-      <div className="p-4 border-b dark:border-gray-700">
-        <div className="flex items-center">
-          <div className={cn(
-            "mr-3 p-2 rounded-full",
-            currentItemType === 'invitation' && "bg-todo-purple/10",
-            currentItemType === 'receipt' && "bg-green-100 dark:bg-green-900/30",
-            currentItemType === 'product' && "bg-blue-100 dark:bg-blue-900/30",
-            currentItemType === 'document' && "bg-amber-100 dark:bg-amber-900/30",
-            currentItemType === 'unknown' && "bg-gray-100 dark:bg-gray-700",
-          )}>
-            {getCategoryIcon(currentItemType)}
+    <div className="space-y-4">
+      <div className="bg-background border rounded-lg p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="bg-primary/10 p-2 rounded-full">
+            {typeIcon}
           </div>
           <div className="flex-1">
-            <h3 className="font-medium dark:text-white">
-              {currentItemType.charAt(0).toUpperCase() + currentItemType.slice(1)}
-              {recognizedItem.confidence < 0.8 && " (Low Confidence)"}
-            </h3>
-            <p className="text-xs text-muted-foreground dark:text-gray-400">
-              Confidence: {Math.round(recognizedItem.confidence * 100)}%
+            <h3 className="font-medium">Detected {recognizedTypeDisplay}</h3>
+            <p className="text-xs text-muted-foreground">
+              AI confidence: {(recognizedItem.confidence * 100).toFixed(0)}%
             </p>
-            {getLowConfidenceMessage()}
           </div>
-          
-          {!editMode && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleEditButtonClick}
-              className="text-xs"
+          {onChangeCategory && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onChangeCategory}
+              className="h-8 text-xs flex items-center"
             >
-              <Edit className="h-3.5 w-3.5 mr-1" />
-              Edit
+              <RefreshCw className="h-3 w-3 mr-1" />
+              Change
             </Button>
           )}
         </div>
-
-        {/* Add feedback component in minimal mode */}
-        <div className="mt-2">
-          <FeedbackComponent
-            detectionType={getDetectionType(currentItemType)}
-            detectionLabel={currentItemType}
-            detectionResult={recognizedItem}
-            minimal={true}
-          />
-        </div>
-      </div>
-      
-      <div className="p-4">
-        <Tabs value={currentTab} onValueChange={setCurrentTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="data">Data</TabsTrigger>
-            <TabsTrigger value="save" onClick={handleSaveTabClick}>Save Options</TabsTrigger>
-            <TabsTrigger value="raw">Raw Text</TabsTrigger>
-          </TabsList>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {!isValidated && (
+            <Alert variant="destructive">
+              <AlertDescription>
+                Please provide a title before saving.
+              </AlertDescription>
+            </Alert>
+          )}
           
-          <TabsContent value="data" className="pt-4">
-            {editMode ? (
-              <div className="space-y-4">
-                <ManualDataEditor
-                  initialData={currentData}
-                  itemType={currentItemType}
-                  onDataChange={setCurrentData}
-                  onTypeChange={handleTypeChange}
-                />
-                
-                <Button 
-                  onClick={handleSaveEdits} 
-                  className="w-full bg-todo-purple hover:bg-todo-purple/90"
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Edits
-                </Button>
-              </div>
-            ) : (
-              <div className="text-sm space-y-4 dark:text-gray-300">
-                {Object.entries(currentData).map(([key, value]) => {
-                  // Skip rendering arrays like items
-                  if (Array.isArray(value)) {
-                    return (
-                      <div key={key}>
-                        <span className="font-medium capitalize">{key}: </span>
-                        <span>{Array.isArray(value) ? `${value.length} items` : String(value)}</span>
-                      </div>
-                    );
-                  }
-                  
-                  return (
-                    <div key={key}>
-                      <span className="font-medium capitalize">{key}: </span>
-                      <span>{String(value)}</span>
-                    </div>
-                  );
-                })}
-                
-                {Object.keys(currentData).length === 0 && (
-                  <div className="text-center text-muted-foreground py-4">
-                    <p>No data extracted. Click Edit to enter data manually.</p>
-                  </div>
-                )}
-
-                <div className="pt-4 flex justify-between items-center">
-                  <Button 
-                    variant="outline"
-                    onClick={handleEditButtonClick}
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Details
-                  </Button>
-                  
-                  <Button 
-                    onClick={() => setCurrentTab('save')} 
-                    className="bg-todo-purple hover:bg-todo-purple/90"
-                  >
-                    Continue to Save Options
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="save" className="pt-4">
-            <SaveOptions 
-              itemType={currentItemType}
-              keepImage={keepImage}
-              onKeepImageChange={setKeepImage}
-              saveLocations={saveLocations}
-              onSaveLocationsChange={setSaveLocations}
-            />
-
-            <div className="mt-4 text-sm text-muted-foreground dark:text-gray-400">
-              <p>Your item will be saved to the selected locations with{keepImage ? '' : 'out'} the image.</p>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="raw" className="pt-4">
-            <div className="bg-gray-50 p-3 rounded-md dark:bg-gray-900">
-              <pre className="text-xs whitespace-pre-wrap overflow-auto max-h-[200px] dark:text-gray-300">
-                {recognizedItem.extractedText || "No raw text extracted"}
-              </pre>
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="title">Title</Label>
+              <Input 
+                id="title"
+                value={title} 
+                onChange={e => setTitle(e.target.value)}
+                placeholder="Enter title"
+                className={!isValidated && !title.trim() ? "border-red-500" : ""}
+              />
             </div>
             
-            {recognizedItem.detectedObjects && recognizedItem.detectedObjects.length > 0 && (
-              <div className="mt-4">
-                <h4 className="text-sm font-medium mb-2 dark:text-gray-200">Detected Objects:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {recognizedItem.detectedObjects.map((obj, index) => (
-                    <div key={index} className="bg-gray-100 px-2 py-1 rounded text-xs dark:bg-gray-700 dark:text-gray-300">
-                      {obj.name} ({Math.round(obj.confidence * 100)}%)
-                    </div>
-                  ))}
+            {(recognizedItem.type === 'invitation' || recognizedItem.type === 'document' || recognizedItem.type === 'receipt') && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="date">Date</Label>
+                  <Input 
+                    id="date"
+                    type="date"
+                    value={date} 
+                    onChange={e => setDate(e.target.value)}
+                    placeholder="Enter date"
+                  />
+                </div>
+                
+                {recognizedItem.type === 'invitation' && (
+                  <div>
+                    <Label htmlFor="time">Time</Label>
+                    <Input 
+                      id="time"
+                      type="time"
+                      value={time} 
+                      onChange={e => setTime(e.target.value)}
+                      placeholder="Enter time"
+                    />
+                  </div>
+                )}
+                
+                {recognizedItem.type === 'receipt' && (
+                  <div>
+                    <Label htmlFor="price">Total Amount</Label>
+                    <Input 
+                      id="price"
+                      value={price} 
+                      onChange={e => setPrice(e.target.value)}
+                      placeholder="Enter amount"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {recognizedItem.type === 'invitation' && (
+              <div>
+                <Label htmlFor="location">Location</Label>
+                <Input 
+                  id="location"
+                  value={location} 
+                  onChange={e => setLocation(e.target.value)}
+                  placeholder="Enter location"
+                />
+              </div>
+            )}
+            
+            {(recognizedItem.type === 'product') && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="price">Price</Label>
+                  <Input 
+                    id="price"
+                    value={price} 
+                    onChange={e => setPrice(e.target.value)}
+                    placeholder="Enter price"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="groceries">Groceries</SelectItem>
+                      <SelectItem value="electronics">Electronics</SelectItem>
+                      <SelectItem value="clothing">Clothing</SelectItem>
+                      <SelectItem value="household">Household</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             )}
-          </TabsContent>
-        </Tabs>
+            
+            {(recognizedItem.type === 'product' || recognizedItem.type === 'document' || recognizedItem.type === 'invitation') && (
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea 
+                  id="description"
+                  value={description} 
+                  onChange={e => setDescription(e.target.value)}
+                  placeholder="Enter description"
+                  rows={3}
+                />
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="keep-image" 
+                  checked={keepImage}
+                  onCheckedChange={(checked) => setKeepImage(checked as boolean)}
+                />
+                <Label htmlFor="keep-image">Save image with item</Label>
+              </div>
+              
+              {(recognizedItem.type === 'product' || showAddToShoppingList) && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="shopping-list" 
+                    checked={addToShoppingList}
+                    onCheckedChange={(checked) => setAddToShoppingList(checked as boolean)}
+                  />
+                  <Label htmlFor="shopping-list">Add to shopping list</Label>
+                </div>
+              )}
+              
+              {(recognizedItem.type === 'invitation' || showAddToCalendar) && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="calendar" 
+                    checked={addToCalendar}
+                    onCheckedChange={(checked) => setAddToCalendar(checked as boolean)}
+                  />
+                  <Label htmlFor="calendar">Add to calendar</Label>
+                </div>
+              )}
+              
+              {(recognizedItem.type === 'document' || showSaveToDocuments) && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="documents" 
+                    checked={saveToDocuments}
+                    onCheckedChange={(checked) => setSaveToDocuments(checked as boolean)}
+                  />
+                  <Label htmlFor="documents">Save to documents</Label>
+                </div>
+              )}
+              
+              {recognizedItem.type === 'receipt' && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="spending" 
+                    checked={saveToSpending}
+                    onCheckedChange={(checked) => setSaveToSpending(checked as boolean)}
+                  />
+                  <Label htmlFor="spending">Save to expenses</Label>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex justify-between pt-2">
+            <Button 
+              type="button" 
+              variant="outline"
+              onClick={onCancel}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button 
+              type="submit"
+              disabled={isProcessing}
+              className="gap-2"
+            >
+              {isProcessing ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4" />
+                  Save
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
       
-      <div className="border-t p-4 flex gap-3 dark:border-gray-700">
-        {isProcessing ? (
-          <Button className="flex-1" disabled>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Saving...
-          </Button>
-        ) : (
-          <Button 
-            className="flex-1 bg-todo-purple hover:bg-todo-purple/90"
-            onClick={handleSave}
-            disabled={editMode}
-          >
-            <Check className="mr-2 h-4 w-4" />
-            Save to Selected Locations
-          </Button>
-        )}
-        <Button 
-          variant="outline" 
-          onClick={onCancel}
-          className="flex-1"
-        >
-          Cancel
-        </Button>
-      </div>
+      {/* Feedback component for AI detection */}
+      <FeedbackComponent 
+        detectionType={recognizedItem.type}
+        detectionLabel={recognizedTypeDisplay}
+        detectionResult={recognizedItem}
+        minimal={true}
+        className="mt-2"
+      />
     </div>
   );
 };

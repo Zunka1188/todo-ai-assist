@@ -1,17 +1,17 @@
+
 import React from 'react';
+import { Check, AlertCircle, ShoppingBag, Calendar, FileText, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Calendar, Receipt, List, FileText, Image as ImageIcon } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { RecognizedItemType } from './DataRecognition';
-import { cn } from '@/lib/utils';
-import { CategoryOption } from './utils/scanningUtils';
 
 interface CategorySelectionProps {
-  suggestedCategory: CategoryOption | null;
-  selectedCategory: CategoryOption;
+  suggestedCategory: RecognizedItemType | null;
+  selectedCategory: RecognizedItemType;
   aiConfidence: number;
-  onSelectCategory: (category: CategoryOption) => void;
+  onSelectCategory: (category: RecognizedItemType) => void;
   onConfirm: () => void;
 }
 
@@ -22,129 +22,115 @@ const CategorySelection: React.FC<CategorySelectionProps> = ({
   onSelectCategory,
   onConfirm
 }) => {
-  const categories: {value: CategoryOption; label: string; icon: React.ReactNode; description: string; savesTo: string}[] = [
-    {
-      value: 'product',
-      label: 'Product',
-      icon: <List className="h-5 w-5 text-blue-600" />,
-      description: 'Add to shopping list or product catalog',
-      savesTo: 'Shopping List'
-    },
-    {
-      value: 'receipt',
-      label: 'Receipt',
-      icon: <Receipt className="h-5 w-5 text-green-600" />,
-      description: 'Store for expense tracking and budgeting',
-      savesTo: 'Receipts & Expenses'
-    },
-    {
-      value: 'invitation',
-      label: 'Invitation/Event',
-      icon: <Calendar className="h-5 w-5 text-todo-purple" />,
-      description: 'Save to calendar or events list',
-      savesTo: 'Calendar'
-    },
-    {
-      value: 'document',
-      label: 'Document',
-      icon: <FileText className="h-5 w-5 text-amber-600" />,
-      description: 'Store notes, files, or important information',
-      savesTo: 'Documents'
-    },
-    {
-      value: 'general',
-      label: 'General Picture',
-      icon: <ImageIcon className="h-5 w-5 text-gray-600" />,
-      description: 'Save image with basic information',
-      savesTo: 'General Images'
+  const getItemTypeInfo = (type: RecognizedItemType) => {
+    switch (type) {
+      case 'invitation':
+        return { 
+          icon: <Calendar className="h-5 w-5 text-blue-500" />,
+          label: 'Event/Invitation',
+          description: 'Calendar events, invitations, schedules'
+        };
+      case 'receipt':
+        return { 
+          icon: <Receipt className="h-5 w-5 text-green-500" />,
+          label: 'Receipt',
+          description: 'Purchase receipts, invoices, bills'
+        };
+      case 'product':
+        return { 
+          icon: <ShoppingBag className="h-5 w-5 text-purple-500" />,
+          label: 'Product',
+          description: 'Products, groceries, shopping items'
+        };
+      case 'document':
+        return { 
+          icon: <FileText className="h-5 w-5 text-yellow-500" />,
+          label: 'Document',
+          description: 'General documents, articles, forms'
+        };
+      default:
+        return { 
+          icon: <AlertCircle className="h-5 w-5 text-gray-500" />,
+          label: 'Other',
+          description: 'Unclassified or general purpose'
+        };
     }
-  ];
-
-  const getConfidenceLabel = (confidence: number): string => {
-    if (confidence > 0.9) return 'High Confidence';
-    if (confidence > 0.7) return 'Medium Confidence';
-    return 'Low Confidence';
-  }
-
-  const getConfidenceColor = (confidence: number): string => {
-    if (confidence > 0.9) return 'text-green-600';
-    if (confidence > 0.7) return 'text-amber-500';
-    return 'text-red-500';
-  }
+  };
 
   return (
     <div className="space-y-4">
-      {suggestedCategory && (
-        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-          <h3 className="text-sm font-medium mb-2 dark:text-white">AI Suggestion</h3>
-          <div className="flex items-center space-x-2">
-            <div className={cn(
-              "p-2 rounded-full",
-              suggestedCategory === 'invitation' && "bg-todo-purple/10",
-              suggestedCategory === 'receipt' && "bg-green-100 dark:bg-green-900/30",
-              suggestedCategory === 'product' && "bg-blue-100 dark:bg-blue-900/30",
-              suggestedCategory === 'document' && "bg-amber-100 dark:bg-amber-900/30",
-              suggestedCategory === 'general' && "bg-gray-100 dark:bg-gray-700"
-            )}>
-              {categories.find(c => c.value === suggestedCategory)?.icon}
-            </div>
-            <div>
-              <p className="font-medium dark:text-white">
-                This looks like a {categories.find(c => c.value === suggestedCategory)?.label}
-              </p>
-              <p className={cn("text-xs", getConfidenceColor(aiConfidence))}>
-                {getConfidenceLabel(aiConfidence)} ({Math.round(aiConfidence * 100)}%)
-              </p>
-            </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-medium">AI Analysis Results</h3>
+          <div className="text-xs font-medium flex items-center">
+            Confidence: 
+            <span className={`ml-1 ${aiConfidence > 0.8 ? 'text-green-600' : aiConfidence > 0.5 ? 'text-amber-600' : 'text-red-600'}`}>
+              {Math.round(aiConfidence * 100)}%
+            </span>
           </div>
         </div>
-      )}
-
+        
+        {suggestedCategory && (
+          <div className="bg-primary/5 border rounded-lg p-3">
+            <div className="flex items-center gap-2">
+              <div className="bg-primary/10 p-1 rounded-full">
+                {getItemTypeInfo(suggestedCategory).icon}
+              </div>
+              <div>
+                <p className="font-medium text-sm">
+                  AI detected: {getItemTypeInfo(suggestedCategory).label}
+                </p>
+                <Progress className="h-1.5 mt-1" value={aiConfidence * 100} />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      
       <div>
-        <h3 className="text-sm font-medium mb-3 dark:text-white">Confirm or Select Category</h3>
+        <h3 className="text-base font-medium mb-2">Select Category</h3>
         <RadioGroup 
           value={selectedCategory} 
-          onValueChange={(value) => onSelectCategory(value as CategoryOption)}
+          onValueChange={(value) => onSelectCategory(value as RecognizedItemType)}
           className="space-y-2"
         >
-          {categories.map((category) => (
-            <div 
-              key={category.value} 
-              className={cn(
-                "flex items-center space-x-2 p-3 rounded-md border",
-                selectedCategory === category.value 
-                  ? "bg-primary/5 border-primary" 
-                  : "bg-card border-input hover:bg-accent/50 dark:hover:bg-gray-800",
-                suggestedCategory === category.value && selectedCategory !== category.value 
-                  ? "border-primary/30" 
-                  : ""
-              )}
-            >
-              <RadioGroupItem value={category.value} id={`category-${category.value}`} />
-              <Label 
-                htmlFor={`category-${category.value}`} 
-                className="flex-1 flex items-center cursor-pointer"
-              >
-                <div className="mr-3">
-                  {category.icon}
+          {(['product', 'document', 'receipt', 'invitation'] as RecognizedItemType[]).map((type) => {
+            const { icon, label, description } = getItemTypeInfo(type);
+            
+            return (
+              <div key={type} className={`
+                flex items-center space-x-2 border rounded-lg p-3 transition-all 
+                ${selectedCategory === type ? 'border-primary bg-primary/5' : 'hover:border-gray-400'}
+              `}>
+                <RadioGroupItem value={type} id={type} />
+                <div className="flex-1 flex items-center">
+                  <Label htmlFor={type} className="flex items-center gap-3 cursor-pointer flex-1">
+                    <div className={`p-1.5 rounded-full ${selectedCategory === type ? 'bg-primary/10' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                      {icon}
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-medium">{label}</p>
+                      <p className="text-xs text-muted-foreground">{description}</p>
+                    </div>
+                  </Label>
+                  {suggestedCategory === type && (
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                      Suggested
+                    </span>
+                  )}
                 </div>
-                <div>
-                  <p className="font-medium dark:text-white">{category.label}</p>
-                  <p className="text-xs text-muted-foreground dark:text-gray-400">{category.description}</p>
-                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Saves to: {category.savesTo}</p>
-                </div>
-              </Label>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </RadioGroup>
       </div>
-
-      <Button 
-        className="w-full bg-todo-purple hover:bg-todo-purple/90 mt-4"
-        onClick={onConfirm}
-      >
-        Confirm Category & Continue
-      </Button>
+      
+      <div className="flex justify-end mt-4">
+        <Button onClick={onConfirm}>
+          <Check className="h-4 w-4 mr-2" />
+          Confirm & Continue
+        </Button>
+      </div>
     </div>
   );
 };
