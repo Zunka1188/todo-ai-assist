@@ -54,7 +54,7 @@ const BottomNavigation = () => {
                   : "text-white"
             )} />
             <span className={cn(
-              "text-[10px] mt-1 leading-tight text-center",
+              "text-[12px] mt-1 leading-tight text-center", // Updated to 12px for captions
               isActive(path) 
                 ? "font-medium" 
                 : "font-normal",

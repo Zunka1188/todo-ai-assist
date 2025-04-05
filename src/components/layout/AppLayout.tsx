@@ -60,7 +60,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
   }, [isIOS, isAndroid]);
 
   const textColorClass = theme === 'light' ? "text-foreground" : "text-white";
-  const mobileTextClass = isMobile ? "text-[0.8rem]" : ""; // 20% smaller text for mobile
+  
+  // Updated mobile text classes based on LinkedIn benchmarks
+  const mobileHeadingClass = isMobile ? "text-[20px]" : ""; // Headings: 20px
+  const mobileSubheadingClass = isMobile ? "text-[16px]" : ""; // Subheadings: 16px
+  const mobileBodyTextClass = isMobile ? "text-[14px]" : ""; // Body text: 14px
+  const mobileCaptionTextClass = isMobile ? "text-[12px]" : ""; // Caption text: 12px
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -86,37 +91,37 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-background border border-border w-56">
               <DropdownMenuItem asChild>
-                <Link to="/" className={cn("cursor-pointer flex items-center gap-2 h-10", mobileTextClass)}>
+                <Link to="/" className={cn("cursor-pointer flex items-center gap-2 h-10", isMobile ? mobileBodyTextClass : "")}>
                   <Home className="h-4 w-4" />
                   <span className={textColorClass}>Home</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/shopping" className={cn("cursor-pointer flex items-center gap-2", mobileTextClass)}>
+                <Link to="/shopping" className={cn("cursor-pointer flex items-center gap-2", isMobile ? mobileBodyTextClass : "")}>
                   <ShoppingBag className="h-4 w-4" />
                   <span className={textColorClass}>Shopping</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/calendar" className={cn("cursor-pointer flex items-center gap-2", mobileTextClass)}>
+                <Link to="/calendar" className={cn("cursor-pointer flex items-center gap-2", isMobile ? mobileBodyTextClass : "")}>
                   <Calendar className="h-4 w-4" />
                   <span className={textColorClass}>Calendar</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/documents" className={cn("cursor-pointer flex items-center gap-2", mobileTextClass)}>
+                <Link to="/documents" className={cn("cursor-pointer flex items-center gap-2", isMobile ? mobileBodyTextClass : "")}>
                   <FileText className="h-4 w-4" />
                   <span className={textColorClass}>Documents</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/weather" className={cn("cursor-pointer flex items-center gap-2", mobileTextClass)}>
+                <Link to="/weather" className={cn("cursor-pointer flex items-center gap-2", isMobile ? mobileBodyTextClass : "")}>
                   <Cloud className="h-4 w-4" />
                   <span className={textColorClass}>Weather</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/troubleshoot" className={cn("cursor-pointer flex items-center gap-2", mobileTextClass)}>
+                <Link to="/troubleshoot" className={cn("cursor-pointer flex items-center gap-2", isMobile ? mobileBodyTextClass : "")}>
                   <HelpCircle className="h-4 w-4" />
                   <span className={textColorClass}>Troubleshoot</span>
                 </Link>

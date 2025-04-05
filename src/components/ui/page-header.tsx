@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import SearchInput from '@/components/ui/search-input';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface PageHeaderProps {
   title: string;
@@ -35,6 +36,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   rightContent,
 }) => {
   const { theme } = useTheme();
+  const { isMobile } = useIsMobile();
   const textClass = theme === 'dark' ? 'text-white' : 'text-foreground';
   
   return (
@@ -46,7 +48,12 @@ const PageHeader: React.FC<PageHeaderProps> = ({
               <ArrowLeft className="h-5 w-5" />
             </Link>
           )}
-          <h1 className={cn("text-2xl font-bold", textClass)}>{title}</h1>
+          <h1 className={cn(
+            isMobile ? "text-[20px] font-bold" : "text-2xl font-bold", // 20px for mobile headings
+            textClass
+          )}>
+            {title}
+          </h1>
         </div>
         <div className="flex items-center gap-2">
           {rightContent}

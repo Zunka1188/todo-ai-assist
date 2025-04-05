@@ -26,7 +26,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ title, subtitle, icon, className,
         <div className="flex items-center gap-2">
           {icon && <div className="flex items-center justify-center">{icon}</div>}
           <h1 className={cn(
-            isMobile ? "text-xl font-bold" : "text-2xl font-bold sm:text-3xl",
+            isMobile ? "text-[20px] font-bold" : "text-2xl font-bold sm:text-3xl", // 20px for mobile headings
             theme === 'light' ? "text-foreground" : "text-white"
           )}>
             {title}
@@ -37,7 +37,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ title, subtitle, icon, className,
       {subtitle && (
         <p className={cn(
           "text-muted-foreground",
-          isMobile ? "text-xs" : "text-sm sm:text-base"
+          isMobile ? "text-[14px]" : "text-sm sm:text-base" // 14px for mobile body text
         )}>
           {subtitle}
         </p>

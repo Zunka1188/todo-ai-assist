@@ -40,9 +40,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
   
   const getSizeClasses = () => {
     switch (size) {
-      case 'sm': return isMobile ? 'h-8 text-sm' : 'h-9 text-sm';
-      case 'lg': return isMobile ? 'h-10' : 'h-12';
-      default: return isMobile ? 'h-9' : 'h-10';
+      case 'sm': return isMobile ? 'h-8 text-[12px]' : 'h-9 text-sm'; // 12px for captions
+      case 'lg': return isMobile ? 'h-10 text-[14px]' : 'h-12'; // 14px for body text
+      default: return isMobile ? 'h-9 text-[14px]' : 'h-10'; // 14px for body text
     }
   };
   
