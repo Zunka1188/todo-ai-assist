@@ -13,6 +13,7 @@ import { initialEvents } from '../features/calendar/data/initialEvents';
 import { Event } from '../features/calendar/types/event';
 import { getReminderLabel, getFormattedTime } from '../features/calendar/utils/dateUtils';
 import { WidgetWrapper } from './shared/WidgetWrapper';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const CalendarWidget = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -22,6 +23,7 @@ const CalendarWidget = () => {
   const [isEventDetailOpen, setIsEventDetailOpen] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const { theme } = useTheme();
+  const { isMobile } = useIsMobile();
 
   // Filter events for the current date
   const eventsForToday = initialEvents.filter((event) => {
@@ -141,7 +143,7 @@ const CalendarWidget = () => {
         {/* Event Detail Dialog */}
         <Dialog open={isEventDetailOpen} onOpenChange={setIsEventDetailOpen}>
           {selectedEvent && (
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md" hideCloseButton>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <div

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { getFormattedTime, getReminderLabel, weekDays } from '../utils/dateUtils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface EventViewDialogProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface EventViewDialogProps {
 
 const EventViewDialog = ({ isOpen, setIsOpen, selectedEvent, onEdit, onDelete }: EventViewDialogProps) => {
   const [showImagePreview, setShowImagePreview] = useState(false);
+  const { isMobile } = useIsMobile();
   
   if (!selectedEvent) return null;
 
