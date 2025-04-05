@@ -1,8 +1,7 @@
 
 import React, { useState } from 'react';
-import { CheckSquare, ChevronRight, Plus } from 'lucide-react';
+import { CheckSquare, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -87,11 +86,8 @@ const TaskWidget = () => {
           <h3 className={cn(
             "font-medium",
             theme === 'light' ? "text-foreground" : "text-white"
-          )}>Today's Tasks</h3>
+          )}>Today's Quick Tasks</h3>
         </div>
-        <Link to="/calendar" className="text-sm text-todo-purple flex items-center">
-          View all <ChevronRight className="h-4 w-4 ml-1" />
-        </Link>
       </CardHeader>
       <CardContent className="pb-3">
         {todaysTasks.length > 0 ? (
