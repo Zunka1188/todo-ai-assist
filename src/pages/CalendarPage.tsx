@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import CalendarView from '@/components/features/calendar/CalendarView';
 import PageLayout from '@/components/layout/PageLayout';
+import PageHeader from '@/components/ui/page-header';
 
 const CalendarPage = () => {
   const navigate = useNavigate();
@@ -19,30 +20,14 @@ const CalendarPage = () => {
 
   return (
     <PageLayout fullHeight>
-      {/* Header section that matches Shopping and Documents pages */}
-      <div className="mb-4 flex flex-col gap-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Link to="/" className="p-1 rounded-md hover:bg-secondary touch-manipulation">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <h1 className="text-2xl font-bold">Calendar</h1>
-          </div>
-          <Button 
-            onClick={() => setCreateDialogOpen(true)}
-            className="shrink-0"
-          >
-            <Plus className="h-4 w-4 mr-1.5" />
-            Add Event
-          </Button>
-        </div>
-        <SearchInput 
-          value={searchTerm}
-          onChange={setSearchTerm}
-          placeholder="Search events..."
-          className="w-full"
-        />
-      </div>
+      {/* Use the standardized PageHeader component */}
+      <PageHeader
+        title="Calendar"
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onAddItem={() => setCreateDialogOpen(true)}
+        addItemLabel="+ Add Event"
+      />
 
       <div className="flex">
         <Tabs defaultValue="day" value={viewMode} onValueChange={value => setViewMode(value as 'month' | 'week' | 'day' | 'agenda')} className="w-full">

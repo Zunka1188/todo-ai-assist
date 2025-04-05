@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CalendarIcon, MapPin, Bell, Image, Trash } from 'lucide-react';
+import { CalendarIcon, MapPin, Bell, Image, Trash, Plus, Save } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -153,232 +153,286 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-md md:max-w-lg max-h-[90vh]">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden bg-background text-foreground border-gray-700">
         <DialogHeader>
-          <DialogTitle>{isEditMode ? 'Edit Event' : 'Create New Event'}</DialogTitle>
-          <DialogDescription className="sr-only">
+          <DialogTitle>
+            {isEditMode ? 'Edit Event' : 'Add New Event'}
+          </DialogTitle>
+          <DialogDescription>
             {isEditMode ? 'Edit your event details' : 'Fill in the details for your new event'}
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="max-h-[70vh]">
-          <div className="p-1">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-                <FormField control={form.control} name="title" render={({
-                field
-              }) => <FormItem>
-                    <FormLabel>Title*</FormLabel>
+        <ScrollArea className="max-h-[calc(90vh-10rem)] pr-4">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+              <FormField control={form.control} name="title" render={({field}) => (
+                <FormItem>
+                  <FormLabel>Title*</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter event title..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField control={form.control} name="startDate" render={({field}) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Start Date*</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button variant="outline" className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar 
+                          mode="single" 
+                          selected={field.value} 
+                          onSelect={field.onChange} 
+                          initialFocus 
+                          className="pointer-events-auto" 
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                
+                <FormField control={form.control} name="startTime" render={({field}) => (
+                  <FormItem>
+                    <FormLabel>Start Time*</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter event title..." {...field} />
+                      <Input type="time" {...field} disabled={form.watch('allDay')} />
                     </FormControl>
                     <FormMessage />
-                  </FormItem>} />
+                  </FormItem>
+                )} />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField control={form.control} name="endDate" render={({field}) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>End Date*</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button variant="outline" className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar 
+                          mode="single" 
+                          selected={field.value} 
+                          onSelect={field.onChange} 
+                          initialFocus 
+                          className="pointer-events-auto" 
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )} />
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField control={form.control} name="startDate" render={({
-                  field
-                }) => <FormItem className="flex flex-col">
-                      <FormLabel>Start Date*</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button variant="outline" className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus className="pointer-events-auto" />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>} />
-                  
-                  <FormField control={form.control} name="startTime" render={({
-                  field
-                }) => <FormItem>
-                      <FormLabel>Start Time*</FormLabel>
-                      <FormControl>
-                        <Input type="time" {...field} disabled={form.watch('allDay')} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField control={form.control} name="endDate" render={({
-                  field
-                }) => <FormItem className="flex flex-col">
-                      <FormLabel>End Date*</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button variant="outline" className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus className="pointer-events-auto" />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>} />
-                  
-                  <FormField control={form.control} name="endTime" render={({
-                  field
-                }) => <FormItem>
-                      <FormLabel>End Time*</FormLabel>
-                      <FormControl>
-                        <Input type="time" {...field} disabled={form.watch('allDay')} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>} />
-                </div>
-                
-                <FormField control={form.control} name="allDay" render={({
-                field
-              }) => <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormField control={form.control} name="endTime" render={({field}) => (
+                  <FormItem>
+                    <FormLabel>End Time*</FormLabel>
                     <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      <Input type="time" {...field} disabled={form.watch('allDay')} />
                     </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>All day event</FormLabel>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+              
+              <FormField control={form.control} name="allDay" render={({field}) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>All day event</FormLabel>
+                  </div>
+                </FormItem>
+              )} />
+              
+              <FormField control={form.control} name="image" render={({field}) => (
+                <FormItem>
+                  <FormLabel>Image (Optional)</FormLabel>
+                  <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
+                  {selectedImage ? (
+                    <div className="relative">
+                      <img src={selectedImage} alt="Event" className="w-full h-40 object-cover rounded-md" />
+                      <Button type="button" variant="destructive" size="sm" className="absolute top-2 right-2" onClick={handleRemoveImage}>
+                        <Trash className="h-4 w-4" />
+                      </Button>
                     </div>
-                  </FormItem>} />
-                
-                <FormField control={form.control} name="image" render={({
-                field
-              }) => <FormItem>
-                    <FormLabel>Image (Optional)</FormLabel>
-                    <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
-                    {selectedImage ? <div className="relative">
-                        <img src={selectedImage} alt="Event" className="w-full h-40 object-cover rounded-md" />
-                        <Button type="button" variant="destructive" size="sm" className="absolute top-2 right-2" onClick={handleRemoveImage}>
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div> : <FormControl>
-                        <Button type="button" variant="outline" className="w-full h-12 border-dashed flex gap-2" onClick={handleImageButtonClick}>
-                          <Image className="h-4 w-4" />
-                          <span>Add Image</span>
-                        </Button>
-                      </FormControl>}
-                    <FormDescription>
-                      Add an optional image for your event.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>} />
-                
-                <FormField control={form.control} name="description" render={({
-                field
-              }) => <FormItem>
-                    <FormLabel>Description (Optional)</FormLabel>
+                  ) : (
                     <FormControl>
-                      <Textarea placeholder="Enter event description..." {...field} className="resize-none h-20" />
+                      <Button type="button" variant="outline" className="w-full h-12 border-dashed flex gap-2" onClick={handleImageButtonClick}>
+                        <Image className="h-4 w-4" />
+                        <span>Add Image</span>
+                      </Button>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>} />
-                
-                <FormField control={form.control} name="location" render={({
-                field
-              }) => <FormItem>
-                    <FormLabel className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                      Location (Optional)
-                    </FormLabel>
+                  )}
+                  <FormDescription>
+                    Add an optional image for your event.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              
+              <FormField control={form.control} name="description" render={({field}) => (
+                <FormItem>
+                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Enter event description..." {...field} className="resize-none h-20" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              
+              <FormField control={form.control} name="location" render={({field}) => (
+                <FormItem>
+                  <FormLabel className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                    Location (Optional)
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter location..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              
+              <FormField control={form.control} name="color" render={({field}) => (
+                <FormItem>
+                  <FormLabel>Event Color (Optional)</FormLabel>
+                  <div className="flex flex-wrap gap-2">
+                    {colorOptions.map(color => (
+                      <div 
+                        key={color.value} 
+                        className={cn(
+                          "h-8 w-8 rounded-full cursor-pointer border-2",
+                          field.value === color.value ? "border-black dark:border-white" : "border-transparent"
+                        )} 
+                        style={{ backgroundColor: color.value }} 
+                        onClick={() => field.onChange(color.value)} 
+                        title={color.label}
+                      />
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              
+              <FormField control={form.control} name="recurringType" render={({field}) => (
+                <FormItem>
+                  <FormLabel>Recurrence (Optional)</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <Input placeholder="Enter location..." {...field} />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select recurrence pattern" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>} />
-                
-                <FormField control={form.control} name="color" render={({
-                field
-              }) => <FormItem>
-                    <FormLabel>Event Color (Optional)</FormLabel>
+                    <SelectContent>
+                      {recurringOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              
+              {form.watch('recurringType') === 'weekly' && (
+                <FormField control={form.control} name="recurringDaysOfWeek" render={({field}) => (
+                  <FormItem>
+                    <FormLabel>Repeat on</FormLabel>
                     <div className="flex flex-wrap gap-2">
-                      {colorOptions.map(color => <div key={color.value} className={cn("h-8 w-8 rounded-full cursor-pointer border-2", field.value === color.value ? "border-black dark:border-white" : "border-transparent")} style={{
-                  backgroundColor: color.value
-                }} onClick={() => field.onChange(color.value)} title={color.label} />)}
+                      {weekDays.map((day, index) => (
+                        <Button 
+                          key={index} 
+                          type="button" 
+                          variant="outline" 
+                          className={cn(
+                            "h-8 w-8 p-0", 
+                            field.value?.includes(index.toString()) ? "bg-primary text-primary-foreground" : ""
+                          )}
+                          onClick={() => {
+                            const currentValue = field.value || [];
+                            const dayStr = index.toString();
+                            if (currentValue.includes(dayStr)) {
+                              field.onChange(currentValue.filter(d => d !== dayStr));
+                            } else {
+                              field.onChange([...currentValue, dayStr]);
+                            }
+                          }}
+                        >
+                          {day[0]}
+                        </Button>
+                      ))}
                     </div>
                     <FormMessage />
-                  </FormItem>} />
-                
-                <FormField control={form.control} name="recurringType" render={({
-                field
-              }) => <FormItem>
-                    <FormLabel>Recurrence (Optional)</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select recurrence pattern" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {recurringOptions.map(option => <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>} />
-                
-                {form.watch('recurringType') === 'weekly' && <FormField control={form.control} name="recurringDaysOfWeek" render={({
-                field
-              }) => <FormItem>
-                      <FormLabel>Repeat on</FormLabel>
-                      <div className="flex flex-wrap gap-2">
-                        {weekDays.map((day, index) => <Button key={index} type="button" variant="outline" className={cn("h-8 w-8 p-0", field.value?.includes(index.toString()) ? "bg-primary text-primary-foreground" : "")} onClick={() => {
-                  const currentValue = field.value || [];
-                  const dayStr = index.toString();
-                  if (currentValue.includes(dayStr)) {
-                    field.onChange(currentValue.filter(d => d !== dayStr));
-                  } else {
-                    field.onChange([...currentValue, dayStr]);
-                  }
-                }}>
-                            {day[0]}
-                          </Button>)}
-                      </div>
-                      <FormMessage />
-                    </FormItem>} />}
-                
-                <FormField control={form.control} name="reminder" render={({
-                field
-              }) => <FormItem>
-                    <FormLabel className="flex items-center">
-                      <Bell className="h-4 w-4 mr-2 text-muted-foreground" />
-                      Reminder (Optional)
-                    </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a reminder time" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {reminderOptions.map(option => <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>} />
-                
-                <DialogFooter className="pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" className="bg-todo-purple hover:bg-todo-purple/90">
-                    {isEditMode ? 'Save Changes' : 'Create Event'}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </div>
+                  </FormItem>
+                ))}
+              
+              <FormField control={form.control} name="reminder" render={({field}) => (
+                <FormItem>
+                  <FormLabel className="flex items-center">
+                    <Bell className="h-4 w-4 mr-2 text-muted-foreground" />
+                    Reminder (Optional)
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a reminder time" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {reminderOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              
+              <DialogFooter className="pt-4">
+                <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-todo-purple hover:bg-todo-purple/90"
+                >
+                  {isEditMode ? (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Update Event
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Event
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </ScrollArea>
       </DialogContent>
     </Dialog>

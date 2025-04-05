@@ -1,13 +1,14 @@
+
 import React, { useState } from 'react';
 import { Calendar as CalendarIcon, ChevronRight, Bell, Clock, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
 import { format, isSameDay } from 'date-fns';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { initialEvents } from '../features/calendar/data/initialEvents';
 import { Event } from '../features/calendar/types/event';
 import { getReminderLabel, getFormattedTime } from '../features/calendar/utils/dateUtils';
@@ -15,45 +16,35 @@ import { WidgetWrapper } from './WidgetsIndex';
 
 const CalendarWidget = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [selectedDayEvents, setSelectedDayEvents] = useState<Event[]>([]);
-  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [open, setOpen] = useState(false);
-  const [viewEventDialogOpen, setViewEventDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isEventDetailOpen, setIsEventDetailOpen] = useState(false);
   const { theme } = useTheme();
 
-  const isDayWithEvent = (day: Date) => {
-    return initialEvents.some(event => 
-      isSameDay(event.startDate, day) || 
-      isSameDay(event.endDate, day) || 
-      (event.startDate <= day && event.endDate >= day)
-    );
-  };
+  // Filter events for the current date
+  const eventsForToday = initialEvents.filter((event) => {
+    return date ? isSameDay(event.startDate, date) : false;
+  });
 
-  const handleDaySelect = (day: Date | undefined) => {
-    setDate(day);
-    if (day) {
-      const dayEvents = initialEvents.filter(event => 
-        isSameDay(event.startDate, day) || 
-        isSameDay(event.endDate, day) || 
-        (event.startDate <= day && event.endDate >= day)
-      );
-      
-      if (dayEvents.length > 0) {
-        setSelectedDayEvents(dayEvents);
-        setSelectedDay(day);
-        setOpen(true);
-      } else {
-        setSelectedDayEvents([]);
-        setOpen(false);
-      }
+  // Get events for the selected date
+  const eventsForSelectedDate = initialEvents.filter((event) => {
+    return isSameDay(event.startDate, selectedDate);
+  });
+
+  // Handle date selection in calendar
+  const handleSelect = (date: Date | undefined) => {
+    setDate(date);
+    if (date) {
+      setSelectedDate(date);
     }
+    setOpen(false); // Close the popover after selecting a date
   };
 
+  // Handle event click to show details
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
-    setOpen(false);
-    setViewEventDialogOpen(true);
+    setIsEventDetailOpen(true);
   };
 
   return (
@@ -71,156 +62,151 @@ const CalendarWidget = () => {
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <div className="flex justify-center">
-              <Calendar 
-                mode="single" 
-                selected={date} 
-                onSelect={handleDaySelect} 
-                weekStartsOn={1}
-                modifiers={{
-                  event: date => isDayWithEvent(date)
-                }} 
-                modifiersStyles={{
-                  event: {
-                    fontWeight: 'bold',
-                    backgroundColor: 'rgba(155, 135, 245, 0.1)',
-                    color: '#7E69AB',
-                    borderColor: '#9b87f5'
-                  }
-                }} 
-                className="rounded-lg border bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 shadow w-full pointer-events-auto mx-auto" 
-              />
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-between text-left font-normal mb-4",
+                  !date && "text-muted-foreground"
+                )}
+                onClick={() => setOpen(true)}
+              >
+                <span>
+                  {date ? format(date, 'PPP') : 'Select date'}
+                </span>
+                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+              </Button>
             </div>
           </PopoverTrigger>
-          <PopoverContent className="w-[280px] sm:w-80 p-0">
-            {selectedDay && (
-              <div className="p-3 sm:p-4">
-                <h4 className="font-medium mb-2 text-todo-purple text-sm sm:text-base">
-                  {selectedDay?.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </h4>
-                <div className="space-y-2 sm:space-y-3">
-                  {selectedDayEvents.map(event => (
-                    <div 
-                      key={event.id} 
-                      className="p-2 sm:p-3 rounded-lg border border-border bg-white dark:bg-gray-800 shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 touch-manipulation" 
-                      onClick={() => handleEventClick(event)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-3 h-3 rounded-full flex-shrink-0" 
-                          style={{ backgroundColor: event.color }}
-                        />
-                        <h5 className={cn(
-                          "font-medium flex-1 text-xs sm:text-sm", 
-                          theme === 'light' ? "text-todo-black" : "text-white"
-                        )}>
-                          {event.title}
-                        </h5>
-                      </div>
-                      <div className="mt-1 sm:mt-2 space-y-1 text-xs sm:text-sm text-muted-foreground">
-                        <p className="flex items-center">
-                          <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
-                          {event.allDay ? 'All day' : `${getFormattedTime(event.startDate)} - ${getFormattedTime(event.endDate)}`}
-                        </p>
-                        {event.location && (
-                          <p className="flex items-center">
-                            <MapPin className="h-3 w-3 mr-1 text-muted-foreground" />
-                            {event.location}
-                          </p>
-                        )}
-                        {event.reminder && event.reminder !== 'none' && (
-                          <p className="flex items-center">
-                            <Bell className="h-3 w-3 mr-1 text-todo-purple" />
-                            {getReminderLabel(event.reminder)}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+          <PopoverContent className="w-auto p-0" align="center">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={handleSelect}
+              initialFocus
+              className="pointer-events-auto"
+            />
           </PopoverContent>
         </Popover>
         
-        <Dialog open={viewEventDialogOpen} onOpenChange={setViewEventDialogOpen}>
-          {selectedEvent && (
-            <DialogContent className="max-w-[320px] sm:max-w-md">
-              <DialogHeader>
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: selectedEvent.color }}
-                  />
-                  <DialogTitle className="text-sm sm:text-base">
-                    {selectedEvent.title}
-                  </DialogTitle>
-                </div>
-              </DialogHeader>
-              
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-start gap-3">
-                  <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="font-medium text-xs sm:text-sm">
-                      {selectedEvent.allDay ? 'All day' : `${getFormattedTime(selectedEvent.startDate)} - ${getFormattedTime(selectedEvent.endDate)}`}
-                    </p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      {format(selectedEvent.startDate, 'EEEE, MMMM d, yyyy')}
-                      {!isSameDay(selectedEvent.startDate, selectedEvent.endDate) && 
-                        <> - {format(selectedEvent.endDate, 'EEEE, MMMM d, yyyy')}</>
-                      }
-                    </p>
-                    {selectedEvent.recurring && (
-                      <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                        <span className="font-medium">Recurring: </span>
-                        {selectedEvent.recurring.frequency.charAt(0).toUpperCase() + selectedEvent.recurring.frequency.slice(1)}
-                      </p>
-                    )}
-                  </div>
+        {/* Today's events list */}
+        <div className="space-y-3 mt-2">
+          {eventsForSelectedDate.length === 0 ? (
+            <div className="text-center text-muted-foreground text-sm py-4">
+              No events for this day
+            </div>
+          ) : (
+            eventsForSelectedDate.map((event) => (
+              <div
+                key={event.id}
+                className="flex flex-col space-y-1 p-3 rounded-md cursor-pointer hover:bg-accent transition-colors"
+                onClick={() => handleEventClick(event)}
+                style={{ 
+                  borderLeft: `4px solid ${event.color || '#4285F4'}`,
+                  backgroundColor: `${event.color || '#4285F4'}10`
+                }}
+              >
+                <div className="flex justify-between items-start">
+                  <h4 className="font-medium text-sm line-clamp-1">{event.title}</h4>
                 </div>
                 
-                {selectedEvent.location && (
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-xs sm:text-sm">{selectedEvent.location}</p>
-                    </div>
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3 mr-1" /> 
+                  <span>
+                    {event.allDay 
+                      ? 'All day' 
+                      : `${getFormattedTime(event.startDate)} - ${getFormattedTime(event.endDate)}`}
+                  </span>
+                </div>
+                
+                {event.location && (
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <MapPin className="h-3 w-3 mr-1" /> 
+                    <span className="line-clamp-1">{event.location}</span>
                   </div>
                 )}
                 
-                {selectedEvent.reminder && selectedEvent.reminder !== 'none' && (
-                  <div className="flex items-start gap-3">
-                    <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-xs sm:text-sm">{getReminderLabel(selectedEvent.reminder)}</p>
-                    </div>
-                  </div>
-                )}
-                
-                {selectedEvent.description && (
-                  <div className="mt-3 sm:mt-4">
-                    <h4 className="text-xs sm:text-sm font-medium mb-1">Description</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-line">
-                      {selectedEvent.description}
-                    </p>
+                {event.reminder && (
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <Bell className="h-3 w-3 mr-1" /> 
+                    <span>{getReminderLabel(event.reminder)}</span>
                   </div>
                 )}
               </div>
-              
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline" className="text-xs sm:text-sm min-h-[44px] touch-manipulation">
+            ))
+          )}
+        </div>
+        
+        {/* Event Detail Dialog */}
+        <Dialog open={isEventDetailOpen} onOpenChange={setIsEventDetailOpen}>
+          {selectedEvent && (
+            <DialogContent className="sm:max-w-md">
+              <div className="space-y-4">
+                <div
+                  className="h-1.5 w-12 rounded-full mx-auto"
+                  style={{ backgroundColor: selectedEvent.color || '#4285F4' }}
+                />
+                
+                <h3 className="text-lg font-semibold text-center">{selectedEvent.title}</h3>
+                
+                <div className="flex flex-col space-y-3">
+                  <div className="flex items-center">
+                    <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span>
+                      {format(selectedEvent.startDate, 'PPP')}
+                      {!selectedEvent.allDay && (
+                        <>, {getFormattedTime(selectedEvent.startDate)} - {getFormattedTime(selectedEvent.endDate)}</>
+                      )}
+                      {selectedEvent.allDay && ' (All day)'}
+                    </span>
+                  </div>
+                  
+                  {selectedEvent.location && (
+                    <div className="flex items-start">
+                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground mt-0.5" />
+                      <span>{selectedEvent.location}</span>
+                    </div>
+                  )}
+                  
+                  {selectedEvent.reminder && (
+                    <div className="flex items-center">
+                      <Bell className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span>{getReminderLabel(selectedEvent.reminder)}</span>
+                    </div>
+                  )}
+                  
+                  {selectedEvent.description && (
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="text-muted-foreground">
+                        {selectedEvent.description}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {selectedEvent.image && (
+                    <div className="mt-4">
+                      <img 
+                        src={selectedEvent.image}
+                        alt={selectedEvent.title}
+                        className="w-full h-auto rounded-md object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsEventDetailOpen(false)}
+                  >
                     Close
                   </Button>
-                </DialogClose>
-                <Button asChild className="text-xs sm:text-sm min-h-[44px] touch-manipulation">
-                  <Link to="/calendar">View in Calendar</Link>
-                </Button>
-              </DialogFooter>
+                  <Link to="/calendar">
+                    <Button className="bg-todo-purple hover:bg-todo-purple/90">
+                      View in Calendar
+                    </Button>
+                  </Link>
+                </div>
+              </div>
             </DialogContent>
           )}
         </Dialog>

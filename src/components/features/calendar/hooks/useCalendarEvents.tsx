@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Event } from '../types/event';
 import { initialEvents } from '../data/initialEvents';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export const useCalendarEvents = () => {
   const [events, setEvents] = useState<Event[]>(initialEvents);
@@ -10,6 +10,7 @@ export const useCalendarEvents = () => {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const handleViewEvent = (event: Event) => {
     setSelectedEvent(event);
