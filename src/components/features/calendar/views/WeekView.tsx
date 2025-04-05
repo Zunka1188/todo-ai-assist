@@ -181,7 +181,7 @@ const WeekView: React.FC<WeekViewProps> = ({
     const heightPx = Math.max(visibleDurationHours * hourHeight, 20); // Min height for very short events
     
     // Calculate width and position for overlapping events
-    const baseWidth = 11.5; // Base width percentage
+    const baseWidth = 11.0; // Slightly narrower width percentage
     const widthPerEvent = baseWidth / totalOverlapping;
     
     // Calculate the column index (0-6) for the current day
@@ -190,14 +190,14 @@ const WeekView: React.FC<WeekViewProps> = ({
     // Calculate left position based on day column and overlap index
     // Each day column should be ~12% wide (100% / 8) with the first column for time
     const dayColumnWidth = 12.5;
-    const leftOffset = (dayColumnWidth * (dayColumnIndex + 1)) + (index * (widthPerEvent / totalOverlapping));
+    const leftOffset = (dayColumnWidth * (dayColumnIndex + 1) + 0.5) + (index * (widthPerEvent / totalOverlapping));
     
     return {
       position: 'absolute',
       top: `${topPx}px`,
       height: `${heightPx}px`, 
       left: `${leftOffset}%`,
-      width: `${widthPerEvent}%`,
+      width: `${widthPerEvent - 0.25}%`, // Slightly narrower to avoid overlap
       zIndex: 20,
     };
   };
