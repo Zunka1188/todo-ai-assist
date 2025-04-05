@@ -4,10 +4,13 @@ import { useTheme } from '@/hooks/use-theme';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
   const { isMobile } = useIsMobile();
+  
+  const isDark = theme === 'dark';
 
   // Base button component with consistent styling for both mobile and desktop
   const ToggleButton = () => (
@@ -15,13 +18,13 @@ export function ThemeToggle() {
       variant="ghost" 
       size="icon" 
       onClick={toggleTheme} 
-      aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+      aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
       className="hover:bg-secondary transition-colors min-h-[44px] min-w-[44px] touch-manipulation"
     >
-      {theme === 'light' ? (
-        <Moon className="h-5 w-5 text-foreground" />
+      {isDark ? (
+        <Sun className="h-5 w-5 text-primary" />
       ) : (
-        <Sun className="h-5 w-5 text-todo-purple-light" />
+        <Moon className="h-5 w-5 text-foreground" />
       )}
     </Button>
   );
@@ -37,7 +40,7 @@ export function ThemeToggle() {
         <ToggleButton />
       </TooltipTrigger>
       <TooltipContent className="bg-card text-card-foreground border-border">
-        <p>Toggle {theme === 'light' ? 'dark' : 'light'} mode</p>
+        <p>Toggle {isDark ? 'light' : 'dark'} mode</p>
       </TooltipContent>
     </Tooltip>
   );

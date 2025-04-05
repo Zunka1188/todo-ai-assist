@@ -4,6 +4,8 @@ import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import SearchInput from '@/components/ui/search-input';
+import { cn } from '@/lib/utils';
+import { useTheme } from '@/hooks/use-theme';
 
 interface PageHeaderProps {
   title: string;
@@ -16,6 +18,7 @@ interface PageHeaderProps {
   showSearch?: boolean;
   showAddButton?: boolean;
   className?: string;
+  rightContent?: React.ReactNode;
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({
@@ -29,9 +32,13 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   showSearch = true,
   showAddButton = true,
   className = '',
+  rightContent,
 }) => {
+  const { theme } = useTheme();
+  const textClass = theme === 'dark' ? 'text-white' : 'text-foreground';
+  
   return (
-    <div className={`mb-4 flex flex-col gap-4 ${className}`}>
+    <div className={cn('mb-4 flex flex-col gap-4', className)}>
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           {showBackButton && (
@@ -39,16 +46,19 @@ const PageHeader: React.FC<PageHeaderProps> = ({
               <ArrowLeft className="h-5 w-5" />
             </Link>
           )}
-          <h1 className="text-2xl font-bold">{title}</h1>
+          <h1 className={cn("text-2xl font-bold", textClass)}>{title}</h1>
         </div>
-        {showAddButton && onAddItem && (
-          <Button 
-            onClick={onAddItem}
-            className="shrink-0"
-          >
-            {addItemLabel}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {rightContent}
+          {showAddButton && onAddItem && (
+            <Button 
+              onClick={onAddItem}
+              className="shrink-0"
+            >
+              {addItemLabel}
+            </Button>
+          )}
+        </div>
       </div>
       {showSearch && onSearchChange && (
         <SearchInput 

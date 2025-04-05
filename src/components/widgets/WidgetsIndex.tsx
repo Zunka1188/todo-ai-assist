@@ -27,14 +27,16 @@ import CalendarWidget from './CalendarWidget';
 import TaskWidget from './TaskWidget';
 import SpendingWidget from './SpendingWidget';
 import ScannerWidget from './ScannerWidget';
+import WeatherWidget from './WeatherWidget';
 
 // Export the components
-export { CalendarWidget, TaskWidget, SpendingWidget, ScannerWidget };
+export { CalendarWidget, TaskWidget, SpendingWidget, ScannerWidget, WeatherWidget };
 
 // Export a components map
 export const WidgetComponents = {
   calendar: CalendarWidget,
   tasks: TaskWidget,
   spending: SpendingWidget,
-  scanner: ScannerWidget
+  scanner: ScannerWidget,
+  weather: WeatherWidget
 };

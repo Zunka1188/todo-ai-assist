@@ -3,6 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ScanButton from '@/components/features/ScanButton';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTheme } from '@/hooks/use-theme';
 import HomeHeader from '@/components/features/home/HomeHeader';
 import WidgetGrid from '@/components/features/home/WidgetGrid';
 import FeatureCardGrid from '@/components/features/home/FeatureCardGrid';
@@ -11,13 +12,14 @@ import QuickInfo from '@/components/features/home/QuickInfo';
 const Index = () => {
   const navigate = useNavigate();
   const { isMobile } = useIsMobile();
+  const { theme } = useTheme();
 
   const handleScan = () => {
     navigate('/scan');
   };
 
   return (
-    <div className="space-y-5 py-3 sm:space-y-6 sm:py-4 w-full">
+    <div className="space-y-5 py-3 sm:space-y-6 sm:py-4 w-full fade-in">
       {/* Header */}
       <HomeHeader />
 

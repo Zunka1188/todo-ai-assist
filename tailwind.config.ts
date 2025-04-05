@@ -113,14 +113,20 @@ export default {
 				'scale-in': {
 					from: { transform: 'scale(0.95)', opacity: '0' },
 					to: { transform: 'scale(1)', opacity: '1' }
+				},
+				'scan': {
+					'0%': { top: '0%' },
+					'75%': { top: '100%' },
+					'100%': { top: '0%' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'fade-in': 'fade-in 0.2s ease-out',
-				'fade-out': 'fade-out 0.2s ease-out',
-				'scale-in': 'scale-in 0.3s ease-out'
+				'fade-in': 'fade-in 0.3s ease-out',
+				'fade-out': 'fade-out 0.3s ease-out',
+				'scale-in': 'scale-in 0.3s ease-out',
+				'scan': 'scan 2s ease-in-out infinite'
 			},
 			backgroundImage: {
 				'metallic-gradient': 'linear-gradient(to right, rgba(159, 158, 161, 0.3), rgba(170, 173, 176, 0.5))',
