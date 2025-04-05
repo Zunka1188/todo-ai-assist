@@ -14,7 +14,6 @@ interface EditItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
   item: ShoppingItem | null;
-  categories: string[];
   onSave: (item: ShoppingItem, imageFile: File | null) => void;
 }
 
@@ -22,11 +21,9 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
   isOpen,
   onClose,
   item,
-  categories,
   onSave
 }) => {
   const [editItemName, setEditItemName] = useState(item?.name || '');
-  const [editItemCategory, setEditItemCategory] = useState(item?.category || '');
   const [editItemAmount, setEditItemAmount] = useState(item?.amount || '');
   const [editItemImageUrl, setEditItemImageUrl] = useState(item?.imageUrl || '');
   const [editItemNotes, setEditItemNotes] = useState(item?.notes || '');
@@ -39,7 +36,6 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
   React.useEffect(() => {
     if (isOpen && item) {
       setEditItemName(item.name);
-      setEditItemCategory(item.category);
       setEditItemAmount(item.amount || '');
       setEditItemImageUrl(item.imageUrl || '');
       setEditItemNotes(item.notes || '');
@@ -54,7 +50,6 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
     const updatedItem: ShoppingItem = {
       ...item,
       name: editItemName,
-      category: editItemCategory,
       amount: editItemAmount || undefined,
       notes: editItemNotes || undefined,
       repeatOption: editItemRepeatOption
@@ -103,22 +98,6 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
                 onChange={(e) => setEditItemName(e.target.value)}
                 placeholder="Item name"
               />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="edit-item-category">Category</Label>
-              <select
-                id="edit-item-category"
-                value={editItemCategory}
-                onChange={(e) => setEditItemCategory(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {categories.filter(c => c !== 'All').map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
             </div>
             
             <div className="grid gap-2">

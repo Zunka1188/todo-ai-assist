@@ -10,7 +10,6 @@ import { useShoppingItems } from '@/components/features/shopping/useShoppingItem
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import PageHeader from '@/components/ui/page-header';
-import { useCategoriesManager } from '@/components/features/shopping/useCategoriesManager';
 
 const ShoppingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -23,7 +22,6 @@ const ShoppingPage: React.FC = () => {
   const { toast } = useToast();
   const { updateItem, addItem } = useShoppingItems('all', '');
   const { isMobile } = useIsMobile();
-  const { categories } = useCategoriesManager();
   
   // Get the tab from URL query parameters
   const searchParams = new URLSearchParams(location.search);
@@ -65,8 +63,7 @@ const ShoppingPage: React.FC = () => {
         price: item.price,
         imageUrl: item.file,
         notes: item.notes,
-        repeatOption: item.repeatOption || 'none',
-        category: item.category || categories[0]
+        repeatOption: item.repeatOption || 'none'
       });
 
       if (result) {
@@ -98,8 +95,7 @@ const ShoppingPage: React.FC = () => {
         amount: updatedItem.amount,
         imageUrl: updatedItem.imageUrl,
         notes: updatedItem.notes,
-        repeatOption: updatedItem.repeatOption || 'none',
-        category: updatedItem.category
+        repeatOption: updatedItem.repeatOption || 'none'
       };
       
       const result = updateItem(editItem.id, itemData);
@@ -194,7 +190,6 @@ const ShoppingPage: React.FC = () => {
           onClose={handleCloseEditDialog}
           onSave={handleUpdateItem}
           item={editItem.item}
-          categories={categories.filter(c => c !== 'All')}
         />
       )}
     </div>
