@@ -275,31 +275,37 @@ const DayView: React.FC<DayViewProps> = ({
 
   // Calculate the full height of a multi-hour event
   const getMultiHourEventStyle = (event: Event): React.CSSProperties => {
-    const startHour = event.startDate.getHours();
-    const startMinute = event.startDate.getMinutes();
-    const endHour = event.endDate.getHours();
-    const endMinute = event.endDate.getMinutes();
+    const visibleHours = endHour - startHour + 1;
+    const hourHeight = 80; // The height of each hour row in pixels
+    const totalHeight = visibleHours * hourHeight;
     
-    // Calculate total minutes duration
-    const startTotalMinutes = startHour * 60 + startMinute;
-    const endTotalMinutes = endHour * 60 + endMinute;
-    const visibleStartHour = Math.max(startHour, startHour);
+    const eventStartHour = event.startDate.getHours();
+    const eventStartMinute = event.startDate.getMinutes();
+    const eventEndHour = event.endDate.getHours();
+    const eventEndMinute = event.endDate.getMinutes();
     
-    // Calculate position relative to the start of the visible time range
-    const topOffset = startTotalMinutes - (visibleStartHour * 60);
-    const totalDuration = endTotalMinutes - startTotalMinutes;
+    // Adjust if event starts before or ends after visible range
+    const visibleStartHour = Math.max(eventStartHour, startHour);
+    const visibleEndHour = Math.min(eventEndHour, endHour);
     
-    // Each hour block is 80px (min-height from the HTML)
-    const hourHeight = 80;
-    const topPosition = (topOffset / 60) * hourHeight;
+    // Calculate top position
+    const hoursFromStart = visibleStartHour - startHour;
+    const minuteFraction = (visibleStartHour === eventStartHour) ? eventStartMinute / 60 : 0;
+    const topPosition = (hoursFromStart + minuteFraction) * hourHeight;
     
-    // Total height based on duration in minutes
-    const totalHeight = (totalDuration / 60) * hourHeight;
+    // Calculate height
+    const durationHours = visibleEndHour - visibleStartHour;
+    const endMinuteFraction = (visibleEndHour === eventEndHour) ? eventEndMinute / 60 : 1;
+    const startMinuteFraction = (visibleStartHour === eventStartHour) ? eventStartMinute / 60 : 0;
+    
+    const height = (durationHours + endMinuteFraction - startMinuteFraction) * hourHeight;
     
     return {
       position: 'absolute' as 'absolute',
       top: `${topPosition}px`,
-      height: `${totalHeight}px`,
+      height: `${height}px`,
+      left: '4rem', // Align with the content area
+      right: '0',
       width: '95%',
       zIndex: 20,
     };
@@ -460,35 +466,31 @@ const DayView: React.FC<DayViewProps> = ({
           "overflow-y-auto relative",
           isMobile ? "max-h-[calc(100vh-320px)]" : "max-h-[600px]"
         )}>
-          {/* Multi-hour events that need to span across hour boundaries */}
-          <div className="absolute left-[4rem] right-0 z-10">
-            {getMultiHourEvents().map(event => {
-              // For multi-hour events, create a single element that spans multiple hour rows
-              const style = getMultiHourEventStyle(event);
-              return (
-                <div 
-                  key={`multi-${event.id}`}
-                  className="rounded p-2 cursor-pointer hover:opacity-90 touch-manipulation"
-                  style={{ 
-                    backgroundColor: event.color || '#4285F4',
-                    ...style
-                  }}
-                  onClick={() => handleViewEvent(event)}
-                >
-                  <div className="font-medium text-white truncate">{event.title}</div>
-                  <div className="text-xs flex items-center text-white/90 mt-1">
-                    <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
-                    <span className="truncate">{getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}</span>
-                  </div>
-                  {event.location && (
-                    <div className="text-xs flex items-center text-white/90 mt-1">
-                      <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                      <span className="truncate">{event.location}</span>
-                    </div>
-                  )}
+          {/* Multi-hour events container that overlays the grid */}
+          <div className="absolute w-full h-full z-10 pointer-events-none">
+            {getMultiHourEvents().map(event => (
+              <div 
+                key={`multi-${event.id}`}
+                className="rounded p-2 cursor-pointer hover:opacity-90 touch-manipulation pointer-events-auto"
+                style={{ 
+                  backgroundColor: event.color || '#4285F4',
+                  ...getMultiHourEventStyle(event)
+                }}
+                onClick={() => handleViewEvent(event)}
+              >
+                <div className="font-medium text-white truncate">{event.title}</div>
+                <div className="text-xs flex items-center text-white/90 mt-1">
+                  <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+                  <span className="truncate">{getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}</span>
                 </div>
-              );
-            })}
+                {event.location && (
+                  <div className="text-xs flex items-center text-white/90 mt-1">
+                    <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                    <span className="truncate">{event.location}</span>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
           
           {/* Hour rows */}
