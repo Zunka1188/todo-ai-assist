@@ -136,34 +136,38 @@ const ShoppingPage: React.FC = () => {
           <TabsTrigger value="monthly">Monthly</TabsTrigger>
           <TabsTrigger value="all">All</TabsTrigger>
         </TabsList>
-        <TabsContent value="all">
-          <ShoppingList 
-            searchTerm={searchTerm}
-            filterMode="all"
-            onEditItem={handleEditItem}
-          />
-        </TabsContent>
-        <TabsContent value="one-off">
-          <ShoppingList 
-            searchTerm={searchTerm}
-            filterMode="one-off"
-            onEditItem={handleEditItem}
-          />
-        </TabsContent>
-        <TabsContent value="weekly">
-          <ShoppingList 
-            searchTerm={searchTerm}
-            filterMode="weekly"
-            onEditItem={handleEditItem}
-          />
-        </TabsContent>
-        <TabsContent value="monthly">
-          <ShoppingList 
-            searchTerm={searchTerm}
-            filterMode="monthly"
-            onEditItem={handleEditItem}
-          />
-        </TabsContent>
+        
+        {/* Tab content with improved spacing for mobile */}
+        <div className={cn("pb-16", isMobile ? "pb-20" : "")}>
+          <TabsContent value="all">
+            <ShoppingList 
+              searchTerm={searchTerm}
+              filterMode="all"
+              onEditItem={handleEditItem}
+            />
+          </TabsContent>
+          <TabsContent value="one-off">
+            <ShoppingList 
+              searchTerm={searchTerm}
+              filterMode="one-off"
+              onEditItem={handleEditItem}
+            />
+          </TabsContent>
+          <TabsContent value="weekly">
+            <ShoppingList 
+              searchTerm={searchTerm}
+              filterMode="weekly"
+              onEditItem={handleEditItem}
+            />
+          </TabsContent>
+          <TabsContent value="monthly">
+            <ShoppingList 
+              searchTerm={searchTerm}
+              filterMode="monthly"
+              onEditItem={handleEditItem}
+            />
+          </TabsContent>
+        </div>
       </Tabs>
 
       {/* Current URL Debugging Info (only shown in debug mode) */}
@@ -174,7 +178,7 @@ const ShoppingPage: React.FC = () => {
         </div>
       )}
 
-      {/* Add Item Dialog */}
+      {/* Add Item Dialog - ensuring consistent experience with Edit Dialog */}
       {showAddDialog && (
         <AddItemDialog 
           open={showAddDialog} 
@@ -183,7 +187,7 @@ const ShoppingPage: React.FC = () => {
         />
       )}
 
-      {/* Edit Item Dialog - now using the completely updated EditItemDialog component */}
+      {/* Edit Item Dialog - using the updated EditItemDialog component */}
       {editItem && editItem.item && (
         <EditItemDialog 
           isOpen={true}

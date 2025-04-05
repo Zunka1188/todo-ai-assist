@@ -16,8 +16,9 @@ const ScrollArea = React.forwardRef<
     {...props}
   >
     <ScrollAreaPrimitive.Viewport 
-      className="h-full w-full rounded-[inherit]"
+      className="h-full w-full rounded-[inherit] touch-auto"
       ref={scrollRef}
+      style={{ WebkitOverflowScrolling: 'touch' }}
     >
       {children}
     </ScrollAreaPrimitive.Viewport>

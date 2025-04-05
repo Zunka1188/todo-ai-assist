@@ -145,18 +145,25 @@ const ShoppingList = ({
           </p>
         </div>
       ) : (
-        <ScrollArea className="h-[calc(100vh-280px)]">
-          {/* Unpurchased Items Section */}
-          {unpurchasedItems.length > 0 && renderShoppingItemsGrid(unpurchasedItems)}
-          
-          {/* Purchased Items Section - only show if there are purchased items */}
-          {purchasedItems.length > 0 && (
-            <div className="mt-6 mb-8">
-              <Separator className="mb-4" />
-              <h3 className="text-lg font-medium mb-4 px-1">{isMobile ? 'Purchased' : 'Purchased Items'}</h3>
-              {renderShoppingItemsGrid(purchasedItems)}
-            </div>
-          )}
+        <ScrollArea className="h-[calc(100vh-280px)] overflow-y-auto touch-auto" style={{
+          WebkitOverflowScrolling: 'touch' // Improve iOS scrolling
+        }}>
+          <div className={cn(
+            "px-1 pb-16", // Add padding for better touch area and bottom space for scrolling
+            isMobile ? "mb-8" : ""
+          )}>
+            {/* Unpurchased Items Section */}
+            {unpurchasedItems.length > 0 && renderShoppingItemsGrid(unpurchasedItems)}
+            
+            {/* Purchased Items Section - only show if there are purchased items */}
+            {purchasedItems.length > 0 && (
+              <div className="mt-6 mb-8">
+                <Separator className="mb-4" />
+                <h3 className="text-lg font-medium mb-4 px-1">{isMobile ? 'Purchased' : 'Purchased Items'}</h3>
+                {renderShoppingItemsGrid(purchasedItems)}
+              </div>
+            )}
+          </div>
         </ScrollArea>
       )}
 
