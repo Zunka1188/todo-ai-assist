@@ -2,7 +2,7 @@
 import React from 'react';
 import { Cloud, Sun, CloudRain, Thermometer } from 'lucide-react';
 import { useTheme } from '@/hooks/use-theme';
-import { WidgetWrapper } from './WidgetsIndex';
+import { WidgetWrapper } from './shared/WidgetWrapper';
 
 const WeatherWidget = () => {
   const { theme } = useTheme();

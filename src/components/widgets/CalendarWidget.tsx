@@ -11,7 +11,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { initialEvents } from '../features/calendar/data/initialEvents';
 import { Event } from '../features/calendar/types/event';
 import { getReminderLabel, getFormattedTime } from '../features/calendar/utils/dateUtils';
-import { WidgetWrapper } from './WidgetsIndex';
+import { WidgetWrapper } from './shared/WidgetWrapper';
 
 const CalendarWidget = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());

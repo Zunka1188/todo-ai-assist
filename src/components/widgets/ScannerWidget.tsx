@@ -3,7 +3,7 @@ import React from 'react';
 import { Scan } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { WidgetWrapper } from './WidgetsIndex';
+import { WidgetWrapper } from './shared/WidgetWrapper';
 
 const ScannerWidget = () => {
   const navigate = useNavigate();
