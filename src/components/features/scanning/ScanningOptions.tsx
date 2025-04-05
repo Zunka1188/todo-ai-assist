@@ -148,18 +148,18 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
             setShowScannerCapture(false);
             setShowBarcodeScannerOnly(false);
           }} 
-          onSaveSuccess={handleSaveSuccess}
+          onCapture={handleSaveSuccess} 
           preferredMode={currentScanMode}
           barcodeOnly={showBarcodeScannerOnly}
-          manualCapture={manualCapture} // Enable manual capture
-          autoStart={false} // Prevent auto camera start
+          manualCapture={manualCapture} 
+          autoStart={false} 
         />
       ) : showControlledScanner ? (
         <ControlledScannerCapture
           onClose={() => setShowControlledScanner(false)}
           onSaveSuccess={handleSaveSuccess}
           preferredMode={currentScanMode}
-          autoStart={false} // Prevent auto camera start
+          autoStart={false} 
         />
       ) : showFileUploader ? (
         <FileUploader

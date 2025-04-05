@@ -8,18 +8,28 @@ import { DetectionResult } from '@/utils/detectionEngine/types';
 
 interface UnifiedScannerCaptureProps {
   onCapture: (result: any) => void;
+  onSaveSuccess?: (data: any) => void;
   onClose?: () => void;
   mode?: 'smart' | 'barcode';
   initialCameraActive?: boolean;
+  barcodeOnly?: boolean;
+  manualCapture?: boolean;
+  autoStart?: boolean;
+  preferredMode?: string;
 }
 
 const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
   onCapture,
+  onSaveSuccess,
   onClose,
   mode = 'smart',
   initialCameraActive = false,
+  barcodeOnly = false,
+  manualCapture = true,
+  autoStart = true,
+  preferredMode,
 }) => {
-  const [cameraActive, setCameraActive] = useState<boolean>(initialCameraActive);
+  const [cameraActive, setCameraActive] = useState<boolean>(initialCameraActive || autoStart);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [scanning, setScanning] = useState<boolean>(false);
   const [detectionResult, setDetectionResult] = useState<DetectionResult | null>(null);
@@ -28,14 +38,74 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
   const { toast } = useToast();
 
   const { 
-    initializeCamera, 
-    stopCamera,
-    captureImageFromVideo,
-    detectInImage,
-    isBusy,
+    detectBarcode,
+    detectProduct,
+    isDetecting: isBusy
   } = useUnifiedDetection();
 
-  // Handle camera initialization
+  const initializeCamera = async (videoElement: HTMLVideoElement): Promise<void> => {
+    try {
+      const constraints = {
+        video: {
+          facingMode: 'environment', 
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      };
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      videoElement.srcObject = stream;
+      await new Promise((resolve) => {
+        videoElement.onloadedmetadata = () => {
+          videoElement.play().then(resolve);
+        };
+      });
+      
+      console.log("Camera initialized successfully");
+    } catch (error) {
+      console.error("Error initializing camera:", error);
+      throw error;
+    }
+  };
+
+  const stopCamera = (): void => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      const tracks = stream.getTracks();
+      tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+      console.log("Camera stopped");
+    }
+  };
+
+  const captureImageFromVideo = (videoElement: HTMLVideoElement, canvasElement: HTMLCanvasElement): string => {
+    const width = videoElement.videoWidth;
+    const height = videoElement.videoHeight;
+    
+    canvasElement.width = width;
+    canvasElement.height = height;
+    
+    const context = canvasElement.getContext('2d');
+    if (context) {
+      context.drawImage(videoElement, 0, 0, width, height);
+      return canvasElement.toDataURL('image/jpeg', 0.8);
+    }
+    return '';
+  };
+
+  const detectInImage = async (imageData: string, detectionMode: string): Promise<DetectionResult | null> => {
+    try {
+      if (detectionMode === 'barcode') {
+        return await detectBarcode(imageData);
+      } else {
+        return await detectProduct(imageData);
+      }
+    } catch (error) {
+      console.error("Error detecting in image:", error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -66,9 +136,8 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
         stopCamera();
       }
     };
-  }, [cameraActive, initializeCamera, stopCamera, toast]);
+  }, [cameraActive, toast]);
 
-  // Handle capture and detection
   const handleCapture = async () => {
     if (!videoRef.current || !canvasRef.current || isBusy) return;
 
@@ -77,12 +146,10 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       const imageData = captureImageFromVideo(videoRef.current, canvasRef.current);
       setCapturedImage(imageData);
       
-      // Perform detection on the captured image
       const result = await detectInImage(imageData, mode);
       setDetectionResult(result);
       setScanning(false);
       
-      // Display detection results if found
       if (result && Object.keys(result).length > 0) {
         const detectionName = result.name || result.text || "Detected item";
         toast({
@@ -110,7 +177,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
     
     try {
       setScanning(true);
-      // Keep scanning until a barcode is found or canceled
       const scanInterval = setInterval(async () => {
         if (!videoRef.current || !canvasRef.current) {
           clearInterval(scanInterval);
@@ -133,7 +199,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
         }
       }, 1000);
       
-      // Clear interval after 20 seconds if no barcode found
       setTimeout(() => {
         if (scanning) {
           clearInterval(scanInterval);
@@ -145,7 +210,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
         }
       }, 20000);
       
-      // Store interval ID for cleanup
       return () => clearInterval(scanInterval);
     } catch (error) {
       setScanning(false);
@@ -165,6 +229,10 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
         timestamp: new Date().toISOString(),
       };
       onCapture(result);
+      
+      if (onSaveSuccess) {
+        onSaveSuccess(result);
+      }
     }
   };
 
@@ -187,7 +255,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
 
   return (
     <div className="relative flex flex-col items-center">
-      {/* Video for camera feed */}
       {cameraActive && !capturedImage && (
         <div className="relative w-full aspect-[3/4] max-w-md bg-black rounded-lg overflow-hidden">
           <video 
@@ -199,7 +266,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
           />
           <canvas ref={canvasRef} className="hidden" />
           
-          {/* Scanning overlay */}
           {scanning && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
               <div className="scan-animation"></div>
@@ -207,9 +273,8 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
             </div>
           )}
           
-          {/* Camera controls */}
           <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-4">
-            {mode === 'smart' ? (
+            {(mode === 'smart' || !barcodeOnly) ? (
               <Button 
                 onClick={handleCapture} 
                 disabled={scanning || isBusy} 
@@ -230,7 +295,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
             )}
           </div>
           
-          {/* Close button */}
           <Button 
             variant="ghost" 
             size="icon" 
@@ -242,7 +306,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
         </div>
       )}
       
-      {/* Captured image preview */}
       {capturedImage && (
         <div className="relative w-full max-w-md">
           <img src={capturedImage} alt="Captured" className="w-full rounded-lg" />
@@ -257,10 +320,9 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
         </div>
       )}
       
-      {/* Start camera button */}
       {!cameraActive && !capturedImage && (
         <Button onClick={handleStartCamera} className="mt-4">
-          {mode === 'smart' ? (
+          {mode === 'smart' || !barcodeOnly ? (
             <>
               <Camera className="mr-2 h-5 w-5" /> Start Camera
             </>
