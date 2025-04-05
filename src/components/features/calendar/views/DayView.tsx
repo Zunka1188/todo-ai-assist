@@ -259,7 +259,7 @@ const DayView: React.FC<DayViewProps> = ({
           <Toggle
             pressed={showAllHours}
             onPressedChange={() => handleTimeRangeToggle('full')}
-            className="bg-transparent data-[state=on]:bg-primary data-[state=on]:text-primary-foreground tap-target"
+            className="bg-transparent data-[state=on]:bg-todo-purple data-[state=on]:text-primary-foreground tap-target"
           >
             Full 24h
           </Toggle>
@@ -285,10 +285,7 @@ const DayView: React.FC<DayViewProps> = ({
             Morning
           </Toggle>
           
-          <div className={cn(
-            "flex items-center gap-2",
-            isMobile ? "flex-wrap mt-2 w-full" : ""
-          )}>
+          <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <Label htmlFor="startHour" className="text-sm whitespace-nowrap">From:</Label>
               <Input
@@ -323,8 +320,7 @@ const DayView: React.FC<DayViewProps> = ({
         
         {hiddenEvents.length > 0 && (
           <Alert 
-            variant="destructive" 
-            className="py-2 mt-3 bg-amber-50 border border-amber-300 dark:bg-gray-800 dark:border-amber-700 text-amber-800 dark:text-amber-200 flex items-center"
+            className="py-2 mt-3 bg-amber-100/90 border border-amber-300 dark:bg-amber-900/30 dark:border-amber-700 text-amber-800 dark:text-amber-200 flex items-center"
           >
             <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
             <AlertDescription className="text-sm">
