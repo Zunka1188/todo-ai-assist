@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -6,8 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Calendar, Receipt, List, FileText, Image as ImageIcon } from 'lucide-react';
 import { RecognizedItemType } from './DataRecognition';
 import { cn } from '@/lib/utils';
-
-type CategoryOption = RecognizedItemType | 'general';
+import { CategoryOption } from './utils/scanningUtils';
 
 interface CategorySelectionProps {
   suggestedCategory: CategoryOption | null;

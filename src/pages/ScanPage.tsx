@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ArrowLeft, Camera, Upload, Scan as ScanIcon, FileText, Calendar, ShoppingBag, PanelTop } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -110,6 +109,7 @@ const ScanPage = () => {
           {showScreenSelection ? (
             <ScreenSelection onClose={() => setShowScreenSelection(false)} />
           ) : (
+            
             <TabsContent value="options" className="h-full mt-0 data-[state=active]:flex-1">
               <ScanningOptions 
                 onScreenSelectionClick={() => setShowScreenSelection(true)}
@@ -117,6 +117,7 @@ const ScanPage = () => {
               />
             </TabsContent>
           )}
+          
           
           <TabsContent value="shopping">
             <div className={cn(

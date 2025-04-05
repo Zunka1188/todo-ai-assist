@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, X, CameraOff, Settings, Image, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,13 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import DataRecognition, { RecognizedItem, RecognizedItemType } from './DataRecognition';
 import './camera-animations.css';
+import { useCamera } from '@/hooks/use-camera';
+import { 
+  generateMockExtractedText, 
+  generateTypeSpecificMockData, 
+  generateDetectedObjects,
+  navigateBasedOnFormData
+} from './utils/scanningUtils';
 
 interface EnhancedCameraCaptureProps {
   onClose: () => void;
@@ -22,198 +30,44 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
 }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [cameraActive, setCameraActive] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [recognizedItem, setRecognizedItem] = useState<RecognizedItem | null>(null);
-  const [cameraError, setCameraError] = useState<string | null>(null);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [permissionDenied, setPermissionDenied] = useState(false);
   const [progressValue, setProgressValue] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [preferredScanMode, setPreferredScanMode] = useState<RecognizedItemType | null>(
     preferredMode as RecognizedItemType || null
   );
-  
-  const startCamera = async () => {
-    try {
-      console.log("Starting camera...");
-      setCameraError(null);
-      setPermissionDenied(false);
-      setIsInitializing(true);
-      
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        console.error("Camera API not supported");
-        setCameraError("Camera API not supported in this browser");
-        setIsInitializing(false);
-        return;
-      }
-      
-      const constraints = { 
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
-        audio: false
-      };
-      
-      console.log("Requesting camera access with constraints:", constraints);
-      
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.setAttribute('playsinline', 'true'); // Important for iOS
-          videoRef.current.setAttribute('muted', 'true');
-          videoRef.current.muted = true;
-          videoRef.current.playsInline = true;
-          
-          videoRef.current.onloadedmetadata = () => {
-            console.log("Video metadata loaded, attempting to play");
-            if (videoRef.current) {
-              videoRef.current.play()
-                .then(() => {
-                  console.log("Camera started successfully");
-                  setCameraActive(true);
-                  setIsInitializing(false);
-                })
-                .catch(err => {
-                  console.error("Error playing video:", err);
-                  setCameraError(`Error playing video: ${err.message}`);
-                  setIsInitializing(false);
-                });
-            }
-          };
-          
-          videoRef.current.onerror = (e) => {
-            console.error("Video element error:", e);
-            setCameraError("Video element error");
-            setIsInitializing(false);
-          };
-        } else {
-          console.error("Video reference not available");
-          setCameraError("Camera initialization failed - video element not found");
-          setIsInitializing(false);
-        }
-      } catch (err: any) {
-        console.error("Camera access error:", err);
-        
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          console.error("Camera permission denied:", err);
-          setPermissionDenied(true);
-          setCameraError("Camera permission denied. Please allow camera access in your browser settings.");
-          setIsInitializing(false);
-          return;
-        }
-        
-        console.error("First attempt failed, trying with different constraints", err);
-        
-        try {
-          const fallbackConstraints = {
-            video: true,
-            audio: false
-          };
-          
-          console.log("Trying fallback constraints:", fallbackConstraints);
-          const fallbackStream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
-          
-          if (videoRef.current) {
-            videoRef.current.srcObject = fallbackStream;
-            videoRef.current.setAttribute('playsinline', 'true'); // Important for iOS
-            videoRef.current.setAttribute('muted', 'true');
-            videoRef.current.muted = true;
-            videoRef.current.playsInline = true;
-            
-            videoRef.current.onloadedmetadata = () => {
-              console.log("Video metadata loaded with fallback constraints");
-              if (videoRef.current) {
-                videoRef.current.play()
-                  .then(() => {
-                    console.log("Camera started successfully with fallback constraints");
-                    setCameraActive(true);
-                    setIsInitializing(false);
-                  })
-                  .catch(playErr => {
-                    console.error("Error playing video with fallback constraints:", playErr);
-                    setCameraError(`Error starting camera: ${playErr.message}`);
-                    setIsInitializing(false);
-                  });
-              }
-            };
-          }
-        } catch (fallbackErr: any) {
-          console.error("Both camera initialization attempts failed:", fallbackErr);
-          
-          if (fallbackErr.name === 'NotAllowedError' || fallbackErr.name === 'PermissionDeniedError') {
-            setPermissionDenied(true);
-            setCameraError("Camera permission denied. Please allow camera access in your browser settings.");
-          } else {
-            setCameraError(`Could not access camera: ${fallbackErr.message || "Unknown error"}`);
-          }
-          
-          setIsInitializing(false);
-        }
-      }
-    } catch (error: any) {
-      console.error('Error in camera initialization:', error);
-      
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-        setPermissionDenied(true);
-        setCameraError("Camera permission denied. Please allow camera access in your browser settings.");
-      } else {
-        setCameraError(error.message || "Unknown camera error");
-      }
-      
-      setIsInitializing(false);
-      
+
+  const { 
+    videoRef,
+    canvasRef,
+    cameraActive,
+    isInitializing,
+    permissionDenied,
+    cameraError,
+    startCamera,
+    stopCamera,
+    captureImage: captureCameraImage,
+    requestCameraPermission
+  } = useCamera({
+    onError: (error, isPermissionDenied) => {
       toast({
-        title: "Camera Error",
-        description: "Could not access your camera. Please check permissions and try again.",
+        title: isPermissionDenied ? "Camera Permission Denied" : "Camera Error",
+        description: error,
         variant: "destructive",
       });
     }
-  };
+  });
   
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      const tracks = stream.getTracks();
-      
-      tracks.forEach(track => {
-        console.log("Stopping track:", track.kind);
-        track.stop();
-      });
-      
-      videoRef.current.srcObject = null;
-      setCameraActive(false);
-    }
-  };
-  
-  const captureImage = () => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      
-      const context = canvas.getContext('2d');
-      if (context) {
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        const imageDataURL = canvas.toDataURL('image/jpeg');
-        setCapturedImage(imageDataURL);
-        
-        stopCamera();
-        
-        processImage(imageDataURL);
-      }
+  const handleImageCapture = () => {
+    const imageDataURL = captureCameraImage();
+    if (imageDataURL) {
+      setCapturedImage(imageDataURL);
+      stopCamera();
+      processImage(imageDataURL);
     }
   };
 
@@ -240,9 +94,8 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
   const retakeImage = () => {
     setCapturedImage(null);
     setRecognizedItem(null);
-    setCameraError(null);
     setProcessing(false);
-    startCamera();
+    requestCameraPermission();
   };
   
   const processImage = async (imageDataURL: string) => {
@@ -287,9 +140,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
       }
       
       const confidence = 0.75 + (Math.random() * 0.2);
-      
       const mockData = generateTypeSpecificMockData(determinedType);
-      
       const detectedObjects = generateDetectedObjects(determinedType);
       
       const result: RecognizedItem = {
@@ -309,147 +160,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         description: `Detected: ${result.type} (${Math.round(result.confidence * 100)}% confidence)`,
       });
     }, 1500);
-  };
-  
-  const generateMockExtractedText = (scanMode: RecognizedItemType | null): string => {
-    switch (scanMode) {
-      case 'invitation':
-        return `TEAM OFFSITE MEETING\n\nDate: May 15, 2025\nTime: 10:00 AM - 4:00 PM\nLocation: Conference Room A, Building 2\n\nOrganizer: Sarah Johnson\nsarah.j@company.com\n\nQuarterly team meeting. Bring your presentation materials.`;
-      
-      case 'receipt':
-        return `GREEN GROCERS\n123 Main Street\nCity, State 12345\n\nDate: 04/03/2025\nTime: 14:35\n\nApples      $4.99\nBread       $3.50\nMilk        $2.99\n\nSubtotal    $11.48\nTax (8%)     $0.92\n\nTOTAL       $12.40\n\nTHANK YOU FOR SHOPPING!`;
-      
-      case 'product':
-        return `Organic Avocados\n2 count package\n\nPrice: $5.99\nCategory: Groceries\n\nFresh organic avocados, perfect for guacamole.\n\nNutrition Facts:\nServing Size: 1 avocado\nCalories: 240\nTotal Fat: 22g`;
-      
-      case 'document':
-        return `MEETING MINUTES\n\nDate: April 10, 2025\nSubject: Product Launch Planning\n\nAttendees:\n- John Smith (Chair)\n- Jane Doe\n- Alex Johnson\n\nDiscussion Items:\n1. Marketing strategy for Q2\n2. Budget allocation\n3. Timeline for upcoming product launch`;
-      
-      default:
-        const textOptions = [
-          `TEXT DETECTION\nThis is a sample of detected text\nThe AI system would extract\nall visible text from the image\nand format it appropriately.`,
-          `PRODUCT DETAILS\nModern Desk Lamp\nAdjustable brightness\nEnergy efficient\nPrice: $45.99\nIn stock: Yes`,
-          `NOTES\nPick up dry cleaning\nCall dentist for appointment\nBuy groceries for dinner\n- Chicken\n- Vegetables\n- Rice`
-        ];
-        return textOptions[Math.floor(Math.random() * textOptions.length)];
-    }
-  };
-  
-  const generateTypeSpecificMockData = (type: RecognizedItemType) => {
-    switch (type) {
-      case 'invitation':
-        return {
-          title: "Team Offsite Meeting",
-          date: "2025-05-15",
-          time: "10:00 AM",
-          location: "Conference Room A, Building 2",
-          organizer: "Sarah Johnson",
-          notes: "Quarterly team meeting. Bring your presentation materials."
-        };
-      
-      case 'receipt':
-        return {
-          store: "Green Grocers",
-          date: "2025-04-03",
-          total: "$12.40",
-          items: [
-            { name: "Apples", price: "$4.99" },
-            { name: "Bread", price: "$3.50" },
-            { name: "Milk", price: "$2.99" }
-          ]
-        };
-      
-      case 'product':
-        return {
-          name: "Organic Avocados",
-          price: "$5.99",
-          category: "Groceries",
-          brand: "Nature's Best",
-          description: "Fresh organic avocados, perfect for guacamole."
-        };
-      
-      case 'document':
-        return {
-          title: "Meeting Minutes",
-          date: "2025-04-10",
-          content: "Discussion about upcoming product launch and marketing strategy.",
-          author: "John Smith"
-        };
-      
-      default:
-        return {
-          title: "Unidentified Item",
-          description: "This item couldn't be clearly categorized. Please provide additional details manually."
-        };
-    }
-  };
-  
-  const generateDetectedObjects = (type: RecognizedItemType) => {
-    const objects = [];
-    
-    switch (type) {
-      case 'product':
-        objects.push(
-          { name: "Avocado", confidence: 0.96 },
-          { name: "Fruit", confidence: 0.92 },
-          { name: "Food item", confidence: 0.88 }
-        );
-        break;
-      
-      case 'receipt':
-        objects.push(
-          { name: "Receipt", confidence: 0.97 },
-          { name: "Document", confidence: 0.88 },
-          { name: "Printed text", confidence: 0.95 }
-        );
-        break;
-      
-      case 'invitation':
-        objects.push(
-          { name: "Document", confidence: 0.92 },
-          { name: "Calendar", confidence: 0.84 },
-          { name: "Text", confidence: 0.96 }
-        );
-        break;
-      
-      case 'document':
-        objects.push(
-          { name: "Document", confidence: 0.98 },
-          { name: "Paper", confidence: 0.93 },
-          { name: "Text", confidence: 0.97 }
-        );
-        break;
-      
-      default:
-        objects.push(
-          { name: "Document", confidence: 0.82 },
-          { name: "Object", confidence: 0.78 }
-        );
-    }
-    
-    return objects;
-  };
-  
-  const requestCameraPermission = async () => {
-    try {
-      if (navigator.permissions && navigator.permissions.query) {
-        const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
-        
-        if (result.state === 'granted') {
-          startCamera();
-        } else if (result.state === 'prompt') {
-          startCamera();
-        } else if (result.state === 'denied') {
-          setCameraError("Camera permission is blocked. Please update your browser settings to allow camera access.");
-          setPermissionDenied(true);
-        }
-      } else {
-        startCamera();
-      }
-    } catch (error) {
-      console.error("Error requesting permission:", error);
-      startCamera();
-    }
   };
   
   const openFilePicker = () => {
@@ -493,39 +203,10 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         }
         
         setTimeout(() => {
-          navigateBasedOnFormData(formData);
+          navigateBasedOnFormData(formData, navigate);
         }, 500);
       }
     }, 100);
-  };
-  
-  const navigateBasedOnFormData = (formData: any) => {
-    if (formData.addToShoppingList) {
-      navigate('/shopping');
-    } else if (formData.addToCalendar) {
-      navigate('/calendar');
-    } else if (formData.saveToSpending) {
-      navigate('/spending');
-    } else if (formData.saveToDocuments) {
-      navigate('/documents');
-    } else {
-      switch (formData.itemType) {
-        case 'invitation':
-          navigate('/calendar');
-          break;
-        case 'receipt':
-          navigate('/spending');
-          break;
-        case 'product':
-          navigate('/shopping');
-          break;
-        case 'document':
-          navigate('/documents');
-          break;
-        default:
-          onClose();
-      }
-    }
   };
   
   const openBrowserSettings = () => {
@@ -540,10 +221,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
       sessionStorage.removeItem('preferredScanMode');
     }
     requestCameraPermission();
-    
-    return () => {
-      stopCamera();
-    };
   }, []);
   
   return (
@@ -573,6 +250,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
       </div>
       
       <div className="relative bg-black rounded-lg overflow-hidden aspect-[4/3] flex items-center justify-center">
+        {/* Camera active view */}
         {cameraActive && !capturedImage ? (
           <>
             <video 
@@ -583,6 +261,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
               className="w-full h-full object-cover"
             />
             
+            {/* Mode indicator */}
             {preferredScanMode && (
               <div className="absolute top-0 left-0 p-2">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-todo-purple text-white">
@@ -592,13 +271,15 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
               </div>
             )}
             
+            {/* Scanning overlay */}
             <div className="absolute inset-0 pointer-events-none">
               <div className="w-full h-full border-2 border-dashed border-white/40 rounded-lg"></div>
               <div className="absolute left-0 right-0 h-1 bg-todo-purple opacity-50 animate-scan"></div>
             </div>
             
+            {/* Capture button */}
             <Button
-              onClick={captureImage}
+              onClick={handleImageCapture}
               className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white text-black hover:bg-gray-200 rounded-full w-16 h-16 flex items-center justify-center"
             >
               <div className="w-12 h-12 rounded-full border-2 border-black"></div>
@@ -655,6 +336,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
           </div>
         )}
         
+        {/* Processing overlay */}
         {processing && (
           <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-4">
             <Loader2 className="h-10 w-10 text-white animate-spin mb-4" />
@@ -675,6 +357,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         />
       </div>
       
+      {/* Camera permission error alert */}
       {(cameraError || permissionDenied) && !capturedImage && (
         <Alert variant="destructive" className="mt-4">
           <AlertCircle className="h-4 w-4" />
@@ -690,6 +373,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         </Alert>
       )}
       
+      {/* Data recognition form when image is captured */}
       {capturedImage && !processing && (
         <div className="space-y-4">
           <DataRecognition
@@ -701,6 +385,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
         </div>
       )}
       
+      {/* Upload button */}
       {!capturedImage && !permissionDenied && !cameraError && (
         <div className="flex justify-center mt-4">
           <Button 
