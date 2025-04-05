@@ -6,9 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
-import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Camera, ImageIcon, Upload } from 'lucide-react';
+import { Upload, ImageIcon, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ShoppingItem } from './useShoppingItems';
 
@@ -34,11 +32,8 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
   const [editItemNotes, setEditItemNotes] = useState(item?.notes || '');
   const [editItemRepeatOption, setEditItemRepeatOption] = useState<'none' | 'weekly' | 'monthly'>(item?.repeatOption || 'none');
   const [editItemImage, setEditItemImage] = useState<File | null>(null);
-  const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
 
   const editImageFileRef = useRef<HTMLInputElement>(null);
-  const editCameraInputRef = useRef<HTMLInputElement>(null);
-
   const { isMobile } = useIsMobile();
 
   React.useEffect(() => {
@@ -88,84 +83,6 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
     setEditItemImageUrl('');
     if (editImageFileRef.current) {
       editImageFileRef.current.value = '';
-    }
-    if (editCameraInputRef.current) {
-      editCameraInputRef.current.value = '';
-    }
-  };
-
-  const ImageOptionsDialog = () => {
-    if (isMobile) {
-      return (
-        <Sheet open={imageOptionsOpen} onOpenChange={setImageOptionsOpen}>
-          <SheetTrigger asChild>
-            <Button type="button" variant="outline" onClick={() => setImageOptionsOpen(true)} className="flex-1">
-              <ImageIcon className="mr-2 h-4 w-4" />
-              {editItemImageUrl ? "Change Image" : "Add Image"}
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="bottom" className="h-auto pb-8">
-            <SheetHeader className="mb-4">
-              <SheetTitle>Choose Image Source</SheetTitle>
-            </SheetHeader>
-            <div className="flex flex-col space-y-3">
-              <Button 
-                onClick={() => {
-                  editImageFileRef.current?.click();
-                  setImageOptionsOpen(false);
-                }} 
-                className="w-full justify-start gap-3" 
-                variant="outline"
-              >
-                <Upload className="h-4 w-4" /> Upload from Device
-              </Button>
-              <Button 
-                onClick={() => {
-                  editCameraInputRef.current?.click();
-                  setImageOptionsOpen(false);
-                }} 
-                className="w-full justify-start gap-3" 
-                variant="outline"
-              >
-                <Camera className="h-4 w-4" /> Take a Picture
-              </Button>
-              <SheetClose asChild>
-                <Button variant="ghost" className="w-full mt-2">Cancel</Button>
-              </SheetClose>
-            </div>
-          </SheetContent>
-        </Sheet>
-      );
-    } else {
-      return (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button type="button" variant="outline" className="flex-1">
-              <ImageIcon className="mr-2 h-4 w-4" />
-              {editItemImageUrl ? "Change Image" : "Add Image"}
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="max-w-xs">
-            <div className="flex flex-col space-y-3 py-2">
-              <Button 
-                onClick={() => editImageFileRef.current?.click()} 
-                className="w-full justify-start gap-3" 
-                variant="outline"
-              >
-                <Upload className="h-4 w-4" /> Upload from Device
-              </Button>
-              <Button 
-                onClick={() => editCameraInputRef.current?.click()} 
-                className="w-full justify-start gap-3" 
-                variant="outline"
-              >
-                <Camera className="h-4 w-4" /> Take a Picture
-              </Button>
-              <Button variant="ghost" className="w-full mt-2">Cancel</Button>
-            </div>
-          </AlertDialogContent>
-        </AlertDialog>
-      );
     }
   };
 
@@ -237,7 +154,15 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
             <div className="grid gap-2">
               <Label>Image</Label>
               <div className="flex gap-2">
-                <ImageOptionsDialog />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => editImageFileRef.current?.click()}
+                  className="w-full"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {editItemImageUrl ? "Change Image" : "Upload File"}
+                </Button>
                 {editItemImageUrl && (
                   <Button 
                     type="button" 
@@ -245,7 +170,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
                     onClick={clearEditImage} 
                     className="flex-shrink-0"
                   >
-                    Clear
+                    <X className="h-4 w-4" />
                   </Button>
                 )}
               </div>
@@ -286,14 +211,6 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
         ref={editImageFileRef} 
         type="file" 
         accept="image/*" 
-        onChange={handleFileChange} 
-        className="hidden" 
-      />
-      <input 
-        ref={editCameraInputRef} 
-        type="file" 
-        accept="image/*" 
-        capture="environment" 
         onChange={handleFileChange} 
         className="hidden" 
       />

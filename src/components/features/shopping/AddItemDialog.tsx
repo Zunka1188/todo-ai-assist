@@ -10,18 +10,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Image, Upload, Camera, X, Plus, File, Paperclip, Loader2, Maximize2, Minimize2 } from 'lucide-react';
+import { Upload, X, Loader2, Maximize2, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetClose,
-} from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import FilePreview, { getFileTypeFromName } from '../documents/FilePreview';
 import { useToast } from '@/components/ui/use-toast';
@@ -38,7 +29,6 @@ import {
 import {
   Drawer,
   DrawerContent,
-  DrawerTrigger,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
@@ -72,14 +62,12 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   const [file, setFile] = useState<string | null>(null);
   const [fileName, setFileName] = useState('');
   const [fileType, setFileType] = useState('');
-  const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [fullScreenPreview, setFullScreenPreview] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [repeatOption, setRepeatOption] = useState<'none' | 'weekly' | 'monthly'>('none');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -117,49 +105,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       }
     };
     reader.readAsDataURL(selectedFile);
-    
-    setImageOptionsOpen(false);
-  };
-
-  const handleCameraCapture = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-      });
-      
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      
-      const canvas = document.createElement('canvas');
-      
-      video.onloadedmetadata = () => {
-        video.play();
-        
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        
-        const context = canvas.getContext('2d');
-        if (context) {
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
-          
-          const imageData = canvas.toDataURL('image/jpeg');
-          setFile(imageData);
-          setFileName("camera_capture_" + new Date().toISOString().substring(0, 10) + ".jpg");
-          setFileType('image');
-          
-          stream.getTracks().forEach(track => track.stop());
-          
-          setShowAnalysisModal(true);
-        }
-      };
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-      toast({
-        title: "Camera Error",
-        description: "Could not access camera. Please check permissions.",
-        variant: "destructive"
-      });
-    }
   };
 
   const handleSave = () => {
@@ -205,7 +150,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     setFile(null);
     setFileName('');
     setFileType('');
-    setImageOptionsOpen(false);
     setFullScreenPreview(false);
     setRepeatOption('none');
   };
@@ -216,9 +160,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     setFileType('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
-    }
-    if (cameraInputRef.current) {
-      cameraInputRef.current.value = '';
     }
   };
 
@@ -238,90 +179,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     });
   };
 
-  const FileSourceOptions = () => {
-    if (isMobile) {
-      return (
-        <Sheet open={imageOptionsOpen} onOpenChange={setImageOptionsOpen}>
-          <SheetTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setImageOptionsOpen(true)}
-              className="flex-1"
-            >
-              <Paperclip className="mr-2 h-4 w-4" />
-              {file ? "Change File" : "Add File"}
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="bottom" className="h-auto pb-8" preventNavigateOnClose={true}>
-            <SheetHeader className="mb-4">
-              <SheetTitle>Choose File Source</SheetTitle>
-            </SheetHeader>
-            <div className="flex flex-col space-y-3">
-              <Button 
-                onClick={() => {
-                  fileInputRef.current?.click();
-                  setImageOptionsOpen(false);
-                }}
-                className="w-full justify-start gap-3"
-                variant="outline"
-              >
-                <Upload className="h-4 w-4" /> Upload File
-              </Button>
-              <Button 
-                onClick={() => {
-                  cameraInputRef.current?.click();
-                  setImageOptionsOpen(false);
-                }}
-                className="w-full justify-start gap-3"
-                variant="outline"
-              >
-                <Camera className="h-4 w-4" /> Take a Picture
-              </Button>
-              <SheetClose asChild>
-                <Button variant="ghost" className="w-full mt-2">Cancel</Button>
-              </SheetClose>
-            </div>
-          </SheetContent>
-        </Sheet>
-      );
-    } else {
-      return (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1"
-            >
-              <Paperclip className="mr-2 h-4 w-4" />
-              {file ? "Change File" : "Add File"}
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="max-w-xs">
-            <div className="flex flex-col space-y-3 py-2">
-              <Button 
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full justify-start gap-3"
-                variant="outline"
-              >
-                <Upload className="h-4 w-4" /> Upload File
-              </Button>
-              <Button 
-                onClick={() => cameraInputRef.current?.click()}
-                className="w-full justify-start gap-3"
-                variant="outline"
-              >
-                <Camera className="h-4 w-4" /> Take Photo
-              </Button>
-              <Button variant="ghost" className="w-full mt-2">Cancel</Button>
-            </div>
-          </AlertDialogContent>
-        </AlertDialog>
-      );
-    }
-  };
-
   const dialogContent = (
     <>
       <div className={cn("space-y-4", isMobile && "pb-4")}>
@@ -339,33 +196,20 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
           <div className="grid gap-2">
             <Label htmlFor="file">File</Label>
             <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center justify-center h-10"
-                  disabled={isUploading}
-                >
-                  {isUploading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Upload className="mr-2 h-4 w-4" />
-                  )}
-                  Upload File
-                </Button>
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => cameraInputRef.current?.click()}
-                  className="flex items-center justify-center h-10"
-                  disabled={isUploading}
-                >
-                  <Camera className="mr-2 h-4 w-4" />
-                  Take Photo
-                </Button>
-              </div>
+              <Button 
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full flex items-center justify-center h-10"
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                Upload File
+              </Button>
               <p className="text-xs text-muted-foreground">
                 Supported files: images, PDFs, documents, spreadsheets, and more
               </p>
@@ -375,14 +219,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
                 type="file"
                 accept="*/*"
                 ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              <Input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                ref={cameraInputRef}
                 onChange={handleFileChange}
                 className="hidden"
               />
