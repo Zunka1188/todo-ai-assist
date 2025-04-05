@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Camera, Upload, List, Calendar, Receipt, Crop, Image, FileText, Scan, ShoppingBag } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -207,51 +208,66 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
       ) : showScreenshotDetection ? (
         <ScreenshotDetection onClose={() => setShowScreenshotDetection(false)} />
       ) : (
-        <PageLayout>
-          <ResponsiveContainer
-            className={cn(
-              "grid gap-3",
-              isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3"
-            )}
-          >
-            {filteredOptions.map((option, index) => {
-              const Icon = option.icon;
-              const isDisabled = option.icon === Camera && !hasCamera;
-              
-              return (
-                <button
-                  key={index}
-                  onClick={option.action}
-                  disabled={isDisabled}
-                  className={cn(
-                    "flex items-center p-4 rounded-xl transition-all duration-300",
-                    "border border-border hover:border-primary/30",
-                    "bg-card hover:shadow-lg active:scale-95 touch-action-manipulation",
-                    option.highlight && !isDisabled && "ring-2 ring-primary ring-opacity-40",
-                    isDisabled && "opacity-60 cursor-not-allowed"
-                  )}
-                >
-                  <div className={cn(
-                    "bg-primary bg-opacity-10 p-3 rounded-full mr-4 flex-shrink-0 flex items-center justify-center",
-                    option.highlight && !isDisabled && "bg-opacity-20"
-                  )} style={{minWidth: "46px", minHeight: "46px"}}>
-                    <Icon className={cn(
-                      "text-primary", 
-                      isDisabled && "opacity-50"
-                    )} size={isMobile ? 20 : 24} />
-                  </div>
-                  <div className="text-left min-w-0 flex-1">
-                    <h3 className={cn(
-                      "font-medium text-base truncate",
-                      theme === 'light' ? "text-foreground" : "text-white"
-                    )}>{option.label}</h3>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{option.description}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </ResponsiveContainer>
-        </PageLayout>
+        <div className="flex flex-col h-full">
+          <div className={cn(
+            "flex-1 overflow-auto",
+            theme === 'light' ? "text-foreground" : "text-white"
+          )}>
+            <div className="flex flex-col items-center text-center p-6 space-y-2 mb-6">
+              <div className="bg-primary bg-opacity-10 p-4 rounded-full mb-2">
+                <Scan className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-2xl font-semibold">Smart Scanner</h3>
+              <p className="text-muted-foreground max-w-md">
+                Scan documents, receipts, products and more with our advanced AI recognition
+              </p>
+            </div>
+            
+            <ResponsiveContainer
+              className={cn(
+                "grid gap-3",
+                isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3"
+              )}
+            >
+              {filteredOptions.map((option, index) => {
+                const Icon = option.icon;
+                const isDisabled = option.icon === Camera && !hasCamera;
+                
+                return (
+                  <button
+                    key={index}
+                    onClick={option.action}
+                    disabled={isDisabled}
+                    className={cn(
+                      "flex items-center p-4 rounded-xl transition-all duration-300",
+                      "border border-border hover:border-primary/30",
+                      "bg-card hover:shadow-lg active:scale-95 touch-action-manipulation",
+                      option.highlight && !isDisabled && "ring-2 ring-primary ring-opacity-40",
+                      isDisabled && "opacity-60 cursor-not-allowed"
+                    )}
+                  >
+                    <div className={cn(
+                      "bg-primary bg-opacity-10 p-3 rounded-full mr-4 flex-shrink-0 flex items-center justify-center",
+                      option.highlight && !isDisabled && "bg-opacity-20"
+                    )} style={{minWidth: "46px", minHeight: "46px"}}>
+                      <Icon className={cn(
+                        "text-primary", 
+                        isDisabled && "opacity-50"
+                      )} size={isMobile ? 20 : 24} />
+                    </div>
+                    <div className="text-left min-w-0 flex-1">
+                      <h3 className={cn(
+                        "font-medium text-base truncate",
+                        theme === 'light' ? "text-foreground" : "text-white"
+                      )}>{option.label}</h3>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{option.description}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </ResponsiveContainer>
+          </div>
+        </div>
       )}
     </>
   );

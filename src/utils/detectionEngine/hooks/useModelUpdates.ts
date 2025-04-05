@@ -1,226 +1,129 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { ModelManager, modelManager, ModelVersion, ModelUpdateOptions } from '../ModelManager';
-import { useToast } from '@/components/ui/use-toast';
 
-interface ModelUpdateStatus {
-  updating: boolean;
-  progress: number;
-  lastChecked: Record<string, Date | null>;
-  updatesAvailable: Record<string, boolean>;
-  activeModels: Record<string, ModelVersion | null>;
+export interface ModelStatus {
+  barcode: {
+    version: string;
+    lastUpdated: string;
+    status: 'up-to-date' | 'update-available' | 'updating';
+  };
+  product: {
+    version: string;
+    lastUpdated: string;
+    status: 'up-to-date' | 'update-available' | 'updating';
+  };
+  document: {
+    version: string;
+    lastUpdated: string;
+    status: 'up-to-date' | 'update-available' | 'updating';
+  };
+  contextual: {
+    version: string;
+    lastUpdated: string;
+    status: 'up-to-date' | 'update-available' | 'updating';
+  };
+  updatesAvailable: {
+    barcode: boolean;
+    product: boolean;
+    document: boolean;
+    contextual: boolean;
+  };
 }
 
-/**
- * Hook for managing AI model updates
- */
 export const useModelUpdates = () => {
-  const { toast } = useToast();
-  const [status, setStatus] = useState<ModelUpdateStatus>({
-    updating: false,
-    progress: 0,
-    lastChecked: {
-      'barcode': null,
-      'product': null,
-      'document': null,
-      'context': null
+  const [status, setStatus] = useState<ModelStatus>({
+    barcode: {
+      version: '1.2.0',
+      lastUpdated: '2025-03-15',
+      status: 'up-to-date'
+    },
+    product: {
+      version: '1.3.5',
+      lastUpdated: '2025-03-28',
+      status: 'update-available'
+    },
+    document: {
+      version: '1.1.8',
+      lastUpdated: '2025-03-10',
+      status: 'up-to-date'
+    },
+    contextual: {
+      version: '1.0.4',
+      lastUpdated: '2025-02-20',
+      status: 'update-available'
     },
     updatesAvailable: {
-      'barcode': false,
-      'product': false,
-      'document': false,
-      'context': false
-    },
-    activeModels: {
-      'barcode': null,
-      'product': null,
-      'document': null,
-      'context': null
+      barcode: false,
+      product: true,
+      document: false,
+      contextual: true
     }
   });
 
-  // Load current active models on mount
-  useEffect(() => {
-    const activeModels: Record<string, ModelVersion | null> = {
-      'barcode': modelManager.getActiveModel('barcode'),
-      'product': modelManager.getActiveModel('product'),
-      'document': modelManager.getActiveModel('document'),
-      'context': modelManager.getActiveModel('context')
-    };
+  const checkForUpdates = useCallback(() => {
+    // Simulated logic to check for model updates
+    console.log("Checking for model updates...");
     
-    setStatus(prev => ({
-      ...prev,
-      activeModels
+    // In a real implementation, this would make API calls to your model server
+    // For now, we'll just use our mock data
+    return Promise.resolve(status);
+  }, [status]);
+
+  const updateModel = useCallback((modelType: keyof Omit<ModelStatus, 'updatesAvailable'>) => {
+    // Simulate updating a model
+    console.log(`Updating ${modelType} model...`);
+    
+    setStatus(prevStatus => ({
+      ...prevStatus,
+      [modelType]: {
+        ...prevStatus[modelType],
+        status: 'updating' as const
+      }
     }));
-  }, []);
 
-  // Check for available updates
-  const checkUpdates = useCallback(async () => {
-    try {
-      const updateResults = await modelManager.checkForUpdates();
-      
-      setStatus(prev => ({
-        ...prev,
-        lastChecked: {
-          'barcode': new Date(),
-          'product': new Date(),
-          'document': new Date(),
-          'context': new Date()
-        },
-        updatesAvailable: updateResults
-      }));
+    // Simulate an update process
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        setStatus(prevStatus => {
+          const updatedModel = {
+            ...prevStatus[modelType],
+            version: incrementVersion(prevStatus[modelType].version),
+            lastUpdated: new Date().toISOString().split('T')[0],
+            status: 'up-to-date' as const
+          };
 
-      // Notify user if updates are available
-      const hasUpdates = Object.values(updateResults).some(Boolean);
-      if (hasUpdates) {
-        toast({
-          title: "Model Updates Available",
-          description: "New AI model versions are available for download.",
-        });
-      }
-      
-      return updateResults;
-    } catch (error) {
-      console.error("Error checking for model updates:", error);
-      toast({
-        title: "Update Check Failed",
-        description: "Could not check for model updates. Please try again later.",
-        variant: "destructive"
-      });
-      return {};
-    }
-  }, [toast]);
-
-  // Update a specific model
-  const updateModel = useCallback(async (
-    modelType: string,
-    options: ModelUpdateOptions = {}
-  ) => {
-    try {
-      setStatus(prev => ({ ...prev, updating: true }));
-      
-      const onProgress = (progress: number) => {
-        setStatus(prev => ({ ...prev, progress }));
-      };
-      
-      const updatedModel = await modelManager.updateModel(modelType, {
-        ...options,
-        onProgress
-      });
-      
-      if (updatedModel) {
-        setStatus(prev => ({
-          ...prev,
-          activeModels: {
-            ...prev.activeModels,
-            [modelType]: updatedModel
-          },
-          updatesAvailable: {
-            ...prev.updatesAvailable,
+          const updatesAvailable = {
+            ...prevStatus.updatesAvailable,
             [modelType]: false
-          }
-        }));
-        
-        toast({
-          title: "Model Updated",
-          description: `${modelType.charAt(0).toUpperCase() + modelType.slice(1)} model updated to version ${updatedModel.version}`,
-        });
-        
-        return updatedModel;
-      } else {
-        toast({
-          title: "Update Failed",
-          description: `Could not update the ${modelType} model.`,
-          variant: "destructive"
-        });
-        return null;
-      }
-    } catch (error) {
-      console.error(`Error updating ${modelType} model:`, error);
-      toast({
-        title: "Update Error",
-        description: `Failed to update the ${modelType} model: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive"
-      });
-      return null;
-    } finally {
-      setStatus(prev => ({ ...prev, updating: false, progress: 0 }));
-    }
-  }, [toast]);
+          };
 
-  // Rollback to a previous version
-  const rollbackModel = useCallback((modelType: string, versionId: string) => {
-    try {
-      const success = modelManager.rollbackModel(modelType, versionId);
-      
-      if (success) {
-        const activeModel = modelManager.getActiveModel(modelType);
-        setStatus(prev => ({
-          ...prev,
-          activeModels: {
-            ...prev.activeModels,
-            [modelType]: activeModel
-          }
-        }));
-        
-        toast({
-          title: "Model Rolled Back",
-          description: `${modelType.charAt(0).toUpperCase() + modelType.slice(1)} model rolled back to ${activeModel?.version}`,
+          return {
+            ...prevStatus,
+            [modelType]: updatedModel,
+            updatesAvailable
+          };
         });
         
-        return true;
-      } else {
-        toast({
-          title: "Rollback Failed",
-          description: `Could not rollback the ${modelType} model.`,
-          variant: "destructive"
-        });
-        return false;
-      }
-    } catch (error) {
-      console.error(`Error rolling back ${modelType} model:`, error);
-      toast({
-        title: "Rollback Error",
-        description: `Failed to rollback the ${modelType} model.`,
-        variant: "destructive"
-      });
-      return false;
-    }
-  }, [toast]);
-
-  // Add feedback for model improvement
-  const addFeedback = useCallback((
-    modelType: string, 
-    detectionResult: any, 
-    isAccurate: boolean, 
-    userCorrection?: any
-  ) => {
-    try {
-      modelManager.addUserFeedback(modelType, detectionResult, isAccurate, userCorrection);
-      
-      toast({
-        title: "Feedback Received",
-        description: "Thank you for helping improve our detection system!",
-      });
-      
-      return true;
-    } catch (error) {
-      console.error("Error adding feedback:", error);
-      return false;
-    }
-  }, [toast]);
-
-  // Get all versions of a specific model
-  const getModelVersions = useCallback((modelType: string) => {
-    return modelManager.getAllModelVersions(modelType);
+        resolve();
+      }, 2000); // Simulate 2-second update process
+    });
   }, []);
+
+  // Helper to increment version number
+  const incrementVersion = (version: string): string => {
+    const parts = version.split('.');
+    const lastPart = parseInt(parts[2]) + 1;
+    return `${parts[0]}.${parts[1]}.${lastPart}`;
+  };
+
+  // Check for updates when component mounts
+  useEffect(() => {
+    checkForUpdates();
+  }, [checkForUpdates]);
 
   return {
     status,
-    checkUpdates,
-    updateModel,
-    rollbackModel,
-    addFeedback,
-    getModelVersions
+    checkForUpdates,
+    updateModel
   };
 };

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ArrowLeft, Camera, Upload, Scan as ScanIcon, FileText, Calendar, ShoppingBag, PanelTop } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -109,117 +110,117 @@ const ScanPage = () => {
           {showScreenSelection ? (
             <ScreenSelection onClose={() => setShowScreenSelection(false)} />
           ) : (
-            
-            <TabsContent value="options" className="h-full mt-0 data-[state=active]:flex-1">
-              <ScanningOptions 
-                onScreenSelectionClick={() => setShowScreenSelection(true)}
-                preferredMode={activeTab !== 'options' ? activeTab : undefined}
-              />
-            </TabsContent>
+            <>
+              <TabsContent value="options" className="h-full mt-0 data-[state=active]:flex-1">
+                <ScanningOptions 
+                  onScreenSelectionClick={() => setShowScreenSelection(true)}
+                  preferredMode={activeTab !== 'options' ? activeTab : undefined}
+                />
+              </TabsContent>
+              
+              <TabsContent value="shopping">
+                <div className={cn(
+                  "flex flex-col items-center justify-center text-center p-6 h-full",
+                  theme === 'light' ? "text-foreground" : "text-white"
+                )}>
+                  <ShoppingBag className="h-16 w-16 text-primary mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">Shopping List Scanner</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md">
+                    Point your camera at products or receipts to quickly add items to your shopping list
+                  </p>
+                  
+                  <div className="flex gap-4">
+                    <Button 
+                      variant="default"
+                      className="gap-2"
+                      onClick={() => {
+                        sessionStorage.setItem('preferredScanMode', 'shopping');
+                        setActiveTab('options');
+                      }}
+                    >
+                      <Camera className="h-4 w-4" />
+                      <span>Start Scanning</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate('/shopping')}
+                    >
+                      View Shopping List
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="calendar">
+                <div className={cn(
+                  "flex flex-col items-center justify-center text-center p-6 h-full",
+                  theme === 'light' ? "text-foreground" : "text-white"
+                )}>
+                  <Calendar className="h-16 w-16 text-primary mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">Calendar Event Scanner</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md">
+                    Scan invitations or screenshots to automatically add events to your calendar
+                  </p>
+                  
+                  <div className="flex gap-4">
+                    <Button 
+                      variant="default"
+                      className="gap-2"
+                      onClick={() => {
+                        sessionStorage.setItem('preferredScanMode', 'invitation');
+                        setActiveTab('options');
+                      }}
+                    >
+                      <Camera className="h-4 w-4" />
+                      <span>Scan Invitation</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate('/calendar')}
+                    >
+                      View Calendar
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="document">
+                <div className={cn(
+                  "flex flex-col items-center justify-center text-center p-6 h-full",
+                  theme === 'light' ? "text-foreground" : "text-white"
+                )}>
+                  <FileText className="h-16 w-16 text-primary mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">Document Scanner</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md">
+                    Scan physical documents, receipts or important information to save digitally
+                  </p>
+                  
+                  <div className="flex gap-4">
+                    <Button 
+                      variant="default"
+                      className="gap-2"
+                      onClick={() => {
+                        sessionStorage.setItem('preferredScanMode', 'document');
+                        setActiveTab('options');
+                      }}
+                    >
+                      <Camera className="h-4 w-4" />
+                      <span>Scan Document</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate('/documents')}
+                    >
+                      View Documents
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+            </>
           )}
-          
-          
-          <TabsContent value="shopping">
-            <div className={cn(
-              "flex flex-col items-center justify-center text-center p-6 h-full",
-              theme === 'light' ? "text-foreground" : "text-white"
-            )}>
-              <ShoppingBag className="h-16 w-16 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Shopping List Scanner</h3>
-              <p className="text-muted-foreground mb-6 max-w-md">
-                Point your camera at products or receipts to quickly add items to your shopping list
-              </p>
-              
-              <div className="flex gap-4">
-                <Button 
-                  variant="default"
-                  className="gap-2"
-                  onClick={() => {
-                    sessionStorage.setItem('preferredScanMode', 'shopping');
-                    navigate('/scan');
-                  }}
-                >
-                  <Camera className="h-4 w-4" />
-                  <span>Start Scanning</span>
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate('/shopping')}
-                >
-                  View Shopping List
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="calendar">
-            <div className={cn(
-              "flex flex-col items-center justify-center text-center p-6 h-full",
-              theme === 'light' ? "text-foreground" : "text-white"
-            )}>
-              <Calendar className="h-16 w-16 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Calendar Event Scanner</h3>
-              <p className="text-muted-foreground mb-6 max-w-md">
-                Scan invitations or screenshots to automatically add events to your calendar
-              </p>
-              
-              <div className="flex gap-4">
-                <Button 
-                  variant="default"
-                  className="gap-2"
-                  onClick={() => {
-                    sessionStorage.setItem('preferredScanMode', 'invitation');
-                    navigate('/scan');
-                  }}
-                >
-                  <Camera className="h-4 w-4" />
-                  <span>Scan Invitation</span>
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate('/calendar')}
-                >
-                  View Calendar
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="document">
-            <div className={cn(
-              "flex flex-col items-center justify-center text-center p-6 h-full",
-              theme === 'light' ? "text-foreground" : "text-white"
-            )}>
-              <FileText className="h-16 w-16 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Document Scanner</h3>
-              <p className="text-muted-foreground mb-6 max-w-md">
-                Scan physical documents, receipts or important information to save digitally
-              </p>
-              
-              <div className="flex gap-4">
-                <Button 
-                  variant="default"
-                  className="gap-2"
-                  onClick={() => {
-                    sessionStorage.setItem('preferredScanMode', 'document');
-                    navigate('/scan');
-                  }}
-                >
-                  <Camera className="h-4 w-4" />
-                  <span>Scan Document</span>
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate('/documents')}
-                >
-                  View Documents
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
         </div>
       </Tabs>
     </div>
