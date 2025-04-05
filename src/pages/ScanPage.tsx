@@ -1,16 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ArrowLeft, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AppHeader from '@/components/layout/AppHeader';
 import { Button } from '@/components/ui/button';
-import { useIsMobile } from '@/hooks/use-mobile';
 import FileUploader from '@/components/features/scanning/FileUploader';
 
 const ScanPage = () => {
   const navigate = useNavigate();
   const [showFileUploader, setShowFileUploader] = useState(false);
-  const { isMobile } = useIsMobile();
 
   // Get return destination from session storage if available
   const returnDestination = sessionStorage.getItem('returnToAfterScan');

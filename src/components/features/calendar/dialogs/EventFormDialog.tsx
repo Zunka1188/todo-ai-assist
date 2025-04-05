@@ -1,11 +1,12 @@
+
 import React, { useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CalendarIcon, MapPin, Bell, Image, Trash, Plus, Save, Upload } from 'lucide-react';
+import { CalendarIcon, MapPin, Bell, Upload, Trash, Plus, Save } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -262,8 +263,8 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
               
               <FormField control={form.control} name="image" render={({field}) => (
                 <FormItem>
-                  <FormLabel>Image (Optional)</FormLabel>
-                  <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
+                  <FormLabel>File</FormLabel>
+                  <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="*/*" />
                   {selectedImage ? (
                     <div className="relative">
                       <img src={selectedImage} alt="Event" className="w-full h-40 object-cover rounded-md" />
@@ -274,21 +275,18 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
                   ) : (
                     <FormControl>
                       <Button type="button" variant="outline" className="w-full h-12 border-dashed flex gap-2" onClick={handleImageButtonClick}>
-                        <Image className="h-4 w-4" />
-                        <span>Add Image</span>
+                        <Upload className="h-4 w-4" />
+                        <span>Upload File</span>
                       </Button>
                     </FormControl>
                   )}
-                  <FormDescription>
-                    Add an optional image for your event.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )} />
               
               <FormField control={form.control} name="description" render={({field}) => (
                 <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Enter event description..." {...field} className="resize-none h-20" />
                   </FormControl>
@@ -300,7 +298,7 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
                 <FormItem>
                   <FormLabel className="flex items-center">
                     <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                    Location (Optional)
+                    Location
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="Enter location..." {...field} />
@@ -311,7 +309,7 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
               
               <FormField control={form.control} name="color" render={({field}) => (
                 <FormItem>
-                  <FormLabel>Event Color (Optional)</FormLabel>
+                  <FormLabel>Event Color</FormLabel>
                   <div className="flex flex-wrap gap-2">
                     {colorOptions.map(color => (
                       <div 
@@ -332,7 +330,7 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
               
               <FormField control={form.control} name="recurringType" render={({field}) => (
                 <FormItem>
-                  <FormLabel>Recurrence (Optional)</FormLabel>
+                  <FormLabel>Recurrence</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -388,7 +386,7 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
                 <FormItem>
                   <FormLabel className="flex items-center">
                     <Bell className="h-4 w-4 mr-2 text-muted-foreground" />
-                    Reminder (Optional)
+                    Reminder
                   </FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
