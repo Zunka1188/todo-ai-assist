@@ -3,6 +3,7 @@ import React from 'react';
 import { EllipsisVertical, Repeat } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { WidgetWrapper } from '@/components/widgets/WidgetsIndex';
 
 interface ResponsiveButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string;
@@ -16,8 +17,8 @@ interface ResponsiveButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEle
   hideIcon?: boolean;
   // Properties for shopping items
   quantity?: string;
-  price?: string; // We'll keep this in the props but not display it
-  notes?: string; // We'll keep this in the props but not display it
+  price?: string; 
+  notes?: string; 
   repeatOption?: 'none' | 'weekly' | 'monthly';
   imageUrl?: string;
 }
@@ -76,7 +77,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         position: 'relative',
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         backgroundColor: 'var(--bg-color, white)'
-      }}>
+      }} className={cn("bg-card", className)}>
         {/* Top Section: Product Image & Details */}
         <div style={{
           display: 'flex',

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Camera, Scan } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -28,7 +27,6 @@ const ScanButton: React.FC<ScanButtonProps> = ({
   const handleScan = () => {
     if (isProcessing) return;
     
-    // If a specific scan mode is specified, store it in sessionStorage
     if (scanMode) {
       sessionStorage.setItem('preferredScanMode', scanMode);
       toast({
@@ -45,7 +43,6 @@ const ScanButton: React.FC<ScanButtonProps> = ({
     if (onScan) {
       onScan();
     } else {
-      // Navigate to the scan page by default
       navigate('/scan');
     }
   };
@@ -55,24 +52,24 @@ const ScanButton: React.FC<ScanButtonProps> = ({
       onClick={handleScan}
       disabled={isProcessing}
       className={cn(
-        "metallic-button rounded-full flex items-center justify-center",
+        "rounded-full flex items-center justify-center",
         "bg-todo-purple text-white shadow-lg touch-action-manipulation",
         "hover:shadow-xl transition-all duration-300 active:scale-95",
         "focus:outline-none focus:ring-2 focus:ring-todo-purple focus:ring-opacity-50",
         isProcessing ? "opacity-70 cursor-not-allowed" : "",
-        isMobile ? "p-4 min-h-[60px] min-w-[60px]" : "p-6",
+        isMobile ? "p-4 min-h-[56px] min-w-[56px]" : "p-6",
         className
       )}
       aria-label={label || "Scan with camera"}
     >
       {scanMode ? (
         <div className="flex items-center">
-          <Scan size={isMobile ? 22 : 28} className="mr-2" />
+          <Scan size={isMobile ? 20 : 24} className="mr-2" />
           {label || (scanMode.charAt(0).toUpperCase() + scanMode.slice(1))}
         </div>
       ) : (
         <>
-          <Camera size={isMobile ? 24 : 32} />
+          <Camera size={isMobile ? 22 : 28} />
           {label && <span className="ml-2">{label}</span>}
         </>
       )}

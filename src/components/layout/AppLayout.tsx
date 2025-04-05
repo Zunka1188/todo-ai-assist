@@ -68,7 +68,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <div className={cn(
-        "container mx-auto px-2 sm:px-4 pt-2 sm:pt-4 flex justify-end items-center gap-2 h-12 sm:h-14",
+        "container mx-auto px-2 sm:px-4 pt-2 sm:pt-4 flex justify-end items-center gap-2",
+        isMobile ? "h-10" : "h-12 sm:h-14",
         isIOS && "pt-safe-top"
       )}>
         <DropdownMenu>

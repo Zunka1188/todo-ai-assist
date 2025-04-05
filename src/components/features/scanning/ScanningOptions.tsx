@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Camera, Upload, List, Calendar, Receipt, Crop, Image, FileText, Scan, ShoppingBag } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -9,7 +8,9 @@ import { useTheme } from '@/hooks/use-theme';
 import ScanToCalendar from './ScanToCalendar';
 import EnhancedCameraCapture from './EnhancedCameraCapture';
 import ScreenshotDetection from './ScreenshotDetection';
-import { Button } from '@/components/ui/button';
+import ResponsiveContainer from '@/components/ui/responsive-container';
+import PageLayout from '@/components/layout/PageLayout';
+import { WidgetWrapper } from '@/components/widgets/WidgetsIndex';
 
 interface ScanningOptionsProps {
   onScreenSelectionClick?: () => void;
@@ -40,7 +41,6 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
   const [showScreenshotDetection, setShowScreenshotDetection] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
 
-  // Check camera permission on component mount
   useEffect(() => {
     const checkPermission = async () => {
       if (navigator.permissions && navigator.permissions.query) {
@@ -63,12 +63,10 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
     }
   }, [hasCamera]);
 
-  // If there's a preferred mode, auto-trigger the appropriate action
   useEffect(() => {
     if (preferredMode) {
       const option = scanOptions.find(opt => opt.mode === preferredMode);
       if (option) {
-        // Set a brief timeout to let the component render first
         setTimeout(() => option.action(), 100);
       }
     }
@@ -107,14 +105,12 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
   const handleSaveSuccess = (data: any) => {
     console.log("Item saved successfully:", data);
     
-    // Show success toast with more specific detail
     toast({
       title: "Item Processed Successfully",
       description: data.title ? `'${data.title}' has been saved.` : "Item has been processed.",
       variant: "default",
     });
     
-    // Navigate based on item type or user selection
     if (data.addToShoppingList) {
       navigate('/shopping');
     } else if (data.addToCalendar) {
@@ -190,11 +186,10 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
     }
   ];
 
-  // Filter options based on device capabilities and preferred mode
   const filteredOptions = scanOptions.filter(option => {
     if (option.mobileOnly && !isMobile) return false;
     if (option.desktopOnly && isMobile) return false;
-    if (option.icon === Camera && !hasCamera) return true; // Show but with different description
+    if (option.icon === Camera && !hasCamera) return true;
     if (preferredMode && option.mode && option.mode !== preferredMode) return false;
     return true;
   });
@@ -212,47 +207,51 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
       ) : showScreenshotDetection ? (
         <ScreenshotDetection onClose={() => setShowScreenshotDetection(false)} />
       ) : (
-        <div className={cn(
-          "grid gap-3",
-          isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3"
-        )}>
-          {filteredOptions.map((option, index) => {
-            const Icon = option.icon;
-            const isDisabled = option.icon === Camera && !hasCamera;
-            
-            return (
-              <button
-                key={index}
-                onClick={option.action}
-                disabled={isDisabled}
-                className={cn(
-                  "flex items-center p-4 rounded-xl transition-all duration-300",
-                  "border border-border hover:border-primary/30",
-                  "bg-card hover:shadow-lg active:scale-95 touch-action-manipulation",
-                  option.highlight && !isDisabled && "ring-2 ring-primary ring-opacity-40",
-                  isDisabled && "opacity-60 cursor-not-allowed"
-                )}
-              >
-                <div className={cn(
-                  "bg-primary bg-opacity-10 p-3 rounded-full mr-4 flex-shrink-0 flex items-center justify-center",
-                  option.highlight && !isDisabled && "bg-opacity-20"
-                )} style={{minWidth: "46px", minHeight: "46px"}}>
-                  <Icon className={cn(
-                    "text-primary", 
-                    isDisabled && "opacity-50"
-                  )} size={isMobile ? 20 : 24} />
-                </div>
-                <div className="text-left min-w-0 flex-1">
-                  <h3 className={cn(
-                    "font-medium text-base truncate",
-                    theme === 'light' ? "text-foreground" : "text-white"
-                  )}>{option.label}</h3>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{option.description}</p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        <PageLayout>
+          <ResponsiveContainer
+            className={cn(
+              "grid gap-3",
+              isMobile ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3"
+            )}
+          >
+            {filteredOptions.map((option, index) => {
+              const Icon = option.icon;
+              const isDisabled = option.icon === Camera && !hasCamera;
+              
+              return (
+                <button
+                  key={index}
+                  onClick={option.action}
+                  disabled={isDisabled}
+                  className={cn(
+                    "flex items-center p-4 rounded-xl transition-all duration-300",
+                    "border border-border hover:border-primary/30",
+                    "bg-card hover:shadow-lg active:scale-95 touch-action-manipulation",
+                    option.highlight && !isDisabled && "ring-2 ring-primary ring-opacity-40",
+                    isDisabled && "opacity-60 cursor-not-allowed"
+                  )}
+                >
+                  <div className={cn(
+                    "bg-primary bg-opacity-10 p-3 rounded-full mr-4 flex-shrink-0 flex items-center justify-center",
+                    option.highlight && !isDisabled && "bg-opacity-20"
+                  )} style={{minWidth: "46px", minHeight: "46px"}}>
+                    <Icon className={cn(
+                      "text-primary", 
+                      isDisabled && "opacity-50"
+                    )} size={isMobile ? 20 : 24} />
+                  </div>
+                  <div className="text-left min-w-0 flex-1">
+                    <h3 className={cn(
+                      "font-medium text-base truncate",
+                      theme === 'light' ? "text-foreground" : "text-white"
+                    )}>{option.label}</h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{option.description}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </ResponsiveContainer>
+        </PageLayout>
       )}
     </>
   );
