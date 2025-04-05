@@ -81,9 +81,15 @@ const DayView: React.FC<DayViewProps> = ({
     
     const eventStartHour = event.startDate.getHours();
     const eventEndHour = event.endDate.getHours();
+    const eventStartMinute = event.startDate.getMinutes();
+    const eventEndMinute = event.endDate.getMinutes();
+    
+    // For precise comparison include minutes as decimal
+    const eventStart = eventStartHour + (eventStartMinute / 60);
+    const eventEnd = eventEndHour + (eventEndMinute / 60);
     
     // Check if at least part of the event falls within visible hours
-    return !(eventEndHour < startHour || eventStartHour > endHour);
+    return eventStart <= endHour && eventEnd >= startHour;
   };
 
   // Filter events to only include those that should be shown in the multi-hour section
@@ -92,43 +98,68 @@ const DayView: React.FC<DayViewProps> = ({
     return multiHourEvents.filter(event => isEventVisible(event));
   };
 
-  // Calculate the full height of a multi-hour event
-  const getMultiHourEventStyle = (event: Event): React.CSSProperties => {
+  // Group overlapping events
+  const groupOverlappingEvents = (events: Event[]): Event[][] => {
+    if (events.length === 0) return [];
+    
+    // Sort events by start time
+    const sortedEvents = [...events].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+    
+    const groups: Event[][] = [];
+    let currentGroup: Event[] = [sortedEvents[0]];
+    
+    for (let i = 1; i < sortedEvents.length; i++) {
+      const event = sortedEvents[i];
+      const previousEvent = sortedEvents[i - 1];
+      
+      // Check if current event overlaps with previous event in the current group
+      // We consider events overlapping if the start time of the current event is before the end time of the previous event
+      if (event.startDate <= previousEvent.endDate) {
+        currentGroup.push(event);
+      } else {
+        groups.push([...currentGroup]);
+        currentGroup = [event];
+      }
+    }
+    
+    // Add the last group if not empty
+    if (currentGroup.length > 0) {
+      groups.push(currentGroup);
+    }
+    
+    return groups;
+  };
+
+  // Calculate the full height and position of a multi-hour event
+  const getMultiHourEventStyle = (event: Event, totalOverlapping = 1, index = 0): React.CSSProperties => {
     // Clone the dates to avoid modifying the original
     const eventStart = new Date(event.startDate);
     const eventEnd = new Date(event.endDate);
     
     // Calculate visible time range
-    const visibleStartHour = Math.max(eventStart.getHours(), startHour);
-    const visibleEndHour = Math.min(eventEnd.getHours(), endHour);
-    
-    const visibleStartMinute = eventStart.getHours() === visibleStartHour 
-      ? eventStart.getMinutes() 
-      : 0;
-    
-    const visibleEndMinute = eventEnd.getHours() === visibleEndHour 
-      ? eventEnd.getMinutes() 
-      : 59;
+    const visibleStartHour = Math.max(eventStart.getHours() + (eventStart.getMinutes() / 60), startHour);
+    const visibleEndHour = Math.min(eventEnd.getHours() + (eventEnd.getMinutes() / 60), endHour + (59/60));
     
     // Calculate position within the visible hours
     const hoursFromVisibleStart = visibleStartHour - startHour;
-    const minutesFromHourStart = visibleStartMinute / 60; // As fraction of hour
-    
-    // Calculate duration in hours
-    const visibleDurationHours = (visibleEndHour - visibleStartHour) + 
-      (visibleEndMinute - visibleStartMinute) / 60;
+    const visibleDurationHours = visibleEndHour - visibleStartHour;
     
     // Each hour row is 80px height
     const hourHeight = 80;
-    const topPx = (hoursFromVisibleStart + minutesFromHourStart) * hourHeight;
-    const heightPx = visibleDurationHours * hourHeight;
+    const topPx = hoursFromVisibleStart * hourHeight;
+    const heightPx = Math.max(visibleDurationHours * hourHeight, 20); // Min height for very short events
+    
+    // Calculate width and left offset for overlapping events
+    const baseWidth = 95; // Base width percentage for a single event
+    const widthPerEvent = baseWidth / totalOverlapping;
+    const leftOffset = index * widthPerEvent + 4; // 4% offset from the left, plus staggering for each event
     
     return {
       position: 'absolute',
       top: `${topPx}px`,
       height: `${heightPx}px`,
-      left: '4rem', // Align with the content area
-      width: '95%',
+      left: `${leftOffset}%`,
+      width: `${widthPerEvent}%`,
       zIndex: 20,
     };
   };
@@ -137,10 +168,15 @@ const DayView: React.FC<DayViewProps> = ({
   const checkForHiddenEvents = (start: number, end: number) => {
     const hidden = timeEvents.filter(event => {
       const eventStartHour = event.startDate.getHours();
+      const eventStartMinute = event.startDate.getMinutes();
       const eventEndHour = event.endDate.getHours();
+      const eventEndMinute = event.endDate.getMinutes();
       
-      return (eventStartHour < start && eventEndHour < start) || 
-             (eventStartHour > end && eventEndHour > end);
+      // For precise comparison include minutes as decimal
+      const eventStart = eventStartHour + (eventStartMinute / 60);
+      const eventEnd = eventEndHour + (eventEndMinute / 60);
+      
+      return eventEnd <= start || eventStart >= end;
     });
 
     setHiddenEvents(hidden);
@@ -156,6 +192,7 @@ const DayView: React.FC<DayViewProps> = ({
     return hidden;
   };
 
+  // Existing time range toggle and change handlers
   const handleTimeRangeToggle = (preset: string) => {
     switch (preset) {
       case 'full':
@@ -264,6 +301,9 @@ const DayView: React.FC<DayViewProps> = ({
     
     setShowAllHours(startHour === 0 && endHour === 23);
   };
+
+  // Group overlapping events for improved display
+  const eventGroups = groupOverlappingEvents(getVisibleMultiHourEvents());
 
   return (
     <div className="space-y-4">
@@ -422,28 +462,33 @@ const DayView: React.FC<DayViewProps> = ({
         )}>
           {/* Multi-hour events container that overlays the grid */}
           <div className="absolute w-full h-full z-10 pointer-events-none">
-            {getVisibleMultiHourEvents().map(event => (
-              <div 
-                key={`multi-${event.id}`}
-                className="rounded p-2 cursor-pointer hover:opacity-90 touch-manipulation pointer-events-auto"
-                style={{ 
-                  backgroundColor: event.color || '#4285F4',
-                  ...getMultiHourEventStyle(event)
-                }}
-                onClick={() => handleViewEvent(event)}
-              >
-                <div className="font-medium text-white truncate">{event.title}</div>
-                <div className="text-xs flex items-center text-white/90 mt-1">
-                  <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
-                  <span className="truncate">{getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}</span>
-                </div>
-                {event.location && (
-                  <div className="text-xs flex items-center text-white/90 mt-1">
-                    <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                    <span className="truncate">{event.location}</span>
+            {/* Render event groups with overlapping consideration */}
+            {eventGroups.map((group, groupIndex) => (
+              <React.Fragment key={`group-${groupIndex}`}>
+                {group.map((event, eventIndex) => (
+                  <div 
+                    key={`multi-${event.id}`}
+                    className="rounded p-2 cursor-pointer hover:opacity-90 touch-manipulation pointer-events-auto"
+                    style={{ 
+                      backgroundColor: event.color || '#4285F4',
+                      ...getMultiHourEventStyle(event, group.length, eventIndex)
+                    }}
+                    onClick={() => handleViewEvent(event)}
+                  >
+                    <div className="font-medium text-white truncate">{event.title}</div>
+                    <div className="text-xs flex items-center text-white/90 mt-1">
+                      <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">{getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}</span>
+                    </div>
+                    {event.location && (
+                      <div className="text-xs flex items-center text-white/90 mt-1">
+                        <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                        <span className="truncate">{event.location}</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                ))}
+              </React.Fragment>
             ))}
           </div>
           
@@ -457,8 +502,6 @@ const DayView: React.FC<DayViewProps> = ({
             
             const now = new Date();
             const isCurrentHour = isCurrentDate && now.getHours() === hour;
-            
-            // We don't need to display events here anymore as they're in the overlay
             
             return (
               <div 
