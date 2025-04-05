@@ -25,7 +25,7 @@ const EventViewDialog = ({ isOpen, setIsOpen, selectedEvent, onEdit, onDelete }:
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-md max-h-[90vh]">
+      <DialogContent className="max-w-md max-h-[90vh]" preventNavigateOnClose>
         <DialogHeader>
           <div className="flex justify-between items-center mb-1">
             <div className="w-3 h-3 rounded-full mr-2" style={{

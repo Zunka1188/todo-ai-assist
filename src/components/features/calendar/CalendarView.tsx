@@ -93,7 +93,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       
       {/* Event Form Dialog */}
       <EventFormDialog
-        isOpen={effectiveCreateDialogOpen && !isFileUploaderOpen}
+        isOpen={effectiveCreateDialogOpen && !isFileUploaderOpen && !isViewDialogOpen}
         setIsOpen={effectiveSetCreateDialogOpen}
         onSubmit={handleSaveEvent}
         selectedEvent={selectedEvent}
