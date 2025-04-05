@@ -5,6 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { useCamera } from '@/hooks/use-camera';
 
 interface CameraCaptureWithAIProps {
   onClose: () => void;
@@ -21,204 +22,49 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [cameraActive, setCameraActive] = useState(false);
+  
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [detectionResult, setDetectionResult] = useState<DetectionResult | null>(null);
-  const [cameraError, setCameraError] = useState<string | null>(null);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [permissionDenied, setPermissionDenied] = useState(false);
   
-  const startCamera = async () => {
-    try {
-      console.log("Starting camera...");
-      setCameraError(null);
-      setPermissionDenied(false);
-      setIsInitializing(true);
-      
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        console.error("Camera API not supported");
-        setCameraError("Camera API not supported in this browser");
-        setIsInitializing(false);
-        return;
+  const { 
+    cameraActive,
+    isInitializing,
+    permissionDenied,
+    cameraError,
+    startCamera,
+    stopCamera,
+    captureImage: captureCameraImage,
+    requestCameraPermission
+  } = useCamera({
+    videoRef,
+    canvasRef,
+    autoStart: false,  // We'll call requestCameraPermission manually
+    onError: (error, isPermissionDenied) => {
+      console.log("Camera error in CameraCaptureWithAI:", error, isPermissionDenied);
+      if (!isPermissionDenied) {
+        toast({
+          title: "Camera Issue",
+          description: error,
+          variant: "destructive",
+        });
       }
-      
-      // First try with environment facing camera for mobile devices
-      const constraints = { 
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
-        audio: false
-      };
-      
-      console.log("Requesting camera access with constraints:", constraints);
-      
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.setAttribute('playsinline', 'true'); // Important for iOS
-          videoRef.current.setAttribute('muted', 'true');
-          videoRef.current.muted = true;
-          videoRef.current.playsInline = true;
-          
-          videoRef.current.onloadedmetadata = () => {
-            console.log("Video metadata loaded, attempting to play");
-            if (videoRef.current) {
-              videoRef.current.play()
-                .then(() => {
-                  console.log("Camera started successfully");
-                  setCameraActive(true);
-                  setIsInitializing(false);
-                })
-                .catch(err => {
-                  console.error("Error playing video:", err);
-                  setCameraError(`Error playing video: ${err.message}`);
-                  setIsInitializing(false);
-                });
-            }
-          };
-          
-          videoRef.current.onerror = (e) => {
-            console.error("Video element error:", e);
-            setCameraError("Video element error");
-            setIsInitializing(false);
-          };
-        } else {
-          console.error("Video reference not available");
-          setCameraError("Camera initialization failed - video element not found");
-          setIsInitializing(false);
-        }
-      } catch (err: any) {
-        console.error("Camera access error:", err);
-        
-        // Check if this is a permission error
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          console.error("Camera permission denied:", err);
-          setPermissionDenied(true);
-          setCameraError("Camera permission denied. Please allow camera access in your browser settings.");
-          setIsInitializing(false);
-          return;
-        }
-        
-        // Try fallback with simpler constraints
-        console.error("First attempt failed, trying with different constraints", err);
-        
-        try {
-          const fallbackConstraints = {
-            video: true,
-            audio: false
-          };
-          
-          console.log("Trying fallback constraints:", fallbackConstraints);
-          const fallbackStream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
-          
-          if (videoRef.current) {
-            videoRef.current.srcObject = fallbackStream;
-            videoRef.current.setAttribute('playsinline', 'true'); // Important for iOS
-            videoRef.current.setAttribute('muted', 'true');
-            videoRef.current.muted = true;
-            videoRef.current.playsInline = true;
-            
-            videoRef.current.onloadedmetadata = () => {
-              console.log("Video metadata loaded with fallback constraints");
-              if (videoRef.current) {
-                videoRef.current.play()
-                  .then(() => {
-                    console.log("Camera started successfully with fallback constraints");
-                    setCameraActive(true);
-                    setIsInitializing(false);
-                  })
-                  .catch(playErr => {
-                    console.error("Error playing video with fallback constraints:", playErr);
-                    setCameraError(`Error starting camera: ${playErr.message}`);
-                    setIsInitializing(false);
-                  });
-              }
-            };
-          }
-        } catch (fallbackErr: any) {
-          console.error("Both camera initialization attempts failed:", fallbackErr);
-          
-          // Check if this is a permission error
-          if (fallbackErr.name === 'NotAllowedError' || fallbackErr.name === 'PermissionDeniedError') {
-            setPermissionDenied(true);
-            setCameraError("Camera permission denied. Please allow camera access in your browser settings.");
-          } else {
-            setCameraError(`Could not access camera: ${fallbackErr.message || "Unknown error"}`);
-          }
-          
-          setIsInitializing(false);
-        }
-      }
-    } catch (error: any) {
-      console.error('Error in camera initialization:', error);
-      
-      // Check if this is a permission error
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-        setPermissionDenied(true);
-        setCameraError("Camera permission denied. Please allow camera access in your browser settings.");
-      } else {
-        setCameraError(error.message || "Unknown camera error");
-      }
-      
-      setIsInitializing(false);
-      
-      toast({
-        title: "Camera Error",
-        description: "Could not access your camera. Please check permissions and try again.",
-        variant: "destructive",
-      });
     }
-  };
-  
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      const tracks = stream.getTracks();
-      
-      tracks.forEach(track => {
-        console.log("Stopping track:", track.kind);
-        track.stop();
-      });
-      
-      videoRef.current.srcObject = null;
-      setCameraActive(false);
-    }
-  };
+  });
   
   const captureImage = () => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      
-      const context = canvas.getContext('2d');
-      if (context) {
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        const imageDataURL = canvas.toDataURL('image/jpeg');
-        setCapturedImage(imageDataURL);
-        
-        // Stop the camera after capturing
-        stopCamera();
-        
-        // Process the image for recognition
-        processImage(imageDataURL);
-      }
+    const imageDataURL = captureCameraImage();
+    if (imageDataURL) {
+      setCapturedImage(imageDataURL);
+      stopCamera();
+      processImage(imageDataURL);
     }
   };
   
   const retakeImage = () => {
     setCapturedImage(null);
     setDetectionResult(null);
-    setCameraError(null);
-    startCamera();
+    requestCameraPermission();
   };
   
   const processImage = async (imageDataURL: string) => {
@@ -278,39 +124,29 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
     }, 1500);
   };
   
-  const requestCameraPermission = async () => {
-    try {
-      // On some browsers, we can request permission explicitly
-      if (navigator.permissions && navigator.permissions.query) {
-        const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
-        
-        if (result.state === 'granted') {
-          // Permission already granted, restart camera
-          startCamera();
-        } else if (result.state === 'prompt') {
-          // Will trigger the permission prompt
-          startCamera();
-        } else if (result.state === 'denied') {
-          setCameraError("Camera permission is blocked. Please update your browser settings to allow camera access.");
-          setPermissionDenied(true);
-        }
-      } else {
-        // Fallback to just trying to access the camera
-        startCamera();
-      }
-    } catch (error) {
-      console.error("Error requesting permission:", error);
-      // Just try starting the camera anyway
-      startCamera();
-    }
+  const openBrowserSettings = () => {
+    toast({
+      title: "Permission Required",
+      description: "Please open your browser settings and allow camera access for this site.",
+    });
   };
   
   useEffect(() => {
-    console.log("Component mounted, starting camera");
-    requestCameraPermission();
+    console.log("Component mounted, initializing camera");
+    
+    // Delay camera initialization slightly to ensure DOM is ready
+    const timer = setTimeout(() => {
+      if (videoRef.current) {
+        console.log("Video element is ready, requesting camera permission");
+        requestCameraPermission();
+      } else {
+        console.error("Video element not available after timeout");
+      }
+    }, 100);
     
     // Cleanup function to stop camera when component unmounts
     return () => {
+      clearTimeout(timer);
       console.log("Component unmounting, stopping camera");
       stopCamera();
     };
@@ -372,14 +208,6 @@ const CameraCaptureWithAI: React.FC<CameraCaptureWithAIProps> = ({ onClose }) =>
       default:
         return null;
     }
-  };
-  
-  const openBrowserSettings = () => {
-    // We can't programmatically open browser settings, but we can give instructions
-    toast({
-      title: "Permission Required",
-      description: "Please open your browser settings and allow camera access for this site.",
-    });
   };
   
   return (

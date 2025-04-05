@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, X, CameraOff, Settings, Image, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,8 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
   const { toast } = useToast();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
@@ -40,9 +43,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
   const [preferredScanMode, setPreferredScanMode] = useState<RecognizedItemType | null>(
     preferredMode as RecognizedItemType || null
   );
-
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const { 
     cameraActive,
@@ -56,6 +56,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
   } = useCamera({
     videoRef,
     canvasRef,
+    autoStart: false,  // Don't auto-start, we'll call requestCameraPermission manually
     onError: (error, isPermissionDenied) => {
       console.log("Camera error in EnhancedCameraCapture:", error, isPermissionDenied);
       if (!isPermissionDenied) {
@@ -246,8 +247,14 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     
     console.log("EnhancedCameraCapture mounted, initializing camera...");
     
+    // Allow time for the DOM to render before requesting camera
     const timer = setTimeout(() => {
-      requestCameraPermission();
+      if (videoRef.current) {
+        console.log("Video element is ready, requesting camera permission");
+        requestCameraPermission();
+      } else {
+        console.error("Video element still not available after timeout");
+      }
     }, 100);
     
     return () => {
@@ -293,12 +300,14 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
               className="w-full h-full object-cover"
             />
             
-            <div className="absolute top-0 left-0 p-2">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-todo-purple text-white">
-                <Sparkles className="w-3 h-3 mr-1" />
-                {preferredScanMode.charAt(0).toUpperCase() + preferredScanMode.slice(1)} Mode
-              </span>
-            </div>
+            {preferredScanMode && (
+              <div className="absolute top-0 left-0 p-2">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-todo-purple text-white">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  {preferredScanMode.charAt(0).toUpperCase() + preferredScanMode.slice(1)} Mode
+                </span>
+              </div>
+            )}
             
             <div className="absolute inset-0 pointer-events-none">
               <div className="w-full h-full border-2 border-dashed border-white/40 rounded-lg"></div>

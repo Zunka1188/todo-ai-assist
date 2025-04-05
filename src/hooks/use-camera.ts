@@ -6,6 +6,7 @@ interface UseCameraOptions {
   onError?: (error: string, isPermissionDenied: boolean) => void;
   videoRef?: RefObject<HTMLVideoElement>;
   canvasRef?: RefObject<HTMLCanvasElement>;
+  autoStart?: boolean;
 }
 
 interface UseCameraReturn {
@@ -33,11 +34,13 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
   const initAttempts = useRef(0);
 
   const { 
     facingMode = 'environment',
-    onError
+    onError,
+    autoStart = true
   } = options;
 
   const handleError = (error: string, isPermissionDenied: boolean = false) => {
@@ -53,7 +56,7 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
 
   const startCamera = async () => {
     try {
-      console.log("Starting camera...", { attempt: initAttempts.current + 1 });
+      console.log("Starting camera...", { attempt: initAttempts.current + 1, videoRefExists: !!videoRef.current });
       initAttempts.current += 1;
       setCameraError(null);
       setPermissionDenied(false);
@@ -306,6 +309,22 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
     }
   };
 
+  // Mark component as ready in the next tick to ensure DOM is available
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Auto-start camera when ready, if option is enabled
+  useEffect(() => {
+    if (isReady && autoStart) {
+      requestCameraPermission();
+    }
+  }, [isReady, autoStart]);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       stopCamera();
