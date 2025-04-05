@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ScanBarcode, X, Camera, AlertCircle, Loader2, ShoppingBag, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -6,6 +7,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import DataRecognition, { RecognizedItem } from './DataRecognition';
 import { useCamera } from '@/hooks/use-camera';
+import { useBarcodeScan } from '@/utils/detectionEngine/hooks/useBarcodeScan';
 
 interface BarcodeScannerCaptureProps {
   onClose: () => void;
@@ -25,9 +27,17 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [detectedBarcode, setDetectedBarcode] = useState<string | null>(null);
   const [scanningActive, setScanningActive] = useState(true);
+  const [readyForScanning, setReadyForScanning] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  const { status: barcodeScanStatus, scanBarcode, reset: resetBarcodeScanner } = useBarcodeScan();
+
+  const handleCameraReady = useCallback(() => {
+    console.log("Camera is ready, can start barcode scanning");
+    setReadyForScanning(true);
+  }, []);
 
   const { 
     cameraActive,
@@ -41,19 +51,24 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
   } = useCamera({
     videoRef,
     canvasRef,
+    autoStart: false,
     onError: (error, isPermissionDenied) => {
+      console.error("Camera error in BarcodeScannerCapture:", error, isPermissionDenied);
       toast({
         title: isPermissionDenied ? "Camera Permission Denied" : "Camera Error",
         description: error,
         variant: "destructive",
       });
-    }
+    },
+    onCameraReady: handleCameraReady
   });
 
+  // Mock barcode scanning (in a real app, this would use a barcode scanning library)
   useEffect(() => {
     let scanInterval: NodeJS.Timeout;
     
-    if (cameraActive && scanningActive) {
+    if (cameraActive && scanningActive && readyForScanning) {
+      console.log("Starting barcode scanning simulation");
       scanInterval = setInterval(() => {
         if (Math.random() > 0.85) {
           const barcodeTypes = ['UPC-A', 'EAN-13', 'QR'];
@@ -68,7 +83,7 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
     return () => {
       if (scanInterval) clearInterval(scanInterval);
     };
-  }, [cameraActive, scanningActive]);
+  }, [cameraActive, scanningActive, readyForScanning]);
   
   const handleBarcodeDetected = (barcodeValue: string) => {
     setScanningActive(false);
@@ -80,7 +95,7 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
       processBarcode(imageDataURL, barcodeValue);
     }
     
-    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhbAYAAAD//wIA9v8EAPn/+//q//3/CwDw//X/BQDv/+v/9P8DAAgAAgDm//X/BwDx/wQA//8BAO//7/8RAPL/5P/8/wcACQD9/+3/+P8JAAEA7f/8/xoA+P/V/+3/FQAbAOr/3v/3/w4AFQDw/+v//v8LABYACQDW/+P/IQAhAPX/zv/x/yQAGQDz/9r/9f8iAB0A8P/Y//j/JAAcAAAA1P/j/yAALgDr/8z/9/8LACsA///j//j/BgAYAP//6v/w/wEAFQALAOf/5//0/xAACQDc/+//9v8EAAQA7P/e//z/EgD+/+b/5v8HAAcA9//5//L/8P8KAAQA4//x//r/AgAIAPb/7//0/wIACgD///D/7f/8/xIAAwDk/+f/AQALAPj/8P/0//n/BwAGAO//8f///wEABQD6//D/9v8GAAIA7v/0//7/AwAEAPr/9//4/wQABAD0//T/+/8CAAMAAAD2//P/AQAGAPv/9f/2/wMABAD7//X/+v8EAAQA9//1//z/AwAEAPj/9v/9/wIABAD6//f//P8BAAUA/P/3//3/AQAFAP3/9//8/wIABAD9//j//P8CAAUA/v/4//z/AgAFAP///f/+/wIAAgD///7//v8BAAIA/////v/+/wEAAQAAAP///v8AAAEAAAD///3/AAABAAAA///+/wAAAAAAAAD+/wAAAAAAAP///v8AAAAAAAAAAP//AAAAAAAAAAAAAAAA');
+    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhbAYAAAD//wIA9v8EAPn/+//q//3/CwDw//X/BQDv/+v/9P8DAAgAAgDm//X/BwDx/wQA//8BAO//7/8RAPL/5P/8/wcACQD9/+3/+P8JAAEA7f/8/xoA+P/V/+3/FQAbAOr/3v/3/w4AFQDw/+v//v8LABYACQDW/+P/IQAhAPX/zv/x/yQAGQDz/9r/9f8iAB0A8P/Y//j/JAAcAAAA1P/j/yAALgDr/8z/9/8LACsA///j//j/BgAYAP//6v/w/wEAFQALAOf/5//0/xAACQDc/+//9v8EAAQA7P/e//z/EgD+/+b/5v8HAAcA9//5//L/8P8KAAQA4//x//r/AgAIAPb/7//0/wIACgD///D/7f/8/xIAAwDk/+f/AQALAPj/8P/0//n/BwAGAO//8f///wEABQD6//D/9v8GAAIA7v/0//7/AwAEAPr/9//4/wQABAD0//T/+/8CAAMA/v/2//P/AQAGAPv/9f/2/wMABAD7//X/+v8EAAQA9//1//z/AwAEAPj/9v/9/wIABAD6//f//P8BAAUA/P/3//3/AQAFAP3/9//8/wIABAD9//j//P8CAAUA/v/4//z/AgAFAP///f/+/wIAAgD///7//v8BAAIA/////v/+/wEAAQAAAP///v8AAAEAAAD///3/AAABAAAA///+/wAAAAAAAAD+/wAAAAAAAP///v8AAAAAAAAAAP//AAAAAAAAAAAAAAAA');
     audio.play();
     
     toast({
@@ -146,6 +161,7 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
     setDetectedBarcode(null);
     setProcessing(false);
     setScanningActive(true);
+    setReadyForScanning(false);
     requestCameraPermission();
   };
   
@@ -177,9 +193,18 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
   
   useEffect(() => {
     console.log("BarcodeScannerCapture mounted, initializing camera...");
-    requestCameraPermission();
+    // Delay camera initialization slightly to ensure DOM is ready
+    const timer = setTimeout(() => {
+      if (videoRef.current) {
+        console.log("Video element exists, requesting camera permission");
+        requestCameraPermission();
+      } else {
+        console.error("Video element not available after initial timeout");
+      }
+    }, 300); // Increased timeout to ensure DOM is ready
     
     return () => {
+      clearTimeout(timer);
       stopCamera();
     };
   }, []);
@@ -209,34 +234,38 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
       </div>
       
       <div className="relative bg-black rounded-lg overflow-hidden aspect-[4/3] flex items-center justify-center">
+        {/* Video element must be always rendered to maintain reference */}
+        <video 
+          id="barcode-video"
+          ref={videoRef}
+          autoPlay 
+          playsInline
+          muted
+          className={cameraActive && !capturedImage ? "w-full h-full object-cover" : "hidden"}
+        />
+        
         {cameraActive && !capturedImage ? (
-          <>
-            <video 
-              ref={videoRef}
-              autoPlay 
-              playsInline
-              muted
-              className="w-full h-full object-cover"
-            />
-            
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="w-full h-full border-2 border-dashed border-white/40 rounded-lg"></div>
-              <div className="absolute top-[45%] left-0 right-0 h-[10%] border-t-2 border-b-2 border-red-500/70"></div>
-              <div className="absolute left-0 right-0 h-0.5 bg-red-500 opacity-70 top-1/2 animate-scan"></div>
-            </div>
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="w-full h-full border-2 border-dashed border-white/40 rounded-lg"></div>
+            <div className="absolute top-[45%] left-0 right-0 h-[10%] border-t-2 border-b-2 border-red-500/70"></div>
+            <div className="absolute left-0 right-0 h-0.5 bg-red-500 opacity-70 top-1/2 animate-scan"></div>
             
             <div className="absolute top-4 left-4 bg-black/50 rounded-lg px-3 py-1.5 text-xs text-white flex items-center">
               <ScanBarcode className="h-3.5 w-3.5 mr-1.5" />
               Scanning for barcodes...
             </div>
-          </>
-        ) : capturedImage ? (
+          </div>
+        ) : null}
+        
+        {capturedImage ? (
           <img 
             src={capturedImage} 
             alt="Captured" 
             className="w-full h-full object-contain"
           />
-        ) : permissionDenied ? (
+        ) : null}
+        
+        {permissionDenied ? (
           <div className="text-white text-center p-4">
             <Camera className="mx-auto h-12 w-12 mb-2 text-red-500" />
             <p className="text-red-300 mb-2">Camera Permission Denied</p>
@@ -252,7 +281,9 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
               </Button>
             </div>
           </div>
-        ) : cameraError ? (
+        ) : null}
+        
+        {cameraError && !capturedImage && !permissionDenied ? (
           <div className="text-white text-center p-4">
             <Camera className="mx-auto h-12 w-12 mb-2 text-red-500" />
             <p className="text-red-300 mb-2">Camera Error</p>
@@ -261,18 +292,15 @@ const BarcodeScannerCapture: React.FC<BarcodeScannerCaptureProps> = ({
               Try Again
             </Button>
           </div>
-        ) : isInitializing ? (
+        ) : null}
+        
+        {isInitializing && !capturedImage ? (
           <div className="text-white text-center p-4">
             <Camera className="mx-auto h-12 w-12 mb-2 animate-pulse" />
             <p>Initializing camera...</p>
             <p className="text-xs text-gray-400 mt-2">This may take a moment</p>
           </div>
-        ) : (
-          <div className="text-white text-center p-4">
-            <Camera className="mx-auto h-12 w-12 mb-2 animate-pulse" />
-            <p>Initializing camera...</p>
-          </div>
-        )}
+        ) : null}
         
         {processing && (
           <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-4">

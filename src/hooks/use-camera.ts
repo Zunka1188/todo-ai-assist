@@ -7,6 +7,7 @@ interface UseCameraOptions {
   videoRef?: RefObject<HTMLVideoElement>;
   canvasRef?: RefObject<HTMLCanvasElement>;
   autoStart?: boolean;
+  onCameraReady?: () => void;
 }
 
 interface UseCameraReturn {
@@ -36,11 +37,11 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const initAttempts = useRef(0);
-
   const { 
     facingMode = 'environment',
     onError,
-    autoStart = true
+    autoStart = true,
+    onCameraReady
   } = options;
 
   const handleError = (error: string, isPermissionDenied: boolean = false) => {
@@ -56,7 +57,11 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
 
   const startCamera = async () => {
     try {
-      console.log("Starting camera...", { attempt: initAttempts.current + 1, videoRefExists: !!videoRef.current });
+      console.log("Starting camera...", { 
+        attempt: initAttempts.current + 1, 
+        videoRefExists: !!videoRef.current,
+        videoRefId: videoRef.current?.id || 'no-id'
+      });
       initAttempts.current += 1;
       setCameraError(null);
       setPermissionDenied(false);
@@ -68,10 +73,14 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
         return;
       }
       
-      // Check if video ref is available
+      // Check if video ref is available - if not, delay and retry
       if (!videoRef.current) {
-        console.error("Video reference not available");
-        handleError("Camera initialization failed - video element not found", false);
+        console.error("Video reference not available, will retry");
+        if (initAttempts.current < 3) {
+          setTimeout(() => startCamera(), 500);
+          return;
+        }
+        handleError("Camera initialization failed - video element not found after retries", false);
         setIsInitializing(false);
         return;
       }
@@ -130,6 +139,9 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
                   setCameraActive(true);
                   setIsInitializing(false);
                   initAttempts.current = 0; // Reset attempts counter on success
+                  if (onCameraReady) {
+                    onCameraReady();
+                  }
                 })
                 .catch(err => {
                   console.error("Error playing video:", err);
@@ -188,6 +200,9 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
                     setCameraActive(true);
                     setIsInitializing(false);
                     initAttempts.current = 0; // Reset attempts counter on success
+                    if (onCameraReady) {
+                      onCameraReady();
+                    }
                   })
                   .catch(playErr => {
                     console.error("Error playing video with fallback constraints:", playErr);
@@ -270,6 +285,13 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
         return;
       }
       
+      // Ensure video and canvas elements exist
+      if (!videoRef.current) {
+        console.warn("Video ref not available during permission request, will delay");
+        setTimeout(() => requestCameraPermission(), 300);
+        return;
+      }
+      
       if (navigator.permissions && navigator.permissions.query) {
         try {
           const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
@@ -313,13 +335,14 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsReady(true);
-    }, 0);
+    }, 100);
     return () => clearTimeout(timer);
   }, []);
 
   // Auto-start camera when ready, if option is enabled
   useEffect(() => {
     if (isReady && autoStart) {
+      console.log("Auto-starting camera because isReady=true and autoStart=true");
       requestCameraPermission();
     }
   }, [isReady, autoStart]);

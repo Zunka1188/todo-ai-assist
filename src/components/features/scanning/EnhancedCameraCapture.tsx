@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Camera, X, CameraOff, Settings, Image, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -44,6 +44,10 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     preferredMode as RecognizedItemType || null
   );
 
+  const handleCameraReady = useCallback(() => {
+    console.log("Camera is ready in EnhancedCameraCapture");
+  }, []);
+
   const { 
     cameraActive,
     isInitializing,
@@ -56,7 +60,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
   } = useCamera({
     videoRef,
     canvasRef,
-    autoStart: false,  // Don't auto-start, we'll call requestCameraPermission manually
+    autoStart: false,
     onError: (error, isPermissionDenied) => {
       console.log("Camera error in EnhancedCameraCapture:", error, isPermissionDenied);
       if (!isPermissionDenied) {
@@ -66,7 +70,8 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
           variant: "destructive",
         });
       }
-    }
+    },
+    onCameraReady: handleCameraReady
   });
   
   const handleImageCapture = () => {
@@ -247,7 +252,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     
     console.log("EnhancedCameraCapture mounted, initializing camera...");
     
-    // Allow time for the DOM to render before requesting camera
+    // Allow time for the DOM to render before requesting camera (longer timeout)
     const timer = setTimeout(() => {
       if (videoRef.current) {
         console.log("Video element is ready, requesting camera permission");
@@ -255,7 +260,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
       } else {
         console.error("Video element still not available after timeout");
       }
-    }, 100);
+    }, 300); // Increased timeout
     
     return () => {
       clearTimeout(timer);
@@ -290,15 +295,22 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
       </div>
       
       <div className="relative bg-black rounded-lg overflow-hidden aspect-[4/3] flex items-center justify-center">
+        {/* Video element always rendered to maintain reference */}
+        <video 
+          id="enhanced-camera-video"
+          ref={videoRef}
+          autoPlay 
+          playsInline
+          muted
+          className={cameraActive && !capturedImage ? "w-full h-full object-cover" : "hidden"}
+        />
+        
         {cameraActive && !capturedImage ? (
           <>
-            <video 
-              ref={videoRef}
-              autoPlay 
-              playsInline
-              muted
-              className="w-full h-full object-cover"
-            />
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="w-full h-full border-2 border-dashed border-white/40 rounded-lg"></div>
+              <div className="absolute left-0 right-0 h-1 bg-todo-purple opacity-50 animate-scan"></div>
+            </div>
             
             {preferredScanMode && (
               <div className="absolute top-0 left-0 p-2">
@@ -309,11 +321,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
               </div>
             )}
             
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="w-full h-full border-2 border-dashed border-white/40 rounded-lg"></div>
-              <div className="absolute left-0 right-0 h-1 bg-todo-purple opacity-50 animate-scan"></div>
-            </div>
-            
             <Button
               onClick={handleImageCapture}
               className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white text-black hover:bg-gray-200 rounded-full w-16 h-16 flex items-center justify-center"
@@ -321,13 +328,17 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
               <div className="w-12 h-12 rounded-full border-2 border-black"></div>
             </Button>
           </>
-        ) : capturedImage ? (
+        ) : null}
+        
+        {capturedImage ? (
           <img 
             src={capturedImage} 
             alt="Captured" 
             className="w-full h-full object-contain"
           />
-        ) : permissionDenied ? (
+        ) : null}
+        
+        {permissionDenied ? (
           <div className="text-white text-center p-4">
             <CameraOff className="mx-auto h-12 w-12 mb-2 text-red-500" />
             <p className="text-red-300 mb-2">Camera Permission Denied</p>
@@ -348,7 +359,9 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
               </Button>
             </div>
           </div>
-        ) : cameraError ? (
+        ) : null}
+        
+        {cameraError && !capturedImage && !permissionDenied ? (
           <div className="text-white text-center p-4">
             <CameraOff className="mx-auto h-12 w-12 mb-2 text-red-500" />
             <p className="text-red-300 mb-2">Camera Error</p>
@@ -365,18 +378,15 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
               </Button>
             </div>
           </div>
-        ) : isInitializing ? (
+        ) : null}
+        
+        {isInitializing && !capturedImage ? (
           <div className="text-white text-center p-4">
             <Camera className="mx-auto h-12 w-12 mb-2 animate-pulse" />
             <p>Initializing camera...</p>
             <p className="text-xs text-gray-400 mt-2">This may take a moment</p>
           </div>
-        ) : (
-          <div className="text-white text-center p-4">
-            <Camera className="mx-auto h-12 w-12 mb-2 animate-pulse" />
-            <p>Initializing camera...</p>
-          </div>
-        )}
+        ) : null}
         
         {processing && (
           <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-4">
