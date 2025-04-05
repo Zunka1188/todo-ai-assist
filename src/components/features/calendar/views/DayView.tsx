@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, addDays, subDays, isSameDay, isToday } from 'date-fns';
@@ -217,13 +218,13 @@ const DayView: React.FC<DayViewProps> = ({
   return (
     <div className="space-y-4">
       <div className={cn(
-        "flex justify-between items-center",
-        isMobile ? "flex-col space-y-2" : ""
+        "flex items-center",
+        isMobile ? "justify-between" : "justify-between"
       )}>
         <h2 className={cn(
           "text-xl font-semibold flex items-center",
           theme === 'light' ? "text-foreground" : "text-white",
-          isMobile ? "text-lg self-start" : ""
+          isMobile ? "text-lg" : ""
         )}>
           {format(date, 'EEEE, MMMM d, yyyy')}
           {isCurrentDate && (

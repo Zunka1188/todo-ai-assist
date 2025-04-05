@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday } from 'date-fns';
@@ -182,13 +183,12 @@ const WeekView: React.FC<WeekViewProps> = ({
   
   return <div className="space-y-4">
       <div className={cn(
-        "flex justify-between items-center",
-        isMobile ? "flex-col space-y-2" : ""
+        "flex items-center justify-between"
       )}>
         <h2 className={cn(
           "text-xl font-semibold",
           theme === 'light' ? "text-foreground" : "text-white",
-          isMobile ? "text-lg self-start" : ""
+          isMobile ? "text-lg" : ""
         )}>
           {format(weekStart, 'MMM d')} - {format(weekEnd, 'MMM d, yyyy')}
         </h2>
