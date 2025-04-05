@@ -3,12 +3,12 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-// First import all widget components with different names to avoid conflicts
-import CalendarWidgetOriginal from './CalendarWidget';
-import TaskWidgetOriginal from './TaskWidget';
-import SpendingWidgetOriginal from './SpendingWidget';
-import ScannerWidgetOriginal from './ScannerWidget';
-import WeatherWidgetOriginal from './WeatherWidget';
+// Import the widget components directly 
+import CalendarWidgetImpl from './CalendarWidget';
+import TaskWidgetImpl from './TaskWidget';
+import SpendingWidgetImpl from './SpendingWidget';
+import ScannerWidgetImpl from './ScannerWidget';
+import WeatherWidgetImpl from './WeatherWidget';
 
 // Define the WidgetWrapper component
 export const WidgetWrapper: React.FC<{
@@ -29,18 +29,18 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// Re-export the components with their original names
-export const CalendarWidget = CalendarWidgetOriginal;
-export const TaskWidget = TaskWidgetOriginal;
-export const SpendingWidget = SpendingWidgetOriginal;
-export const ScannerWidget = ScannerWidgetOriginal;
-export const WeatherWidget = WeatherWidgetOriginal;
+// Define widget components directly using the imported implementations
+export const CalendarWidget = CalendarWidgetImpl;
+export const TaskWidget = TaskWidgetImpl;
+export const SpendingWidget = SpendingWidgetImpl;
+export const ScannerWidget = ScannerWidgetImpl;
+export const WeatherWidget = WeatherWidgetImpl;
 
-// Define the widget components map using the original imports
+// Use the imported implementations directly in the widget components map
 export const WidgetComponents = {
-  calendar: CalendarWidgetOriginal,
-  tasks: TaskWidgetOriginal,
-  spending: SpendingWidgetOriginal,
-  scanner: ScannerWidgetOriginal,
-  weather: WeatherWidgetOriginal
+  calendar: CalendarWidgetImpl,
+  tasks: TaskWidgetImpl,
+  spending: SpendingWidgetImpl,
+  scanner: ScannerWidgetImpl,
+  weather: WeatherWidgetImpl
 };
