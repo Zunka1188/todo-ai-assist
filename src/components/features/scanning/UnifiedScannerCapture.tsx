@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Camera, X, CameraOff, Settings, Image, Loader2, AlertCircle, Scan, ZoomIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -100,7 +99,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
     onCameraReady: handleCameraReady
   });
 
-  // Start continuous scan when camera is active
   useEffect(() => {
     if (cameraActive && videoRef.current && canvasRef.current && !capturedImage) {
       console.log("Starting continuous scan");
@@ -108,19 +106,17 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
         videoRef.current,
         canvasRef.current,
         handleDetectionResult,
-        barcodeOnly ? 200 : 500 // Faster scan rate for barcode-only mode
+        barcodeOnly ? 200 : 500
       );
       
       return cleanupScan;
     }
   }, [cameraActive, capturedImage]);
 
-  // Handle detection result from continuous scanning
   const handleDetectionResult = (result: DetectionResult) => {
     console.log("Detection result:", result);
     const imageDataURL = canvasRef.current?.toDataURL('image/jpeg') || null;
     
-    // If we got an image from the canvas
     if (imageDataURL) {
       setCapturedImage(imageDataURL);
       stopCamera();
@@ -198,7 +194,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
     }, 80);
 
     try {
-      // Use our unified detection hook to process the image
       const result = await detectImage(imageDataURL, {
         confidenceThreshold: 0.65,
         preferredType: barcodeOnly ? 'barcode' : undefined
@@ -210,7 +205,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       if (result) {
         processDetectionResult(imageDataURL, result);
       } else {
-        // Fallback to mock data when no detection
         generateMockDetectionResult(imageDataURL);
       }
     } catch (error) {
@@ -218,7 +212,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       clearInterval(interval);
       setProgressValue(100);
       
-      // Fallback to mock data on error
       generateMockDetectionResult(imageDataURL);
     }
   };
@@ -228,7 +221,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
     let confidence = result.confidence;
     let mockData: any = {};
     
-    // Map the detection result to our RecognizedItem format based on result type
     switch(result.type) {
       case 'barcode': {
         recognizedType = 'product';
@@ -270,7 +262,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       }
       
       default:
-        // Default to product or preferred mode
         recognizedType = preferredScanMode || 'product';
         mockData = generateTypeSpecificMockData(recognizedType);
     }
@@ -288,7 +279,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       detectionSource: result.type
     };
     
-    // Convert to RecognizedItem format for the DataRecognition component
     const recognizedItemData: RecognizedItem = {
       type: scannerItem.type as RecognizedItemType,
       confidence: scannerItem.confidence,
@@ -307,18 +297,16 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
     });
   };
   
-  // Fallback to generate mock detection result when no result from detection engine
   const generateMockDetectionResult = (imageDataURL: string) => {
     let determinedType: RecognizedItemType;
     
     if (preferredScanMode) {
       determinedType = preferredScanMode;
     } else if (barcodeOnly) {
-      determinedType = 'product'; // For barcode-only mode, default to product
+      determinedType = 'product';
     } else {
-      // Default type distribution with random selection
       const types: Array<RecognizedItemType> = ['product', 'receipt', 'document', 'unknown'];
-      const typeWeights = [0.5, 0.3, 0.15, 0.05]; // Higher weight for product detection
+      const typeWeights = [0.5, 0.3, 0.15, 0.05];
       
       const random = Math.random();
       let cumulativeWeight = 0;
@@ -340,7 +328,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
     const mockExtractedText = generateMockExtractedText(determinedType);
     const detectedObjects = generateDetectedObjects(determinedType);
     
-    // Create a properly formatted item 
     const recognizedItemData: RecognizedItem = {
       type: determinedType,
       confidence,
@@ -390,15 +377,12 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
         setIsSaving(false);
         
         if (onSaveSuccess) {
-          // Store detection source temporarily in a variable,
-          // since it's not part of the RecognizedItem type
           const savedData = {
             ...formData,
             originalType: originalItem.type,
             imageData: formData.keepImage ? originalItem.imageData : null,
             savedAt: new Date().toISOString(),
-            // Add any additional fields needed
-            detectionSource: 'camera' // Default value
+            detectionSource: 'camera'
           };
           onSaveSuccess(savedData);
         }
@@ -436,12 +420,11 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       sessionStorage.removeItem('preferredScanMode');
     }
     
-    console.log("UnifiedScannerCapture mounted, initializing camera...");
+    console.log("UnifiedScannerCapture mounted");
     
-    // Allow time for the DOM to render before requesting camera
     const timer = setTimeout(() => {
       if (videoRef.current) {
-        console.log("Video element is ready, requesting camera permission");
+        console.log("Video element is ready");
         requestCameraPermission();
       } else {
         console.error("Video element still not available after timeout");
@@ -454,8 +437,7 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       stopContinuousScan();
     };
   }, []);
-  
-  // Get title based on current state
+
   const getTitle = () => {
     if (capturedImage) {
       if (processing) return "Analyzing Image";
@@ -496,7 +478,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       </div>
       
       <div className="relative bg-black rounded-lg overflow-hidden aspect-[4/3] flex items-center justify-center">
-        {/* Video element always rendered to maintain reference */}
         <video 
           id="unified-scanner-video"
           ref={videoRef}
@@ -509,12 +490,10 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
         {cameraActive && !capturedImage && (
           <>
             <div className="absolute inset-0 pointer-events-none">
-              {/* Scanning guides */}
               {isSmartScanActive || !barcodeOnly ? (
                 <div className="w-full h-full border-2 border-dashed border-white/40 rounded-lg"></div>
               ) : (
                 <>
-                  {/* Barcode frame guide */}
                   <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4/5 h-1/3 border-2 border-white rounded flex items-center justify-center">
                     <div className="absolute left-0 right-0 h-0.5 bg-white/50"></div>
                     <div className="text-white/70 text-xs absolute -bottom-6">Center barcode here</div>
@@ -524,7 +503,6 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
               <div className={`absolute left-0 right-0 h-1 bg-todo-purple opacity-50 ${isSmartScanActive ? 'animate-scan' : 'animate-scan-fast'}`}></div>
             </div>
             
-            {/* Mode indicator */}
             <div className="absolute top-0 left-0 p-2">
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-todo-purple text-white">
                 {barcodeOnly ? (
@@ -546,14 +524,12 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
               </span>
             </div>
             
-            {/* Scan guide */}
             <div className="absolute bottom-12 left-0 right-0 flex justify-center">
               <span className="px-3 py-1 rounded bg-black/70 text-white text-xs">
                 {scanGuide}
               </span>
             </div>
             
-            {/* Capture button */}
             <Button
               onClick={handleManualImageCapture}
               className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white text-black hover:bg-gray-200 rounded-full w-16 h-16 flex items-center justify-center"
@@ -571,7 +547,7 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
           />
         )}
         
-        {permissionDenied && (
+        {permissionDenied && !capturedImage && (
           <div className="text-white text-center p-4">
             <CameraOff className="mx-auto h-12 w-12 mb-2 text-red-500" />
             <p className="text-red-300 mb-2">Camera Permission Denied</p>
@@ -591,6 +567,34 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
                 Upload Image Instead
               </Button>
             </div>
+          </div>
+        )}
+        
+        {!cameraActive && !capturedImage && !permissionDenied && !cameraError && (
+          <div className="text-white text-center p-4">
+            <Camera className="mx-auto h-12 w-12 mb-4" />
+            <p className="mb-2">Camera is not active</p>
+            <p className="text-sm text-gray-300 mb-6">
+              Press the button below to start the camera
+            </p>
+            <Button 
+              onClick={requestCameraPermission}
+              className="bg-todo-purple hover:bg-todo-purple/90 text-white"
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              Start Camera
+            </Button>
+            <div className="mt-4">
+              <span className="text-xs text-gray-400">or</span>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={openFilePicker}
+              className="mt-4 bg-transparent text-white border-white hover:bg-white/10"
+            >
+              <Image className="h-4 w-4 mr-2" />
+              Upload Image
+            </Button>
           </div>
         )}
         

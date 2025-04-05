@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Camera, ScanBarcode, Upload, Calendar, FileText, Scan, ShoppingBag, Image } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -56,6 +57,8 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
     }
   }, [hasCamera]);
 
+  // This effect will no longer automatically activate the camera
+  // It will only check if there's a preferred mode and set it
   useEffect(() => {
     if (preferredMode && !noAutomaticActivation) {
       if (preferredMode === 'barcode') {
@@ -119,6 +122,17 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
     });
   };
 
+  const handleControlledCapture = () => {
+    setShowControlledScanner(true);
+    setShowScannerCapture(false);
+    setShowBarcodeScannerOnly(false);
+    
+    toast({
+      title: "Manual Camera Mode",
+      description: "First activate the camera, then press capture when ready.",
+    });
+  };
+
   return (
     <>
       {showScannerCapture ? (
@@ -130,6 +144,12 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
           onSaveSuccess={handleSaveSuccess}
           preferredMode={currentScanMode}
           barcodeOnly={showBarcodeScannerOnly}
+        />
+      ) : showControlledScanner ? (
+        <ControlledScannerCapture
+          onClose={() => setShowControlledScanner(false)}
+          onSaveSuccess={handleSaveSuccess}
+          preferredMode={currentScanMode}
         />
       ) : showFileUploader ? (
         <FileUploader
