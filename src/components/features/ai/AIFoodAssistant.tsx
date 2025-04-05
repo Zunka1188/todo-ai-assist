@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { useTheme } from '@/hooks/use-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 
 interface AIFoodAssistantProps {
   isOpen: boolean;
@@ -154,10 +153,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     setInput('');
     setActiveScanOption(null);
     setIsProcessing(false);
-    
-    toast.success('Started a new conversation', {
-      description: 'Previous conversation history has been cleared'
-    });
   };
 
   // Enhanced intent detection that understands combined requests
@@ -446,7 +441,15 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         preventNavigateOnClose
       >
         <SheetHeader className="px-4 py-3 border-b flex justify-between items-center">
-          <SheetTitle className="text-lg">Mr. Todoodle</SheetTitle>
+          <div className="flex flex-col">
+            <SheetTitle className="text-lg">Mr. Todoodle</SheetTitle>
+            <span className={cn(
+              "text-xs text-muted-foreground",
+              isMobile ? "text-[12px]" : ""
+            )}>
+              Chat will be kept for 24h and after is removed.
+            </span>
+          </div>
           <div className="flex gap-2">
             <Button 
               variant="outline" 
