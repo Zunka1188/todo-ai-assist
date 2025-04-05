@@ -1,10 +1,9 @@
-
 import React, { useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { CalendarIcon, MapPin, Bell, Image, Trash, Plus, Save } from 'lucide-react';
+import { CalendarIcon, MapPin, Bell, Image, Trash, Plus, Save, Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -51,7 +50,6 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
     }
   });
 
-  // Set form values when editing an event
   React.useEffect(() => {
     if (selectedEvent && isEditMode) {
       const startHours = selectedEvent.startDate.getHours().toString().padStart(2, '0');
@@ -85,7 +83,6 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
     }
   }, [selectedEvent, isEditMode, form]);
 
-  // Handle image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {

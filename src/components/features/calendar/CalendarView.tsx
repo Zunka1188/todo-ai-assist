@@ -85,7 +85,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         <FileUploader
           onClose={() => setShowFileUploader(false)}
           onSaveSuccess={handleFileUploadSuccess}
-          initialCategory="calendar"
         />
       )}
       
@@ -96,10 +95,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         onSubmit={handleSaveEvent}
         selectedEvent={selectedEvent}
         isEditMode={isEditMode}
-        onUploadFile={() => {
-          effectiveSetCreateDialogOpen(false);
-          setShowFileUploader(true);
-        }}
       />
       
       {/* Event View Dialog */}
@@ -109,10 +104,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         selectedEvent={selectedEvent}
         onEdit={handleEditEvent}
         onDelete={handleDeleteEvent}
-        onUploadFile={() => {
-          setIsViewDialogOpen(false);
-          setShowFileUploader(true);
-        }}
       />
       
       {/* Calendar views */}

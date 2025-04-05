@@ -29,7 +29,7 @@ const CalendarPage = () => {
         title="Calendar"
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        addItemButton={
+        rightContent={
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="flex items-center gap-1">

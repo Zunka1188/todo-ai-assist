@@ -57,7 +57,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
         </div>
         <div className="flex items-center gap-2">
           {rightContent}
-          {showAddButton && onAddItem && (
+          {showAddButton && onAddItem && !rightContent && (
             <Button 
               onClick={onAddItem}
               className="shrink-0"
