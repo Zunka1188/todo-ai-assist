@@ -45,7 +45,7 @@ const ScanPage = () => {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <AppHeader 
-          title={showScreenSelection ? "Screen Selection" : "Scan"} 
+          title={showScreenSelection ? "Screen Selection" : "Smart Scanner"} 
           className="py-0"
         />
       </div>

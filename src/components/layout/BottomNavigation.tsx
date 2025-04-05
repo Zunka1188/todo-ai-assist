@@ -18,7 +18,7 @@ const BottomNavigation = () => {
   const navItems = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/shopping', icon: ShoppingBag, label: 'Shopping' },
-    { path: '/scan', icon: Camera, label: 'Scan' },
+    { path: '/scan', icon: Camera, label: 'Smart Scanner' },
     { path: '/calendar', icon: Calendar, label: 'Calendar' },
     { path: '/documents', icon: FileText, label: 'Documents' },
   ];

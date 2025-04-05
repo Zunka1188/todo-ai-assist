@@ -127,7 +127,7 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
               <div className="bg-primary bg-opacity-10 p-4 rounded-full mb-2">
                 <Scan className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-2xl font-semibold">Scan</h3>
+              <h3 className="text-2xl font-semibold">Smart Scanner</h3>
               <p className="text-muted-foreground max-w-md">
                 Scan documents, receipts, products and more with our advanced AI recognition
               </p>
