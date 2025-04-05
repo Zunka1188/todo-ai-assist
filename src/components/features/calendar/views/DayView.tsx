@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, addDays, subDays, isSameDay, isToday } from 'date-fns';
@@ -62,12 +63,7 @@ const DayView: React.FC<DayViewProps> = ({
   
   const isCurrentDate = isToday(date);
 
-  const calculateEventPosition = (eventTime: Date) => {
-    const minutes = eventTime.getMinutes();
-    return (minutes / 60) * 100;
-  };
-
-  const getEventStyle = (event: Event, currentHour: number) => {
+  const getEventStyle = (event: Event, currentHour: number): React.CSSProperties => {
     const startHourOfEvent = event.startDate.getHours();
     const startMinutes = event.startDate.getMinutes();
     const endHourOfEvent = event.endDate.getHours();
@@ -81,7 +77,7 @@ const DayView: React.FC<DayViewProps> = ({
         return {
           top: `${topPosition}%`,
           height: `${height}%`,
-          position: 'absolute',
+          position: 'absolute' as 'absolute',
           width: '95%',
           zIndex: 10
         };
@@ -90,7 +86,7 @@ const DayView: React.FC<DayViewProps> = ({
         return {
           top: `${topPosition}%`,
           height: `${100 - topPosition}%`,
-          position: 'absolute',
+          position: 'absolute' as 'absolute',
           width: '95%',
           zIndex: 10
         };
@@ -101,7 +97,7 @@ const DayView: React.FC<DayViewProps> = ({
       return {
         top: '0%',
         height: `${height}%`,
-        position: 'absolute',
+        position: 'absolute' as 'absolute',
         width: '95%',
         zIndex: 10
       };
@@ -110,7 +106,7 @@ const DayView: React.FC<DayViewProps> = ({
       return {
         top: '0%',
         height: '100%',
-        position: 'absolute',
+        position: 'absolute' as 'absolute',
         width: '95%',
         zIndex: 10
       };
@@ -250,24 +246,63 @@ const DayView: React.FC<DayViewProps> = ({
     setShowAllHours(startHour === 0 && endHour === 23);
   };
 
-  const getUniqueEventsByHour = (hour: number) => {
-    const hourDate = new Date(date);
-    hourDate.setHours(hour, 0, 0, 0);
+  // New function to determine which events to show per hour to prevent duplicates
+  const shouldShowEventInHour = (event: Event, hour: number): boolean => {
+    const eventStartHour = event.startDate.getHours();
+    const eventEndHour = event.endDate.getHours();
     
-    const hourEndDate = new Date(date);
-    hourEndDate.setHours(hour, 59, 59, 999);
+    // Always show the event in its start hour
+    if (eventStartHour === hour) {
+      return true;
+    }
     
+    // For multi-hour events, only show in start hour to prevent duplicates
+    return false;
+  };
+
+  // Get events that span multiple hours
+  const getMultiHourEvents = (): Event[] => {
     return timeEvents.filter(event => {
-      const eventStartHour = event.startDate.getHours();
+      const startHour = event.startDate.getHours();
+      const endHour = event.endDate.getHours();
+      const startDay = new Date(event.startDate).setHours(0, 0, 0, 0);
+      const endDay = new Date(event.endDate).setHours(0, 0, 0, 0);
       
-      if (event.startDate >= hourDate && event.startDate <= hourEndDate) {
-        return true;
-      } else if (event.startDate <= hourDate && event.endDate >= hourEndDate && eventStartHour < hour && hour === startHour) {
-        return true;
-      }
-      
-      return false;
+      // If event spans multiple days or hours
+      return (endDay > startDay) || (endHour > startHour);
     });
+  };
+
+  // Calculate the full height of a multi-hour event
+  const getMultiHourEventStyle = (event: Event): React.CSSProperties => {
+    const startHour = event.startDate.getHours();
+    const startMinute = event.startDate.getMinutes();
+    const endHour = event.endDate.getHours();
+    const endMinute = event.endDate.getMinutes();
+    
+    // Calculate total minutes duration
+    const startTotalMinutes = startHour * 60 + startMinute;
+    const endTotalMinutes = endHour * 60 + endMinute;
+    const visibleStartHour = Math.max(startHour, startHour);
+    
+    // Calculate position relative to the start of the visible time range
+    const topOffset = startTotalMinutes - (visibleStartHour * 60);
+    const totalDuration = endTotalMinutes - startTotalMinutes;
+    
+    // Each hour block is 80px (min-height from the HTML)
+    const hourHeight = 80;
+    const topPosition = (topOffset / 60) * hourHeight;
+    
+    // Total height based on duration in minutes
+    const totalHeight = (totalDuration / 60) * hourHeight;
+    
+    return {
+      position: 'absolute' as 'absolute',
+      top: `${topPosition}px`,
+      height: `${totalHeight}px`,
+      width: '95%',
+      zIndex: 20,
+    };
   };
 
   return (
@@ -422,9 +457,41 @@ const DayView: React.FC<DayViewProps> = ({
         </div>
         
         <div className={cn(
-          "overflow-y-auto",
+          "overflow-y-auto relative",
           isMobile ? "max-h-[calc(100vh-320px)]" : "max-h-[600px]"
         )}>
+          {/* Multi-hour events that need to span across hour boundaries */}
+          <div className="absolute left-[4rem] right-0 z-10">
+            {getMultiHourEvents().map(event => {
+              // For multi-hour events, create a single element that spans multiple hour rows
+              const style = getMultiHourEventStyle(event);
+              return (
+                <div 
+                  key={`multi-${event.id}`}
+                  className="rounded p-2 cursor-pointer hover:opacity-90 touch-manipulation"
+                  style={{ 
+                    backgroundColor: event.color || '#4285F4',
+                    ...style
+                  }}
+                  onClick={() => handleViewEvent(event)}
+                >
+                  <div className="font-medium text-white truncate">{event.title}</div>
+                  <div className="text-xs flex items-center text-white/90 mt-1">
+                    <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+                    <span className="truncate">{getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}</span>
+                  </div>
+                  {event.location && (
+                    <div className="text-xs flex items-center text-white/90 mt-1">
+                      <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">{event.location}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          
+          {/* Hour rows */}
           {hours.map(hour => {
             const hourDate = new Date(date);
             hourDate.setHours(hour, 0, 0, 0);
@@ -434,7 +501,13 @@ const DayView: React.FC<DayViewProps> = ({
             
             const now = new Date();
             const isCurrentHour = isCurrentDate && now.getHours() === hour;
-            const hourEvents = getUniqueEventsByHour(hour);
+            
+            // Only get events that start in this hour and only last one hour
+            const singleHourEvents = timeEvents.filter(event => {
+              const eventStartHour = event.startDate.getHours();
+              const eventEndHour = event.endDate.getHours();
+              return eventStartHour === hour && eventEndHour === hour;
+            });
             
             return (
               <div 
@@ -449,7 +522,8 @@ const DayView: React.FC<DayViewProps> = ({
                 </div>
                 
                 <div className="p-2 relative min-h-[80px]">
-                  {hourEvents.map(event => (
+                  {/* Only render single-hour events here */}
+                  {singleHourEvents.map(event => (
                     <div 
                       key={event.id}
                       className="rounded p-2 cursor-pointer hover:opacity-90 touch-manipulation absolute"

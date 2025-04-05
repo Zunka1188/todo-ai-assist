@@ -69,38 +69,78 @@ const WeekView: React.FC<WeekViewProps> = ({
   const hiddenEvents = events.filter(event => isOutOfTimeRange(event, startHour, endHour));
 
   // Helper function to calculate position within the hour
-  const calculateEventPosition = (event: Event, day: Date, hour: number) => {
-    const eventDate = new Date(event.startDate);
-    const eventDay = new Date(day);
-    eventDay.setHours(hour, 0, 0, 0);
+  const calculateEventPosition = (event: Event, day: Date, hour: number): React.CSSProperties => {
+    const eventStart = new Date(event.startDate);
+    const eventEnd = new Date(event.endDate);
+    const sameDay = isSameDay(eventStart, day);
     
-    // If event doesn't start today or starts before this hour
-    if (!isSameDay(eventDate, day) || eventDate.getHours() < hour) {
-      return { top: '0%', height: '100%' };
+    // If event doesn't start on this day, position it at the top of the first visible hour
+    if (!sameDay) {
+      return {
+        top: '0%',
+        height: '100%',
+        position: 'absolute' as 'absolute',
+        width: '95%',
+        zIndex: 10,
+      };
     }
     
-    // Event starts in this hour
-    if (eventDate.getHours() === hour) {
-      const minutes = eventDate.getMinutes();
-      const topPosition = (minutes / 60) * 100;
+    const eventStartHour = eventStart.getHours();
+    const eventStartMinute = eventStart.getMinutes();
+    const eventEndHour = eventEnd.getHours();
+    const eventEndMinute = eventEnd.getMinutes();
+    
+    // If event starts in this hour
+    if (eventStartHour === hour) {
+      const topPosition = (eventStartMinute / 60) * 100;
       
-      // End time calculation
-      const endDate = new Date(event.endDate);
-      
-      // If the event ends in the same hour and on the same day
-      if (endDate.getHours() === hour && isSameDay(eventDate, endDate)) {
-        const endMinutes = endDate.getMinutes();
-        const height = ((endMinutes - minutes) / 60) * 100;
-        return { top: `${topPosition}%`, height: `${height}%` };
-      } 
-      // If the event extends beyond this hour
-      else {
-        const height = (60 - minutes) / 60 * 100;
-        return { top: `${topPosition}%`, height: `${height}%` };
+      // If event also ends in this hour
+      if (eventEndHour === hour && isSameDay(eventStart, eventEnd)) {
+        const height = ((eventEndMinute - eventStartMinute) / 60) * 100;
+        return {
+          top: `${topPosition}%`,
+          height: `${height}%`,
+          position: 'absolute' as 'absolute',
+          width: '95%',
+          zIndex: 10,
+        };
       }
+      
+      // If event extends beyond this hour
+      return {
+        top: `${topPosition}%`,
+        height: `${100 - topPosition}%`,
+        position: 'absolute' as 'absolute',
+        width: '95%',
+        zIndex: 10,
+      };
     }
     
-    return { top: '0%', height: '0%' }; // Default, shouldn't normally reach here
+    // If event ends in this hour
+    if (eventEndHour === hour && isSameDay(eventEnd, day)) {
+      const height = (eventEndMinute / 60) * 100;
+      return {
+        top: '0%',
+        height: `${height}%`,
+        position: 'absolute' as 'absolute',
+        width: '95%',
+        zIndex: 10,
+      };
+    }
+    
+    // If hour is between event start and end
+    if ((eventStartHour < hour && eventEndHour > hour) || 
+        (eventStartHour < hour && !isSameDay(eventStart, eventEnd))) {
+      return {
+        top: '0%',
+        height: '100%',
+        position: 'absolute' as 'absolute',
+        width: '95%',
+        zIndex: 10,
+      };
+    }
+    
+    return {};
   };
 
   // Get unique events for each hour/day cell to avoid duplicates
@@ -115,8 +155,8 @@ const WeekView: React.FC<WeekViewProps> = ({
       if (event.allDay) return false;
       
       const sameDay = isSameDay(event.startDate, day) || 
-                       isSameDay(event.endDate, day) || 
-                       (event.startDate <= day && event.endDate >= day);
+                     isSameDay(event.endDate, day) || 
+                     (event.startDate <= day && event.endDate >= day);
       
       if (!sameDay) return false;
       
@@ -125,58 +165,93 @@ const WeekView: React.FC<WeekViewProps> = ({
       const eventEndDate = new Date(event.endDate);
       const eventEndHour = eventEndDate.getHours();
       
-      // Only show the event in:
-      // 1. The hour when it starts
+      // Only show events that:
+      // 1. Start in this specific hour and day
       if (isSameDay(eventStartDate, day) && eventStartHour === hour) {
         return true;
       }
       
-      // 2. The first hour of the day if the event spans from a previous day
-      if (!isSameDay(eventStartDate, day) && hour === startHour) {
-        return true;
+      // 2. Start in a previous hour/day but end in this hour/day
+      if (
+        ((isSameDay(eventEndDate, day) && eventEndHour === hour) ||
+        (!isSameDay(eventStartDate, day) && hour === startHour))
+      ) {
+        // This helps prevent duplicate events
+        // Only show if this is the first visible hour of the day for this event
+        if (!isSameDay(eventStartDate, day) && hour === startHour) {
+          return true;
+        }
       }
       
       return false;
     });
   };
 
-  const getEventStyle = (event: Event, day: Date, hour: number) => {
+  // Get multi-day/multi-hour events for a specific day
+  const getMultiHourEventsForDay = (day: Date) => {
+    return events.filter(event => {
+      if (event.allDay) return false;
+      
+      // Check if event is on this day
+      const sameDay = isSameDay(event.startDate, day) || 
+                      isSameDay(event.endDate, day) || 
+                      (event.startDate <= day && event.endDate >= day);
+      
+      if (!sameDay) return false;
+      
+      const eventStart = new Date(event.startDate);
+      const eventEnd = new Date(event.endDate);
+      const eventStartHour = eventStart.getHours();
+      const eventEndHour = eventEnd.getHours();
+      
+      // Multi-hour event
+      return (eventEndHour - eventStartHour) > 0;
+    });
+  };
+
+  // Calculate position for multi-hour events
+  const getMultiHourEventStyle = (event: Event, day: Date): React.CSSProperties => {
     const eventStart = new Date(event.startDate);
     const eventEnd = new Date(event.endDate);
-    const currentHourStart = new Date(day);
-    currentHourStart.setHours(hour, 0, 0, 0);
-    const currentHourEnd = new Date(day);
-    currentHourEnd.setHours(hour, 59, 59, 999);
     
-    let topPosition = 0;
-    let height = 100;
+    // Adjust start date if event starts before the current day
+    const effectiveStartDate = isSameDay(eventStart, day) ? eventStart : new Date(day);
+    effectiveStartDate.setHours(startHour, 0, 0, 0);
     
-    // Calculate start position
-    if (isSameDay(eventStart, day) && eventStart.getHours() === hour) {
-      topPosition = (eventStart.getMinutes() / 60) * 100;
-    }
+    // Adjust end date if event ends after the current day
+    const effectiveEndDate = isSameDay(eventEnd, day) ? eventEnd : new Date(day);
+    effectiveEndDate.setHours(23, 59, 59, 999);
     
-    // Calculate height
-    if (isSameDay(eventEnd, day) && eventEnd.getHours() === hour) {
-      height = (eventEnd.getMinutes() / 60) * 100;
-      if (isSameDay(eventStart, day) && eventStart.getHours() === hour) {
-        height = ((eventEnd.getMinutes() - eventStart.getMinutes()) / 60) * 100;
-      }
-    } else if (isSameDay(eventStart, day) && eventStart.getHours() === hour) {
-      height = 100 - topPosition;
-    }
+    const eventStartHour = isSameDay(eventStart, day) ? eventStart.getHours() : startHour;
+    const eventStartMinute = isSameDay(eventStart, day) ? eventStart.getMinutes() : 0;
+    const eventEndHour = isSameDay(eventEnd, day) ? eventEnd.getHours() : endHour;
+    const eventEndMinute = isSameDay(eventEnd, day) ? eventEnd.getMinutes() : 59;
     
-    const durationInHours = (eventEnd.getTime() - eventStart.getTime()) / (1000 * 60 * 60);
-    const zIndex = Math.max(10, Math.min(100, Math.floor(durationInHours * 10))); // Higher priority for longer events
+    // Calculate position relative to the visible time range
+    const visibleStartHour = Math.max(eventStartHour, startHour);
+    const visibleStartMinute = eventStartHour === visibleStartHour ? eventStartMinute : 0;
+    
+    // Calculate total minutes from start of visible range
+    const startTotalMinutes = (visibleStartHour - startHour) * 60 + visibleStartMinute;
+    
+    // Calculate event duration in minutes
+    const durationMinutes = 
+      ((eventEndHour - eventStartHour) * 60) + 
+      (eventEndMinute - eventStartMinute);
+    
+    // Each hour block is 60px height
+    const hourHeight = 60;
+    const topPosition = (startTotalMinutes / 60) * hourHeight;
+    const height = (durationMinutes / 60) * hourHeight;
     
     return {
-      position: 'absolute',
-      top: `${topPosition}%`,
-      height: `${height}%`,
+      position: 'absolute' as 'absolute',
+      top: `${topPosition}px`,
+      height: `${height}px`,
       left: '0',
       right: '0',
       width: '95%',
-      zIndex
+      zIndex: 20,
     };
   };
 
@@ -450,6 +525,7 @@ const WeekView: React.FC<WeekViewProps> = ({
           "overflow-y-auto",
           isMobile ? "max-h-[calc(100vh-320px)]" : "max-h-[600px]"
         )}>
+          {/* Hour rows */}
           {hours.map(hour => {
             const hourDate = new Date();
             hourDate.setHours(hour, 0, 0, 0);
@@ -462,11 +538,17 @@ const WeekView: React.FC<WeekViewProps> = ({
                   {format(hourDate, 'h a')}
                 </div>
                 
+                {/* Day columns */}
                 {daysInWeek.map((day, dayIndex) => {
                   const isCurrentDate = isToday(day);
                   const now = new Date();
                   const isCurrentHour = isToday(day) && now.getHours() === hour;
-                  const hourEvents = getUniqueEventsForHourAndDay(day, hour);
+                  
+                  // Get events that start in this hour/day
+                  const singleHourEvents = getUniqueEventsForHourAndDay(day, hour);
+                  
+                  // Calculate multi-hour events for this day
+                  const multiHourEvents = getMultiHourEventsForDay(day);
                   
                   return (
                     <div 
@@ -476,9 +558,51 @@ const WeekView: React.FC<WeekViewProps> = ({
                         isCurrentHour && "bg-accent/40"
                       )}
                     >
-                      {hourEvents.map(event => {
+                      {/* Multi-hour events that need special handling */}
+                      {multiHourEvents.map(event => {
+                        const eventStartHour = event.startDate.getHours();
+                        
+                        // Only render multi-hour event once at its start hour
+                        if (eventStartHour === hour) {
+                          return (
+                            <div 
+                              key={`multi-${event.id}`} 
+                              className="text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 touch-manipulation" 
+                              style={{
+                                backgroundColor: event.color || '#4285F4',
+                                ...getMultiHourEventStyle(event, day)
+                              }} 
+                              onClick={() => handleViewEvent(event)}
+                            >
+                              <div className="flex items-center">
+                                <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
+                                <span className="text-white truncate">{event.title}</span>
+                              </div>
+                              <div className="text-white/90 text-[10px] truncate">
+                                {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
+                              </div>
+                              {event.location && (
+                                <div className="text-white/90 text-[10px] flex items-center truncate">
+                                  <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80" />
+                                  {event.location}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+                        return null;
+                      })}
+                      
+                      {/* Single-hour events */}
+                      {singleHourEvents.map(event => {
+                        // Skip multi-hour events, which are handled separately
+                        if (event.startDate.getHours() !== event.endDate.getHours() ||
+                            !isSameDay(event.startDate, event.endDate)) {
+                          return null;
+                        }
+                        
                         // Calculate positioning
-                        const style = getEventStyle(event, day, hour);
+                        const style = calculateEventPosition(event, day, hour);
                         
                         return (
                           <div 
