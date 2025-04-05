@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Upload, ScanBarcode, Send, X, RotateCcw } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -20,13 +21,16 @@ type ChatMessage = {
   timestamp: Date;
 };
 
-// Context types for the assistant
+// Enhanced FoodContext type for better intent handling
 type FoodContext = {
   dishName?: string;
   servingSize?: number;
-  lastUserIntent?: 'get_recipe' | 'get_ingredients' | 'add_to_shopping' | 'save_recipe' | 'identify_food';
+  intents: Array<'get_recipe' | 'get_ingredients' | 'add_to_shopping' | 'save_recipe' | 'identify_food'>;
   identifiedFood?: string;
   confirmationNeeded?: boolean;
+  shoppingListStatus?: 'not_added' | 'added';
+  hasSavedRecipe?: boolean;
+  providedFullResponse?: boolean;
 };
 
 const STORAGE_KEY = 'ai-food-assistant-session';
@@ -48,8 +52,13 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   const [isProcessing, setIsProcessing] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   
-  // Store conversation context
-  const [foodContext, setFoodContext] = useState<FoodContext>({});
+  // Enhanced food context with more details
+  const [foodContext, setFoodContext] = useState<FoodContext>({
+    intents: [],
+    shoppingListStatus: 'not_added',
+    hasSavedRecipe: false,
+    providedFullResponse: false
+  });
   
   // Auto scroll to bottom of chat
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -140,7 +149,12 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         timestamp: new Date(),
       },
     ]);
-    setFoodContext({});
+    setFoodContext({
+      intents: [],
+      shoppingListStatus: 'not_added',
+      hasSavedRecipe: false,
+      providedFullResponse: false
+    });
     setInput('');
     setActiveScanOption(null);
     setIsProcessing(false);
@@ -150,50 +164,16 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     });
   };
 
+  // Enhanced intent detection that understands combined requests
   const processUserIntent = (userMessage: string) => {
-    // This is a simple intent detection - would be replaced by the AI model
-    let newContext = { ...foodContext };
-    
-    // Simple intent matching
     const lowerMessage = userMessage.toLowerCase();
+    // Create a copy of the current context to modify
+    let newContext: FoodContext = { 
+      ...foodContext,
+      providedFullResponse: false // Reset this flag for new user messages
+    };
     
-    if (lowerMessage.includes('recipe')) {
-      newContext.lastUserIntent = 'get_recipe';
-      
-      // Try to extract dish name
-      const dishMatch = lowerMessage.match(/(\w+)\s+recipe/);
-      if (dishMatch && dishMatch[1]) {
-        newContext.dishName = dishMatch[1];
-      }
-    } 
-    else if (lowerMessage.includes('ingredients')) {
-      newContext.lastUserIntent = 'get_ingredients';
-      
-      // Try to extract dish name and servings
-      const dishMatch = lowerMessage.match(/ingredients\s+for\s+(\w+)/);
-      if (dishMatch && dishMatch[1]) {
-        newContext.dishName = dishMatch[1];
-      }
-      
-      const servingMatch = lowerMessage.match(/for\s+(\d+)\s+people/);
-      if (servingMatch && servingMatch[1]) {
-        newContext.servingSize = parseInt(servingMatch[1]);
-      }
-    }
-    else if (lowerMessage.includes('shopping')) {
-      newContext.lastUserIntent = 'add_to_shopping';
-    }
-    else if (lowerMessage.includes('save')) {
-      newContext.lastUserIntent = 'save_recipe';
-    }
-    
-    // If a serving size is mentioned directly
-    const servingMatch = lowerMessage.match(/(\d+)\s+people/);
-    if (servingMatch && servingMatch[1]) {
-      newContext.servingSize = parseInt(servingMatch[1]);
-    }
-    
-    // Simple yes/no confirmation handling
+    // Check if message is a response to confirmation
     if (foodContext.confirmationNeeded) {
       if (lowerMessage.includes('yes') || lowerMessage.includes('yeah') || lowerMessage.includes('correct')) {
         // Confirm the previously identified food
@@ -204,53 +184,165 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         newContext.identifiedFood = undefined;
         newContext.confirmationNeeded = false;
       }
+      setFoodContext(newContext);
+      return newContext;
     }
     
+    // Enhanced intent detection - can detect multiple intents in one message
+    const intents: FoodContext['intents'] = [];
+    
+    // Detect the dish name with improved pattern matching
+    // Look for patterns like "lasagna for 4" or "lasagna recipe for 4 people"
+    const dishWithServingPattern = /([a-z\s]+?)(?:\s+for\s+|recipe\s+for\s+|ingredients\s+for\s+)(\d+)(?:\s+people|\s+servings|\s+persons)?/i;
+    const dishMatch = dishWithServingPattern.exec(lowerMessage);
+    
+    if (dishMatch) {
+      // We found both dish name and servings in one go
+      newContext.dishName = dishMatch[1].trim();
+      newContext.servingSize = parseInt(dishMatch[2]);
+    } else {
+      // Try to just find a dish name
+      const simpleDishPattern = /([a-z\s]+?)(?:\s+recipe|\s+ingredients|\s+shopping)/i;
+      const simpleDishMatch = simpleDishPattern.exec(lowerMessage);
+      if (simpleDishMatch) {
+        newContext.dishName = simpleDishMatch[1].trim();
+      }
+    }
+    
+    // Detect intents
+    if (lowerMessage.includes('recipe')) {
+      intents.push('get_recipe');
+    }
+    
+    if (lowerMessage.includes('ingredients')) {
+      intents.push('get_ingredients');
+    }
+    
+    if (lowerMessage.includes('shopping') || lowerMessage.includes('add to list')) {
+      intents.push('add_to_shopping');
+    }
+    
+    if (lowerMessage.includes('save')) {
+      intents.push('save_recipe');
+    }
+    
+    // If we detected intents, update the context
+    if (intents.length > 0) {
+      newContext.intents = intents;
+    }
+    
+    // Look for serving size if not already found
+    if (!newContext.servingSize) {
+      const servingMatch = lowerMessage.match(/(\d+)\s+(?:people|servings|persons)/i);
+      if (servingMatch && servingMatch[1]) {
+        newContext.servingSize = parseInt(servingMatch[1]);
+      }
+    }
+    
+    // Handle "add to shopping list"
+    if (intents.includes('add_to_shopping')) {
+      newContext.shoppingListStatus = 'added';
+    }
+    
+    // Handle "save recipe"
+    if (intents.includes('save_recipe')) {
+      newContext.hasSavedRecipe = true;
+    }
+    
+    // Update the context
     setFoodContext(newContext);
     return newContext;
   };
 
+  // Generate intelligent responses based on updated context
   const generateAssistantResponse = (context: FoodContext): string => {
-    // This would be replaced by actual AI generation
-    
     // If we're waiting for confirmation of identified food
     if (context.confirmationNeeded && context.identifiedFood) {
       return `I think this is ${context.identifiedFood} — is that right?`;
     }
     
-    // If dish is known but servings are not
-    if (context.dishName && !context.servingSize && 
-        (context.lastUserIntent === 'get_recipe' || context.lastUserIntent === 'get_ingredients')) {
-      return `Got it! How many servings would you like for ${context.dishName}?`;
+    // If we've already provided a full response for the current context
+    if (context.providedFullResponse) {
+      return "Is there anything else you'd like help with?";
     }
     
-    // If we have dish name and serving size
-    if (context.dishName && context.servingSize) {
-      if (context.lastUserIntent === 'get_recipe') {
-        return `Here's a ${context.dishName} recipe for ${context.servingSize} people! 🍝\n\n` + 
+    // Prepare to generate a full response if we have enough information
+    const canProvideFullResponse = (
+      // For recipe or ingredients, we need dish name and serving size
+      (context.intents.includes('get_recipe') || context.intents.includes('get_ingredients')) &&
+      context.dishName && context.servingSize
+    );
+    
+    // If we can provide a full response, check what the user wants
+    if (canProvideFullResponse) {
+      let response = '';
+      const dishName = context.dishName || 'your dish';
+      const servingSize = context.servingSize || 2;
+      
+      // If they wanted a recipe
+      if (context.intents.includes('get_recipe')) {
+        response += `Here's a ${dishName} recipe for ${servingSize} people! 🍝\n\n` + 
           `Ingredients:\n` + 
           `- 400g minced beef\n` + 
           `- 1 onion, diced\n` + 
           `- 2 cloves garlic, minced\n` + 
           `- 1 carrot, diced\n\n` +
-          `Would you like to add these to your shopping list or save the recipe?`;
+          `Instructions:\n` +
+          `1. Brown the beef in a pan\n` +
+          `2. Add onions and garlic, cook until soft\n` +
+          `3. Add remaining ingredients and simmer\n\n`;
       } 
-      else if (context.lastUserIntent === 'get_ingredients') {
-        return `Sure! Here's what you'll need for ${context.servingSize} servings of ${context.dishName} 🍲\n\n` + 
+      // If they just wanted ingredients
+      else if (context.intents.includes('get_ingredients')) {
+        response += `Sure! Here's what you'll need for ${servingSize} servings of ${dishName} 🍲\n\n` + 
           `- 400g minced beef\n` + 
           `- 1 onion, diced\n` + 
           `- 2 cloves garlic, minced\n` + 
-          `- 1 carrot, diced\n\n` + 
-          `Want to add this to your shopping list or save it for later?`;
+          `- 1 carrot, diced\n\n`;
       }
+      
+      // Add a call to action if they haven't already used shopping list or saved
+      if (!context.shoppingListStatus || context.shoppingListStatus === 'not_added') {
+        if (!context.hasSavedRecipe) {
+          response += "Would you like to add these ingredients to your shopping list or save the recipe for later?";
+        } else {
+          response += "Would you like to add these ingredients to your shopping list?";
+        }
+      } else if (!context.hasSavedRecipe) {
+        response += "Would you like to save this recipe for later?";
+      }
+      
+      // Mark that we've provided a full response for this context
+      setTimeout(() => {
+        setFoodContext(prev => ({
+          ...prev,
+          providedFullResponse: true
+        }));
+      }, 500);
+      
+      return response;
     }
     
-    if (context.lastUserIntent === 'add_to_shopping') {
-      return `I've added the ingredients for ${context.dishName || 'your dish'} to your shopping list! Is there anything else you'd like to do?`;
+    // Handle shopping list addition
+    if (context.intents.includes('add_to_shopping') && context.dishName) {
+      return `I've added the ingredients for ${context.dishName} to your shopping list! Is there anything else you'd like to do?`;
     }
     
-    if (context.lastUserIntent === 'save_recipe') {
-      return `I've saved this ${context.dishName || 'recipe'} to your documents. You can find it in your Recipe collection!`;
+    // Handle recipe saving
+    if (context.intents.includes('save_recipe') && context.dishName) {
+      return `I've saved this ${context.dishName} recipe to your documents. You can find it in your Recipe collection!`;
+    }
+    
+    // If we have a dish but no serving size, ask for serving size
+    if ((context.intents.includes('get_recipe') || context.intents.includes('get_ingredients')) && 
+        context.dishName && !context.servingSize) {
+      return `Got it! How many servings would you like for ${context.dishName}?`;
+    }
+    
+    // If we don't have a dish name but have intents
+    if ((context.intents.includes('get_recipe') || context.intents.includes('get_ingredients')) && 
+        !context.dishName) {
+      return "What dish would you like me to help you with?";
     }
     
     // Default response if no specific context is matched
@@ -327,9 +419,10 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     setTimeout(() => {
       // Set context as if we've identified a food
       const updatedContext: FoodContext = {
+        ...foodContext,
         confirmationNeeded: true,
         identifiedFood: 'lasagna', // This would come from the AI image recognition
-        lastUserIntent: 'identify_food'
+        intents: [...foodContext.intents, 'identify_food']
       };
       
       setFoodContext(updatedContext);
