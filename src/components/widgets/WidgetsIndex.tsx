@@ -22,21 +22,21 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// Import each widget component
+// Import widget components directly
 import CalendarWidgetImpl from './CalendarWidget';
 import TaskWidgetImpl from './TaskWidget';
 import SpendingWidgetImpl from './SpendingWidget';
 import ScannerWidgetImpl from './ScannerWidget';
 import WeatherWidgetImpl from './WeatherWidget';
 
-// Export all components
+// Create specific exports for each widget
 export const CalendarWidget = CalendarWidgetImpl;
 export const TaskWidget = TaskWidgetImpl;
 export const SpendingWidget = SpendingWidgetImpl;
 export const ScannerWidget = ScannerWidgetImpl;
 export const WeatherWidget = WeatherWidgetImpl;
 
-// Define the widget components map using the exported constants
+// Define the widget components map using the imported implementations directly
 export const WidgetComponents = {
   calendar: CalendarWidgetImpl,
   tasks: TaskWidgetImpl,
