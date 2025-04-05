@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, HelpCircle, MessageCircle } from 'lucide-react';
+import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, HelpCircle, MessageCircle, Cloud } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -109,6 +109,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
                 <Link to="/documents" className="cursor-pointer flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   <span className={textColorClass}>Documents</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/weather" className="cursor-pointer flex items-center gap-2">
+                  <Cloud className="h-4 w-4" />
+                  <span className={textColorClass}>Weather</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>

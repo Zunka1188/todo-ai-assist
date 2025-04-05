@@ -12,6 +12,7 @@ import SettingsPage from '@/pages/SettingsPage';
 import NotFound from '@/pages/NotFound';
 import TroubleshootPage from '@/pages/TroubleshootPage';
 import AIModelsPage from '@/pages/AIModelsPage';
+import WeatherPage from '@/pages/WeatherPage';
 
 const Router = () => {
   return (
@@ -27,6 +28,7 @@ const Router = () => {
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/troubleshoot" element={<TroubleshootPage />} />
       <Route path="/ai-models" element={<AIModelsPage />} />
+      <Route path="/weather" element={<WeatherPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

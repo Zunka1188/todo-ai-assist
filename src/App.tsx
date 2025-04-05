@@ -16,6 +16,7 @@ import TasksPage from "./pages/TasksPage";
 import SettingsPage from "./pages/SettingsPage";
 import TroubleshootPage from "./pages/TroubleshootPage";
 import AIModelsPage from "./pages/AIModelsPage";
+import WeatherPage from "./pages/WeatherPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/troubleshoot" element={<TroubleshootPage />} />
               <Route path="/ai-models" element={<AIModelsPage />} />
+              <Route path="/weather" element={<WeatherPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

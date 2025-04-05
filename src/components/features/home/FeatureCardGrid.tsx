@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ShoppingBag, Calendar, File } from 'lucide-react';
+import { ShoppingBag, Calendar, File, Cloud } from 'lucide-react';
 import FeatureCard from '@/components/features/FeatureCard';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
@@ -33,6 +33,12 @@ const FeatureCardGrid: React.FC<FeatureCardGridProps> = ({ className }) => {
       description: 'Organize scanned files',
       icon: File,
       to: '/documents'
+    },
+    {
+      title: 'Weather',
+      description: 'Check forecast and conditions',
+      icon: Cloud,
+      to: '/weather'
     }
   ];
 
@@ -47,7 +53,7 @@ const FeatureCardGrid: React.FC<FeatureCardGridProps> = ({ className }) => {
         )}
       />
       
-      <div className={cn("grid grid-cols-1 gap-2 sm:gap-3 md:grid-cols-3", className)}>
+      <div className={cn("grid grid-cols-1 gap-2 sm:gap-3 md:grid-cols-4", className)}>
         {featureCards.map((card) => (
           <FeatureCard 
             key={card.title} 
