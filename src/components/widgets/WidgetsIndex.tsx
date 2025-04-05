@@ -10,9 +10,6 @@ import SpendingWidget from './SpendingWidget';
 import ScannerWidget from './ScannerWidget';
 import WeatherWidget from './WeatherWidget';
 
-// Export all widgets individually
-export { CalendarWidget, TaskWidget, SpendingWidget, ScannerWidget, WeatherWidget };
-
 // Define the WidgetWrapper component
 export const WidgetWrapper: React.FC<{
   children: React.ReactNode;
@@ -31,6 +28,9 @@ export const WidgetWrapper: React.FC<{
     </div>
   );
 };
+
+// Export individual components
+export { CalendarWidget, TaskWidget, SpendingWidget, ScannerWidget, WeatherWidget };
 
 // Define the widget components map
 export const WidgetComponents = {
