@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Camera, ScanBarcode, Upload, Calendar, FileText, Scan, ShoppingBag, Image } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -100,7 +99,6 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
     setShowFileUploader(true);
   };
 
-  // Main component rendering
   return (
     <>
       {showSmartScan ? (
@@ -125,18 +123,16 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
             "flex-1 overflow-auto",
             theme === 'light' ? "text-foreground" : "text-white"
           )}>
-            {/* Central banner with icon and title */}
             <div className="flex flex-col items-center text-center p-6 space-y-2 mb-6">
               <div className="bg-primary bg-opacity-10 p-4 rounded-full mb-2">
                 <Scan className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-2xl font-semibold">Smart Scanner</h3>
+              <h3 className="text-2xl font-semibold">Scan</h3>
               <p className="text-muted-foreground max-w-md">
                 Scan documents, receipts, products and more with our advanced AI recognition
               </p>
             </div>
             
-            {/* Main action buttons */}
             <div className="flex flex-col items-center gap-4 mb-8 px-4">
               <Button 
                 onClick={() => handleTakePhoto()}
@@ -165,7 +161,6 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
               </Button>
             </div>
             
-            {/* Secondary options */}
             <ResponsiveContainer className="mb-6">
               <div className="flex flex-col space-y-4">
                 <h4 className="font-medium text-lg">Quick Actions</h4>
@@ -209,7 +204,6 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
               </div>
             </ResponsiveContainer>
             
-            {/* Info box */}
             <ResponsiveContainer className="mb-4">
               <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border dark:border-gray-700">
                 <h4 className="font-medium text-foreground dark:text-white mb-3">File Types Supported</h4>

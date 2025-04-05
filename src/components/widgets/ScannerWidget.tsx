@@ -31,7 +31,7 @@ const ScannerWidget = () => {
             <span className="h-3 w-3 bg-primary rounded-full animate-pulse -mt-3 -ml-2" />
           )}
         </div>
-        <h3 className="font-medium text-lg">Smart Scanner</h3>
+        <h3 className="font-medium text-lg">Scan</h3>
         <p className="text-sm text-muted-foreground text-center">
           Scan documents, receipts, products and more with AI
         </p>

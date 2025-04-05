@@ -76,7 +76,7 @@ const ScanPage = () => {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <AppHeader 
-          title={showScreenSelection ? "Screen Selection" : "Smart Scanner"} 
+          title={showScreenSelection ? "Screen Selection" : "Scan"} 
           subtitle={showScreenSelection 
             ? "Select any part of the screen for processing" 
             : isMobile 
