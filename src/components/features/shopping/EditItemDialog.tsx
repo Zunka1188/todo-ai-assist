@@ -1,13 +1,39 @@
 
-import React, { useState, useRef } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Textarea } from '@/components/ui/textarea';
-import { Upload, ImageIcon, X } from 'lucide-react';
+import { Upload, X, Loader2, Maximize2, Minimize2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Textarea } from '@/components/ui/textarea';
+import FilePreview, { getFileTypeFromName } from '../documents/FilePreview';
+import { useToast } from '@/components/ui/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import ImageAnalysisModal from '../documents/ImageAnalysisModal';
+import { AnalysisResult } from '@/utils/imageAnalysis';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { ShoppingItem } from './useShoppingItems';
 
 interface EditItemDialogProps {
@@ -23,176 +49,332 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
   item,
   onSave
 }) => {
-  const [editItemName, setEditItemName] = useState(item?.name || '');
-  const [editItemAmount, setEditItemAmount] = useState(item?.amount || '');
-  const [editItemImageUrl, setEditItemImageUrl] = useState(item?.imageUrl || '');
-  const [editItemNotes, setEditItemNotes] = useState(item?.notes || '');
-  const [editItemRepeatOption, setEditItemRepeatOption] = useState<'none' | 'weekly' | 'monthly'>(item?.repeatOption || 'none');
-  const [editItemImage, setEditItemImage] = useState<File | null>(null);
-
-  const editImageFileRef = useRef<HTMLInputElement>(null);
   const { isMobile } = useIsMobile();
+  const { toast } = useToast();
+  const [name, setName] = useState(item?.name || '');
+  const [notes, setNotes] = useState(item?.notes || '');
+  const [amount, setAmount] = useState(item?.amount || '');
+  const [file, setFile] = useState<string | null>(item?.imageUrl || null);
+  const [fileName, setFileName] = useState('');
+  const [fileType, setFileType] = useState('');
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+  const [fullScreenPreview, setFullScreenPreview] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [repeatOption, setRepeatOption] = useState<'none' | 'weekly' | 'monthly'>(item?.repeatOption || 'none');
+  const [editItemImage, setEditItemImage] = useState<File | null>(null);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
+  // Update form when item changes
+  useEffect(() => {
     if (isOpen && item) {
-      setEditItemName(item.name);
-      setEditItemAmount(item.amount || '');
-      setEditItemImageUrl(item.imageUrl || '');
-      setEditItemNotes(item.notes || '');
-      setEditItemRepeatOption(item.repeatOption || 'none');
+      setName(item.name || '');
+      setNotes(item.notes || '');
+      setAmount(item.amount || '');
+      setFile(item.imageUrl || null);
+      setRepeatOption(item.repeatOption || 'none');
       setEditItemImage(null);
+      
+      if (item.imageUrl) {
+        // Extract filename from URL if possible
+        const urlParts = item.imageUrl.split('/');
+        setFileName(urlParts[urlParts.length - 1] || '');
+        setFileType(item.imageUrl.includes('image') ? 'image' : 'unknown');
+      }
     }
   }, [isOpen, item]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+    
+    setIsUploading(true);
+    setFileName(selectedFile.name);
+    const detectedFileType = getFileTypeFromName(selectedFile.name);
+    setFileType(detectedFileType);
+    setEditItemImage(selectedFile);
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setFile(event.target.result as string);
+        setIsUploading(false);
+        
+        if (['image', 'pdf', 'document'].includes(detectedFileType)) {
+          setShowAnalysisModal(true);
+        }
+      }
+    };
+    reader.readAsDataURL(selectedFile);
+  };
+
   const handleSave = () => {
-    if (!item || editItemName.trim() === '') return;
+    if (!item) return;
+    if (name.trim() === '' && !file) {
+      toast({
+        title: "Input Required",
+        description: "Please enter an item name or add an image.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     const updatedItem: ShoppingItem = {
       ...item,
-      name: editItemName,
-      amount: editItemAmount || undefined,
-      notes: editItemNotes || undefined,
-      repeatOption: editItemRepeatOption
+      name: name.trim() || (fileName ? fileName : 'Untitled Item'),
+      notes,
+      amount,
+      imageUrl: file,
+      repeatOption
     };
     
     onSave(updatedItem, editItemImage);
     onClose();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setEditItemImage(file);
-      const reader = new FileReader();
-      reader.onload = event => {
-        if (event.target?.result) {
-          setEditItemImageUrl(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const clearEditImage = () => {
+  const clearFile = () => {
+    setFile(null);
+    setFileName('');
+    setFileType('');
     setEditItemImage(null);
-    setEditItemImageUrl('');
-    if (editImageFileRef.current) {
-      editImageFileRef.current.value = '';
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
-  return (
+  const toggleFullScreenPreview = () => {
+    setFullScreenPreview(!fullScreenPreview);
+  };
+
+  const handleAnalysisComplete = (result: AnalysisResult) => {
+    if (result.title) setName(result.title);
+    if (result.description) setNotes(result.description);
+    
+    setShowAnalysisModal(false);
+    
+    toast({
+      title: "AI Analysis Complete",
+      description: "We've pre-filled the form based on your file",
+    });
+  };
+
+  const dialogContent = (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Item</DialogTitle>
-            <DialogDescription>Make changes to your shopping item here.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="edit-item-name">Name</Label>
-              <Input
-                id="edit-item-name"
-                value={editItemName}
-                onChange={(e) => setEditItemName(e.target.value)}
-                placeholder="Item name"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="edit-item-amount">Amount/Quantity</Label>
-              <Input
-                id="edit-item-amount"
-                value={editItemAmount}
-                onChange={(e) => setEditItemAmount(e.target.value)}
-                placeholder="e.g., 2 bags, 1 box"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label>Repeat</Label>
-              <RadioGroup 
-                value={editItemRepeatOption} 
-                onValueChange={(value) => setEditItemRepeatOption(value as 'none' | 'weekly' | 'monthly')}
+      <div className={cn("space-y-4", isMobile && "pb-4")}>
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">Item Name *</Label>
+            <Input
+              id="name"
+              placeholder="Enter item name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="file">File</Label>
+            <div className="space-y-2">
+              <Button 
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full flex items-center justify-center h-10"
+                disabled={isUploading}
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="none" id="edit-r-none" />
-                  <Label htmlFor="edit-r-none">One-time purchase</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="weekly" id="edit-r-weekly" />
-                  <Label htmlFor="edit-r-weekly">Weekly</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="monthly" id="edit-r-monthly" />
-                  <Label htmlFor="edit-r-monthly">Monthly</Label>
-                </div>
-              </RadioGroup>
+                {isUploading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                Upload File
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Supported files: images, PDFs, documents, spreadsheets, and more
+              </p>
+              
+              <Input
+                id="file"
+                type="file"
+                accept="*/*"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+              />
             </div>
             
-            <div className="grid gap-2">
-              <Label>Image</Label>
-              <div className="flex gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => editImageFileRef.current?.click()}
-                  className="w-full"
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  {editItemImageUrl ? "Change Image" : "Upload File"}
-                </Button>
-                {editItemImageUrl && (
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={clearEditImage} 
-                    className="flex-shrink-0"
+            {file && (
+              <div className="relative mt-2">
+                <FilePreview 
+                  file={file}
+                  fileName={fileName}
+                  fileType={fileType}
+                  className="max-h-32 w-full"
+                />
+                <div className="absolute top-2 right-2 flex gap-1">
+                  {fileType === 'image' && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
+                      onClick={toggleFullScreenPreview}
+                    >
+                      <Maximize2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={clearFile}
                   >
                     <X className="h-4 w-4" />
                   </Button>
-                )}
-              </div>
-              {editItemImageUrl && (
-                <div className="relative w-full h-32 mt-2 rounded-md overflow-hidden">
-                  <img
-                    src={editItemImageUrl}
-                    alt="Item preview"
-                    className="w-full h-full object-cover"
-                  />
                 </div>
-              )}
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="edit-item-notes">Notes</Label>
-              <Textarea
-                id="edit-item-notes"
-                value={editItemNotes}
-                onChange={(e) => setEditItemNotes(e.target.value)}
-                placeholder="Optional notes about this item"
-                rows={3}
-              />
-            </div>
+              </div>
+            )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave}>
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <input 
-        ref={editImageFileRef} 
-        type="file" 
-        accept="image/*" 
-        onChange={handleFileChange} 
-        className="hidden" 
+
+          <div className="grid gap-2">
+            <Label htmlFor="amount">Quantity</Label>
+            <Input
+              id="amount"
+              placeholder="e.g., 2 boxes"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="repeat-option">Repeat</Label>
+            <Select 
+              value={repeatOption} 
+              onValueChange={(value) => setRepeatOption(value as 'none' | 'weekly' | 'monthly')}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select frequency" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None (One-off)</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              placeholder="Add any additional notes here"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="min-h-[80px]"
+            />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  if (fullScreenPreview && file && fileType === 'image') {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex flex-col">
+        <div className="p-4 flex justify-between items-center bg-black/80">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-white" 
+            onClick={toggleFullScreenPreview}
+          >
+            <Minimize2 className="h-6 w-6" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-white" 
+            onClick={() => onClose()}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
+        <div className="flex-1 flex items-center justify-center overflow-auto">
+          <img 
+            src={file} 
+            alt="Full screen preview" 
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {isMobile ? (
+        <Drawer open={isOpen} onOpenChange={onClose}>
+          <DrawerContent className="max-h-[85vh] overflow-hidden">
+            <DrawerHeader className="px-4 py-2">
+              <DrawerTitle>Edit Item</DrawerTitle>
+            </DrawerHeader>
+            
+            <ScrollArea className="p-4 pt-0 flex-1 overflow-auto max-h-[60vh]" scrollRef={scrollRef}>
+              {dialogContent}
+            </ScrollArea>
+            
+            <DrawerFooter className="px-4 py-2 gap-2">
+              <Button variant="outline" className="w-full" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSave}
+                className="w-full"
+                disabled={name.trim() === '' && !file}
+              >
+                Save Changes
+              </Button>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+          <DialogContent 
+            className="sm:max-w-md overflow-hidden max-h-[85vh] flex flex-col"
+            preventNavigateOnClose={true}
+          >
+            <DialogHeader>
+              <DialogTitle>Edit Item</DialogTitle>
+              <DialogDescription>Make changes to your shopping item here.</DialogDescription>
+            </DialogHeader>
+
+            <ScrollArea className="flex-1 max-h-[60vh] pr-4 overflow-y-auto" scrollRef={scrollRef}>
+              {dialogContent}
+            </ScrollArea>
+
+            <DialogFooter className="mt-4 pt-2 border-t">
+              <Button variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSave}
+                disabled={name.trim() === '' && !file}
+              >
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      <ImageAnalysisModal
+        imageData={file}
+        fileName={fileName}
+        isOpen={showAnalysisModal}
+        onAnalysisComplete={handleAnalysisComplete}
+        onClose={() => setShowAnalysisModal(false)}
       />
     </>
   );

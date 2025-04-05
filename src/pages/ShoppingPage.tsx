@@ -183,7 +183,7 @@ const ShoppingPage: React.FC = () => {
         />
       )}
 
-      {/* Edit Item Dialog - now using the proper EditItemDialog component */}
+      {/* Edit Item Dialog - now using the completely updated EditItemDialog component */}
       {editItem && editItem.item && (
         <EditItemDialog 
           isOpen={true}
