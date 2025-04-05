@@ -90,7 +90,7 @@ const DayView: React.FC<DayViewProps> = ({
     const eventEnd = eventEndHour + (eventEndMinute / 60);
     
     // Check if at least part of the event falls within visible hours
-    return eventStart <= endHour && eventEnd >= startHour;
+    return eventStart < endHour && eventEnd > startHour;
   };
 
   // Filter events to only include those that should be shown in the multi-hour section
@@ -115,7 +115,7 @@ const DayView: React.FC<DayViewProps> = ({
       
       // Check if current event overlaps with previous event in the current group
       // We consider events overlapping if the start time of the current event is before the end time of the previous event
-      if (event.startDate <= previousEvent.endDate) {
+      if (event.startDate < previousEvent.endDate) {
         currentGroup.push(event);
       } else {
         groups.push([...currentGroup]);
@@ -147,11 +147,12 @@ const DayView: React.FC<DayViewProps> = ({
     
     // For precise comparison include minutes as decimal
     const eventStartDecimal = visibleStartHour + (eventStart.getHours() === visibleStartHour ? startMinutes : 0);
-    const eventEndDecimal = visibleEndHour + (eventEnd.getHours() === visibleEndHour ? endMinutes : 1);
+    const eventEndDecimal = visibleEndHour + (eventEnd.getHours() === visibleEndHour ? endMinutes : 0);
     
     // Calculate position within the visible hours
-    const hoursFromVisibleStart = eventStartDecimal - startHour;
-    const visibleDurationHours = eventEndDecimal - eventStartDecimal;
+    const visibleRangeStart = startHour;
+    const hoursFromVisibleStart = eventStartDecimal - visibleRangeStart;
+    const visibleDurationHours = Math.min(24, Math.max(0, eventEndDecimal - eventStartDecimal));
     
     // Each hour row is 80px height
     const hourHeight = 80;
@@ -161,7 +162,7 @@ const DayView: React.FC<DayViewProps> = ({
     // Calculate width and left offset for overlapping events
     const baseWidth = 95; // Base width percentage for a single event
     const widthPerEvent = baseWidth / totalOverlapping;
-    const leftOffset = index * widthPerEvent + 4; // 4% offset from the left, plus staggering for each event
+    const leftOffset = (index * widthPerEvent) + 4; // 4% offset from the left, plus staggering for each event
     
     return {
       position: 'absolute',

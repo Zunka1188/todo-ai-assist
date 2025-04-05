@@ -80,7 +80,7 @@ const WeekView: React.FC<WeekViewProps> = ({
     const eventEnd = eventEndHour + (eventEndMinute / 60);
     
     // Check if at least part of the event falls within visible hours
-    return eventStart <= endHour && eventEnd >= startHour;
+    return eventStart < endHour && eventEnd > startHour;
   };
   
   const hiddenEvents = events.filter(event => 
@@ -102,7 +102,7 @@ const WeekView: React.FC<WeekViewProps> = ({
       const previousEvent = sortedEvents[i - 1];
       
       // Check if current event overlaps with previous event in the current group
-      if (event.startDate <= previousEvent.endDate) {
+      if (event.startDate < previousEvent.endDate) {
         currentGroup.push(event);
       } else {
         groups.push([...currentGroup]);
@@ -150,10 +150,10 @@ const WeekView: React.FC<WeekViewProps> = ({
     dayEnd.setHours(23, 59, 59, 999);
     
     // If event starts before this day, use day start as event start
-    const effectiveStartDate = isSameDay(eventStart, day) ? eventStart : dayStart;
+    const effectiveStartDate = eventStart < dayStart ? dayStart : eventStart;
     
     // If event ends after this day, use day end as event end
-    const effectiveEndDate = isSameDay(eventEnd, day) ? eventEnd : dayEnd;
+    const effectiveEndDate = eventEnd > dayEnd ? dayEnd : eventEnd;
     
     // Get hours and minutes for precise positioning
     const startHourValue = effectiveStartDate.getHours();
@@ -167,7 +167,7 @@ const WeekView: React.FC<WeekViewProps> = ({
     
     // Include minutes for precise positioning
     const visibleStartDecimal = visibleStartHour + (startHourValue === visibleStartHour ? startMinValue : 0);
-    const visibleEndDecimal = visibleEndHour + (endHourValue === visibleEndHour ? endMinValue : 1);
+    const visibleEndDecimal = visibleEndHour + (endHourValue === visibleEndHour ? endMinValue : 0);
     
     // Calculate top position - how many hours into the visible range this event starts
     const hoursFromVisibleStart = visibleStartDecimal - startHour;
@@ -188,7 +188,7 @@ const WeekView: React.FC<WeekViewProps> = ({
     const dayColumnIndex = daysInWeek.findIndex(d => isSameDay(d, day));
     
     // Calculate left position based on day column and overlap index
-    // Each day column should be 12.5% wide (100% / 8) with the first column for time
+    // Each day column should be ~12% wide (100% / 8) with the first column for time
     const dayColumnWidth = 12.5;
     const leftOffset = (dayColumnWidth * (dayColumnIndex + 1)) + (index * (widthPerEvent / totalOverlapping));
     
