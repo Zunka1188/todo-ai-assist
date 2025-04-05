@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday } from 'date-fns';
@@ -39,6 +40,7 @@ const WeekView: React.FC<WeekViewProps> = ({
   
   const HOUR_HEIGHT = 60; // Height in pixels for each hour block in Week View
   const MINUTES_PER_HOUR = 60;
+  const MINUTE_HEIGHT = HOUR_HEIGHT / MINUTES_PER_HOUR; // Height in pixels for 1 minute
   const TIME_COLUMN_WIDTH = 12.5; // Percentage width of time column
   
   const weekStart = startOfWeek(date, { weekStartsOn });
@@ -140,21 +142,21 @@ const WeekView: React.FC<WeekViewProps> = ({
     const dayEnd = new Date(day);
     dayEnd.setHours(23, 59, 59, 999);
     
+    // Use the event time if it falls within this day, otherwise use the day boundary
     const effectiveStartDate = eventStart < dayStart ? dayStart : eventStart;
     const effectiveEndDate = eventEnd > dayEnd ? dayEnd : eventEnd;
     
+    // Calculate the exact decimal hour values with minute-level precision
     const startHourDecimal = effectiveStartDate.getHours() + (effectiveStartDate.getMinutes() / MINUTES_PER_HOUR);
     const endHourDecimal = effectiveEndDate.getHours() + (effectiveEndDate.getMinutes() / MINUTES_PER_HOUR);
     
+    // Calculate visible portions of the event within the current view
     const visibleStartHourDecimal = Math.max(startHourDecimal, startHour);
     const visibleEndHourDecimal = Math.min(endHourDecimal, endHour + 1);
     
-    const hoursFromVisibleStart = visibleStartHourDecimal - startHour;
-    
-    const visibleDurationHours = visibleEndHourDecimal - visibleStartHourDecimal;
-    
-    const topPx = hoursFromVisibleStart * HOUR_HEIGHT;
-    const heightPx = Math.max(visibleDurationHours * HOUR_HEIGHT, 20);
+    // Calculate exact pixel positions based on hour and minute
+    const topPosition = (visibleStartHourDecimal - startHour) * HOUR_HEIGHT;
+    const heightValue = Math.max((visibleEndHourDecimal - visibleStartHourDecimal) * HOUR_HEIGHT, 20);
     
     const dayColumnIndex = daysInWeek.findIndex(d => isSameDay(d, day));
     
@@ -164,8 +166,8 @@ const WeekView: React.FC<WeekViewProps> = ({
     
     return {
       position: 'absolute',
-      top: `${topPx}px`,
-      height: `${heightPx}px`, 
+      top: `${topPosition}px`,
+      height: `${heightValue}px`, 
       left: `${leftOffset}%`,
       width: `${eventWidth - 0.5}%`,
       zIndex: 20,

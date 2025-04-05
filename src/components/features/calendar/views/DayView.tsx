@@ -38,6 +38,7 @@ const DayView: React.FC<DayViewProps> = ({
 
   const HOUR_HEIGHT = 80;
   const MINUTES_PER_HOUR = 60;
+  const MINUTE_HEIGHT = HOUR_HEIGHT / MINUTES_PER_HOUR;
 
   const prevDay = () => {
     setDate(subDays(date, 1));
@@ -132,12 +133,8 @@ const DayView: React.FC<DayViewProps> = ({
     const visibleStartHourDecimal = Math.max(startHourDecimal, startHour);
     const visibleEndHourDecimal = Math.min(endHourDecimal, endHour + 1);
     
-    const hoursFromVisibleStart = visibleStartHourDecimal - startHour;
-    
-    const visibleDurationHours = Math.max(0, visibleEndHourDecimal - visibleStartHourDecimal);
-    
-    const topPx = hoursFromVisibleStart * HOUR_HEIGHT;
-    const heightPx = Math.max(visibleDurationHours * HOUR_HEIGHT, 20);
+    const topPosition = (visibleStartHourDecimal - startHour) * HOUR_HEIGHT;
+    const heightValue = Math.max((visibleEndHourDecimal - visibleStartHourDecimal) * HOUR_HEIGHT, 20);
     
     const baseWidth = 88;
     const widthPerEvent = baseWidth / totalOverlapping;
@@ -146,8 +143,8 @@ const DayView: React.FC<DayViewProps> = ({
     
     return {
       position: 'absolute',
-      top: `${topPx}px`,
-      height: `${heightPx}px`,
+      top: `${topPosition}px`,
+      height: `${heightValue}px`,
       left: `${leftOffset}%`,
       width: `${widthPerEvent - 1}%`,
       zIndex: 20,
