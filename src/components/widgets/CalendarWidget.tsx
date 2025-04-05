@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Calendar as CalendarIcon, ChevronRight, Bell, Clock, MapPin, Edit, Image } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -14,14 +15,14 @@ import { getReminderLabel, getFormattedTime } from '../features/calendar/utils/d
 import { WidgetWrapper } from './shared/WidgetWrapper';
 import { useIsMobile } from '@/hooks/use-mobile';
 import EventFormDialog from '../features/calendar/dialogs/EventFormDialog';
+import EventViewDialog from '../features/calendar/dialogs/EventViewDialog';
 
 const CalendarWidget = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [isEventDetailOpen, setIsEventDetailOpen] = useState(false);
-  const [showImagePreview, setShowImagePreview] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
@@ -48,13 +49,12 @@ const CalendarWidget = () => {
   // Handle event click to show details
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
-    setIsEventDetailOpen(true);
-    setShowImagePreview(false); // Reset image preview state
+    setIsViewDialogOpen(true);
   };
 
   // Handle edit button click
-  const handleEditClick = () => {
-    setIsEventDetailOpen(false);
+  const handleViewToEdit = () => {
+    setIsViewDialogOpen(false);
     setIsEditMode(true);
   };
 
@@ -162,101 +162,16 @@ const CalendarWidget = () => {
           )}
         </div>
         
-        {/* Event Detail Dialog */}
-        <Dialog open={isEventDetailOpen} onOpenChange={setIsEventDetailOpen}>
-          {selectedEvent && (
-            <DialogContent className="sm:max-w-md" hideCloseButton>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: selectedEvent.color || '#4285F4' }}
-                  />
-                  <h3 className="text-lg font-semibold flex-1 mx-2">{selectedEvent.title}</h3>
-                  
-                  <div className="flex space-x-1">
-                    {selectedEvent.image && (
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
-                        className="h-8 w-8"
-                        onClick={() => setShowImagePreview(!showImagePreview)}
-                        title="Toggle image preview"
-                      >
-                        <Image className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-8 w-8"
-                      onClick={handleEditClick}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                
-                {selectedEvent.image && showImagePreview && (
-                  <div className="mt-2">
-                    <img 
-                      src={selectedEvent.image}
-                      alt={selectedEvent.title}
-                      className="w-full h-auto rounded-md object-cover"
-                    />
-                  </div>
-                )}
-                
-                <div className="flex flex-col space-y-3">
-                  <div className="flex items-center">
-                    <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <span>
-                      {format(selectedEvent.startDate, 'PPP')}
-                      {!selectedEvent.allDay && (
-                        <>, {getFormattedTime(selectedEvent.startDate)} - {getFormattedTime(selectedEvent.endDate)}</>
-                      )}
-                      {selectedEvent.allDay && ' (All day)'}
-                    </span>
-                  </div>
-                  
-                  {selectedEvent.location && (
-                    <div className="flex items-start">
-                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground mt-0.5" />
-                      <span>{selectedEvent.location}</span>
-                    </div>
-                  )}
-                  
-                  {selectedEvent.reminder && (
-                    <div className="flex items-center">
-                      <Bell className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>{getReminderLabel(selectedEvent.reminder)}</span>
-                    </div>
-                  )}
-                  
-                  {selectedEvent.description && (
-                    <div className="mt-4 pt-4 border-t">
-                      <p className="text-muted-foreground">
-                        {selectedEvent.description}
-                      </p>
-                    </div>
-                  )}
-                </div>
-                
-                <DialogFooter className="flex justify-end gap-2 pt-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsEventDetailOpen(false)}
-                    className="w-full"
-                  >
-                    Close
-                  </Button>
-                </DialogFooter>
-              </div>
-            </DialogContent>
-          )}
-        </Dialog>
+        {/* Event View Dialog */}
+        <EventViewDialog
+          isOpen={isViewDialogOpen}
+          setIsOpen={setIsViewDialogOpen}
+          selectedEvent={selectedEvent}
+          onEdit={handleViewToEdit}
+          onDelete={handleDeleteEvent}
+        />
         
-        {/* Event Edit Dialog */}
+        {/* Event Form Dialog */}
         {selectedEvent && (
           <EventFormDialog
             isOpen={isEditMode}
