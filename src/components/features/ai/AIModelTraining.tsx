@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useModelUpdates } from '@/utils/detectionEngine/hooks/useModelUpdates';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, Database, BarChart, ThumbsUp, ThumbsDown, Check, X, AlertTriangle } from 'lucide-react';
+import { 
+  Brain, 
+  Database, 
+  BarChart, 
+  ThumbsUp, 
+  ThumbsDown, 
+  Check, 
+  X, 
+  AlertTriangle,
+  ArrowUp 
+} from 'lucide-react';
 
 interface AIModelTrainingProps {
   className?: string;
