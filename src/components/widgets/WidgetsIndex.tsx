@@ -2,11 +2,16 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+
+// Import all widgets directly
 import CalendarWidget from './CalendarWidget';
 import TaskWidget from './TaskWidget';
 import SpendingWidget from './SpendingWidget';
 import ScannerWidget from './ScannerWidget';
 import WeatherWidget from './WeatherWidget';
+
+// Export all widgets individually
+export { CalendarWidget, TaskWidget, SpendingWidget, ScannerWidget, WeatherWidget };
 
 // Define the WidgetWrapper component
 export const WidgetWrapper: React.FC<{
@@ -35,6 +40,3 @@ export const WidgetComponents = {
   scanner: ScannerWidget,
   weather: WeatherWidget
 };
-
-// Export the components individually
-export { CalendarWidget, TaskWidget, SpendingWidget, ScannerWidget, WeatherWidget };
