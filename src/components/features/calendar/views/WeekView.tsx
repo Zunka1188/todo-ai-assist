@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday } from 'date-fns';
@@ -182,13 +181,11 @@ const WeekView: React.FC<WeekViewProps> = ({
   };
   
   return <div className="space-y-4">
-      <div className={cn(
-        "flex items-center justify-between"
-      )}>
+      <div className="flex items-center justify-between">
         <h2 className={cn(
           "text-xl font-semibold",
           theme === 'light' ? "text-foreground" : "text-white",
-          isMobile ? "text-lg" : ""
+          isMobile ? "text-[0.95rem] leading-tight" : ""
         )}>
           {format(weekStart, 'MMM d')} - {format(weekEnd, 'MMM d, yyyy')}
         </h2>
@@ -247,7 +244,7 @@ const WeekView: React.FC<WeekViewProps> = ({
         
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              <Label htmlFor="weekStartHour" className="text-sm whitespace-nowrap">From:</Label>
+              <Label htmlFor="weekStartHour" className={cn("text-sm whitespace-nowrap", isMobile ? "text-[0.8rem]" : "")}>From:</Label>
               <Input
                 id="weekStartHour"
                 type="text"
@@ -260,7 +257,7 @@ const WeekView: React.FC<WeekViewProps> = ({
             </div>
             
             <div className="flex items-center gap-1">
-              <Label htmlFor="weekEndHour" className="text-sm whitespace-nowrap">To:</Label>
+              <Label htmlFor="weekEndHour" className={cn("text-sm whitespace-nowrap", isMobile ? "text-[0.8rem]" : "")}>To:</Label>
               <Input
                 id="weekEndHour"
                 type="text"
@@ -279,7 +276,7 @@ const WeekView: React.FC<WeekViewProps> = ({
             className="py-2 mt-3 bg-amber-100/90 border border-amber-300 dark:bg-amber-900/30 dark:border-amber-700 text-amber-800 dark:text-amber-200 flex items-center"
           >
             <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-            <AlertDescription className="text-sm">
+            <AlertDescription className={cn("text-sm", isMobile ? "text-[0.8rem]" : "")}>
               Warning: {hiddenEvents.length} event{hiddenEvents.length > 1 ? 's' : ''} {hiddenEvents.length > 1 ? 'are' : 'is'} outside the selected time range and {hiddenEvents.length > 1 ? 'are' : 'is'} not visible.
             </AlertDescription>
           </Alert>
@@ -288,7 +285,7 @@ const WeekView: React.FC<WeekViewProps> = ({
       
       <div className="border rounded-lg overflow-hidden">
         <div className="grid grid-cols-8 divide-x border-b">
-          <div className="p-2 text-sm font-medium bg-muted/30">All Day</div>
+          <div className={cn("p-2 text-sm font-medium bg-muted/30", isMobile ? "text-[0.8rem]" : "")}>All Day</div>
           {daysInWeek.map((day, index) => {
             const allDayEvents = getEventsForDay(day).filter(event => event.allDay);
             const isCurrentDate = isToday(day);
@@ -313,7 +310,7 @@ const WeekView: React.FC<WeekViewProps> = ({
         </div>
         
         <div className="grid grid-cols-8 divide-x border-b">
-          <div className="p-2 text-sm font-medium bg-muted/30">Time / Day</div>
+          <div className={cn("p-2 text-sm font-medium bg-muted/30", isMobile ? "text-[0.8rem]" : "")}>Time / Day</div>
           {daysInWeek.map((day, index) => {
             const isCurrentDate = isToday(day);
             return (
@@ -321,10 +318,14 @@ const WeekView: React.FC<WeekViewProps> = ({
                 key={index} 
                 className={cn("p-2 text-center", isCurrentDate && "bg-accent/30")}
               >
-                <div className="font-medium">
+                <div className={cn("font-medium", isMobile ? "text-[0.8rem]" : "")}>
                   {format(day, 'EEE')}
                 </div>
-                <div className={cn("text-sm", isCurrentDate ? "text-primary font-semibold" : "text-muted-foreground")}>
+                <div className={cn(
+                  "text-sm", 
+                  isCurrentDate ? "text-primary font-semibold" : "text-muted-foreground",
+                  isMobile ? "text-[0.8rem]" : ""
+                )}>
                   {format(day, 'd')}
                 </div>
               </div>
@@ -341,7 +342,10 @@ const WeekView: React.FC<WeekViewProps> = ({
             hourDate.setHours(hour, 0, 0, 0);
             return (
               <div key={hour} className="grid grid-cols-8 divide-x border-b min-h-[60px]">
-                <div className="p-2 text-xs text-right text-muted-foreground bg-muted/30">
+                <div className={cn(
+                  "p-2 text-xs text-right text-muted-foreground bg-muted/30",
+                  isMobile ? "text-[0.7rem]" : ""
+                )}>
                   {format(hourDate, 'h a')}
                 </div>
                 

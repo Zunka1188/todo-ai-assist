@@ -224,7 +224,7 @@ const DayView: React.FC<DayViewProps> = ({
         <h2 className={cn(
           "text-xl font-semibold flex items-center",
           theme === 'light' ? "text-foreground" : "text-white",
-          isMobile ? "text-lg" : ""
+          isMobile ? "text-[0.95rem] leading-tight" : ""
         )}>
           {format(date, 'EEEE, MMMM d, yyyy')}
           {isCurrentDate && (
@@ -288,7 +288,7 @@ const DayView: React.FC<DayViewProps> = ({
           
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              <Label htmlFor="startHour" className="text-sm whitespace-nowrap">From:</Label>
+              <Label htmlFor="startHour" className={cn("text-sm whitespace-nowrap", isMobile ? "text-[0.8rem]" : "")}>From:</Label>
               <Input
                 id="startHour"
                 type="text"
@@ -303,7 +303,7 @@ const DayView: React.FC<DayViewProps> = ({
             </div>
             
             <div className="flex items-center gap-1">
-              <Label htmlFor="endHour" className="text-sm whitespace-nowrap">To:</Label>
+              <Label htmlFor="endHour" className={cn("text-sm whitespace-nowrap", isMobile ? "text-[0.8rem]" : "")}>To:</Label>
               <Input
                 id="endHour"
                 type="text"
@@ -324,7 +324,7 @@ const DayView: React.FC<DayViewProps> = ({
             className="py-2 mt-3 bg-amber-100/90 border border-amber-300 dark:bg-amber-900/30 dark:border-amber-700 text-amber-800 dark:text-amber-200 flex items-center"
           >
             <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-            <AlertDescription className="text-sm">
+            <AlertDescription className={cn("text-sm", isMobile ? "text-[0.8rem]" : "")}>
               Warning: {hiddenEvents.length} event{hiddenEvents.length > 1 ? 's' : ''} {hiddenEvents.length > 1 ? 'are' : 'is'} outside the selected time range and {hiddenEvents.length > 1 ? 'are' : 'is'} not visible.
             </AlertDescription>
           </Alert>
@@ -334,7 +334,7 @@ const DayView: React.FC<DayViewProps> = ({
       {allDayEvents.length > 0 && (
         <div className="border rounded-lg overflow-hidden mb-4">
           <div className="grid grid-cols-[1fr] bg-muted/30 p-2 border-b">
-            <div className="text-sm font-medium">All day events</div>
+            <div className={cn("text-sm font-medium", isMobile ? "text-[0.8rem]" : "")}>All day events</div>
           </div>
           
           <div className="p-2 space-y-2">
@@ -362,8 +362,8 @@ const DayView: React.FC<DayViewProps> = ({
       
       <div className="border rounded-lg overflow-hidden">
         <div className="grid grid-cols-[4rem_1fr] bg-muted/30 p-2 border-b">
-          <div className="text-sm font-medium">Time</div>
-          <div className="text-sm font-medium">Events</div>
+          <div className={cn("text-sm font-medium", isMobile ? "text-[0.8rem]" : "")}>Time</div>
+          <div className={cn("text-sm font-medium", isMobile ? "text-[0.8rem]" : "")}>Events</div>
         </div>
         
         <div className={cn(
@@ -394,7 +394,7 @@ const DayView: React.FC<DayViewProps> = ({
                   isCurrentHour && "bg-accent/20"
                 )}
               >
-                <div className="p-2 text-sm text-right text-muted-foreground border-r">
+                <div className={cn("p-2 text-sm text-right text-muted-foreground border-r", isMobile ? "text-[0.8rem]" : "")}>
                   {format(hourDate, 'h a')}
                 </div>
                 

@@ -8,6 +8,7 @@ import { getCategoryIcon, getFileTypeIcon } from './utils/iconHelpers';
 import DocumentListItem from './DocumentListItem';
 import FullScreenPreview from './FullScreenPreview';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface DocumentListProps {
   documents: DocumentFile[];
@@ -55,8 +56,8 @@ const DocumentList: React.FC<DocumentListProps> = ({
         </div>
         <div className="flex flex-col items-center justify-center p-8 text-center">
           {getFileTypeIcon('unknown')}
-          <h3 className="mt-4 text-lg font-medium">No documents found</h3>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h3 className={cn("mt-4 text-lg font-medium", isMobile ? "text-[0.95rem]" : "")}>No documents found</h3>
+          <p className={cn("text-sm text-muted-foreground mt-1", isMobile ? "text-[0.8rem]" : "")}>
             Add your first document to get started
           </p>
         </div>

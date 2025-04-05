@@ -60,6 +60,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
   }, [isIOS, isAndroid]);
 
   const textColorClass = theme === 'light' ? "text-foreground" : "text-white";
+  const mobileTextClass = isMobile ? "text-[0.8rem]" : ""; // 20% smaller text for mobile
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -79,37 +80,37 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-background border border-border w-56">
               <DropdownMenuItem asChild>
-                <Link to="/" className="cursor-pointer flex items-center gap-2 h-10">
+                <Link to="/" className={cn("cursor-pointer flex items-center gap-2 h-10", mobileTextClass)}>
                   <Home className="h-4 w-4" />
                   <span className={textColorClass}>Home</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/shopping" className="cursor-pointer flex items-center gap-2">
+                <Link to="/shopping" className={cn("cursor-pointer flex items-center gap-2", mobileTextClass)}>
                   <ShoppingBag className="h-4 w-4" />
                   <span className={textColorClass}>Shopping</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/calendar" className="cursor-pointer flex items-center gap-2">
+                <Link to="/calendar" className={cn("cursor-pointer flex items-center gap-2", mobileTextClass)}>
                   <Calendar className="h-4 w-4" />
                   <span className={textColorClass}>Calendar</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/documents" className="cursor-pointer flex items-center gap-2">
+                <Link to="/documents" className={cn("cursor-pointer flex items-center gap-2", mobileTextClass)}>
                   <FileText className="h-4 w-4" />
                   <span className={textColorClass}>Documents</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/weather" className="cursor-pointer flex items-center gap-2">
+                <Link to="/weather" className={cn("cursor-pointer flex items-center gap-2", mobileTextClass)}>
                   <Cloud className="h-4 w-4" />
                   <span className={textColorClass}>Weather</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/troubleshoot" className="cursor-pointer flex items-center gap-2">
+                <Link to="/troubleshoot" className={cn("cursor-pointer flex items-center gap-2", mobileTextClass)}>
                   <HelpCircle className="h-4 w-4" />
                   <span className={textColorClass}>Troubleshoot</span>
                 </Link>
