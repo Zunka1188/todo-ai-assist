@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, addDays, subDays, isSameDay, isToday } from 'date-fns';
@@ -10,25 +9,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Toggle } from '@/components/ui/toggle';
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-interface Event {
-  id: string;
-  title: string;
-  description?: string;
-  startDate: Date;
-  endDate: Date;
-  allDay?: boolean;
-  location?: string;
-  color?: string;
-  recurring?: {
-    frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
-    interval: number;
-    endDate?: Date;
-    occurrences?: number;
-    daysOfWeek?: number[];
-  };
-  reminder?: string;
-}
+import { Event } from '../types/event';
+import { getFormattedTime } from '../utils/dateUtils';
 
 interface DayViewProps {
   date: Date;
@@ -74,15 +56,68 @@ const DayView: React.FC<DayViewProps> = ({
   const allDayEvents = dayEvents.filter(event => event.allDay);
   const timeEvents = dayEvents.filter(event => !event.allDay);
   
-  const getFormattedTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-  
   const hours = showAllHours 
     ? Array.from({ length: 24 }, (_, i) => i) 
     : Array.from({ length: (endHour - startHour) + 1 }, (_, i) => i + startHour);
   
   const isCurrentDate = isToday(date);
+
+  const calculateEventPosition = (eventTime: Date) => {
+    const minutes = eventTime.getMinutes();
+    return (minutes / 60) * 100;
+  };
+
+  const getEventStyle = (event: Event, currentHour: number) => {
+    const startHourOfEvent = event.startDate.getHours();
+    const startMinutes = event.startDate.getMinutes();
+    const endHourOfEvent = event.endDate.getHours();
+    const endMinutes = event.endDate.getMinutes();
+    
+    if (startHourOfEvent === currentHour) {
+      const topPosition = (startMinutes / 60) * 100;
+      
+      if (endHourOfEvent === currentHour) {
+        const height = ((endMinutes - startMinutes) / 60) * 100;
+        return {
+          top: `${topPosition}%`,
+          height: `${height}%`,
+          position: 'absolute',
+          width: '95%',
+          zIndex: 10
+        };
+      } 
+      else {
+        return {
+          top: `${topPosition}%`,
+          height: `${100 - topPosition}%`,
+          position: 'absolute',
+          width: '95%',
+          zIndex: 10
+        };
+      }
+    } 
+    else if (endHourOfEvent === currentHour) {
+      const height = (endMinutes / 60) * 100;
+      return {
+        top: '0%',
+        height: `${height}%`,
+        position: 'absolute',
+        width: '95%',
+        zIndex: 10
+      };
+    } 
+    else if (startHourOfEvent < currentHour && endHourOfEvent > currentHour) {
+      return {
+        top: '0%',
+        height: '100%',
+        position: 'absolute',
+        width: '95%',
+        zIndex: 10
+      };
+    }
+    
+    return {};
+  };
 
   const checkForHiddenEvents = (start: number, end: number) => {
     const hidden = timeEvents.filter(event => {
@@ -213,6 +248,26 @@ const DayView: React.FC<DayViewProps> = ({
     }
     
     setShowAllHours(startHour === 0 && endHour === 23);
+  };
+
+  const getUniqueEventsByHour = (hour: number) => {
+    const hourDate = new Date(date);
+    hourDate.setHours(hour, 0, 0, 0);
+    
+    const hourEndDate = new Date(date);
+    hourEndDate.setHours(hour, 59, 59, 999);
+    
+    return timeEvents.filter(event => {
+      const eventStartHour = event.startDate.getHours();
+      
+      if (event.startDate >= hourDate && event.startDate <= hourEndDate) {
+        return true;
+      } else if (event.startDate <= hourDate && event.endDate >= hourEndDate && eventStartHour < hour && hour === startHour) {
+        return true;
+      }
+      
+      return false;
+    });
   };
 
   return (
@@ -377,14 +432,9 @@ const DayView: React.FC<DayViewProps> = ({
             const hourEndDate = new Date(date);
             hourEndDate.setHours(hour, 59, 59, 999);
             
-            const hourEvents = timeEvents.filter(event => 
-              (event.startDate >= hourDate && event.startDate <= hourEndDate) ||
-              (event.endDate >= hourDate && event.endDate <= hourEndDate) ||
-              (event.startDate <= hourDate && event.endDate >= hourEndDate)
-            );
-            
             const now = new Date();
             const isCurrentHour = isCurrentDate && now.getHours() === hour;
+            const hourEvents = getUniqueEventsByHour(hour);
             
             return (
               <div 
@@ -398,23 +448,26 @@ const DayView: React.FC<DayViewProps> = ({
                   {format(hourDate, 'h a')}
                 </div>
                 
-                <div className="p-2 space-y-2">
+                <div className="p-2 relative min-h-[80px]">
                   {hourEvents.map(event => (
                     <div 
                       key={event.id}
-                      className="rounded p-2 cursor-pointer hover:opacity-90 touch-manipulation"
-                      style={{ backgroundColor: event.color || '#4285F4' }}
+                      className="rounded p-2 cursor-pointer hover:opacity-90 touch-manipulation absolute"
+                      style={{ 
+                        backgroundColor: event.color || '#4285F4',
+                        ...getEventStyle(event, hour)
+                      }}
                       onClick={() => handleViewEvent(event)}
                     >
-                      <div className="font-medium text-white">{event.title}</div>
+                      <div className="font-medium text-white truncate">{event.title}</div>
                       <div className="text-xs flex items-center text-white/90 mt-1">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
+                        <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+                        <span className="truncate">{getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}</span>
                       </div>
                       {event.location && (
                         <div className="text-xs flex items-center text-white/90 mt-1">
-                          <MapPin className="h-3 w-3 mr-1" />
-                          {event.location}
+                          <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                          <span className="truncate">{event.location}</span>
                         </div>
                       )}
                     </div>

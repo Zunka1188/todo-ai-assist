@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday } from 'date-fns';
@@ -66,6 +67,118 @@ const WeekView: React.FC<WeekViewProps> = ({
   }, (_, i) => startHour + i);
   
   const hiddenEvents = events.filter(event => isOutOfTimeRange(event, startHour, endHour));
+
+  // Helper function to calculate position within the hour
+  const calculateEventPosition = (event: Event, day: Date, hour: number) => {
+    const eventDate = new Date(event.startDate);
+    const eventDay = new Date(day);
+    eventDay.setHours(hour, 0, 0, 0);
+    
+    // If event doesn't start today or starts before this hour
+    if (!isSameDay(eventDate, day) || eventDate.getHours() < hour) {
+      return { top: '0%', height: '100%' };
+    }
+    
+    // Event starts in this hour
+    if (eventDate.getHours() === hour) {
+      const minutes = eventDate.getMinutes();
+      const topPosition = (minutes / 60) * 100;
+      
+      // End time calculation
+      const endDate = new Date(event.endDate);
+      
+      // If the event ends in the same hour and on the same day
+      if (endDate.getHours() === hour && isSameDay(eventDate, endDate)) {
+        const endMinutes = endDate.getMinutes();
+        const height = ((endMinutes - minutes) / 60) * 100;
+        return { top: `${topPosition}%`, height: `${height}%` };
+      } 
+      // If the event extends beyond this hour
+      else {
+        const height = (60 - minutes) / 60 * 100;
+        return { top: `${topPosition}%`, height: `${height}%` };
+      }
+    }
+    
+    return { top: '0%', height: '0%' }; // Default, shouldn't normally reach here
+  };
+
+  // Get unique events for each hour/day cell to avoid duplicates
+  const getUniqueEventsForHourAndDay = (day: Date, hour: number) => {
+    const dayHourStart = new Date(day);
+    dayHourStart.setHours(hour, 0, 0, 0);
+    
+    const dayHourEnd = new Date(day);
+    dayHourEnd.setHours(hour, 59, 59, 999);
+    
+    return events.filter(event => {
+      if (event.allDay) return false;
+      
+      const sameDay = isSameDay(event.startDate, day) || 
+                       isSameDay(event.endDate, day) || 
+                       (event.startDate <= day && event.endDate >= day);
+      
+      if (!sameDay) return false;
+      
+      const eventStartDate = new Date(event.startDate);
+      const eventStartHour = eventStartDate.getHours();
+      const eventEndDate = new Date(event.endDate);
+      const eventEndHour = eventEndDate.getHours();
+      
+      // Only show the event in:
+      // 1. The hour when it starts
+      if (isSameDay(eventStartDate, day) && eventStartHour === hour) {
+        return true;
+      }
+      
+      // 2. The first hour of the day if the event spans from a previous day
+      if (!isSameDay(eventStartDate, day) && hour === startHour) {
+        return true;
+      }
+      
+      return false;
+    });
+  };
+
+  const getEventStyle = (event: Event, day: Date, hour: number) => {
+    const eventStart = new Date(event.startDate);
+    const eventEnd = new Date(event.endDate);
+    const currentHourStart = new Date(day);
+    currentHourStart.setHours(hour, 0, 0, 0);
+    const currentHourEnd = new Date(day);
+    currentHourEnd.setHours(hour, 59, 59, 999);
+    
+    let topPosition = 0;
+    let height = 100;
+    
+    // Calculate start position
+    if (isSameDay(eventStart, day) && eventStart.getHours() === hour) {
+      topPosition = (eventStart.getMinutes() / 60) * 100;
+    }
+    
+    // Calculate height
+    if (isSameDay(eventEnd, day) && eventEnd.getHours() === hour) {
+      height = (eventEnd.getMinutes() / 60) * 100;
+      if (isSameDay(eventStart, day) && eventStart.getHours() === hour) {
+        height = ((eventEnd.getMinutes() - eventStart.getMinutes()) / 60) * 100;
+      }
+    } else if (isSameDay(eventStart, day) && eventStart.getHours() === hour) {
+      height = 100 - topPosition;
+    }
+    
+    const durationInHours = (eventEnd.getTime() - eventStart.getTime()) / (1000 * 60 * 60);
+    const zIndex = Math.max(10, Math.min(100, Math.floor(durationInHours * 10))); // Higher priority for longer events
+    
+    return {
+      position: 'absolute',
+      top: `${topPosition}%`,
+      height: `${height}%`,
+      left: '0',
+      right: '0',
+      width: '95%',
+      zIndex
+    };
+  };
 
   const handleTimeRangeToggle = (preset: string) => {
     switch (preset) {
@@ -350,51 +463,49 @@ const WeekView: React.FC<WeekViewProps> = ({
                 </div>
                 
                 {daysInWeek.map((day, dayIndex) => {
-                  const dayHourStart = new Date(day);
-                  dayHourStart.setHours(hour, 0, 0, 0);
-                  const dayHourEnd = new Date(day);
-                  dayHourEnd.setHours(hour, 59, 59, 999);
-                  const hourEvents = events.filter(event => 
-                    !event.allDay && (
-                      (event.startDate >= dayHourStart && event.startDate <= dayHourEnd) || 
-                      (event.endDate >= dayHourStart && event.endDate <= dayHourEnd) || 
-                      (event.startDate <= dayHourStart && event.endDate >= dayHourEnd)
-                    )
-                  );
                   const isCurrentDate = isToday(day);
                   const now = new Date();
                   const isCurrentHour = isToday(day) && now.getHours() === hour;
+                  const hourEvents = getUniqueEventsForHourAndDay(day, hour);
                   
                   return (
                     <div 
                       key={dayIndex} 
-                      className={cn("p-1 relative", 
+                      className={cn("p-1 relative min-h-[60px]", 
                         isCurrentDate && "bg-accent/20", 
                         isCurrentHour && "bg-accent/40"
                       )}
                     >
-                      {hourEvents.length > 0 && hourEvents.map(event => (
-                        <div 
-                          key={event.id} 
-                          className="text-xs p-1 mb-1 rounded truncate cursor-pointer hover:opacity-80 touch-manipulation" 
-                          style={{backgroundColor: event.color || '#4285F4'}} 
-                          onClick={() => handleViewEvent(event)}
-                        >
-                          <div className="flex items-center">
-                            <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
-                            <span className="text-white truncate">{event.title}</span>
-                          </div>
-                          <div className="text-white/90 text-[10px] truncate">
-                            {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
-                          </div>
-                          {event.location && (
-                            <div className="text-white/90 text-[10px] flex items-center truncate">
-                              <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80" />
-                              {event.location}
+                      {hourEvents.map(event => {
+                        // Calculate positioning
+                        const style = getEventStyle(event, day, hour);
+                        
+                        return (
+                          <div 
+                            key={event.id} 
+                            className="text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 touch-manipulation" 
+                            style={{
+                              backgroundColor: event.color || '#4285F4',
+                              ...style
+                            }} 
+                            onClick={() => handleViewEvent(event)}
+                          >
+                            <div className="flex items-center">
+                              <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
+                              <span className="text-white truncate">{event.title}</span>
                             </div>
-                          )}
-                        </div>
-                      ))}
+                            <div className="text-white/90 text-[10px] truncate">
+                              {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
+                            </div>
+                            {event.location && (
+                              <div className="text-white/90 text-[10px] flex items-center truncate">
+                                <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80" />
+                                {event.location}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   );
                 })}
