@@ -37,6 +37,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
   const [recognizedItem, setRecognizedItem] = useState<RecognizedItem | null>(null);
   const [progressValue, setProgressValue] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const [preferredScanMode, setPreferredScanMode] = useState<RecognizedItemType | null>(
     preferredMode as RecognizedItemType || null
   );
@@ -54,11 +55,14 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     requestCameraPermission
   } = useCamera({
     onError: (error, isPermissionDenied) => {
-      toast({
-        title: isPermissionDenied ? "Camera Permission Denied" : "Camera Error",
-        description: error,
-        variant: "destructive",
-      });
+      console.log("Camera error in EnhancedCameraCapture:", error, isPermissionDenied);
+      if (!isPermissionDenied) {
+        toast({
+          title: "Camera Issue",
+          description: error,
+          variant: "destructive",
+        });
+      }
     }
   });
   
@@ -68,6 +72,12 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
       setCapturedImage(imageDataURL);
       stopCamera();
       processImage(imageDataURL);
+    } else {
+      toast({
+        title: "Capture Failed",
+        description: "Failed to capture image. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -95,7 +105,18 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     setCapturedImage(null);
     setRecognizedItem(null);
     setProcessing(false);
+    setRetryCount(0);
     requestCameraPermission();
+  };
+
+  const retryCamera = () => {
+    setRetryCount(prev => prev + 1);
+    requestCameraPermission();
+    
+    toast({
+      title: "Retrying Camera",
+      description: "Attempting to initialize camera again...",
+    });
   };
   
   const processImage = async (imageDataURL: string) => {
@@ -220,7 +241,16 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     if (!preferredMode) {
       sessionStorage.removeItem('preferredScanMode');
     }
-    requestCameraPermission();
+    
+    // Add a small delay before initializing camera to allow component to fully mount
+    const timer = setTimeout(() => {
+      requestCameraPermission();
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      stopCamera();
+    };
   }, []);
   
   return (
@@ -306,6 +336,10 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
                 <Settings className="mr-2 h-4 w-4" />
                 Open Settings Guide
               </Button>
+              <Button onClick={openFilePicker} variant="outline" className="bg-white/10 hover:bg-white/20">
+                <Image className="mr-2 h-4 w-4" />
+                Upload Image Instead
+              </Button>
             </div>
           </div>
         ) : cameraError ? (
@@ -314,9 +348,11 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
             <p className="text-red-300 mb-2">Camera Error</p>
             <p className="text-sm text-gray-300 mb-4">{cameraError}</p>
             <div className="flex flex-col gap-2">
-              <Button onClick={requestCameraPermission} variant="outline" className="bg-white/10 hover:bg-white/20">
-                Try Again
-              </Button>
+              {retryCount < 2 && (
+                <Button onClick={retryCamera} variant="outline" className="bg-white/10 hover:bg-white/20">
+                  Try Again
+                </Button>
+              )}
               <Button onClick={openFilePicker} variant="outline" className="bg-white/10 hover:bg-white/20">
                 <Image className="mr-2 h-4 w-4" />
                 Upload Image Instead
@@ -370,6 +406,15 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
               : cameraError || "Could not access camera. Please check your device and try again."
             }
           </AlertDescription>
+          <div className="mt-2">
+            <p className="text-sm font-medium">Possible solutions:</p>
+            <ul className="list-disc list-inside text-sm mt-1 space-y-1">
+              <li>Ensure your device has a working camera</li>
+              <li>Check that no other application is using your camera</li>
+              <li>Try refreshing the page</li>
+              <li>If on mobile, try using your phone's native camera app and upload the image</li>
+            </ul>
+          </div>
         </Alert>
       )}
       

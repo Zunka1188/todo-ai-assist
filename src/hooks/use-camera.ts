@@ -26,6 +26,7 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const initAttempts = useRef(0);
 
   const { 
     facingMode = 'environment',
@@ -33,6 +34,7 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
   } = options;
 
   const handleError = (error: string, isPermissionDenied: boolean = false) => {
+    console.error("Camera error:", error);
     setCameraError(error);
     if (isPermissionDenied) {
       setPermissionDenied(true);
@@ -44,7 +46,8 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
 
   const startCamera = async () => {
     try {
-      console.log("Starting camera...");
+      console.log("Starting camera...", { attempt: initAttempts.current + 1 });
+      initAttempts.current += 1;
       setCameraError(null);
       setPermissionDenied(false);
       setIsInitializing(true);
@@ -55,6 +58,30 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
         return;
       }
       
+      // Check if the browser is in a secure context
+      if (!window.isSecureContext) {
+        console.warn("Not running in secure context - camera might not work");
+      }
+      
+      // First check if permissions API is available
+      let permissionState: PermissionState | null = null;
+      
+      try {
+        if (navigator.permissions && navigator.permissions.query) {
+          const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
+          permissionState = permissionStatus.state;
+          console.log("Camera permission state:", permissionState);
+          
+          if (permissionState === 'denied') {
+            handleError("Camera permission is denied. Please update your browser settings.", true);
+            setIsInitializing(false);
+            return;
+          }
+        }
+      } catch (permErr) {
+        console.log("Permission query not supported or other error:", permErr);
+      }
+      
       const constraints = { 
         video: { 
           facingMode,
@@ -63,6 +90,8 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
         },
         audio: false
       };
+      
+      console.log("Attempting camera access with constraints:", constraints);
       
       try {
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -82,8 +111,10 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
                   console.log("Camera started successfully");
                   setCameraActive(true);
                   setIsInitializing(false);
+                  initAttempts.current = 0; // Reset attempts counter on success
                 })
                 .catch(err => {
+                  console.error("Error playing video:", err);
                   handleError(`Error playing video: ${err.message}`, false);
                   setIsInitializing(false);
                 });
@@ -91,22 +122,27 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
           };
           
           videoRef.current.onerror = (e) => {
+            console.error("Video element error:", e);
             handleError("Video element error", false);
             setIsInitializing(false);
           };
         } else {
+          console.error("Video reference not available");
           handleError("Camera initialization failed - video element not found", false);
           setIsInitializing(false);
         }
       } catch (err: any) {
         console.error("Camera access error:", err);
         
+        // Check if this is a permission error
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          console.error("Camera permission denied:", err);
           handleError("Camera permission denied. Please allow camera access in your browser settings.", true);
           setIsInitializing(false);
           return;
         }
         
+        // Try fallback with simpler constraints
         console.error("First attempt failed, trying with different constraints", err);
         
         try {
@@ -133,8 +169,10 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
                     console.log("Camera started successfully with fallback constraints");
                     setCameraActive(true);
                     setIsInitializing(false);
+                    initAttempts.current = 0; // Reset attempts counter on success
                   })
                   .catch(playErr => {
+                    console.error("Error playing video with fallback constraints:", playErr);
                     handleError(`Error starting camera: ${playErr.message}`, false);
                     setIsInitializing(false);
                   });
@@ -145,6 +183,7 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
           console.error("Both camera initialization attempts failed:", fallbackErr);
           
           if (fallbackErr.name === 'NotAllowedError' || fallbackErr.name === 'PermissionDeniedError') {
+            setPermissionDenied(true);
             handleError("Camera permission denied. Please allow camera access in your browser settings.", true);
           } else {
             handleError(`Could not access camera: ${fallbackErr.message || "Unknown error"}`, false);
@@ -157,6 +196,7 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
       console.error('Error in camera initialization:', error);
       
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        setPermissionDenied(true);
         handleError("Camera permission denied. Please allow camera access in your browser settings.", true);
       } else {
         handleError(error.message || "Unknown camera error", false);
@@ -202,9 +242,17 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
   
   const requestCameraPermission = async () => {
     try {
+      // Check if previously denied - if so, show instructions
+      if (permissionDenied) {
+        console.log("Camera permission previously denied, showing guidance");
+        return;
+      }
+      
       if (navigator.permissions && navigator.permissions.query) {
         try {
           const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
+          
+          console.log("Camera permission result:", result.state);
           
           if (result.state === 'granted') {
             startCamera();
@@ -213,6 +261,19 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
           } else if (result.state === 'denied') {
             handleError("Camera permission is blocked. Please update your browser settings to allow camera access.", true);
           }
+          
+          // Listen for permission changes
+          result.addEventListener('change', () => {
+            console.log("Camera permission changed to:", result.state);
+            if (result.state === 'granted') {
+              setPermissionDenied(false);
+              if (initAttempts.current < 3) {
+                startCamera();
+              }
+            } else if (result.state === 'denied') {
+              setPermissionDenied(true);
+            }
+          });
         } catch (error) {
           console.log("Permission API not supported or other error", error);
           startCamera();
