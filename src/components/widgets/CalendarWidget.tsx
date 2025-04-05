@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Calendar as CalendarIcon, ChevronRight, Bell, Clock, MapPin } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
 import { format, isSameDay } from 'date-fns';
@@ -12,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { initialEvents } from '../features/calendar/data/initialEvents';
 import { Event } from '../features/calendar/types/event';
 import { getReminderLabel, getFormattedTime } from '../features/calendar/utils/dateUtils';
+import { WidgetWrapper } from './WidgetsIndex';
 
 const CalendarWidget = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -57,8 +57,8 @@ const CalendarWidget = () => {
   };
 
   return (
-    <Card className="h-full shadow-sm hover:shadow transition-shadow duration-300">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <WidgetWrapper className="h-full">
+      <div className="flex flex-row items-center justify-between pb-2">
         <div className="flex items-center space-x-2">
           <CalendarIcon className="h-5 w-5 text-todo-purple" />
           <h3 className={cn("font-medium text-base sm:text-lg", theme === 'light' ? "text-foreground" : "text-white")}>Calendar</h3>
@@ -66,8 +66,8 @@ const CalendarWidget = () => {
         <Link to="/calendar" className="text-xs sm:text-sm text-todo-purple flex items-center min-h-[44px] min-w-[44px] touch-manipulation">
           View all <ChevronRight className="h-4 w-4 ml-1" />
         </Link>
-      </CardHeader>
-      <CardContent className="pb-3">
+      </div>
+      <div className="pb-3">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <div className="flex justify-center">
@@ -224,8 +224,8 @@ const CalendarWidget = () => {
             </DialogContent>
           )}
         </Dialog>
-      </CardContent>
-    </Card>
+      </div>
+    </WidgetWrapper>
   );
 };
 

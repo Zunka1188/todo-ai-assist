@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import CalendarView from '@/components/features/calendar/CalendarView';
+import PageLayout from '@/components/layout/PageLayout';
 
 const CalendarPage = () => {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ const CalendarPage = () => {
   const { isMobile } = useIsMobile();
 
   return (
-    <div className="flex flex-col h-full">
+    <PageLayout fullHeight>
       {/* Header section that matches Shopping and Documents pages */}
       <div className="mb-4 flex flex-col gap-4">
         <div className="flex justify-between items-center">
@@ -65,7 +66,7 @@ const CalendarPage = () => {
           setIsCreateDialogOpen={setCreateDialogOpen} 
         />
       </div>
-    </div>
+    </PageLayout>
   );
 };
 
