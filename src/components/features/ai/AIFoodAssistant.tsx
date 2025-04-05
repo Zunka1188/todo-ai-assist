@@ -1,12 +1,12 @@
-
-import React, { useState, useRef } from 'react';
-import { Camera, Upload, ScanBarcode, Send, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Camera, Upload, ScanBarcode, Send, X, RotateCcw } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '@/hooks/use-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface AIFoodAssistantProps {
   isOpen: boolean;
@@ -29,6 +29,9 @@ type FoodContext = {
   confirmationNeeded?: boolean;
 };
 
+const STORAGE_KEY = 'ai-food-assistant-session';
+const SESSION_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
 const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) => {
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
@@ -43,6 +46,7 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   const [input, setInput] = useState('');
   const [activeScanOption, setActiveScanOption] = useState<'camera' | 'upload' | 'barcode' | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   
   // Store conversation context
   const [foodContext, setFoodContext] = useState<FoodContext>({});
@@ -58,14 +62,76 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     scrollToBottom();
   }, [messages]);
 
+  // Load session from localStorage when component mounts
+  useEffect(() => {
+    loadSession();
+  }, []);
+
+  // Save session whenever messages or context changes
+  useEffect(() => {
+    if (messages.length > 1 || Object.keys(foodContext).length > 0) {
+      saveSession();
+    }
+  }, [messages, foodContext]);
+
+  const loadSession = () => {
+    try {
+      const sessionData = localStorage.getItem(STORAGE_KEY);
+      
+      if (sessionData) {
+        const { messages: storedMessages, context, timestamp } = JSON.parse(sessionData);
+        
+        // Check if session has expired (24 hours)
+        const now = new Date().getTime();
+        const lastInteraction = new Date(timestamp).getTime();
+        
+        if (now - lastInteraction < SESSION_EXPIRY) {
+          // Convert ISO strings back to Date objects
+          const parsedMessages = storedMessages.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }));
+          
+          setMessages(parsedMessages);
+          setFoodContext(context);
+          toast.success('Previous conversation restored', { 
+            description: 'Continuing from where you left off' 
+          });
+        } else {
+          // Session expired, clear storage
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading session:', error);
+    }
+  };
+
+  const saveSession = () => {
+    try {
+      const sessionData = {
+        messages,
+        context: foodContext,
+        timestamp: new Date().toISOString()
+      };
+      
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData));
+    } catch (error) {
+      console.error('Error saving session:', error);
+    }
+  };
+
   const handleClose = () => {
     onClose();
-    // Reset scan option and context when closing
+    // Reset scan option when closing but preserve conversation
     setActiveScanOption(null);
-    // We don't reset the messages or context here to maintain conversation history
   };
 
   const resetConversation = () => {
+    // Clear localStorage
+    localStorage.removeItem(STORAGE_KEY);
+    
+    // Reset states
     setMessages([
       {
         id: '1',
@@ -78,6 +144,10 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     setInput('');
     setActiveScanOption(null);
     setIsProcessing(false);
+    
+    toast.success('Started a new conversation', {
+      description: 'Previous conversation history has been cleared'
+    });
   };
 
   const processUserIntent = (userMessage: string) => {
@@ -200,23 +270,29 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     setMessages([...messages, newUserMessage]);
     setInput('');
     setIsProcessing(true);
+    setIsTyping(true);
     
     // Process the message for intent and context
     setTimeout(() => {
       const updatedContext = processUserIntent(newUserMessage.content);
       
-      // Generate response based on updated context
-      const responseContent = generateAssistantResponse(updatedContext);
-      
-      const assistantResponse: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: responseContent,
-        timestamp: new Date(),
-      };
-      
-      setMessages(prev => [...prev, assistantResponse]);
-      setIsProcessing(false);
+      // Add a small delay before showing the typing indicator
+      setTimeout(() => {
+        setIsTyping(false);
+        
+        // Generate response based on updated context
+        const responseContent = generateAssistantResponse(updatedContext);
+        
+        const assistantResponse: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: responseContent,
+          timestamp: new Date(),
+        };
+        
+        setMessages(prev => [...prev, assistantResponse]);
+        setIsProcessing(false);
+      }, 1500); // Simulate typing time
     }, 1000);
   };
 
@@ -281,15 +357,16 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         preventNavigateOnClose
       >
         <SheetHeader className="px-4 py-3 border-b flex justify-between items-center">
-          <SheetTitle className="text-lg">AI Food Assistant</SheetTitle>
+          <SheetTitle className="text-lg">Mr. Todoodle</SheetTitle>
           <div className="flex gap-2">
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="sm" 
               onClick={resetConversation}
-              className="h-8 px-2"
+              className="h-8 px-2 flex items-center gap-1"
             >
-              New Chat
+              <RotateCcw className="h-3 w-3" />
+              <span>New Chat</span>
             </Button>
           </div>
         </SheetHeader>
@@ -310,12 +387,12 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
             </div>
           ))}
           
-          {isProcessing && (
-            <div className="bg-muted rounded-lg p-3 max-w-[80%] animate-pulse">
+          {isProcessing && isTyping && (
+            <div className="bg-muted rounded-lg p-3 max-w-[80%]">
               <div className="flex space-x-2">
-                <div className="h-2 w-2 bg-foreground/50 rounded-full"></div>
-                <div className="h-2 w-2 bg-foreground/50 rounded-full"></div>
-                <div className="h-2 w-2 bg-foreground/50 rounded-full"></div>
+                <div className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse"></div>
+                <div className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse delay-150"></div>
+                <div className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse delay-300"></div>
               </div>
             </div>
           )}
