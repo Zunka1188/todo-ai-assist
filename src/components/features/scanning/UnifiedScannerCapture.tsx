@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Camera, X, CameraOff, Settings, Image, Loader2, AlertCircle, Scan, ZoomIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,13 @@ import DataRecognition, { RecognizedItem, RecognizedItemType } from './DataRecog
 import './camera-animations.css';
 import { useCamera } from '@/hooks/use-camera';
 import { useUnifiedDetection } from '@/utils/detectionEngine/hooks/useUnifiedDetection';
-import { DetectionResult } from '@/utils/detectionEngine/types';
+import { 
+  DetectionResult,
+  BarcodeResult,
+  ProductResult,
+  DocumentResult,
+  ScannerRecognizedItem
+} from '@/utils/detectionEngine/types';
 import { 
   generateMockExtractedText, 
   generateTypeSpecificMockData, 
@@ -221,41 +226,47 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
     let confidence = result.confidence;
     let mockData: any = {};
     
-    // Map the detection result to our RecognizedItem format
+    // Map the detection result to our RecognizedItem format based on result type
     switch(result.type) {
-      case 'barcode':
+      case 'barcode': {
         recognizedType = 'product';
+        const barcodeResult = result as BarcodeResult;
         mockData = {
-          name: result.productInfo?.name || "Scanned Product",
-          price: result.productInfo?.price || "$0.00",
-          barcode: result.value,
-          barcodeType: result.format,
-          brand: result.productInfo?.brand || "Unknown Brand",
-          category: result.productInfo?.category || "General",
-          description: result.productInfo?.description || "Product scanned via barcode"
+          name: barcodeResult.productInfo?.name || "Scanned Product",
+          price: barcodeResult.productInfo?.price || "$0.00",
+          barcode: barcodeResult.value,
+          barcodeType: barcodeResult.format,
+          brand: barcodeResult.productInfo?.brand || "Unknown Brand",
+          category: barcodeResult.productInfo?.category || "General",
+          description: barcodeResult.productInfo?.description || "Product scanned via barcode"
         };
         break;
-        
-      case 'product':
+      }
+      
+      case 'product': {
         recognizedType = 'product';
+        const productResult = result as ProductResult;
         mockData = {
-          name: result.productInfo?.name || "Detected Product",
-          price: result.productInfo?.price || "$0.00",
-          brand: result.productInfo?.brand || "Unknown Brand",
-          category: result.productInfo?.category || "General",
-          description: result.productInfo?.description || "Product detected via image recognition"
+          name: productResult.productInfo?.name || "Detected Product",
+          price: productResult.productInfo?.price || "$0.00",
+          brand: productResult.productInfo?.brand || "Unknown Brand",
+          category: productResult.productInfo?.category || "General",
+          description: productResult.productInfo?.description || "Product detected via image recognition"
         };
         break;
-        
-      case 'document':
+      }
+      
+      case 'document': {
         recognizedType = 'document';
+        const documentResult = result as DocumentResult;
         mockData = {
           title: "Scanned Document",
-          type: "Document",
-          content: "Document content detected"
+          type: documentResult.documentType || "Document",
+          content: documentResult.extractedText || "Document content detected"
         };
         break;
-        
+      }
+      
       default:
         // Default to product or preferred mode
         recognizedType = preferredScanMode || 'product';
@@ -265,7 +276,7 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
     const mockExtractedText = generateMockExtractedText(recognizedType);
     const detectedObjects = generateDetectedObjects(recognizedType);
     
-    const recognizedItem: RecognizedItem = {
+    const recognizedItem: ScannerRecognizedItem = {
       type: recognizedType,
       confidence,
       data: mockData,
@@ -276,7 +287,8 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       detectionSource: result.type
     };
     
-    setRecognizedItem(recognizedItem);
+    // Cast to RecognizedItem since we've added the missing fields
+    setRecognizedItem(recognizedItem as RecognizedItem);
     setProcessing(false);
     
     toast({
@@ -318,7 +330,7 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
     const mockExtractedText = generateMockExtractedText(determinedType);
     const detectedObjects = generateDetectedObjects(determinedType);
     
-    const result: RecognizedItem = {
+    const result: ScannerRecognizedItem = {
       type: determinedType,
       confidence,
       data: mockData,
@@ -328,7 +340,8 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       detectionSource: 'mock'
     };
     
-    setRecognizedItem(result);
+    // Cast to RecognizedItem since we've added the missing fields
+    setRecognizedItem(result as RecognizedItem);
     setProcessing(false);
     
     toast({
@@ -373,7 +386,8 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
             originalType: originalItem.type,
             imageData: formData.keepImage ? originalItem.imageData : null,
             savedAt: new Date().toISOString(),
-            detectionSource: originalItem.detectionSource
+            // Safe to access detectionSource since we're using our extended type
+            detectionSource: (originalItem as ScannerRecognizedItem).detectionSource
           };
           onSaveSuccess(savedData);
         }

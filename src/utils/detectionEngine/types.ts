@@ -117,3 +117,15 @@ export interface DetectionOptions {
 
 // Status of the detection process
 export type DetectionStatus = 'idle' | 'detecting' | 'success' | 'error';
+
+// This interface extends RecognizedItem from DataRecognition component
+// to include detectionSource field
+export interface ScannerRecognizedItem {
+  type: string;
+  confidence: number;
+  data: any;
+  imageData: string;
+  extractedText?: string;
+  detectedObjects?: Array<{ label: string; confidence: number }>;
+  detectionSource?: string;
+}
