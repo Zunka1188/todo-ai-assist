@@ -27,10 +27,7 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// Export the components
-export { CalendarWidget, TaskWidget, SpendingWidget, ScannerWidget, WeatherWidget };
-
-// Export a components map
+// Define the widget components map
 export const WidgetComponents = {
   calendar: CalendarWidget,
   tasks: TaskWidget,
@@ -38,3 +35,6 @@ export const WidgetComponents = {
   scanner: ScannerWidget,
   weather: WeatherWidget
 };
+
+// Export the components individually
+export { CalendarWidget, TaskWidget, SpendingWidget, ScannerWidget, WeatherWidget };
