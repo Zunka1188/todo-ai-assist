@@ -22,7 +22,7 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// Import all widget components first, with unique variable names
+// Import all widget components first, with unique namespace imports
 import * as CalendarWidgetImport from './CalendarWidget';
 import * as TaskWidgetImport from './TaskWidget';
 import * as SpendingWidgetImport from './SpendingWidget';
@@ -36,11 +36,11 @@ export const SpendingWidget = SpendingWidgetImport.default;
 export const ScannerWidget = ScannerWidgetImport.default;
 export const WeatherWidget = WeatherWidgetImport.default;
 
-// Create the widget components map after imports are complete
+// Create the widget components map after all the imports and exports are complete
 export const WidgetComponents = {
   calendar: CalendarWidgetImport.default,
   tasks: TaskWidgetImport.default,
-  spending: SpendingWidgetImport.default, // Fixed the typo here: was SpendWidgetImport
+  spending: SpendingWidgetImport.default,
   scanner: ScannerWidgetImport.default,
   weather: WeatherWidgetImport.default
 };
