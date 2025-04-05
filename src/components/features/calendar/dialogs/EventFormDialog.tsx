@@ -384,7 +384,8 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
                     </div>
                     <FormMessage />
                   </FormItem>
-                ))}
+                )} />
+              )}
               
               <FormField control={form.control} name="reminder" render={({field}) => (
                 <FormItem>
