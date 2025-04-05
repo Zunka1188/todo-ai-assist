@@ -12,6 +12,7 @@ const ScanPage = () => {
   const navigate = useNavigate();
   const [showScreenSelection, setShowScreenSelection] = useState(false);
   const { isMobile } = useIsMobile();
+  const [preferredMode, setPreferredMode] = useState<string | undefined>(undefined);
 
   // Get return destination from session storage if available
   const returnDestination = sessionStorage.getItem('returnToAfterScan');
@@ -24,6 +25,12 @@ const ScanPage = () => {
       // We'll leave the scanAction in sessionStorage for now
       // It will be consumed by ScanningOptions component
     }
+
+    // Check if there's a preferred scan mode in session storage
+    const mode = sessionStorage.getItem('preferredScanMode');
+    if (mode) {
+      setPreferredMode(mode);
+    }
   }, []);
 
   const goBack = () => {
@@ -33,6 +40,7 @@ const ScanPage = () => {
       // Clear the session storage
       sessionStorage.removeItem('returnToAfterScan');
       sessionStorage.removeItem('scanAction');
+      sessionStorage.removeItem('preferredScanMode');
       // Navigate to the return destination
       navigate(`/${returnDestination}`);
     } else {
@@ -64,6 +72,7 @@ const ScanPage = () => {
         ) : (
           <ScanningOptions 
             onScreenSelectionClick={() => setShowScreenSelection(false)}
+            preferredMode={preferredMode}
           />
         )}
       </div>

@@ -19,6 +19,16 @@ const ScannerWidget = () => {
   // Check if any model has updates available
   const hasUpdates = Object.values(status.updatesAvailable).some(Boolean);
   
+  const handleSmartScan = () => {
+    sessionStorage.setItem('preferredScanMode', 'smart');
+    navigate('/scan');
+  };
+  
+  const handleBarcodeScan = () => {
+    sessionStorage.setItem('preferredScanMode', 'barcode');
+    navigate('/scan');
+  };
+  
   return (
     <WidgetWrapper>
       <div className="flex flex-col items-center justify-center space-y-3">
@@ -33,15 +43,15 @@ const ScannerWidget = () => {
         </div>
         <h3 className="font-medium text-lg">Smart Scanner</h3>
         <p className="text-sm text-muted-foreground text-center">
-          Scan documents, receipts, products and more with AI
+          Scan products, barcodes, documents, and more with AI
         </p>
         <div className="space-y-2 w-full">
           <Button 
-            onClick={() => navigate('/scan')}
+            onClick={handleSmartScan}
             className="w-full bg-primary hover:bg-primary/90 flex items-center"
           >
             <Camera className="h-4 w-4 mr-2" />
-            Open Scanner
+            Smart Scan
           </Button>
           
           <div className="flex gap-2">
@@ -69,15 +79,15 @@ const ScannerWidget = () => {
                 <TooltipTrigger asChild>
                   <Button 
                     variant="outline"
-                    onClick={() => navigate('/upload')}
+                    onClick={handleBarcodeScan}
                     className="flex-1 border-dashed border-primary/30 flex items-center"
                   >
-                    <Sparkles className="h-4 w-4 mr-2 text-primary" />
-                    Advanced AI Detection
+                    <Scan className="h-4 w-4 mr-2 text-primary" />
+                    Barcode Scanner
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Detect barcodes, products, documents, and more with AI</p>
+                  <p>Scan product barcodes for quick recognition</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

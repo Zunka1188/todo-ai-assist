@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Camera, ScanBarcode, Upload, Calendar, FileText, Scan, ShoppingBag, Image } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -6,10 +7,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/hooks/use-theme';
 import ScanToCalendar from './ScanToCalendar';
-import EnhancedCameraCapture from './EnhancedCameraCapture';
+import UnifiedScannerCapture from './UnifiedScannerCapture';
 import ScreenshotDetection from './ScreenshotDetection';
 import FileUploader from './FileUploader';
-import BarcodeScannerCapture from './BarcodeScannerCapture';
 import ResponsiveContainer from '@/components/ui/responsive-container';
 import { Button } from '@/components/ui/button';
 
@@ -27,9 +27,10 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
   const { theme } = useTheme();
   const navigate = useNavigate();
   
-  const [showSmartScan, setShowSmartScan] = useState(false);
-  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  const [showScannerCapture, setShowScannerCapture] = useState(false);
+  const [showBarcodeScannerOnly, setShowBarcodeScannerOnly] = useState(false);
   const [showFileUploader, setShowFileUploader] = useState(false);
+  const [currentScanMode, setCurrentScanMode] = useState<string | undefined>(preferredMode);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -85,14 +86,15 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
   };
 
   const handleTakePhoto = (mode?: string) => {
-    if (mode) {
-      sessionStorage.setItem('preferredScanMode', mode);
-    }
-    setShowSmartScan(true);
+    setCurrentScanMode(mode);
+    setShowScannerCapture(true);
+    setShowBarcodeScannerOnly(false);
   };
 
   const handleBarcodeScan = () => {
-    setShowBarcodeScanner(true);
+    setCurrentScanMode('barcode');
+    setShowBarcodeScannerOnly(true);
+    setShowScannerCapture(true);
   };
   
   const handleUploadFile = () => {
@@ -101,16 +103,15 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
 
   return (
     <>
-      {showSmartScan ? (
-        <EnhancedCameraCapture 
-          onClose={() => setShowSmartScan(false)} 
+      {showScannerCapture ? (
+        <UnifiedScannerCapture 
+          onClose={() => {
+            setShowScannerCapture(false);
+            setShowBarcodeScannerOnly(false);
+          }} 
           onSaveSuccess={handleSaveSuccess}
-          preferredMode={sessionStorage.getItem('preferredScanMode') || undefined}
-        />
-      ) : showBarcodeScanner ? (
-        <BarcodeScannerCapture 
-          onClose={() => setShowBarcodeScanner(false)} 
-          onSaveSuccess={handleSaveSuccess} 
+          preferredMode={currentScanMode}
+          barcodeOnly={showBarcodeScannerOnly}
         />
       ) : showFileUploader ? (
         <FileUploader
@@ -140,7 +141,7 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
                 disabled={!hasCamera}
               >
                 <Camera className="h-5 w-5 mr-3" />
-                Take a Photo
+                Smart Scan
               </Button>
 
               <Button 
@@ -149,7 +150,7 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
                 disabled={!hasCamera}
               >
                 <ScanBarcode className="h-5 w-5 mr-3" />
-                Scan Barcode
+                Barcode Scanner
               </Button>
 
               <Button 

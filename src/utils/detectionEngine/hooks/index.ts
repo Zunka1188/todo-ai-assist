@@ -4,4 +4,5 @@ export * from './useBarcodeScan';
 export * from './useDocumentClassification';
 export * from './useProductRecognition';
 export * from './useModelUpdates';
+export * from './useUnifiedDetection';
 
