@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, ChevronRight, Bell, Clock, MapPin } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronRight, Bell, Clock, MapPin, Edit, Image } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
 import { format, isSameDay } from 'date-fns';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -19,6 +20,7 @@ const CalendarWidget = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isEventDetailOpen, setIsEventDetailOpen] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(false);
   const { theme } = useTheme();
 
   // Filter events for the current date
@@ -44,6 +46,7 @@ const CalendarWidget = () => {
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
     setIsEventDetailOpen(true);
+    setShowImagePreview(false); // Reset image preview state
   };
 
   return (
@@ -140,12 +143,42 @@ const CalendarWidget = () => {
           {selectedEvent && (
             <DialogContent className="sm:max-w-md">
               <div className="space-y-4">
-                <div
-                  className="h-1.5 w-12 rounded-full mx-auto"
-                  style={{ backgroundColor: selectedEvent.color || '#4285F4' }}
-                />
+                <div className="flex justify-between items-center">
+                  <div
+                    className="h-3 w-3 rounded-full"
+                    style={{ backgroundColor: selectedEvent.color || '#4285F4' }}
+                  />
+                  <h3 className="text-lg font-semibold flex-1 mx-2">{selectedEvent.title}</h3>
+                  
+                  <div className="flex space-x-1">
+                    {selectedEvent.image && (
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-8 w-8"
+                        onClick={() => setShowImagePreview(!showImagePreview)}
+                        title="Toggle image preview"
+                      >
+                        <Image className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Link to="/calendar">
+                      <Button variant="outline" size="icon" className="h-8 w-8">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
                 
-                <h3 className="text-lg font-semibold text-center">{selectedEvent.title}</h3>
+                {selectedEvent.image && showImagePreview && (
+                  <div className="mt-2">
+                    <img 
+                      src={selectedEvent.image}
+                      alt={selectedEvent.title}
+                      className="w-full h-auto rounded-md object-cover"
+                    />
+                  </div>
+                )}
                 
                 <div className="flex flex-col space-y-3">
                   <div className="flex items-center">
@@ -180,31 +213,22 @@ const CalendarWidget = () => {
                       </p>
                     </div>
                   )}
-                  
-                  {selectedEvent.image && (
-                    <div className="mt-4">
-                      <img 
-                        src={selectedEvent.image}
-                        alt={selectedEvent.title}
-                        className="w-full h-auto rounded-md object-cover"
-                      />
-                    </div>
-                  )}
                 </div>
                 
-                <div className="flex justify-end gap-2 pt-4">
+                <DialogFooter className="flex justify-end gap-2 pt-4">
                   <Button 
                     variant="outline" 
                     onClick={() => setIsEventDetailOpen(false)}
+                    className="flex-1"
                   >
                     Close
                   </Button>
-                  <Link to="/calendar">
-                    <Button className="bg-todo-purple hover:bg-todo-purple/90">
+                  <Link to="/calendar" className="flex-1">
+                    <Button className="bg-todo-purple hover:bg-todo-purple/90 w-full">
                       View in Calendar
                     </Button>
                   </Link>
-                </div>
+                </DialogFooter>
               </div>
             </DialogContent>
           )}
