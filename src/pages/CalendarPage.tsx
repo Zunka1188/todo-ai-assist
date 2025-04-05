@@ -16,7 +16,7 @@ const CalendarPage = () => {
   const { theme } = useTheme();
 
   return (
-    <PageLayout fullHeight>
+    <PageLayout maxWidth="full">
       <PageHeader
         title="Calendar"
         searchTerm={searchTerm}
@@ -25,7 +25,7 @@ const CalendarPage = () => {
         addItemLabel="+ Add Event"
       />
 
-      <div className="flex">
+      <div className="flex w-full">
         <Tabs 
           defaultValue="day" 
           value={viewMode} 
@@ -43,7 +43,7 @@ const CalendarPage = () => {
 
       <Separator className="my-2" />
       
-      <div className={`flex-1 overflow-hidden ${theme === 'dark' ? 'text-white' : ''}`}>
+      <div className={`flex-1 overflow-hidden w-full ${theme === 'dark' ? 'text-white' : ''}`}>
         <CalendarView 
           viewMode={viewMode} 
           searchTerm={searchTerm} 

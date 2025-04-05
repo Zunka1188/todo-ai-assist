@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { format, addMonths, subMonths } from 'date-fns';
+import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -56,7 +56,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const filteredEvents = filterEvents(searchTerm);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       {/* Event Form Dialog */}
       <EventFormDialog
         isOpen={effectiveCreateDialogOpen}
