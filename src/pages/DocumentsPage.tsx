@@ -1,18 +1,16 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, File } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import SearchInput from '@/components/ui/search-input';
-import DocumentList from '@/components/features/documents/DocumentList';
+import { useNavigate } from 'react-router-dom';
 import AddDocumentDialog from '@/components/features/documents/AddDocumentDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DocumentItemsList from '@/components/features/documents/DocumentItemsList';
 import FullScreenPreview from '@/components/features/documents/FullScreenPreview';
 import { DocumentCategory, DocumentItem } from '@/components/features/documents/types';
 import { useDocuments } from '@/hooks/useDocuments';
+import DocumentList from '@/components/features/documents/DocumentList';
+import PageHeader from '@/components/ui/page-header';
+import { Button } from '@/components/ui/button';
 
 const DocumentsPage = () => {
   const navigate = useNavigate();
@@ -36,10 +34,6 @@ const DocumentsPage = () => {
   const [activeCategoryTab, setActiveCategoryTab] = useState<DocumentCategory>('style');
   const [editingItem, setEditingItem] = useState<DocumentItem | null>(null);
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
-
-  const goBack = () => {
-    navigate('/');
-  };
 
   // Default category for new documents
   const currentCategory = activeCategoryTab;
@@ -72,29 +66,14 @@ const DocumentsPage = () => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header section that matches Shopping page */}
-      <div className="mb-4 flex flex-col gap-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Link to="/" className="p-1 rounded-md hover:bg-secondary touch-manipulation">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <h1 className="text-2xl font-bold">Documents</h1>
-          </div>
-          <Button 
-            onClick={() => handleOpenAddDialog()}
-            className="shrink-0"
-          >
-            + Add Item
-          </Button>
-        </div>
-        <SearchInput 
-          value={searchTerm}
-          onChange={setSearchTerm}
-          placeholder="Search documents"
-          className="w-full"
-        />
-      </div>
+      {/* Using our new PageHeader component */}
+      <PageHeader
+        title="Documents"
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onAddItem={() => handleOpenAddDialog()}
+        addItemLabel="+ Add Item"
+      />
 
       <Tabs defaultValue="style" value={activeTab} onValueChange={value => setActiveTab(value as 'style' | 'files')} className="w-full">
         <TabsList className="grid grid-cols-2 w-full">

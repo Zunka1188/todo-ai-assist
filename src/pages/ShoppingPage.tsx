@@ -1,16 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import SearchInput from '@/components/ui/search-input';
 import ShoppingList from '@/components/features/shopping/ShoppingList';
 import AddItemDialog from '@/components/features/shopping/AddItemDialog';
-import { Button } from '@/components/ui/button';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { useShoppingItems } from '@/components/features/shopping/useShoppingItems';
 import { useToast } from '@/components/ui/use-toast';
-import { ArrowLeft } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import PageHeader from '@/components/ui/page-header';
 
 const ShoppingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -121,29 +119,14 @@ const ShoppingPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header section that matches Documents page */}
-      <div className="mb-4 flex flex-col gap-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Link to="/" className="p-1 rounded-md hover:bg-secondary touch-manipulation">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <h1 className="text-2xl font-bold">Shopping List</h1>
-          </div>
-          <Button 
-            onClick={() => setShowAddDialog(true)}
-            className="shrink-0"
-          >
-            + Add Item
-          </Button>
-        </div>
-        <SearchInput 
-          value={searchTerm}
-          onChange={setSearchTerm}
-          placeholder="Search items"
-          className="w-full"
-        />
-      </div>
+      {/* Using our new PageHeader component */}
+      <PageHeader 
+        title="Shopping List"
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onAddItem={() => setShowAddDialog(true)}
+        addItemLabel="+ Add Item"
+      />
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full grid grid-cols-4 mb-6">
