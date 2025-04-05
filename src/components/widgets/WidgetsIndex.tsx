@@ -22,25 +22,25 @@ export const WidgetWrapper: React.FC<{
   );
 };
 
-// Import all widget components first
-import CalendarWidgetComponent from './CalendarWidget';
-import TaskWidgetComponent from './TaskWidget';
-import SpendingWidgetComponent from './SpendingWidget';
-import ScannerWidgetComponent from './ScannerWidget';
-import WeatherWidgetComponent from './WeatherWidget';
+// Import all widget components first, with unique variable names
+import * as CalendarWidgetImport from './CalendarWidget';
+import * as TaskWidgetImport from './TaskWidget';
+import * as SpendingWidgetImport from './SpendingWidget';
+import * as ScannerWidgetImport from './ScannerWidget';
+import * as WeatherWidgetImport from './WeatherWidget';
 
 // Export the components with their original names
-export const CalendarWidget = CalendarWidgetComponent;
-export const TaskWidget = TaskWidgetComponent;
-export const SpendingWidget = SpendingWidgetComponent;
-export const ScannerWidget = ScannerWidgetComponent;
-export const WeatherWidget = WeatherWidgetComponent;
+export const CalendarWidget = CalendarWidgetImport.default;
+export const TaskWidget = TaskWidgetImport.default;
+export const SpendingWidget = SpendingWidgetImport.default;
+export const ScannerWidget = ScannerWidgetImport.default;
+export const WeatherWidget = WeatherWidgetImport.default;
 
 // Create the widget components map after imports are complete
 export const WidgetComponents = {
-  calendar: CalendarWidgetComponent,
-  tasks: TaskWidgetComponent,
-  spending: SpendingWidgetComponent,
-  scanner: ScannerWidgetComponent,
-  weather: WeatherWidgetComponent
+  calendar: CalendarWidgetImport.default,
+  tasks: TaskWidgetImport.default,
+  spending: SpendWidgetImport.default,
+  scanner: ScannerWidgetImport.default,
+  weather: WeatherWidgetImport.default
 };
