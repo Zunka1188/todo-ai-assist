@@ -19,6 +19,8 @@ interface CalendarViewProps {
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   isCreateDialogOpen?: boolean;
   setIsCreateDialogOpen?: (open: boolean) => void;
+  isFileUploaderOpen?: boolean;
+  setIsFileUploaderOpen?: (open: boolean) => void;
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({
@@ -26,12 +28,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   searchTerm = '',
   weekStartsOn = 1,
   isCreateDialogOpen,
-  setIsCreateDialogOpen
+  setIsCreateDialogOpen,
+  isFileUploaderOpen = false,
+  setIsFileUploaderOpen = () => {}
 }) => {
   const [date, setDate] = useState<Date>(new Date());
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
-  const [showFileUploader, setShowFileUploader] = useState(false);
   
   const {
     events,
@@ -59,7 +62,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
   const handleFileUploadSuccess = (data: any) => {
     // Close file uploader
-    setShowFileUploader(false);
+    setIsFileUploaderOpen(false);
     
     // Create a new event from file data
     const newEvent = {
@@ -81,16 +84,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   return (
     <div className="space-y-4 w-full">
       {/* File Uploader */}
-      {showFileUploader && (
+      {isFileUploaderOpen && (
         <FileUploader
-          onClose={() => setShowFileUploader(false)}
+          onClose={() => setIsFileUploaderOpen(false)}
           onSaveSuccess={handleFileUploadSuccess}
         />
       )}
       
       {/* Event Form Dialog */}
       <EventFormDialog
-        isOpen={effectiveCreateDialogOpen && !showFileUploader}
+        isOpen={effectiveCreateDialogOpen && !isFileUploaderOpen}
         setIsOpen={effectiveSetCreateDialogOpen}
         onSubmit={handleSaveEvent}
         selectedEvent={selectedEvent}
@@ -99,7 +102,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       
       {/* Event View Dialog */}
       <EventViewDialog
-        isOpen={isViewDialogOpen && !showFileUploader}
+        isOpen={isViewDialogOpen && !isFileUploaderOpen}
         setIsOpen={setIsViewDialogOpen}
         selectedEvent={selectedEvent}
         onEdit={handleEditEvent}
@@ -107,7 +110,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       />
       
       {/* Calendar views */}
-      {!showFileUploader && (
+      {!isFileUploaderOpen && (
         <>
           {viewMode === 'month' && (
             <MonthView

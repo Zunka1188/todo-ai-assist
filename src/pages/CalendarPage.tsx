@@ -21,6 +21,12 @@ const CalendarPage = () => {
 
   const handleAddItem = () => {
     setCreateDialogOpen(true);
+    setShowFileUploader(false);
+  };
+  
+  const handleFileUpload = () => {
+    setShowFileUploader(true);
+    setCreateDialogOpen(false);
   };
 
   return (
@@ -44,10 +50,7 @@ const CalendarPage = () => {
                 New Event
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => {
-                  setShowFileUploader(true);
-                  setCreateDialogOpen(false);
-                }}
+                onClick={handleFileUpload}
                 className="cursor-pointer"
               >
                 <Upload className="h-4 w-4 mr-2" />
@@ -82,7 +85,9 @@ const CalendarPage = () => {
           searchTerm={searchTerm} 
           weekStartsOn={1} // Set to 1 for Monday (0 is Sunday)
           isCreateDialogOpen={createDialogOpen} 
-          setIsCreateDialogOpen={setCreateDialogOpen} 
+          setIsCreateDialogOpen={setCreateDialogOpen}
+          isFileUploaderOpen={showFileUploader}
+          setIsFileUploaderOpen={setShowFileUploader}
         />
       </div>
     </PageLayout>

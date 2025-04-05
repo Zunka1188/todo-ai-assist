@@ -1,48 +1,22 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AppHeader from '@/components/layout/AppHeader';
-import ScanningOptions from '@/components/features/scanning/ScanningOptions';
 import { Button } from '@/components/ui/button';
-import ScreenSelection from '@/components/features/scanning/ScreenSelection';
 import { useIsMobile } from '@/hooks/use-mobile';
 import FileUploader from '@/components/features/scanning/FileUploader';
 
 const ScanPage = () => {
   const navigate = useNavigate();
-  const [showScreenSelection, setShowScreenSelection] = useState(false);
   const [showFileUploader, setShowFileUploader] = useState(false);
   const { isMobile } = useIsMobile();
-  const [preferredMode, setPreferredMode] = useState<string | undefined>(undefined);
 
   // Get return destination from session storage if available
   const returnDestination = sessionStorage.getItem('returnToAfterScan');
 
-  // Check if we need to initialize camera right away (e.g., from a direct scan action)
-  useEffect(() => {
-    const directScanAction = sessionStorage.getItem('scanAction');
-    if (directScanAction) {
-      console.log("Direct scan action detected:", directScanAction);
-      // We'll leave the scanAction in sessionStorage for now
-      // It will be consumed by ScanningOptions component
-    }
-
-    // Check if there's a preferred scan mode in session storage
-    const mode = sessionStorage.getItem('preferredScanMode');
-    if (mode) {
-      setPreferredMode(mode);
-      console.log("Using preferred scan mode from session storage:", mode);
-      
-      // Important: We're not initializing the camera automatically here anymore
-      // This ensures the user sees the three buttons first
-    }
-  }, []);
-
   const goBack = () => {
-    if (showScreenSelection) {
-      setShowScreenSelection(false);
-    } else if (showFileUploader) {
+    if (showFileUploader) {
       setShowFileUploader(false);
     } else if (returnDestination) {
       // Clear the session storage
@@ -68,6 +42,9 @@ const ScanPage = () => {
       navigate('/spending');
     } else if (data.saveToDocuments || data.itemType === 'document') {
       navigate('/documents');
+    } else {
+      // Default fallback
+      navigate('/');
     }
   };
 
@@ -84,30 +61,35 @@ const ScanPage = () => {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <AppHeader 
-          title={
-            showScreenSelection ? "Screen Selection" : 
-            showFileUploader ? "Upload File" : 
-            "Smart Scanner"
-          } 
+          title={showFileUploader ? "Upload File" : "Smart Scanner"}
           className="py-0"
         />
       </div>
       
       <div className="flex-1">
-        {showScreenSelection ? (
-          <ScreenSelection onClose={() => setShowScreenSelection(false)} />
-        ) : showFileUploader ? (
+        {showFileUploader ? (
           <FileUploader 
             onClose={() => setShowFileUploader(false)}
             onSaveSuccess={handleFileUploadSuccess}
           />
         ) : (
-          <ScanningOptions 
-            onScreenSelectionClick={() => setShowScreenSelection(false)}
-            preferredMode={preferredMode}
-            noAutomaticActivation={true} // Always keep this as true to prevent automatic camera activation
-            onFileUpload={() => setShowFileUploader(true)} // Add file upload handler
-          />
+          <div className="flex flex-col items-center justify-center h-full p-4">
+            <div className="text-center mb-8">
+              <p className="text-lg font-medium mb-2">Upload files for AI-powered recognition</p>
+              <p className="text-sm text-muted-foreground">
+                Let our AI analyze your documents, receipts, and more
+              </p>
+            </div>
+
+            <Button 
+              onClick={() => setShowFileUploader(true)} 
+              size="lg"
+              className="flex items-center gap-2 px-8 py-6 h-auto"
+            >
+              <Upload className="h-5 w-5" />
+              Upload File
+            </Button>
+          </div>
         )}
       </div>
     </div>
