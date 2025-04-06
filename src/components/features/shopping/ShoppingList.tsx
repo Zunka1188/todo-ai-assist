@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -121,7 +120,7 @@ const ShoppingList = ({
           onClick={() => toggleItemCompletion(item.id)}
           onDelete={() => deleteItem(item.id)}
           onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
-          onImagePreview={() => handleImagePreview(item)} // Always provide this function
+          onImagePreview={() => handleImagePreview(item)}
         />
       ))}
     </div>
