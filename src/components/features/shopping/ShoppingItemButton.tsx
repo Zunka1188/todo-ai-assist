@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Maximize2, Share2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import ShareButton from '@/components/features/shared/ShareButton';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface ShoppingItemButtonProps {
   name: string;
@@ -30,6 +32,8 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
   onEdit,
   onImagePreview,
 }) => {
+  const { isMobile } = useIsMobile();
+  
   // Get appropriate badge color based on repeat option
   const getBadgeColorClass = () => {
     switch (repeatOption) {
@@ -48,7 +52,10 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
   };
 
   return (
-    <div className="relative h-full">
+    <div className={cn(
+      "relative h-full",
+      isMobile ? "" : "shopping-item-desktop"
+    )}>
       <div 
         className={`
           flex flex-col h-full rounded-md overflow-hidden border cursor-pointer
@@ -56,7 +63,10 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         `}
         onClick={onClick}
       >
-        <div className="relative w-full pt-[100%] bg-gray-100 overflow-hidden">
+        <div className={cn(
+          "relative w-full overflow-hidden bg-gray-100",
+          isMobile ? "pt-[100%]" : "pt-[70%]" // Reduced height ratio for desktop
+        )}>
           {imageUrl ? (
             <>
               <img
@@ -116,42 +126,62 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
       </div>
 
-      <div className="absolute top-1 left-1 flex gap-0.5">
+      <div className={cn(
+        "flex gap-0.5",
+        isMobile 
+          ? "absolute top-1 left-1" 
+          : "absolute top-2 right-2" // Position like in DocumentListItem for desktop
+      )}>
         <Button
           size="sm"
           variant="destructive"
-          className="h-4 w-4 p-0 opacity-90"
+          className={cn(
+            "opacity-90",
+            isMobile ? "h-4 w-4 p-0" : "h-8 w-8"
+          )}
           onClick={(e) => {
             e.stopPropagation();
             onDelete();
           }}
         >
-          <Trash2 className="h-2.5 w-2.5" />
+          <Trash2 className={cn(
+            isMobile ? "h-2.5 w-2.5" : "h-4 w-4"
+          )} />
         </Button>
         
         <Button
           size="sm" 
           variant="secondary"
-          className="h-4 w-4 p-0 opacity-90"
+          className={cn(
+            "opacity-90",
+            isMobile ? "h-4 w-4 p-0" : "h-8 w-8"
+          )}
           onClick={(e) => {
             e.stopPropagation();
             onEdit();
           }}
         >
-          <Pencil className="h-2.5 w-2.5" />
+          <Pencil className={cn(
+            isMobile ? "h-2.5 w-2.5" : "h-4 w-4"
+          )} />
         </Button>
         
         <ShareButton
-          size="sm"
+          size={isMobile ? "sm" : "icon"}
           variant="secondary"
-          className="h-4 w-4 p-0 opacity-90"
+          className={cn(
+            "opacity-90",
+            isMobile ? "h-4 w-4 p-0" : "h-8 w-8"
+          )}
           title={`Shopping item: ${name}`}
           text={`${name}${quantity ? ` - Quantity: ${quantity}` : ''}${notes ? `\n\nNotes: ${notes}` : ''}`}
           fileUrl={imageUrl}
           onClick={(e) => e.stopPropagation()}
           showOptions={true}
         >
-          <Share2 className="h-2.5 w-2.5" />
+          <Share2 className={cn(
+            isMobile ? "h-2.5 w-2.5" : "h-4 w-4"
+          )} />
         </ShareButton>
       </div>
     </div>

@@ -83,6 +83,12 @@
     margin-bottom: 1rem !important;
   }
   
+  /* Desktop-specific shopping item styles to match DocumentListItem */
+  .shopping-item-desktop .rounded-md {
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
   .purchase-button {
     background-color: #28a745 !important;
     color: white !important;
