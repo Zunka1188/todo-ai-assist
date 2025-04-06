@@ -65,6 +65,7 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
               </div>
             </div>
             <div className="flex space-x-2 ml-2">
+              {/* Full screen button */}
               <Button 
                 variant="outline" 
                 size="icon" 
@@ -77,6 +78,8 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
               >
                 <Maximize2 className="h-4 w-4" />
               </Button>
+              
+              {/* Share button with enhanced sharing options */}
               <ShareButton
                 variant="outline"
                 size="icon"
@@ -84,10 +87,12 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
                 title={`Check out this file: ${document.title}`}
                 fileUrl={document.fileUrl}
                 onClick={(e) => e.stopPropagation()}
+                showOptions={true}
                 aria-label="Share document"
               >
                 <Share2 className="h-4 w-4" />
               </ShareButton>
+              
               <Button 
                 variant="outline" 
                 size="icon" 

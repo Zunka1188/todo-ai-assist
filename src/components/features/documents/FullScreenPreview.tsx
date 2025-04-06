@@ -3,7 +3,7 @@ import React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { X, ExternalLink, Download, ArrowLeft, Share2 } from 'lucide-react';
+import { X, ExternalLink, Download, ArrowLeft } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import FilePreview from './FilePreview';
 import { DocumentItem, DocumentFile } from './types';
@@ -73,8 +73,8 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) 
           size="sm"
           variant="outline"
           className="gap-2"
+          showOptions={true}
         >
-          <Share2 className="h-4 w-4" />
           Share
         </ShareButton>
         <Button onClick={onClose} variant="default" size="sm">

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { ArrowLeft, Search, Plus, FileText, Image, Tag, ChefHat, Plane, Dumbbell, Shirt, X, Maximize2, Minimize2, Camera, FileArchive, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -26,10 +25,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-// Define the tab types
 type DocumentCategory = 'other' | 'style' | 'recipes' | 'travel' | 'fitness' | 'files';
 
-// Define the item type
 interface DocumentItem {
   id: string;
   title: string;
@@ -41,7 +38,6 @@ interface DocumentItem {
   addedDate?: Date;
 }
 
-// Sample initial data
 const initialItems: DocumentItem[] = [
   {
     id: '1',
@@ -127,7 +123,6 @@ const DocumentsSubtabPage = () => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<DocumentItem | null>(null);
   
-  // Form state
   const [title, setTitle] = useState('');
   const [itemType, setItemType] = useState<'note' | 'image'>('note');
   const [content, setContent] = useState('');
@@ -136,11 +131,9 @@ const DocumentsSubtabPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  // Image handling states
   const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
   const [imageToAnalyze, setImageToAnalyze] = useState<string | null>(null);
   
-  // Full screen image preview
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
   const goBack = () => {
@@ -196,7 +189,6 @@ const DocumentsSubtabPage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Generate preview URL
     const reader = new FileReader();
     reader.onload = (event) => {
       if (event.target?.result) {
@@ -204,7 +196,6 @@ const DocumentsSubtabPage = () => {
         setImagePreview(imageData);
         setContent(imageData);
         
-        // Trigger AI analysis
         setIsAnalyzingImage(true);
         setImageToAnalyze(imageData);
       }
@@ -222,10 +213,8 @@ const DocumentsSubtabPage = () => {
     setIsAnalyzingImage(false);
     
     if (result) {
-      // Populate form with AI analysis results
       if (result.title) setTitle(result.title);
       if (result.category) {
-        // Update active tab to match the detected category if possible
         const lowerCategory = result.category.toLowerCase() as DocumentCategory;
         if (['style', 'recipes', 'travel', 'fitness', 'other', 'files'].includes(lowerCategory)) {
           setActiveTab(lowerCategory);
@@ -276,7 +265,6 @@ const DocumentsSubtabPage = () => {
     };
 
     if (editingItem) {
-      // Update existing item
       setItems(items.map(item => 
         item.id === editingItem.id ? newItem : item
       ));
@@ -285,7 +273,6 @@ const DocumentsSubtabPage = () => {
         description: `"${title}" has been updated`,
       });
     } else {
-      // Add new item
       setItems([...items, newItem]);
       toast({
         title: "Item Added",
@@ -293,7 +280,6 @@ const DocumentsSubtabPage = () => {
       });
     }
 
-    // Clear form and close dialog
     setAddDialogOpen(false);
     setTitle('');
     setContent('');
@@ -317,7 +303,6 @@ const DocumentsSubtabPage = () => {
     setFullScreenImage(null);
   };
 
-  // Filter items based on active tab and search term
   const filteredItems = items.filter(item => 
     (item.category === activeTab) && 
     (searchTerm === '' || 
@@ -327,7 +312,6 @@ const DocumentsSubtabPage = () => {
 
   const handleShareItem = (item: DocumentItem, e: React.MouseEvent) => {
     e.stopPropagation();
-    // Share functionality will be handled by the ShareButton component
   };
 
   return (
@@ -376,7 +360,6 @@ const DocumentsSubtabPage = () => {
       
       <Separator className="my-2" />
       
-      {/* Category Tabs */}
       <div className="mb-4">
         <Tabs 
           defaultValue="style" 
@@ -473,7 +456,6 @@ const DocumentsSubtabPage = () => {
         </Tabs>
       </div>
 
-      {/* Add/Edit Item Dialog */}
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
         <DialogContent className={cn("sm:max-w-md", isMobile && "w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto")}>
           <DialogHeader>
@@ -601,7 +583,7 @@ const DocumentsSubtabPage = () => {
                 </div>
               </div>
             )}
-
+            
             <div className="grid gap-2">
               <Label htmlFor="tags">Tags (comma separated)</Label>
               <Input
@@ -631,7 +613,6 @@ const DocumentsSubtabPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Full Screen Image Viewer */}
       {fullScreenImage && (
         <div className="fixed inset-0 bg-black z-50 flex flex-col">
           <div className="p-4 flex justify-between items-center bg-black/80">
@@ -654,7 +635,6 @@ const DocumentsSubtabPage = () => {
         </div>
       )}
 
-      {/* AI Image Analysis Modal */}
       <ImageAnalysisModal
         imageData={imageToAnalyze}
         isOpen={isAnalyzingImage}
@@ -665,7 +645,6 @@ const DocumentsSubtabPage = () => {
   );
 };
 
-// Extracted DocumentItemsList component
 interface DocumentItemsListProps {
   items: DocumentItem[];
   getTypeIcon: (type: 'image' | 'note') => React.ReactNode;
@@ -681,7 +660,6 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
   onDelete,
   onViewImage
 }) => {
-  // Format date to European style (DD/MM/YYYY)
   const formatDateEuropean = (date: Date): string => {
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -689,7 +667,6 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
     return `${day}/${month}/${year}`;
   };
 
-  // Format date relative to now
   const formatDateRelative = (date?: Date): string => {
     if (!date) return '';
     
@@ -766,19 +743,20 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                   >
                     <Maximize2 className="h-4 w-4 text-white" />
                   </Button>
+                  
                   <ShareButton
                     size="sm"
                     className="h-9 w-9 p-0 bg-black/20 hover:bg-black/40 rounded-full"
                     title={`Check out: ${item.title}`}
                     text={item.title}
                     fileUrl={item.content}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    showOptions={true}
                     aria-label="Share item"
                   >
                     <Share2 className="h-4 w-4 text-white" />
                   </ShareButton>
+                  
                   <Button
                     size="sm"
                     variant="secondary"
@@ -852,13 +830,13 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                       className="h-8 w-8 p-0"
                       title={`Check out: ${item.title}`}
                       text={item.content}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      showOptions={true}
                       aria-label="Share item"
                     >
                       <Share2 className="h-4 w-4" />
                     </ShareButton>
+                    
                     <Button
                       size="sm"
                       variant="outline"
