@@ -23,6 +23,12 @@ const CalendarPage = () => {
     setShowFileUploader(false);
   };
 
+  // Handle dialog close without navigation
+  const handleDialogClose = (open: boolean) => {
+    setCreateDialogOpen(open);
+    // No navigation, just update the dialog state
+  };
+
   return (
     <PageLayout maxWidth="full">
       <PageHeader
@@ -61,7 +67,7 @@ const CalendarPage = () => {
           searchTerm={searchTerm} 
           weekStartsOn={1} // Set to 1 for Monday (0 is Sunday)
           isCreateDialogOpen={createDialogOpen} 
-          setIsCreateDialogOpen={setCreateDialogOpen}
+          setIsCreateDialogOpen={handleDialogClose}
           isFileUploaderOpen={showFileUploader}
           setIsFileUploaderOpen={setShowFileUploader}
         />

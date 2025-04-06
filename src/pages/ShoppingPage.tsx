@@ -10,7 +10,7 @@ import { useShoppingItems } from '@/components/features/shopping/useShoppingItem
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import PageHeader from '@/components/ui/page-header';
-import { cn } from '@/lib/utils'; // This import is essential for using cn function
+import { cn } from '@/lib/utils';
 
 const ShoppingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -49,6 +49,7 @@ const ShoppingPage: React.FC = () => {
 
   const handleCloseEditDialog = () => {
     setEditItem(null);
+    // No navigation, just close the dialog
   }
 
   const handleSaveItem = (item: any) => {

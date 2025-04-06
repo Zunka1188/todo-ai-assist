@@ -135,7 +135,7 @@ const DocumentsPage = () => {
               documents={filteredFiles}
               onAddDocument={handleAddOrUpdateFile}
               onEditDocument={(doc) => {
-                // Fix: Pass the document object directly instead of a string
+                // Pass the document object directly
                 handleViewFullScreen(doc);
               }}
               onDeleteDocument={handleDeleteFile}
