@@ -1,204 +1,98 @@
 
 import React from 'react';
-import { X, Download, ArrowLeft, Edit, Trash } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import FilePreview from './FilePreview';
-import { DocumentFile, DocumentItem } from './types';
-import { useToast } from '@/hooks/use-toast';
+import { X, ExternalLink, Download, ArrowLeft } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import FilePreview from './FilePreview';
+import { DocumentItem, DocumentFile } from './types';
 
 interface FullScreenPreviewProps {
-  item: DocumentFile | DocumentItem | null;
+  item: DocumentItem | DocumentFile | null;
   onClose: () => void;
-  onEdit?: (item: DocumentFile | DocumentItem) => void;
-  onDelete?: (id: string) => void;
 }
 
-const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ 
-  item, 
-  onClose,
-  onEdit,
-  onDelete
-}) => {
-  const { toast } = useToast();
+const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) => {
   const { isMobile } = useIsMobile();
   
   if (!item) return null;
 
-  // Handle different item types (DocumentFile vs DocumentItem)
-  const getFileUrl = () => {
-    if ('fileUrl' in item) return item.fileUrl;
-    if ('file' in item) return item.file;
-    if ('content' in item && item.type === 'image') return item.content;
-    return null;
-  };
-
-  const getTitle = () => {
-    return item.title;
-  };
-
-  const getFileType = () => {
-    if ('fileType' in item) return item.fileType;
-    if ('type' in item) return item.type;
-    return undefined;
-  };
+  const isDocumentItem = 'type' in item;
   
-  const fileUrl = getFileUrl();
-  const fileType = getFileType();
+  const fileUrl = isDocumentItem 
+    ? (item.type === 'image' ? item.content : item.file || '') 
+    : (item.fileUrl || '');
+    
+  const fileType = isDocumentItem
+    ? (item.type === 'image' ? 'image' : item.fileType || '')
+    : (item.fileType || '');
+    
+  const title = item.title || 'Document Preview';
 
-  // Handle download
-  const handleDownload = () => {
-    if (fileUrl) {
-      try {
-        // Create a temporary anchor element
-        const link = document.createElement('a');
-        
-        // Handle data URLs (typically for uploaded files)
-        if (fileUrl.startsWith('data:')) {
-          link.href = fileUrl;
-          link.download = getTitle() || `download.${fileType || 'file'}`;
-        } else {
-          // For remote URLs, open in new tab for better cross-browser compatibility
-          link.href = fileUrl;
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
-          link.download = getTitle() || `download.${fileType || 'file'}`;
-        }
-        
-        // Add to DOM, click and remove
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        toast({
-          title: "Download started",
-          description: `Downloading ${getTitle() || "file"}`,
-        });
-      } catch (error) {
-        console.error("Download error:", error);
-        toast({
-          title: "Download failed",
-          description: "There was a problem downloading the file.",
-          variant: "destructive",
-        });
-      }
-    } else {
-      toast({
-        title: "Download failed",
-        description: "No file available to download.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleEdit = () => {
-    if (onEdit && item) {
-      onEdit(item);
-      onClose();
-    }
-  };
-
-  const handleDelete = () => {
-    if (onDelete && item) {
-      onDelete(item.id);
-      onClose();
-      toast({
-        title: "Item deleted",
-        description: `${getTitle()} has been removed`,
-      });
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex flex-col">
-      <div className="flex justify-between items-center p-4 bg-background/10 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20"
-            onClick={onClose}
-            aria-label="Back"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="text-white font-medium">{getTitle()}</div>
-        </div>
-        <div className="flex items-center gap-2">
-          {onEdit && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-white border-white/30 hover:bg-white/20"
-              onClick={handleEdit}
-              aria-label="Edit item"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              {!isMobile && "Edit"}
-            </Button>
-          )}
-          
-          {onDelete && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-white border-white/30 hover:bg-white/20"
-              onClick={handleDelete}
-              aria-label="Delete item"
-            >
-              <Trash className="h-4 w-4 mr-2" />
-              {!isMobile && "Delete"}
-            </Button>
-          )}
-          
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-white border-white/30 hover:bg-white/20"
-            onClick={handleDownload}
-            aria-label="Download file"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            {!isMobile && "Download"}
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20"
-            onClick={onClose}
-            aria-label="Close preview"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
+  const content = (
+    <div className="flex flex-col h-full">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">{title}</h2>
+        <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-500">
+          <X className="h-5 w-5" />
+        </Button>
       </div>
-      <div className="flex-1 flex items-center justify-center overflow-auto p-4">
-        {('content' in item && item.type === 'note') ? (
-          <div className="bg-white p-6 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <h2 className="text-xl font-medium mb-4">{item.title}</h2>
-            <p className="whitespace-pre-wrap">{item.content}</p>
-            {item.tags && item.tags.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {item.tags.map((tag, index) => (
-                  <span key={index} className="bg-muted px-2 py-1 text-xs rounded-full">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : (
-          <FilePreview
-            file={getFileUrl()}
-            fileName={getTitle()}
-            fileType={getFileType()}
-            className="max-w-full max-h-full bg-white rounded-lg"
-            fullScreen={true}
-          />
+      
+      <div className="flex-1 overflow-hidden rounded-md border bg-background">
+        <FilePreview 
+          file={fileUrl} 
+          fileName={isDocumentItem ? (item.fileName || title) : title} 
+          fileType={fileType} 
+          className="w-full h-full object-contain"
+        />
+      </div>
+      
+      <div className="flex justify-end space-x-2 mt-4">
+        {fileUrl && !fileUrl.startsWith('data:') && (
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <a href={fileUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Open
+              </a>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <a href={fileUrl} download>
+                <Download className="h-4 w-4 mr-2" />
+                Download
+              </a>
+            </Button>
+          </>
         )}
+        <Button onClick={onClose} variant="default" size="sm">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Close
+        </Button>
       </div>
     </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={!!item} onOpenChange={(open) => {
+        if (!open) onClose();
+      }}>
+        <DrawerContent className="px-4 pb-6 pt-4 h-[85vh]">
+          {content}
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  return (
+    <Dialog open={!!item} onOpenChange={(open) => {
+      if (!open) onClose();
+    }}>
+      <DialogContent className="sm:max-w-[600px] p-6 max-h-[85vh]">
+        {content}
+      </DialogContent>
+    </Dialog>
   );
 };
 

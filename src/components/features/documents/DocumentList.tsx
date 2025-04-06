@@ -48,6 +48,17 @@ const DocumentList: React.FC<DocumentListProps> = ({
     setIsAddDialogOpen(true);
   };
 
+  // Handle dialog closure without navigation
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsAddDialogOpen(open);
+    // No navigation, just update the dialog state
+  };
+
+  const handleFullScreenClose = () => {
+    setFullScreenItem(null);
+    // No navigation, just close the preview
+  };
+
   const handleEditDocument = (doc: DocumentFile) => {
     handleOpenAddDialog(doc);
   };
@@ -77,7 +88,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
         </div>
         <AddDocumentDialog
           open={isAddDialogOpen}
-          onOpenChange={setIsAddDialogOpen}
+          onOpenChange={handleDialogOpenChange}
           onAdd={handleAddDocument}
           categories={categories as string[]}
           currentCategory="files"
@@ -124,7 +135,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
 
       <AddDocumentDialog
         open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
+        onOpenChange={handleDialogOpenChange}
         onAdd={handleAddDocument}
         categories={categories as string[]}
         currentCategory="files"
@@ -145,7 +156,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
       
       <FullScreenPreview
         item={fullScreenItem}
-        onClose={() => setFullScreenItem(null)}
+        onClose={handleFullScreenClose}
       />
     </div>
   );

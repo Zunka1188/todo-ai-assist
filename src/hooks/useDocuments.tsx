@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentItem, DocumentFile, DocumentCategory, CATEGORIES } from '@/components/features/documents/types';
@@ -164,7 +163,7 @@ PROTEIN POWER SMOOTHIE
   { 
     id: '8', 
     title: 'Monthly Budget Template', 
-    category: 'work', 
+    category: 'events', 
     date: yesterday.toISOString(), 
     fileType: 'excel', 
     fileUrl: 'https://file-examples.com/storage/fe52cb0b376493c23d94809/2017/02/file_example_XLS_5000.xls'
@@ -172,7 +171,7 @@ PROTEIN POWER SMOOTHIE
   { 
     id: '9', 
     title: 'Project Proposal', 
-    category: 'work', 
+    category: 'events', 
     date: twoDaysAgo.toISOString(), 
     fileType: 'word', 
     fileUrl: 'https://file-examples.com/storage/fe52cb0b376493c23d94809/2017/02/file-sample_100kB.doc'

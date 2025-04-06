@@ -64,6 +64,18 @@ const DocumentsPage = () => {
   const filteredItems = filterDocuments(categoryItems, activeTab, searchTerm);
   const filteredFiles = filterFiles(files, searchTerm);
 
+  // Handle dialog close to ensure we stay on the same tab
+  const handleDialogClose = (open: boolean) => {
+    setIsAddDialogOpen(open);
+    // We don't navigate anywhere when closing dialog, just stay on current tab
+  };
+
+  // Similarly for full screen preview
+  const handleFullScreenClose = () => {
+    setFullScreenPreviewItem(null);
+    // No navigation, stay on current tab
+  };
+
   return (
     <div className="flex flex-col h-full">
       <PageHeader
@@ -137,7 +149,7 @@ const DocumentsPage = () => {
 
       <AddDocumentDialog 
         open={isAddDialogOpen} 
-        onOpenChange={setIsAddDialogOpen} 
+        onOpenChange={handleDialogClose} 
         onAdd={handleAddItem} 
         categories={CATEGORIES as string[]} 
         currentCategory={currentCategory} 
@@ -158,7 +170,7 @@ const DocumentsPage = () => {
 
       <FullScreenPreview
         item={fullScreenPreviewItem}
-        onClose={() => setFullScreenPreviewItem(null)}
+        onClose={handleFullScreenClose}
       />
     </div>
   );
