@@ -22,6 +22,12 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
 }) => {
   const { isMobile } = useIsMobile();
   
+  // Format ISO date string to European format (DD/MM/YYYY)
+  const formatDateEuropean = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB');
+  };
+  
   return (
     <div className="p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors">
       <div className="flex items-start">
@@ -36,7 +42,7 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
                 Category: {document.category.charAt(0).toUpperCase() + document.category.slice(1)}
               </div>
               <div className="text-xs text-muted-foreground mt-0.5">
-                {document.date}
+                {formatDateEuropean(document.date)}
               </div>
             </div>
             <div className="flex space-x-2 ml-2">

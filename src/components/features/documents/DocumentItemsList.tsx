@@ -24,6 +24,11 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
 }) => {
   const { isMobile } = useIsMobile();
 
+  // Format date to European style (DD/MM/YYYY)
+  const formatDateEuropean = (date: Date): string => {
+    return date.toLocaleDateString('en-GB');
+  };
+
   if (items.length === 0) {
     return (
       <div className="text-center py-8">
@@ -65,7 +70,7 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                     ))}
                   </div>
                   <div className="flex items-center text-xs text-white/80 mt-1.5">
-                    <span>{item.date.toLocaleDateString()}</span>
+                    <span>{formatDateEuropean(item.date)}</span>
                     <span className="mx-0.5">•</span>
                     <span>Added {formatDateRelative(item.addedDate)}</span>
                   </div>
@@ -138,7 +143,7 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                       ))}
                     </div>
                     <div className="flex items-center text-xs text-muted-foreground mt-2">
-                      <span>{item.date.toLocaleDateString()}</span>
+                      <span>{formatDateEuropean(item.date)}</span>
                       <span className="mx-0.5">•</span>
                       <span>Added {formatDateRelative(item.addedDate)}</span>
                     </div>
