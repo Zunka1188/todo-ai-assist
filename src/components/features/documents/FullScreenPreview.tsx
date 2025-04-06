@@ -77,7 +77,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) 
     return (
       <Drawer open={!!item} onOpenChange={(open) => {
         if (!open) onClose();
-      }}>
+      }} dismissible={false}>
         <DrawerContent className="px-4 pb-6 pt-4 h-[85vh]">
           {content}
         </DrawerContent>
@@ -88,7 +88,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) 
   return (
     <Dialog open={!!item} onOpenChange={(open) => {
       if (!open) onClose();
-    }}>
+    }} modal={true}>
       <DialogContent className="sm:max-w-[600px] p-6 max-h-[85vh]">
         {content}
       </DialogContent>
