@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog,
@@ -43,6 +42,7 @@ interface ItemData {
   fileName?: string;
   fileType?: string;
   repeatOption?: 'none' | 'weekly' | 'monthly';
+  completed?: boolean;
 }
 
 interface AddItemDialogProps {
@@ -125,7 +125,8 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       file,
       fileName: fileName || undefined,
       fileType: fileType || undefined,
-      repeatOption
+      repeatOption,
+      completed: false // Explicitly add completed property
     };
     
     console.log("Saving item with data:", itemData);

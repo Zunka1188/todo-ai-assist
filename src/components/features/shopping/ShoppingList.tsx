@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -64,7 +63,7 @@ const ShoppingList = ({
         repeatOption: itemData.repeatOption || 'none',
         category: itemData.category || '',
         dateToPurchase: '',
-        completed: false
+        completed: false // Ensure this is explicitly set
       };
       
       console.log("ShoppingList - Structured item to add:", newItem);

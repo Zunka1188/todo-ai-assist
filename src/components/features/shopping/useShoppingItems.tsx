@@ -172,7 +172,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       // Create a properly structured item with defaults for missing properties
       const item: ShoppingItem = {
         id: newItem.id || Date.now().toString(),
-        completed: newItem.completed ?? false,
+        completed: newItem.completed ?? false, // Use nullish coalescing to default to false
         dateAdded: newItem.dateAdded || new Date(),
         name: newItem.name,
         category: newItem.category || '',

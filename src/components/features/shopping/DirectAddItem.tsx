@@ -28,6 +28,7 @@ const DirectAddItem = () => {
         imageUrl: null, 
         notes: `Test note for ${repeatOption} item`,
         repeatOption: repeatOption,
+        completed: false // This was missing
       };
       
       console.log("Adding test item:", newItem);
