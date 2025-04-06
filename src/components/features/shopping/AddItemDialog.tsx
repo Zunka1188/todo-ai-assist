@@ -224,7 +224,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
             variant="ghost" 
             size="icon"
             className="text-white" 
-            onClick={() => onOpenChange(false)}
+            onClick={handleCancel}
           >
             <X className="h-6 w-6" />
           </Button>
@@ -361,9 +361,9 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     </>
   );
 
-  return (
-    <>
-      {isMobile ? (
+  if (isMobile) {
+    return (
+      <>
         <Drawer open={open} onOpenChange={onOpenChange}>
           <DrawerContent className="max-h-[85vh] overflow-hidden">
             <DrawerHeader className="px-4 py-2">
@@ -388,34 +388,46 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
-      ) : (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-          <DialogContent 
-            className="sm:max-w-md overflow-hidden max-h-[85vh] flex flex-col"
-            preventNavigateOnClose={true}
-          >
-            <DialogHeader>
-              <DialogTitle>{isEditing ? "Edit Item" : "Add New Item"}</DialogTitle>
-            </DialogHeader>
 
-            <ScrollArea className="flex-1 max-h-[60vh] pr-4 overflow-y-auto" scrollRef={scrollRef}>
-              {dialogContent}
-            </ScrollArea>
+        <ImageAnalysisModal
+          imageData={file}
+          fileName={fileName}
+          isOpen={showAnalysisModal}
+          onAnalysisComplete={handleAnalysisComplete}
+          onClose={() => setShowAnalysisModal(false)}
+        />
+      </>
+    );
+  }
 
-            <DialogFooter className="mt-4 pt-2 border-t">
-              <Button variant="outline" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleSave}
-                disabled={name.trim() === '' && !file}
-              >
-                {isEditing ? "Save Changes" : "Add to Shopping List"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent 
+          className="sm:max-w-md overflow-hidden max-h-[85vh] flex flex-col"
+          preventNavigateOnClose={true}
+        >
+          <DialogHeader>
+            <DialogTitle>{isEditing ? "Edit Item" : "Add New Item"}</DialogTitle>
+          </DialogHeader>
+
+          <ScrollArea className="flex-1 max-h-[60vh] pr-4 overflow-y-auto" scrollRef={scrollRef}>
+            {dialogContent}
+          </ScrollArea>
+
+          <DialogFooter className="mt-4 pt-2 border-t">
+            <Button variant="outline" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSave}
+              disabled={name.trim() === '' && !file}
+            >
+              {isEditing ? "Save Changes" : "Add to Shopping List"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ImageAnalysisModal
         imageData={file}

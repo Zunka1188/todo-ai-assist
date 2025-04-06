@@ -226,7 +226,7 @@ const ShoppingPage: React.FC = () => {
         </div>
       )}
 
-      {/* Fixed issue with mobile view dialog */}
+      {/* Always render the dialog component but control visibility with open prop */}
       <AddItemDialog 
         open={showAddDialog} 
         onOpenChange={handleAddDialogChange}
