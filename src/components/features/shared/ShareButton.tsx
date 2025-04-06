@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Share2, Copy, Instagram, MessageSquare, Link as LinkIcon } from 'lucide-react';
@@ -40,15 +39,12 @@ const ShareButton: React.FC<ShareButtonProps> = ({
   const { isMobile } = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   
-  // Determine which URL to share (passed URL or current page)
   const shareUrl = url || window.location.href;
   
-  // Try to detect if the ToDo app is installed
   const isToDoAppInstalled = window.navigator.userAgent.includes('ToDoApp');
 
   const handleNativeShare = async () => {
     try {
-      // Web Share API is supported
       const shareData: ShareData = {
         title,
         text: text || title,
@@ -58,7 +54,6 @@ const ShareButton: React.FC<ShareButtonProps> = ({
         shareData.url = shareUrl;
       }
 
-      // If there's a file to share
       if (file) {
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
@@ -66,11 +61,9 @@ const ShareButton: React.FC<ShareButtonProps> = ({
             ...shareData,
           });
         } else {
-          // Fallback to sharing without file
           await navigator.share(shareData);
         }
       } else if (fileUrl) {
-        // Try to fetch and share the file from URL
         try {
           const response = await fetch(fileUrl);
           const blob = await response.blob();
@@ -83,7 +76,6 @@ const ShareButton: React.FC<ShareButtonProps> = ({
               ...shareData,
             });
           } else {
-            // Fallback to sharing without file
             await navigator.share(shareData);
           }
         } catch (error) {
@@ -91,7 +83,6 @@ const ShareButton: React.FC<ShareButtonProps> = ({
           await navigator.share(shareData);
         }
       } else {
-        // Regular share without files
         await navigator.share(shareData);
       }
       
@@ -131,14 +122,18 @@ const ShareButton: React.FC<ShareButtonProps> = ({
         shareAppUrl = `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`;
         break;
       case 'instagram':
-        // Instagram doesn't have a direct share URL, but we can copy to clipboard
-        // and prompt the user to share via Instagram
         navigator.clipboard.writeText(`${title} ${shareUrl}`);
         toast.success('Content copied! Now you can paste it in Instagram');
         setIsOpen(false);
         return;
       case 'messenger':
-        shareAppUrl = `https://www.facebook.com/dialog/send?link=${encodedUrl}&app_id=184683071273&redirect_uri=${encodedUrl}`;
+        if (isMobile) {
+          shareAppUrl = `fb-messenger://share/?link=${encodedUrl}`;
+        } else {
+          shareAppUrl = `https://www.messenger.com/new`;
+          navigator.clipboard.writeText(`${title} ${shareUrl}`);
+          toast.success('Opening Messenger. Content copied to clipboard for sharing!');
+        }
         break;
       default:
         return;
@@ -153,16 +148,12 @@ const ShareButton: React.FC<ShareButtonProps> = ({
     e.preventDefault();
     
     if (navigator.share && isMobile) {
-      // Use native share on mobile
       handleNativeShare();
     } else if (isToDoAppInstalled) {
-      // Custom handling for ToDo app
       handleToDoAppShare();
     } else if (showOptions) {
-      // Show dropdown if options are enabled
       setIsOpen(true);
     } else {
-      // Fallback for browsers without Web Share API
       if (!isMobile) {
         navigator.clipboard.writeText(shareUrl);
         toast.success('Link copied to clipboard');
@@ -172,7 +163,6 @@ const ShareButton: React.FC<ShareButtonProps> = ({
     }
   };
 
-  // Simple share button without dropdown
   if (!showOptions) {
     return (
       <Button 
@@ -187,7 +177,6 @@ const ShareButton: React.FC<ShareButtonProps> = ({
     );
   }
 
-  // Enhanced share button with dropdown options
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
@@ -219,7 +208,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleAppShare('messenger')}>
           <MessageSquare className="h-4 w-4 mr-2" />
-          Share to Messenger
+          Share to Messenger App
         </DropdownMenuItem>
         {isToDoAppInstalled && (
           <DropdownMenuItem onClick={handleToDoAppShare}>
