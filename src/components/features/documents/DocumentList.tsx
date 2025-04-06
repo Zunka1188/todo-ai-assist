@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import AddDocumentDialog from './AddDocumentDialog';
 import { DocumentFile, DocumentCategory } from './types';
 import { getCategoryIcon, getFileTypeIcon } from './utils/iconHelpers';
 import DocumentListItem from './DocumentListItem';
+import DocumentTableView from './DocumentTableView';
 import FullScreenPreview from './FullScreenPreview';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -17,6 +17,7 @@ interface DocumentListProps {
   onDeleteDocument: (id: string) => void;
   searchTerm?: string;
   categories?: DocumentCategory[];
+  viewMode?: 'grid' | 'table';
 }
 
 const DocumentList: React.FC<DocumentListProps> = ({ 
@@ -25,7 +26,8 @@ const DocumentList: React.FC<DocumentListProps> = ({
   onEditDocument,
   onDeleteDocument,
   searchTerm = '', 
-  categories = []
+  categories = [],
+  viewMode = 'table'
 }) => {
   const { isMobile } = useIsMobile();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -74,19 +76,27 @@ const DocumentList: React.FC<DocumentListProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-3">
-        {documents.map((doc) => (
-          <DocumentListItem 
-            key={doc.id}
-            document={doc}
-            onEdit={() => handleEditDocument(doc)}
-            onDelete={() => onDeleteDocument(doc.id)}
-            onFullScreen={() => setFullScreenItem(doc)}
-          />
-        ))}
-      </div>
+      {viewMode === 'table' ? (
+        <DocumentTableView 
+          documents={documents}
+          onEdit={handleEditDocument}
+          onDelete={onDeleteDocument}
+          onFullScreen={(doc) => setFullScreenItem(doc)}
+        />
+      ) : (
+        <div className="space-y-3">
+          {documents.map((doc) => (
+            <DocumentListItem 
+              key={doc.id}
+              document={doc}
+              onEdit={() => handleEditDocument(doc)}
+              onDelete={() => onDeleteDocument(doc.id)}
+              onFullScreen={() => setFullScreenItem(doc)}
+            />
+          ))}
+        </div>
+      )}
 
-      {/* Add document dialog */}
       <AddDocumentDialog
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
@@ -103,7 +113,6 @@ const DocumentList: React.FC<DocumentListProps> = ({
         } : null}
       />
       
-      {/* Full screen preview dialog */}
       <FullScreenPreview
         item={fullScreenItem}
         onClose={() => setFullScreenItem(null)}

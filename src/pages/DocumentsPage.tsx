@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddDocumentDialog from '@/components/features/documents/AddDocumentDialog';
@@ -35,7 +34,6 @@ const DocumentsPage = () => {
   const [editingItem, setEditingItem] = useState<DocumentItem | null>(null);
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
-  // Default category for new documents
   const currentCategory = activeTab;
 
   const handleOpenAddDialog = (editing: DocumentItem | null = null) => {
@@ -82,7 +80,6 @@ const DocumentsPage = () => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Using our new PageHeader component */}
       <PageHeader
         title="Documents"
         searchTerm={searchTerm}
@@ -123,7 +120,6 @@ const DocumentsPage = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Category Content Tabs */}
         <TabsContent value="style">
           <div>
             <DocumentItemsList 
@@ -202,7 +198,6 @@ const DocumentsPage = () => {
               documents={filteredFiles}
               onAddDocument={handleAddItem}
               onEditDocument={(doc) => {
-                // Convert DocumentFile to edit format
                 const editItem = {
                   id: doc.id,
                   title: doc.title,
@@ -218,6 +213,7 @@ const DocumentsPage = () => {
               onDeleteDocument={handleDeleteFile}
               searchTerm={searchTerm} 
               categories={CATEGORIES as DocumentCategory[]} 
+              viewMode="table"
             />
           </div>
         </TabsContent>
@@ -244,7 +240,6 @@ const DocumentsPage = () => {
         } : null} 
       />
 
-      {/* Full Screen Image Viewer */}
       {fullScreenImage && (
         <div className="fixed inset-0 bg-black z-50 flex flex-col">
           <div className="p-4 flex justify-between items-center bg-black/80">
