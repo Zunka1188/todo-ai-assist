@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Maximize2, Share2 } from 'lucide-react';
@@ -59,14 +58,14 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       <div 
         className={cn(
           "flex flex-col rounded-md overflow-hidden border cursor-pointer",
-          isMobile ? "h-24 w-full" : "h-36 w-64", // Adjusted back to original height
+          isMobile ? "h-24 w-full" : "h-36 w-64",
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
         onClick={onClick}
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",
-          isMobile ? "h-16" : "h-24" // Adjusted height for mobile to match the toothpaste button
+          isMobile ? "h-16" : "h-24"
         )}>
           {imageUrl ? (
             <>
@@ -93,29 +92,18 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             <div className="absolute bottom-1 left-1">
               <Badge className={cn(
                 getBadgeColorClass(),
-                isMobile ? "text-xs px-1 py-0" : "text-xs py-0" // Small badge
+                isMobile ? "text-xs px-1 py-0" : "text-xs py-0"
               )}>
                 {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
               </Badge>
             </div>
           )}
-          
-          {/* Always show expand button regardless of image */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onImagePreview) onImagePreview();
-            }}
-            className="absolute bottom-0.5 right-0.5 p-0.5 bg-black/30 rounded-full hover:bg-black/50"
-          >
-            <Maximize2 className="h-3.5 w-3.5 text-white" />
-          </button>
         </div>
         
         <div className="p-1 flex-grow">
           <h3 className={cn(
             "font-medium truncate", 
-            "text-xs", // Same text size for both mobile and desktop
+            "text-xs",
             completed ? 'line-through text-gray-500' : ''
           )}>
             {name}
@@ -141,21 +129,19 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
       </div>
 
-      {isMobile && (
-        <div className="absolute top-1 right-1">
-          <Button
-            size="sm"
-            variant="secondary"
-            className="h-5 w-5 p-0 opacity-90 rounded-full" // Smaller size to fit better
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onImagePreview) onImagePreview();
-            }}
-          >
-            <Maximize2 className="h-3 w-3" /> {/* Smaller icon */}
-          </Button>
-        </div>
-      )}
+      <div className="absolute top-1 right-1">
+        <Button
+          size="sm"
+          variant="secondary"
+          className="h-5 w-5 p-0 opacity-90 rounded-full"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onImagePreview) onImagePreview();
+          }}
+        >
+          <Maximize2 className="h-3 w-3" />
+        </Button>
+      </div>
       
       {!isMobile && (
         <>
