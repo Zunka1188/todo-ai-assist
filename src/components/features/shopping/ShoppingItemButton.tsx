@@ -59,14 +59,14 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       <div 
         className={cn(
           "flex flex-col rounded-md overflow-hidden border cursor-pointer",
-          isMobile ? "h-32 w-full" : "h-36 w-64", // Increased height from h-28 to h-32 for more space
+          isMobile ? "h-32 w-full" : "h-36 w-64", 
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
         onClick={onClick}
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",
-          isMobile ? "h-24" : "h-24" // Increased height from h-20 to h-24 for mobile
+          isMobile ? "h-24" : "h-24" 
         )}>
           {imageUrl ? (
             <>
@@ -113,7 +113,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           )}
         </div>
         
-        <div className="p-2 flex-grow"> {/* Increased padding from p-1 to p-2 */}
+        <div className="p-2 flex-grow">
           <h3 className={cn(
             "font-medium truncate", 
             isMobile ? "text-sm" : "text-xs",
@@ -143,17 +143,17 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       </div>
 
       {isMobile && onImagePreview && (
-        <div className="absolute top-2 right-2"> {/* Increased top and right from 1 to 2 for better positioning */}
+        <div className="absolute top-2 right-2">
           <Button
             size="sm"
             variant="secondary"
-            className="h-8 w-8 p-0 opacity-90 rounded-full" {/* Increased from h-7 w-7 to h-8 w-8 */}
+            className="h-8 w-8 p-0 opacity-90 rounded-full"
             onClick={(e) => {
               e.stopPropagation();
               onImagePreview();
             }}
           >
-            <Maximize2 className="h-5 w-5" /> {/* Increased from h-4 w-4 to h-5 w-5 */}
+            <Maximize2 className="h-5 w-5" />
           </Button>
         </div>
       )}
