@@ -51,19 +51,16 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
     const heightValue = Math.max((visibleEndHourDecimal - visibleStartHourDecimal) * HOUR_HEIGHT, 20);
     
     // Calculate horizontal positioning for all events
-    // Use optimal width based on screen size
-    // Desktop: Maximum width of 85% to prevent overly wide events
-    // Mobile: Maintain current behavior with 90% width
     const leftOffset = 5;
     
-    // If there are overlapping events, adjust the width
+    // If there are overlapping events, adjust the width and position
     const widthValue = totalOverlapping > 1 ? 
-      (isMobile ? 90 / totalOverlapping : 85 / totalOverlapping) : 
-      (isMobile ? 90 : 85);
+      (isMobile ? 88 / totalOverlapping : 90 / totalOverlapping) : 
+      (isMobile ? 88 : 90);
     
     // For overlapping events, calculate position based on index
     const leftPosition = totalOverlapping > 1 ? 
-      leftOffset + (index * (isMobile ? 90 / totalOverlapping : 85 / totalOverlapping)) : 
+      leftOffset + (index * (isMobile ? 88 / totalOverlapping : 90 / totalOverlapping)) : 
       leftOffset;
     
     return {
@@ -88,14 +85,24 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
       <div className={`font-medium text-white truncate ${isMobile ? "text-xs" : ""}`}>
         {event.title}
       </div>
-      <div className={`flex items-center text-white/90 mt-1 ${isMobile ? "text-[0.65rem]" : "text-xs"}`}>
-        <Clock className={`mr-1 flex-shrink-0 ${isMobile ? "h-2.5 w-2.5" : "h-3 w-3"}`} />
-        <span className="truncate">{getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}</span>
-      </div>
-      {event.location && (
-        <div className={`flex items-center text-white/90 mt-1 ${isMobile ? "text-[0.65rem]" : "text-xs"}`}>
-          <MapPin className={`mr-1 flex-shrink-0 ${isMobile ? "h-2.5 w-2.5" : "h-3 w-3"}`} />
-          <span className="truncate">{event.location}</span>
+      {!isMobile && (
+        <>
+          <div className="flex items-center text-white/90 mt-1 text-xs">
+            <Clock className="mr-1 flex-shrink-0 h-3 w-3" />
+            <span className="truncate">{getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}</span>
+          </div>
+          {event.location && (
+            <div className="flex items-center text-white/90 mt-1 text-xs">
+              <MapPin className="mr-1 flex-shrink-0 h-3 w-3" />
+              <span className="truncate">{event.location}</span>
+            </div>
+          )}
+        </>
+      )}
+      {isMobile && (
+        <div className="flex items-center text-white/90 mt-0.5 text-[0.65rem]">
+          <Clock className="mr-0.5 flex-shrink-0 h-2.5 w-2.5" />
+          <span className="truncate">{getFormattedTime(event.startDate)}</span>
         </div>
       )}
     </div>

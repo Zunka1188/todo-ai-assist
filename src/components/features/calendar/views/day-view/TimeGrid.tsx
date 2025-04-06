@@ -24,6 +24,9 @@ const TimeGrid: React.FC<TimeGridProps> = ({
   const { isMobile } = useIsMobile();
   const isCurrentDate = isToday(date);
   const now = new Date();
+  
+  // Calculate hour height based on device
+  const hourHeight = isMobile ? 60 : 80;
 
   return (
     <div className={cn(
@@ -60,20 +63,17 @@ const TimeGrid: React.FC<TimeGridProps> = ({
             key={hour} 
             className={cn(
               "grid grid-cols-[3.5rem_1fr] border-b",
-              isMobile ? "min-h-[50px]" : "min-h-[80px]",
+              "min-h-[" + hourHeight + "px]",
               isCurrentHour && "bg-accent/20"
             )}
           >
-            <div className={cn(
-              "p-2 text-right text-muted-foreground border-r",
-              "text-xs"
-            )}>
+            <div className="p-2 text-right text-muted-foreground border-r text-xs">
               {format(hourDate, 'h a')}
             </div>
             
             <div className={cn(
-              "p-2 relative", 
-              isMobile ? "min-h-[50px]" : "min-h-[80px]"
+              "p-2 relative",
+              "min-h-[" + hourHeight + "px]"
             )}>
             </div>
           </div>
