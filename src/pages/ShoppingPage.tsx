@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import PageHeader from '@/components/ui/page-header';
 import { cn } from '@/lib/utils';
+import DirectAddItem from '@/components/features/shopping/DirectAddItem';
 
 const ShoppingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -53,21 +54,31 @@ const ShoppingPage: React.FC = () => {
 
   const handleSaveItem = (item: any) => {
     try {
+      console.log('Adding item with data:', item);
+      
       const result = addItem({
         name: item.name,
         amount: item.amount,
-        price: item.price,
-        imageUrl: item.file,
-        notes: item.notes,
-        repeatOption: item.repeatOption || 'none'
+        price: item.price || '',
+        imageUrl: item.file || null,
+        notes: item.notes || '',
+        repeatOption: item.repeatOption || 'none',
+        // Make sure we're providing all required fields
+        category: item.category || '',
+        dateToPurchase: item.dateToPurchase || '',
+        completed: false
       });
 
+      console.log('Result from addItem:', result);
+      
       if (result) {
         toast({
           title: "Item Added",
           description: `${item.name} has been added to your shopping list.`
         });
         return true;
+      } else {
+        console.error("Add item returned falsy value");
       }
     } catch (error) {
       console.error("Error adding item:", error);
@@ -189,6 +200,8 @@ const ShoppingPage: React.FC = () => {
           item={editItem.item}
         />
       )}
+
+      {debugEnabled && <DirectAddItem />}
     </div>
   );
 };

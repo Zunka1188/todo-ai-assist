@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 export interface ShoppingItem {
@@ -16,43 +15,45 @@ export interface ShoppingItem {
   lastPurchased?: Date;
 }
 
-const initialItems: ShoppingItem[] = [{
-  id: '5',
-  name: 'Organic Coffee Beans',
-  completed: false,
-  dateAdded: new Date(),
-  amount: '2 bags',
-  price: '14.99',
-  dateToPurchase: '2025-05-10',
-  imageUrl: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
-  notes: 'Dark roast from the local fair trade shop. Get the whole beans, not pre-ground.',
-  repeatOption: 'monthly'
-}, {
-  id: '1',
-  name: 'Dish Soap',
-  completed: false,
-  dateAdded: new Date('2023-04-01'),
-  repeatOption: 'monthly'
-}, {
-  id: '2',
-  name: 'Apples',
-  completed: false,
-  dateAdded: new Date('2023-04-02'),
-  repeatOption: 'weekly'
-}, {
-  id: '3',
-  name: 'Bread',
-  completed: false,
-  dateAdded: new Date('2023-04-02'),
-  repeatOption: 'weekly'
-}, {
-  id: '4',
-  name: 'Toothpaste',
-  completed: false,
-  dateAdded: new Date('2023-04-03'),
-  imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
-  repeatOption: 'monthly'
-}];
+const initialItems: ShoppingItem[] = [
+  {
+    id: '5',
+    name: 'Organic Coffee Beans',
+    completed: false,
+    dateAdded: new Date(),
+    amount: '2 bags',
+    price: '14.99',
+    dateToPurchase: '2025-05-10',
+    imageUrl: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
+    notes: 'Dark roast from the local fair trade shop. Get the whole beans, not pre-ground.',
+    repeatOption: 'monthly'
+  }, {
+    id: '1',
+    name: 'Dish Soap',
+    completed: false,
+    dateAdded: new Date('2023-04-01'),
+    repeatOption: 'monthly'
+  }, {
+    id: '2',
+    name: 'Apples',
+    completed: false,
+    dateAdded: new Date('2023-04-02'),
+    repeatOption: 'weekly'
+  }, {
+    id: '3',
+    name: 'Bread',
+    completed: false,
+    dateAdded: new Date('2023-04-02'),
+    repeatOption: 'weekly'
+  }, {
+    id: '4',
+    name: 'Toothpaste',
+    completed: false,
+    dateAdded: new Date('2023-04-03'),
+    imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
+    repeatOption: 'monthly'
+  }
+];
 
 const parseStoredItems = (items: any[]): ShoppingItem[] => {
   return items.map(item => ({
@@ -163,15 +164,39 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   };
 
   // Add a new item to the shopping list
-  const addItem = (newItem: Omit<ShoppingItem, 'id' | 'dateAdded' | 'completed'>) => {
-    const item: ShoppingItem = {
-      id: Date.now().toString(),
-      completed: false,
-      dateAdded: new Date(),
-      ...newItem
-    };
-    setItems(prevItems => [...prevItems, item]);
-    return item;
+  const addItem = (newItem: Omit<ShoppingItem, 'id' | 'dateAdded' | 'completed'> & {completed?: boolean}) => {
+    try {
+      console.log("Adding new item:", newItem);
+      
+      // Create a properly structured item with defaults for missing properties
+      const item: ShoppingItem = {
+        id: Date.now().toString(),
+        completed: newItem.completed ?? false,
+        dateAdded: new Date(),
+        name: newItem.name,
+        category: newItem.category || '',
+        amount: newItem.amount || '',
+        dateToPurchase: newItem.dateToPurchase || '',
+        price: newItem.price || '',
+        imageUrl: newItem.imageUrl || '',
+        notes: newItem.notes || '',
+        repeatOption: newItem.repeatOption || 'none',
+        lastPurchased: undefined
+      };
+      
+      console.log("Structured item to add:", item);
+      
+      setItems(prevItems => {
+        const updatedItems = [...prevItems, item];
+        console.log("Updated items list:", updatedItems);
+        return updatedItems;
+      });
+      
+      return item;
+    } catch (error) {
+      console.error("Error in addItem:", error);
+      return null;
+    }
   };
 
   // Toggle item completion status
