@@ -28,13 +28,13 @@ const DayHeader: React.FC<DayHeaderProps> = ({
       isMobile ? "justify-between" : "justify-between"
     )}>
       <h2 className={cn(
-        "text-xl font-semibold flex items-center",
+        "font-semibold flex items-center",
         theme === 'light' ? "text-foreground" : "text-white",
-        isMobile ? "text-[0.95rem] leading-tight" : ""
+        isMobile ? "text-base" : "text-xl"
       )}>
         {format(date, 'EEEE, MMMM d, yyyy')}
         {isCurrentDate && (
-          <span className="ml-2 text-sm px-2 py-0.5 bg-primary text-primary-foreground rounded-full">
+          <span className="ml-2 text-xs px-2 py-0.5 bg-primary text-primary-foreground rounded-full">
             Today
           </span>
         )}

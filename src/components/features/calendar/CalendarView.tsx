@@ -87,7 +87,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   };
 
   return (
-    <div className="space-y-4 w-full">
+    <div className={cn(
+      "space-y-4 w-full", 
+      isMobile && "px-2 pb-2"
+    )}>
       {isFileUploaderOpen && (
         <FileUploader
           onClose={() => setIsFileUploaderOpen(false)}

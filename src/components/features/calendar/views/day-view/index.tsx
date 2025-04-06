@@ -7,6 +7,7 @@ import TimeRange from './TimeRange';
 import AllDayEvents from './AllDayEvents';
 import TimeGrid from './TimeGrid';
 import { useEventManagement } from './useEventManagement';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DayViewProps {
   date: Date;
@@ -23,6 +24,8 @@ const DayView: React.FC<DayViewProps> = ({
   handleViewEvent,
   theme
 }) => {
+  const { isMobile } = useIsMobile();
+  
   // Use custom hook for event management
   const {
     startHour,
@@ -48,7 +51,7 @@ const DayView: React.FC<DayViewProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <DayHeader 
         date={date}
         theme={theme}
@@ -74,9 +77,9 @@ const DayView: React.FC<DayViewProps> = ({
       />
       
       <div className="border rounded-lg overflow-hidden">
-        <div className="grid grid-cols-[4rem_1fr] bg-muted/30 p-2 border-b">
-          <div className="text-sm font-medium">Time</div>
-          <div className="text-sm font-medium">Events</div>
+        <div className="grid grid-cols-[3.5rem_1fr] bg-muted/30 p-2 border-b">
+          <div className="text-xs font-medium">Time</div>
+          <div className="text-xs font-medium">Events</div>
         </div>
         
         <TimeGrid

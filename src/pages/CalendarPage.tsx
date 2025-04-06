@@ -8,7 +8,7 @@ import PageLayout from '@/components/layout/PageLayout';
 import PageHeader from '@/components/ui/page-header';
 import { useTheme } from '@/hooks/use-theme';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 const CalendarPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,8 +48,12 @@ const CalendarPage = () => {
           showBackButton={true}
           backTo="/"
           rightContent={
-            <Button className="flex items-center gap-1" onClick={handleAddItem}>
-              <PlusCircle className="h-4 w-4 mr-1" />
+            <Button 
+              className="flex items-center gap-1" 
+              onClick={handleAddItem}
+              size={isMobile ? "sm" : "default"}
+            >
+              <Plus className="h-4 w-4" />
               {isMobile ? "Add" : "Add Event"}
             </Button>
           }
@@ -74,7 +78,7 @@ const CalendarPage = () => {
         <Separator className="my-2" />
       </div>
       
-      <div className={`flex-1 overflow-hidden w-full ${theme === 'dark' ? 'text-white' : ''} ${isMobile ? "px-2 pb-2" : ""}`}>
+      <div className={`flex-1 overflow-hidden w-full ${theme === 'dark' ? 'text-white' : ''} ${isMobile ? "" : ""}`}>
         <CalendarView 
           viewMode={viewMode} 
           searchTerm={searchTerm} 
