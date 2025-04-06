@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -37,7 +36,6 @@ const ShoppingList = ({
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Debug log when items change
     console.log(`[DEBUG] ShoppingList - ${filterMode} items:`, 
       "Unpurchased:", notPurchasedItems.length, 
       "Purchased:", purchasedItems.length);
@@ -79,7 +77,6 @@ const ShoppingList = ({
       
       console.log("[DEBUG] ShoppingList - Structured item to add:", JSON.stringify(newItem, null, 2));
       
-      // Call addItem directly without checking result
       addItem(newItem);
       console.log("[DEBUG] ShoppingList - Called addItem function");
       
@@ -127,7 +124,7 @@ const ShoppingList = ({
       "grid",
       isMobile 
         ? "grid-cols-1 sm:grid-cols-2 gap-2 px-2"
-        : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-2"
+        : "grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-2"
     )}>
       {items.map((item) => (
         <ShoppingItemButton
