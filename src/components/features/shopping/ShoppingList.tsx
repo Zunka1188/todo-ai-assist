@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -115,7 +114,7 @@ const ShoppingList = ({
   const renderShoppingItemsGrid = (items: any[]) => (
     <div className={cn(
       "shopping-items-grid grid",
-      isMobile ? "grid-cols-2 sm:grid-cols-3 gap-2" : "grid-cols-3 lg:grid-cols-4 gap-4"
+      isMobile ? "grid-cols-4 gap-1" : "grid-cols-3 lg:grid-cols-4 gap-4"
     )}>
       {items.map((item) => (
         <ShoppingItemButton

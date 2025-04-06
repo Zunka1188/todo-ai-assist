@@ -31,7 +31,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   className,
   extraActions,
   rightContent,
-  showBackButton = false,
+  showBackButton = true,  // Changed default to true to show back button
   backTo = '/'
 }) => {
   const { isMobile } = useIsMobile();
@@ -64,8 +64,8 @@ const PageHeader: React.FC<PageHeaderProps> = ({
               size={isMobile ? "sm" : "default"}
               className="bg-todo-purple hover:bg-todo-purple/90 text-white"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              {isMobile && addItemLabel.length > 10 ? '+' : addItemLabel}
+              <Plus className="h-4 w-4 mr-1" />
+              {isMobile && addItemLabel.length > 10 ? 'Add' : addItemLabel.replace('+ ', '')}
             </Button>
           )}
         </div>

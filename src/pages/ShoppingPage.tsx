@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShoppingList from '@/components/features/shopping/ShoppingList';
@@ -118,9 +117,7 @@ const ShoppingPage: React.FC = () => {
     setShowAddDialog(open);
   }
 
-  // Generate a shareable content for the entire shopping list
   const getShareableContent = () => {
-    // This will be populated from the actual items when share is clicked
     return {
       title: "My Shopping List",
       text: "Check out my shopping list:"
@@ -134,7 +131,7 @@ const ShoppingPage: React.FC = () => {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onAddItem={() => setShowAddDialog(true)}
-        addItemLabel="+ Add Item"
+        addItemLabel="Add Item"
         extraActions={
           <ShareButton
             variant="outline"

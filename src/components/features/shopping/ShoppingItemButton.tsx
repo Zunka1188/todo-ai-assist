@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Maximize2, Share2 } from 'lucide-react';
@@ -98,59 +99,59 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           )}
         </div>
         
-        <div className="p-3 flex-grow">
-          <h3 className={`font-medium ${completed ? 'line-through text-gray-500' : ''}`}>
+        <div className="p-1 flex-grow">
+          <h3 className={`text-xs font-medium truncate ${completed ? 'line-through text-gray-500' : ''}`}>
             {name}
           </h3>
           {quantity && (
-            <p className={`text-sm mt-1 ${completed ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p className={`text-xs mt-0.5 truncate ${completed ? 'text-gray-400' : 'text-gray-500'}`}>
               {quantity}
             </p>
           )}
           {notes && (
-            <p className={`text-xs mt-1 truncate ${completed ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p className={`text-xs mt-0.5 truncate ${completed ? 'text-gray-400' : 'text-gray-500'}`}>
               {notes}
             </p>
           )}
         </div>
       </div>
 
-      <div className="absolute top-2 left-2 flex gap-1">
+      <div className="absolute top-1 left-1 flex gap-0.5">
         <Button
           size="sm"
           variant="destructive"
-          className="h-8 w-8 p-0 opacity-90"
+          className="h-4 w-4 p-0 opacity-90"
           onClick={(e) => {
             e.stopPropagation();
             onDelete();
           }}
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-2.5 w-2.5" />
         </Button>
         
         <Button
           size="sm" 
           variant="secondary"
-          className="h-8 w-8 p-0 opacity-90"
+          className="h-4 w-4 p-0 opacity-90"
           onClick={(e) => {
             e.stopPropagation();
             onEdit();
           }}
         >
-          <Pencil className="h-4 w-4" />
+          <Pencil className="h-2.5 w-2.5" />
         </Button>
         
         <ShareButton
           size="sm"
           variant="secondary"
-          className="h-8 w-8 p-0 opacity-90"
+          className="h-4 w-4 p-0 opacity-90"
           title={`Shopping item: ${name}`}
           text={`${name}${quantity ? ` - Quantity: ${quantity}` : ''}${notes ? `\n\nNotes: ${notes}` : ''}`}
           fileUrl={imageUrl}
           onClick={(e) => e.stopPropagation()}
           showOptions={true}
         >
-          <Share2 className="h-4 w-4" />
+          <Share2 className="h-2.5 w-2.5" />
         </ShareButton>
       </div>
     </div>
