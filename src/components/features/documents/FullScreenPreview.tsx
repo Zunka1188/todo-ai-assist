@@ -75,9 +75,14 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) 
 
   if (isMobile) {
     return (
-      <Drawer open={!!item} onOpenChange={(open) => {
-        if (!open) onClose();
-      }} dismissible={false}>
+      <Drawer 
+        open={!!item} 
+        onOpenChange={(open) => {
+          if (!open) onClose();
+        }} 
+        shouldScaleBackground={false}
+        dismissible={false}
+      >
         <DrawerContent className="px-4 pb-6 pt-4 h-[85vh]">
           {content}
         </DrawerContent>
@@ -86,10 +91,17 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) 
   }
 
   return (
-    <Dialog open={!!item} onOpenChange={(open) => {
-      if (!open) onClose();
-    }} modal={true}>
-      <DialogContent className="sm:max-w-[600px] p-6 max-h-[85vh]">
+    <Dialog 
+      open={!!item} 
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }} 
+      modal={true}
+    >
+      <DialogContent 
+        className="sm:max-w-[600px] p-6 max-h-[85vh]"
+        preventNavigateOnClose={true}
+      >
         {content}
       </DialogContent>
     </Dialog>

@@ -60,6 +60,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
   };
 
   const handleEditDocument = (doc: DocumentFile) => {
+    // Instead of navigating, just open the edit dialog
     handleOpenAddDialog(doc);
   };
 
