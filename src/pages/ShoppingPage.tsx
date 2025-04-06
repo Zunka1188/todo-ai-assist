@@ -80,15 +80,6 @@ const ShoppingPage: React.FC = () => {
       console.log('[DEBUG] ShoppingPage - Add item result:', result);
       
       if (result) {
-        // CRITICAL FIX: Ensure dialog closes after successful add
-        console.log('[DEBUG] ShoppingPage - Successfully added item, closing dialog');
-        setShowAddDialog(false);
-        
-        toast({
-          title: "Item Added",
-          description: `${item.name} has been added to your shopping list.`
-        });
-        
         // Navigate to the appropriate tab if needed
         const targetTab = itemToAdd.repeatOption === 'weekly' 
           ? 'weekly' 
@@ -99,6 +90,11 @@ const ShoppingPage: React.FC = () => {
         if (activeTab !== targetTab && activeTab !== 'all') {
           navigate(`/shopping?tab=${targetTab}`, { replace: true });
         }
+        
+        toast({
+          title: "Item Added",
+          description: `${item.name} has been added to your shopping list.`
+        });
         
         return true;
       }
@@ -156,13 +152,14 @@ const ShoppingPage: React.FC = () => {
 
   const handleAddDialogChange = (open: boolean) => {
     console.log("[DEBUG] ShoppingPage - Add dialog open state changed:", open);
-    setShowAddDialog(open);
     
-    // For debugging: Add additional logs to track dialog state
+    // When the dialog is closing, we want to make sure showAddDialog is set to false
     if (!open) {
       console.log("[DEBUG] ShoppingPage - Dialog closed, showAddDialog set to false");
+      setShowAddDialog(false);
     } else {
       console.log("[DEBUG] ShoppingPage - Dialog opened, showAddDialog set to true");
+      setShowAddDialog(true);
     }
   }
 
@@ -226,7 +223,7 @@ const ShoppingPage: React.FC = () => {
         </div>
       )}
 
-      {/* Always render the dialog component but control visibility with open prop */}
+      {/* Explicitly control visibility with open prop and make sure to call handleAddDialogChange */}
       <AddItemDialog 
         open={showAddDialog} 
         onOpenChange={handleAddDialogChange}

@@ -143,10 +143,10 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       
       // Only reset and close if result isn't explicitly false
       if (result !== false) {
-        resetForm();
         console.log("[DEBUG] AddItemDialog - Closing dialog after successful save");
+        resetForm();
         
-        // CRITICAL FIX: Ensure dialog closes on mobile too
+        // CRITICAL FIX: Close the dialog AFTER resetting the form
         onOpenChange(false);
         
         toast({
@@ -204,6 +204,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
 
   // Handle dialog cancellation - consistent between mobile and desktop
   const handleCancel = () => {
+    console.log("[DEBUG] AddItemDialog - Cancel button clicked, resetting form and closing dialog");
     resetForm();
     onOpenChange(false);
   };
@@ -361,16 +362,27 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     </>
   );
 
+  // CRITICAL FIX: Separate rendering paths for mobile vs desktop
   if (isMobile) {
     return (
       <>
-        <Drawer open={open} onOpenChange={onOpenChange}>
+        <Drawer open={open} onOpenChange={(isOpen) => {
+          console.log("[DEBUG] AddItemDialog - Mobile drawer onOpenChange triggered with value:", isOpen);
+          if (!isOpen) {
+            handleCancel();
+          } else {
+            onOpenChange(true);
+          }
+        }}>
           <DrawerContent className="max-h-[85vh] overflow-hidden">
             <DrawerHeader className="px-4 py-2">
               <DrawerTitle>{isEditing ? "Edit Item" : "Add New Item"}</DrawerTitle>
             </DrawerHeader>
             
-            <ScrollArea className="p-4 pt-0 flex-1 overflow-auto max-h-[60vh]" scrollRef={scrollRef}>
+            <ScrollArea 
+              className="p-4 pt-0 flex-1 overflow-auto max-h-[60vh]" 
+              scrollRef={scrollRef}
+            >
               {dialogContent}
             </ScrollArea>
             
@@ -402,7 +414,14 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={(isOpen) => {
+        console.log("[DEBUG] AddItemDialog - Desktop dialog onOpenChange triggered with value:", isOpen);
+        if (!isOpen) {
+          handleCancel();
+        } else {
+          onOpenChange(true);
+        }
+      }}>
         <DialogContent 
           className="sm:max-w-md overflow-hidden max-h-[85vh] flex flex-col"
           preventNavigateOnClose={true}

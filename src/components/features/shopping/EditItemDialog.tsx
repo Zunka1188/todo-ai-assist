@@ -131,6 +131,11 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
     
     onSave(updatedItem, editItemImage);
     onClose();
+    
+    toast({
+      title: "Item Updated",
+      description: `${updatedItem.name} has been updated.`,
+    });
   };
 
   const clearFile = () => {
@@ -312,10 +317,12 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
     );
   }
 
-  return (
-    <>
-      {isMobile ? (
-        <Drawer open={isOpen} onOpenChange={onClose}>
+  if (isMobile) {
+    return (
+      <>
+        <Drawer open={isOpen} onOpenChange={(open) => {
+          if (!open) onClose();
+        }}>
           <DrawerContent className="max-h-[90vh] overflow-hidden">
             <DrawerHeader className="px-4 py-2">
               <DrawerTitle>Edit Item</DrawerTitle>
@@ -345,35 +352,49 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
-      ) : (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent 
-            className="sm:max-w-md overflow-hidden max-h-[85vh] flex flex-col"
-            preventNavigateOnClose={true}
-          >
-            <DialogHeader>
-              <DialogTitle>Edit Item</DialogTitle>
-              <DialogDescription>Make changes to your shopping item here.</DialogDescription>
-            </DialogHeader>
+        
+        <ImageAnalysisModal
+          imageData={file}
+          fileName={fileName}
+          isOpen={showAnalysisModal}
+          onAnalysisComplete={handleAnalysisComplete}
+          onClose={() => setShowAnalysisModal(false)}
+        />
+      </>
+    );
+  }
 
-            <ScrollArea className="flex-1 max-h-[60vh] pr-4 overflow-y-auto" scrollRef={scrollRef}>
-              {dialogContent}
-            </ScrollArea>
+  return (
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => {
+        if (!open) onClose();
+      }}>
+        <DialogContent 
+          className="sm:max-w-md overflow-hidden max-h-[85vh] flex flex-col"
+          preventNavigateOnClose={true}
+        >
+          <DialogHeader>
+            <DialogTitle>Edit Item</DialogTitle>
+            <DialogDescription>Make changes to your shopping item here.</DialogDescription>
+          </DialogHeader>
 
-            <DialogFooter className="mt-4 pt-2 border-t">
-              <Button variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleSave}
-                disabled={name.trim() === '' && !file}
-              >
-                Save Changes
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+          <ScrollArea className="flex-1 max-h-[60vh] pr-4 overflow-y-auto" scrollRef={scrollRef}>
+            {dialogContent}
+          </ScrollArea>
+
+          <DialogFooter className="mt-4 pt-2 border-t">
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSave}
+              disabled={name.trim() === '' && !file}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ImageAnalysisModal
         imageData={file}
