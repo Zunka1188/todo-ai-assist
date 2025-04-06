@@ -45,14 +45,9 @@ const DocumentsPage = () => {
   };
 
   const handleOpenFileUploader = () => {
-    // For Files tab, directly open the add dialog
-    if (activeTab === 'files') {
-      setEditingItem(null);
-      setIsAddDialogOpen(true);
-    } else {
-      // For other tabs, show options dialog
-      setIsOptionsDialogOpen(true);
-    }
+    // For all tabs, directly open the add dialog
+    setEditingItem(null);
+    setIsAddDialogOpen(true);
   };
 
   const handleAddItem = (item: any) => {
@@ -158,24 +153,6 @@ const DocumentsPage = () => {
           </TabsContent>
         )}
       </Tabs>
-
-      <AttachmentOptionsDialog
-        open={isOptionsDialogOpen}
-        onOpenChange={setIsOptionsDialogOpen}
-        onCameraCapture={() => {
-          setIsOptionsDialogOpen(false);
-          handleOpenAddDialog(null);
-        }}
-        onFileUpload={() => {
-          setIsOptionsDialogOpen(false);
-          handleOpenAddDialog(null);
-        }}
-        onDocumentUpload={() => {
-          setIsOptionsDialogOpen(false);
-          handleOpenAddDialog(null);
-        }}
-        title="Add Document"
-      />
 
       <AddDocumentDialog 
         open={isAddDialogOpen} 

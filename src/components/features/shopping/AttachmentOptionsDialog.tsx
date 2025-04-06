@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Camera, Upload, File, PencilLine, List, Calendar, Tag } from 'lucide-react';
+import { Upload, File } from 'lucide-react';
 import { 
   Dialog, 
   DialogContent,
@@ -20,7 +20,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 interface AttachmentOptionsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCameraCapture: () => void;
+  onCameraCapture?: () => void;
   onFileUpload: () => void;
   onDocumentUpload: () => void;
   onManualEntry?: () => void;
@@ -61,7 +61,7 @@ const AttachmentOptionsDialog = ({
                 className="w-full justify-start gap-3"
                 variant="outline"
               >
-                <PencilLine className="h-4 w-4" /> Manual Entry
+                <File className="h-4 w-4" /> Manual Entry
               </Button>
             )}
 
@@ -74,7 +74,7 @@ const AttachmentOptionsDialog = ({
                 className="w-full justify-start gap-3"
                 variant="outline"
               >
-                <List className="h-4 w-4" /> Browse Templates
+                <File className="h-4 w-4" /> Browse Templates
               </Button>
             )}
 
@@ -86,29 +86,7 @@ const AttachmentOptionsDialog = ({
               className="w-full justify-start gap-3"
               variant="outline"
             >
-              <Upload className="h-4 w-4" /> Attach Image
-            </Button>
-
-            <Button 
-              onClick={() => {
-                onDocumentUpload();
-                onOpenChange(false);
-              }}
-              className="w-full justify-start gap-3"
-              variant="outline"
-            >
-              <File className="h-4 w-4" /> Attach Document
-            </Button>
-
-            <Button 
-              onClick={() => {
-                onCameraCapture();
-                onOpenChange(false);
-              }}
-              className="w-full justify-start gap-3"
-              variant="outline"
-            >
-              <Camera className="h-4 w-4" /> Take a Picture
+              <Upload className="h-4 w-4" /> Upload File
             </Button>
 
             {onCalendarImport && (
@@ -120,7 +98,7 @@ const AttachmentOptionsDialog = ({
                 className="w-full justify-start gap-3"
                 variant="outline"
               >
-                <Calendar className="h-4 w-4" /> Import from Calendar
+                <File className="h-4 w-4" /> Import from Calendar
               </Button>
             )}
 
@@ -133,7 +111,7 @@ const AttachmentOptionsDialog = ({
                 className="w-full justify-start gap-3"
                 variant="outline"
               >
-                <Tag className="h-4 w-4" /> Select by Category
+                <File className="h-4 w-4" /> Select by Category
               </Button>
             )}
 
@@ -161,7 +139,7 @@ const AttachmentOptionsDialog = ({
                 className="w-full justify-start gap-3"
                 variant="outline"
               >
-                <PencilLine className="h-4 w-4" /> Manual Entry
+                <File className="h-4 w-4" /> Manual Entry
               </Button>
             )}
 
@@ -174,7 +152,7 @@ const AttachmentOptionsDialog = ({
                 className="w-full justify-start gap-3"
                 variant="outline"
               >
-                <List className="h-4 w-4" /> Browse Templates
+                <File className="h-4 w-4" /> Browse Templates
               </Button>
             )}
 
@@ -186,29 +164,7 @@ const AttachmentOptionsDialog = ({
               className="w-full justify-start gap-3"
               variant="outline"
             >
-              <Upload className="h-4 w-4" /> Attach Image
-            </Button>
-
-            <Button 
-              onClick={() => {
-                onDocumentUpload();
-                onOpenChange(false);
-              }}
-              className="w-full justify-start gap-3"
-              variant="outline"
-            >
-              <File className="h-4 w-4" /> Attach Document
-            </Button>
-
-            <Button 
-              onClick={() => {
-                onCameraCapture();
-                onOpenChange(false);
-              }}
-              className="w-full justify-start gap-3"
-              variant="outline"
-            >
-              <Camera className="h-4 w-4" /> Take a Picture
+              <Upload className="h-4 w-4" /> Upload File
             </Button>
 
             {onCalendarImport && (
@@ -220,7 +176,7 @@ const AttachmentOptionsDialog = ({
                 className="w-full justify-start gap-3"
                 variant="outline"
               >
-                <Calendar className="h-4 w-4" /> Import from Calendar
+                <File className="h-4 w-4" /> Import from Calendar
               </Button>
             )}
 
@@ -233,7 +189,7 @@ const AttachmentOptionsDialog = ({
                 className="w-full justify-start gap-3"
                 variant="outline"
               >
-                <Tag className="h-4 w-4" /> Select by Category
+                <File className="h-4 w-4" /> Select by Category
               </Button>
             )}
 
