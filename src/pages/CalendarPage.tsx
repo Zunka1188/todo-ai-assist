@@ -37,9 +37,9 @@ const CalendarPage = () => {
     <PageLayout 
       maxWidth="full" 
       className="flex flex-col h-[calc(100vh-4rem)]"
-      noPadding={isMobile}
+      noPadding
     >
-      <div className={isMobile ? "px-2 pt-2" : ""}>
+      <div className={isMobile ? "px-3 pt-3" : "px-4 pt-4"}>
         <PageHeader 
           title="Calendar"
           searchTerm={searchTerm}
@@ -78,7 +78,7 @@ const CalendarPage = () => {
         <Separator className="my-2" />
       </div>
       
-      <div className={`flex-1 overflow-hidden w-full ${theme === 'dark' ? 'text-white' : ''} ${isMobile ? "" : ""}`}>
+      <div className={`flex-1 overflow-hidden w-full ${theme === 'dark' ? 'text-white' : ''}`}>
         <CalendarView 
           viewMode={viewMode} 
           searchTerm={searchTerm} 

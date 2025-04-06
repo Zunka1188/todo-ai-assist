@@ -24,15 +24,14 @@ const DayHeader: React.FC<DayHeaderProps> = ({
 
   return (
     <div className={cn(
-      "flex items-center",
-      isMobile ? "justify-between" : "justify-between"
+      "flex items-center justify-between"
     )}>
       <h2 className={cn(
         "font-semibold flex items-center",
         theme === 'light' ? "text-foreground" : "text-white",
         isMobile ? "text-base" : "text-xl"
       )}>
-        {format(date, 'EEEE, MMMM d, yyyy')}
+        {format(date, isMobile ? 'EEE, MMM d' : 'EEEE, MMMM d, yyyy')}
         {isCurrentDate && (
           <span className="ml-2 text-xs px-2 py-0.5 bg-primary text-primary-foreground rounded-full">
             Today
@@ -45,7 +44,7 @@ const DayHeader: React.FC<DayHeaderProps> = ({
           size="icon" 
           onClick={prevDay}
           aria-label="Previous day"
-          className="tap-target"
+          className="h-9 w-9 min-w-[36px]"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -54,7 +53,7 @@ const DayHeader: React.FC<DayHeaderProps> = ({
           size="icon" 
           onClick={nextDay}
           aria-label="Next day"
-          className="tap-target"
+          className="h-9 w-9 min-w-[36px]"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
