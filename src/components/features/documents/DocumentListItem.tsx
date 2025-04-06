@@ -25,7 +25,10 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
   // Format ISO date string to European format (DD/MM/YYYY)
   const formatDateEuropean = (dateString: string): string => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB');
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
   
   return (

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentItem, DocumentFile, DocumentCategory, CATEGORIES } from '@/components/features/documents/types';
@@ -53,8 +52,8 @@ const initialCategoryItems: DocumentItem[] = [
     type: 'image',
     content: 'https://picsum.photos/id/96/400/300',
     tags: ['winter', 'fashion'],
-    date: new Date(2025, 3, 5),
-    addedDate: new Date(2025, 3, 1)
+    date: new Date(2025, 4, 5),
+    addedDate: new Date(2025, 4, 1)
   }
 ];
 
