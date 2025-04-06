@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ArrowLeft, Search, Plus, FileText, Image, Tag, ChefHat, Plane, Dumbbell, Shirt, X, Maximize2, Minimize2, Camera, FileArchive } from 'lucide-react';
+import { ArrowLeft, Search, Plus, FileText, Image, Tag, ChefHat, Plane, Dumbbell, Shirt, X, Maximize2, Minimize2, Camera, FileArchive, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,12 +7,13 @@ import AppHeader from '@/components/layout/AppHeader';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { ResponsiveButton } from '@/components/ui/responsive-button';
 import ImageAnalysisModal from '@/components/features/documents/ImageAnalysisModal';
 import { AnalysisResult } from '@/utils/imageAnalysis';
+import ShareButton from '@/components/features/shared/ShareButton';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,7 @@ interface DocumentItem {
   content: string;
   tags: string[];
   date: Date;
+  addedDate?: Date;
 }
 
 // Sample initial data
@@ -321,6 +323,11 @@ const DocumentsSubtabPage = () => {
       item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
   );
+
+  const handleShareItem = (item: DocumentItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Share functionality will be handled by the ShareButton component
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -673,6 +680,28 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
   onDelete,
   onViewImage
 }) => {
+  // Format date to European style (DD/MM/YYYY)
+  const formatDateEuropean = (date: Date): string => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  // Format date relative to now
+  const formatDateRelative = (date?: Date): string => {
+    if (!date) return '';
+    
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'today';
+    if (diffDays === 1) return 'yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    return `${Math.floor(diffDays / 30)} months ago`;
+  };
+
   if (items.length === 0) {
     return (
       <div className="text-center py-8">
@@ -713,40 +742,62 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                       </span>
                     ))}
                   </div>
+                  <div className="flex items-center text-xs text-white/80 mt-1.5">
+                    <span>{formatDateEuropean(item.date)}</span>
+                    {item.addedDate && (
+                      <>
+                        <span className="mx-0.5">•</span>
+                        <span>Added {formatDateRelative(item.addedDate)}</span>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <div className="absolute top-2 right-2 flex gap-1">
                   <Button
                     size="sm"
                     variant="secondary"
-                    className="h-8 w-8 p-0 bg-black/20 hover:bg-black/40"
+                    className="h-9 w-9 p-0 bg-black/20 hover:bg-black/40 rounded-full"
                     onClick={(e) => {
                       e.stopPropagation();
                       onViewImage(item.content);
                     }}
+                    aria-label="View full screen"
                   >
                     <Maximize2 className="h-4 w-4 text-white" />
                   </Button>
+                  <ShareButton
+                    size="sm"
+                    className="h-9 w-9 p-0 bg-black/20 hover:bg-black/40 rounded-full"
+                    title={`Check out: ${item.title}`}
+                    text={item.title}
+                    fileUrl={item.content}
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label="Share item"
+                  >
+                    <Share2 className="h-4 w-4 text-white" />
+                  </ShareButton>
                   <Button
                     size="sm"
                     variant="secondary"
-                    className="h-8 w-8 p-0 bg-black/20 hover:bg-black/40"
+                    className="h-9 w-9 p-0 bg-black/20 hover:bg-black/40 rounded-full"
                     onClick={(e) => {
                       e.stopPropagation();
                       onEdit(item);
                     }}
+                    aria-label="Edit item"
                   >
                     <FileText className="h-4 w-4 text-white" />
                   </Button>
                   <Button
                     size="sm"
                     variant="destructive"
-                    className="h-8 w-8 p-0 bg-black/20 hover:bg-red-500"
+                    className="h-9 w-9 p-0 bg-black/20 hover:bg-red-500 rounded-full"
                     onClick={(e) => {
                       e.stopPropagation();
                       onDelete(item.id);
                     }}
+                    aria-label="Delete item"
                   >
-                    <span className="sr-only">Delete</span>
                     <svg
                       width="15"
                       height="15"
@@ -781,8 +832,28 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                         </span>
                       ))}
                     </div>
+                    <div className="flex items-center text-xs text-muted-foreground mt-2">
+                      <span>{formatDateEuropean(item.date)}</span>
+                      {item.addedDate && (
+                        <>
+                          <span className="mx-0.5">•</span>
+                          <span>Added {formatDateRelative(item.addedDate)}</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                   <div className="flex gap-1 ml-2 shrink-0">
+                    <ShareButton
+                      size="sm"
+                      variant="outline"
+                      className="h-8 w-8 p-0"
+                      title={`Check out: ${item.title}`}
+                      text={item.content}
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label="Share item"
+                    >
+                      <Share2 className="h-4 w-4" />
+                    </ShareButton>
                     <Button
                       size="sm"
                       variant="outline"
@@ -791,6 +862,7 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                         e.stopPropagation();
                         onEdit(item);
                       }}
+                      aria-label="Edit item"
                     >
                       <FileText className="h-4 w-4" />
                     </Button>
@@ -802,8 +874,8 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                         e.stopPropagation();
                         onDelete(item.id);
                       }}
+                      aria-label="Delete item"
                     >
-                      <span className="sr-only">Delete</span>
                       <svg
                         width="15"
                         height="15"
@@ -821,9 +893,6 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                       </svg>
                     </Button>
                   </div>
-                </div>
-                <div className="text-xs text-muted-foreground mt-2">
-                  {item.date.toLocaleDateString()}
                 </div>
               </div>
             )}
