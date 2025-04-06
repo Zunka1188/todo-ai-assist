@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog,
@@ -127,7 +126,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       fileName: fileName || undefined,
       fileType: fileType || undefined,
       repeatOption,
-      completed: false // Always set completed to false for new items
+      completed: false
     };
     
     console.log("[DEBUG] AddItemDialog - Saving item with data:", JSON.stringify(itemData, null, 2));
@@ -189,6 +188,38 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       description: "We've pre-filled the form based on your file",
     });
   };
+
+  if (fullScreenPreview && file && fileType === 'image') {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex flex-col">
+        <div className="p-4 flex justify-between items-center bg-black/80">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-white" 
+            onClick={toggleFullScreenPreview}
+          >
+            <Minimize2 className="h-6 w-6" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-white" 
+            onClick={() => onOpenChange(false)}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
+        <div className="flex-1 flex items-center justify-center overflow-auto">
+          <img 
+            src={file} 
+            alt="Full screen preview" 
+            className="max-h-full max-w-full object-contain"
+          />
+        </div>
+      </div>
+    );
+  }
 
   const dialogContent = (
     <>
@@ -310,38 +341,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       </div>
     </>
   );
-
-  if (fullScreenPreview && file && fileType === 'image') {
-    return (
-      <div className="fixed inset-0 bg-black z-50 flex flex-col">
-        <div className="p-4 flex justify-between items-center bg-black/80">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="text-white" 
-            onClick={toggleFullScreenPreview}
-          >
-            <Minimize2 className="h-6 w-6" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="text-white" 
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="h-6 w-6" />
-          </Button>
-        </div>
-        <div className="flex-1 flex items-center justify-center overflow-auto">
-          <img 
-            src={file} 
-            alt="Full screen preview" 
-            className="max-h-full max-w-full object-contain"
-          />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>

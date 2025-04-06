@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Maximize2, Share2 } from 'lucide-react';
@@ -60,7 +61,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       <div 
         className={cn(
           "flex flex-col rounded-md overflow-hidden border cursor-pointer",
-          isMobile ? "h-20" : "h-36",
+          isMobile ? "h-24" : "h-36",
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
         onClick={handleItemClick}
@@ -69,7 +70,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",
-          isMobile ? "h-14" : "h-24"
+          isMobile ? "h-16" : "h-24"
         )}>
           {imageUrl ? (
             <>

@@ -74,27 +74,29 @@ const ShoppingPage: React.FC = () => {
       
       console.log('[DEBUG] ShoppingPage - Properly structured item to add:', JSON.stringify(itemToAdd, null, 2));
       
-      // Call addItem directly without checking result
-      addItem(itemToAdd);
-      console.log('[DEBUG] ShoppingPage - Called addItem function');
+      // Call addItem with the structured data
+      const result = addItem(itemToAdd);
+      console.log('[DEBUG] ShoppingPage - Add item result:', result);
       
-      toast({
-        title: "Item Added",
-        description: `${item.name} has been added to your shopping list.`
-      });
-      
-      // Navigate to the appropriate tab if needed
-      const targetTab = itemToAdd.repeatOption === 'weekly' 
-        ? 'weekly' 
-        : itemToAdd.repeatOption === 'monthly' 
-          ? 'monthly' 
-          : 'one-off';
-          
-      if (activeTab !== targetTab && activeTab !== 'all') {
-        navigate(`/shopping?tab=${targetTab}`, { replace: true });
+      if (result) {
+        toast({
+          title: "Item Added",
+          description: `${item.name} has been added to your shopping list.`
+        });
+        
+        // Navigate to the appropriate tab if needed
+        const targetTab = itemToAdd.repeatOption === 'weekly' 
+          ? 'weekly' 
+          : itemToAdd.repeatOption === 'monthly' 
+            ? 'monthly' 
+            : 'one-off';
+            
+        if (activeTab !== targetTab && activeTab !== 'all') {
+          navigate(`/shopping?tab=${targetTab}`, { replace: true });
+        }
+        
+        return true;
       }
-      
-      return true;
     } catch (error) {
       console.error("[ERROR] ShoppingPage - Error adding item:", error);
       toast({
@@ -122,7 +124,7 @@ const ShoppingPage: React.FC = () => {
         completed: editItem.item?.completed
       };
       
-      // We're using a dedicated instance of useShoppingItems from above
+      // Update the existing item
       const result = addItem({
         ...itemData,
         id: editItem.id // Pass the ID to ensure it updates rather than creates new
