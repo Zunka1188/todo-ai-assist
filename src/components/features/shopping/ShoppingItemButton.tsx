@@ -98,6 +98,22 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
               </Badge>
             </div>
           )}
+          
+          {!isMobile && onImagePreview && (
+            <div className="absolute bottom-1 right-1">
+              <Button
+                size="sm"
+                variant="secondary"
+                className="h-5 w-5 p-0 opacity-90 rounded-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onImagePreview) onImagePreview();
+                }}
+              >
+                <Maximize2 className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
         </div>
         
         <div className="p-1 flex-grow">
@@ -129,19 +145,21 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
       </div>
 
-      <div className="absolute top-1 right-1">
-        <Button
-          size="sm"
-          variant="secondary"
-          className="h-5 w-5 p-0 opacity-90 rounded-full"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (onImagePreview) onImagePreview();
-          }}
-        >
-          <Maximize2 className="h-3 w-3" />
-        </Button>
-      </div>
+      {isMobile && (
+        <div className="absolute top-1 right-1">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-5 w-5 p-0 opacity-90 rounded-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onImagePreview) onImagePreview();
+            }}
+          >
+            <Maximize2 className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
       
       {!isMobile && (
         <>
