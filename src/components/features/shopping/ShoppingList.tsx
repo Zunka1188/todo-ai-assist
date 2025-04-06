@@ -106,7 +106,7 @@ const ShoppingList = ({
     <div className={cn(
       "grid",
       isMobile 
-        ? "grid-cols-2 gap-3 px-2" // Changed from grid-cols-3 to grid-cols-2 to make items wider
+        ? "grid-cols-3 gap-2 px-2" // Changed back to grid-cols-3
         : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-2"
     )}>
       {items.map((item) => (
@@ -121,7 +121,7 @@ const ShoppingList = ({
           onClick={() => toggleItemCompletion(item.id)}
           onDelete={() => deleteItem(item.id)}
           onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
-          onImagePreview={item.imageUrl || isMobile ? () => handleImagePreview(item) : undefined}
+          onImagePreview={() => handleImagePreview(item)} // Always provide this function regardless of image
         />
       ))}
     </div>
