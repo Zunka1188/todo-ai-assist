@@ -10,9 +10,11 @@ import {
   TableCell 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Maximize2, FileText, Image, FileImage, File, Archive } from 'lucide-react';
+import { Pencil, Trash2, Maximize2, FileText, Image, File, Archive } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Card } from '@/components/ui/card';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface DocumentTableViewProps {
   documents: DocumentFile[];
@@ -27,6 +29,8 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
   onDelete,
   onFullScreen
 }) => {
+  const { isMobile } = useIsMobile();
+  
   // Format ISO date string to European format (DD/MM/YYYY HH:MM)
   const formatDateEuropean = (dateString: string): string => {
     const date = new Date(dateString);
@@ -44,7 +48,7 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
       case 'pdf':
         return <FileText className="h-4 w-4 text-red-500" />;
       case 'image':
-        return <FileImage className="h-4 w-4 text-blue-500" />;
+        return <Image className="h-4 w-4 text-blue-500" />;
       case 'word':
       case 'text':
         return <FileText className="h-4 w-4 text-blue-400" />;
@@ -103,6 +107,62 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
     );
   }
 
+  // Mobile View
+  if (isMobile) {
+    return (
+      <div className="space-y-3">
+        {documents.map((doc) => (
+          <Card key={doc.id} className="p-3 hover:bg-accent/20 transition-colors">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="shrink-0">
+                  {getFileIcon(doc.fileType)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium truncate">{doc.title}</h3>
+                  <div className="text-xs text-muted-foreground">
+                    <p className="truncate mt-1">{getFileTypeDisplay(doc.fileType)} • {getRandomFileSize(doc.fileType)}</p>
+                    <p className="mt-1">{formatDateEuropean(doc.date)}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 ml-2 shrink-0">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-7 w-7" 
+                  onClick={() => onFullScreen(doc)}
+                  aria-label="View full screen"
+                >
+                  <Maximize2 className="h-3.5 w-3.5" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-7 w-7" 
+                  onClick={() => onEdit(doc)}
+                  aria-label="Edit document"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-7 w-7 hover:bg-red-100 hover:text-red-500"
+                  onClick={() => onDelete(doc.id)}
+                  aria-label="Delete document"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  // Desktop View (Table Layout)
   return (
     <Card className="overflow-hidden border rounded-md">
       <Table>
