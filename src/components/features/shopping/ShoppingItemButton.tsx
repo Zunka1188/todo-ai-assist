@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Maximize2, Share2 } from 'lucide-react';
@@ -59,14 +58,14 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       <div 
         className={cn(
           "flex flex-col rounded-md overflow-hidden border cursor-pointer",
-          isMobile ? "h-24 w-20" : "h-36 w-48", // Explicit sizing for mobile and desktop
+          isMobile ? "h-24 w-20" : "h-36 w-56",
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
         onClick={onClick}
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",
-          isMobile ? "h-14" : "h-24" // Reduced height ratio for desktop and mobile
+          isMobile ? "h-14" : "h-24"
         )}>
           {imageUrl ? (
             <>
@@ -100,7 +99,6 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             </div>
           )}
           
-          {/* Badge for repeat option */}
           {repeatOption !== 'none' && (
             <div className="absolute bottom-0.5 left-0.5">
               <Badge className={cn(
@@ -142,64 +140,105 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
       </div>
 
-      <div className={cn(
-        "flex gap-0.5",
-        isMobile 
-          ? "absolute top-0.5 left-0.5" 
-          : "absolute top-1.5 right-1.5"
-      )}>
-        <Button
-          size="sm"
-          variant="destructive"
-          className={cn(
-            "opacity-90",
-            isMobile ? "h-3 w-3 p-0" : "h-6 w-6 p-0"
-          )}
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-        >
-          <Trash2 className={cn(
-            isMobile ? "h-2 w-2" : "h-3.5 w-3.5"
-          )} />
-        </Button>
-        
-        <Button
-          size="sm" 
-          variant="secondary"
-          className={cn(
-            "opacity-90",
-            isMobile ? "h-3 w-3 p-0" : "h-6 w-6 p-0"
-          )}
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit();
-          }}
-        >
-          <Pencil className={cn(
-            isMobile ? "h-2 w-2" : "h-3.5 w-3.5"
-          )} />
-        </Button>
-        
-        <ShareButton
-          size={isMobile ? "sm" : "icon"}
-          variant="secondary"
-          className={cn(
-            "opacity-90",
-            isMobile ? "h-3 w-3 p-0" : "h-6 w-6 p-0"
-          )}
-          title={`Shopping item: ${name}`}
-          text={`${name}${quantity ? ` - Quantity: ${quantity}` : ''}${notes ? `\n\nNotes: ${notes}` : ''}`}
-          fileUrl={imageUrl}
-          onClick={(e) => e.stopPropagation()}
-          showOptions={true}
-        >
-          <Share2 className={cn(
-            isMobile ? "h-2 w-2" : "h-3.5 w-3.5"
-          )} />
-        </ShareButton>
-      </div>
+      {isMobile && (
+        <div className="absolute top-0.5 left-0.5 flex gap-0.5">
+          <Button
+            size="sm"
+            variant="destructive"
+            className="h-3 w-3 p-0 opacity-90"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+          >
+            <Trash2 className="h-2 w-2" />
+          </Button>
+          
+          <Button
+            size="sm" 
+            variant="secondary"
+            className="h-3 w-3 p-0 opacity-90"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+          >
+            <Pencil className="h-2 w-2" />
+          </Button>
+          
+          <ShareButton
+            size="sm"
+            variant="secondary"
+            className="h-3 w-3 p-0 opacity-90"
+            title={`Shopping item: ${name}`}
+            text={`${name}${quantity ? ` - Quantity: ${quantity}` : ''}${notes ? `\n\nNotes: ${notes}` : ''}`}
+            fileUrl={imageUrl}
+            onClick={(e) => e.stopPropagation()}
+            showOptions={true}
+          >
+            <Share2 className="h-2 w-2" />
+          </ShareButton>
+        </div>
+      )}
+      
+      {!isMobile && (
+        <>
+          <div className="absolute top-1.5 right-1.5">
+            <Button
+              size="icon"
+              variant="destructive"
+              className="h-6 w-6 p-0 opacity-90"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+          
+          <div className="absolute top-1.5 left-1.5 flex gap-1">
+            <Button
+              size="icon" 
+              variant="secondary"
+              className="h-6 w-6 p-0 opacity-90"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+            
+            <ShareButton
+              size="icon"
+              variant="secondary"
+              className="h-6 w-6 p-0 opacity-90"
+              title={`Shopping item: ${name}`}
+              text={`${name}${quantity ? ` - Quantity: ${quantity}` : ''}${notes ? `\n\nNotes: ${notes}` : ''}`}
+              fileUrl={imageUrl}
+              onClick={(e) => e.stopPropagation()}
+              showOptions={true}
+            >
+              <Share2 className="h-3.5 w-3.5" />
+            </ShareButton>
+            
+            {onImagePreview && (
+              <Button
+                size="icon"
+                variant="secondary"
+                className="h-6 w-6 p-0 opacity-90"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onImagePreview();
+                }}
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };
