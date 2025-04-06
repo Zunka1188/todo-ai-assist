@@ -50,24 +50,22 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
         if (!open) onClose();
       }}
     >
-      <DialogContent className="max-w-3xl p-0 relative" preventNavigateOnClose={true}>
-        <div className="relative w-full h-full max-h-[80vh] flex flex-col">
-          <div className="flex-grow flex items-center justify-center overflow-hidden">
-            <img src={imageUrl} alt="Preview" className="max-w-full max-h-full object-contain" />
-          </div>
-          
-          <div className="absolute top-4 left-4 flex gap-2">
-            <ShareButton
-              title="Check out this image"
-              fileUrl={imageUrl}
-              variant="secondary"
-              className="bg-background/80 hover:bg-background/90"
-              size="icon"
-              showOptions={true}
-            >
-              <Share2 className="h-4 w-4" />
-            </ShareButton>
-          </div>
+      <DialogContent className="max-w-3xl p-0 relative flex items-center justify-center" preventNavigateOnClose={true}>
+        <div className="w-full h-full flex items-center justify-center overflow-hidden p-4">
+          <img src={imageUrl} alt="Preview" className="max-w-full max-h-[70vh] object-contain" />
+        </div>
+        
+        <div className="absolute top-4 left-4 flex gap-2">
+          <ShareButton
+            title="Check out this image"
+            fileUrl={imageUrl}
+            variant="secondary"
+            className="bg-background/80 hover:bg-background/90"
+            size="icon"
+            showOptions={true}
+          >
+            <Share2 className="h-4 w-4" />
+          </ShareButton>
         </div>
         
         {/* Close Button in the top right */}
