@@ -3,7 +3,7 @@ import React from 'react';
 import { 
   File, FileText, FileImage, Image, 
   Archive, Shirt, ChefHat, 
-  Plane, Dumbbell, FileBox
+  Plane, Dumbbell, FileBox, Calendar
 } from 'lucide-react';
 import { DocumentCategory } from '../types';
 
@@ -19,8 +19,8 @@ export const getCategoryIcon = (category: DocumentCategory) => {
       return <Dumbbell className="h-5 w-5 text-purple-500" />;
     case 'files':
       return <Archive className="h-5 w-5 text-gray-500" />;
-    case 'work':
-      return <FileBox className="h-5 w-5 text-blue-600" />;
+    case 'events':
+      return <Calendar className="h-5 w-5 text-blue-600" />;
     case 'other':
     default:
       return <FileText className="h-5 w-5 text-gray-500" />;

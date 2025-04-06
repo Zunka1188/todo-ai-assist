@@ -1,5 +1,5 @@
 
-export type DocumentCategory = 'other' | 'style' | 'recipes' | 'travel' | 'fitness' | 'files' | 'work';
+export type DocumentCategory = 'other' | 'style' | 'recipes' | 'travel' | 'fitness' | 'files' | 'events';
 
 export interface DocumentItem {
   id: string;
@@ -24,4 +24,4 @@ export interface DocumentFile {
   fileUrl?: string;
 }
 
-export const CATEGORIES: DocumentCategory[] = ['style', 'recipes', 'travel', 'fitness', 'work', 'other', 'files'];
+export const CATEGORIES: DocumentCategory[] = ['style', 'recipes', 'travel', 'fitness', 'events', 'other', 'files'];

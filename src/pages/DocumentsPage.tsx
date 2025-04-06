@@ -13,6 +13,7 @@ import PageHeader from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { ChefHat, Dumbbell, FileArchive, Plane, Calendar, FileText, Shirt } from 'lucide-react';
 import AttachmentOptionsDialog from '@/components/features/shopping/AttachmentOptionsDialog';
+import { getCategoryIcon } from '@/components/features/documents/utils/iconHelpers';
 
 const DocumentsPage = () => {
   const navigate = useNavigate();
@@ -60,26 +61,6 @@ const DocumentsPage = () => {
     setFullScreenPreviewItem(item);
   };
 
-  const getCategoryIcon = (category: DocumentCategory) => {
-    switch (category) {
-      case 'style':
-        return <Shirt className="h-4 w-4" />;
-      case 'recipes':
-        return <ChefHat className="h-4 w-4" />;
-      case 'travel':
-        return <Plane className="h-4 w-4" />;
-      case 'fitness':
-        return <Dumbbell className="h-4 w-4" />;
-      case 'work':
-        return <Calendar className="h-4 w-4" />;
-      case 'files':
-        return <FileArchive className="h-4 w-4" />;
-      case 'other':
-      default:
-        return <FileText className="h-4 w-4" />;
-    }
-  };
-
   const filteredItems = filterDocuments(categoryItems, activeTab, searchTerm);
   const filteredFiles = filterFiles(files, searchTerm);
 
@@ -112,7 +93,7 @@ const DocumentsPage = () => {
             <Dumbbell className="h-4 w-4" />
             <span className={isMobile ? "sr-only" : ""}>Fitness</span>
           </TabsTrigger>
-          <TabsTrigger value="work" className="flex items-center gap-2">
+          <TabsTrigger value="events" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             <span className={isMobile ? "sr-only" : ""}>Events</span>
           </TabsTrigger>
@@ -132,7 +113,7 @@ const DocumentsPage = () => {
               items={filteredItems}
               onEdit={handleOpenAddDialog}
               onDelete={handleDeleteItem}
-              onViewImage={(item) => handleViewFullScreen(item as DocumentItem)}
+              onViewImage={(item) => handleViewFullScreen(item)}
               formatDateRelative={formatDateRelative}
             />
           </TabsContent>
@@ -146,7 +127,7 @@ const DocumentsPage = () => {
               }}
               onDeleteDocument={handleDeleteFile}
               searchTerm={searchTerm} 
-              categories={CATEGORIES as DocumentCategory[]} 
+              categories={CATEGORIES} 
               viewMode="table"
               showAddButton={false}
             />
