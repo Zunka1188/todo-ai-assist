@@ -40,7 +40,7 @@ const CalendarPage = () => {
       noPadding={isMobile}
     >
       <div className={isMobile ? "px-2 pt-2" : ""}>
-        <PageHeader
+        <PageHeader 
           title="Calendar"
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
@@ -49,11 +49,11 @@ const CalendarPage = () => {
           backTo="/"
           rightContent={
             <Button 
-              className="flex items-center gap-1" 
-              onClick={handleAddItem}
+              onClick={handleAddItem} 
               size={isMobile ? "sm" : "default"}
+              className="bg-todo-purple hover:bg-todo-purple/90 text-white"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 mr-1" />
               {isMobile ? "Add" : "Add Event"}
             </Button>
           }
