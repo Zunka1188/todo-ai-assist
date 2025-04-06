@@ -30,7 +30,6 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
 }) => {
   const { isMobile } = useIsMobile();
   
-  // Format ISO date string to European format (DD/MM/YYYY)
   const formatDateEuropean = (dateString: string): string => {
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, '0');
@@ -39,7 +38,6 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
     return `${day}/${month}/${year}`;
   };
 
-  // Get file icon based on file type
   const getFileIcon = (fileType: string) => {
     switch (fileType) {
       case 'pdf':
@@ -58,7 +56,6 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
     }
   };
 
-  // Get file type display text
   const getFileTypeDisplay = (fileType: string) => {
     switch (fileType) {
       case 'pdf':
@@ -78,7 +75,6 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
     }
   };
 
-  // Mock file sizes since we don't have real file sizes in the data
   const getRandomFileSize = (fileType: string) => {
     switch (fileType) {
       case 'pdf':
@@ -104,7 +100,6 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
     );
   }
 
-  // Mobile View
   if (isMobile) {
     return (
       <div className="space-y-3">
@@ -172,14 +167,13 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
     );
   }
 
-  // Desktop View (Table Layout)
   return (
     <Card className="overflow-hidden border rounded-md">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-accent/70 bg-muted/50">
             <TableHead className="w-[40%]">Name</TableHead>
-            <TableHead className="w-[25%]">Date modified</TableHead>
+            <TableHead className="w-[25%]">Date added</TableHead>
             <TableHead className="w-[20%]">Type</TableHead>
             <TableHead className="w-[10%]">Size</TableHead>
             <TableHead className="w-[5%]"></TableHead>
