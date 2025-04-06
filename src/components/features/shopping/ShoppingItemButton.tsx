@@ -53,19 +53,19 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
   return (
     <div className={cn(
       "relative",
-      isMobile ? "" : "shopping-item-desktop"
+      isMobile ? "w-full" : "shopping-item-desktop"
     )}>
       <div 
         className={cn(
           "flex flex-col rounded-md overflow-hidden border cursor-pointer",
-          isMobile ? "h-24 w-20" : "h-36 w-64",
+          isMobile ? "h-28 w-full" : "h-36 w-64",
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
         onClick={onClick}
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",
-          isMobile ? "h-14" : "h-24"
+          isMobile ? "h-20" : "h-24"
         )}>
           {imageUrl ? (
             <>
@@ -84,7 +84,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
               completed ? 'bg-gray-200' : 'bg-gray-200',
               "font-bold"
             )}>
-              <span className={isMobile ? "text-lg" : "text-xl"}>{getInitial()}</span>
+              <span className={isMobile ? "text-xl" : "text-xl"}>{getInitial()}</span>
             </div>
           )}
           
@@ -92,14 +92,13 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             <div className="absolute bottom-0.5 left-0.5">
               <Badge className={cn(
                 getBadgeColorClass(),
-                isMobile ? "text-[8px] px-1 py-0 h-3" : "text-xs py-0"
+                isMobile ? "text-xs px-2 py-0.5" : "text-xs py-0"
               )}>
                 {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
               </Badge>
             </div>
           )}
           
-          {/* Image preview button moved to bottom right only for desktop */}
           {!isMobile && onImagePreview && (
             <button
               onClick={(e) => {
@@ -116,7 +115,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         <div className="p-1 flex-grow">
           <h3 className={cn(
             "font-medium truncate", 
-            isMobile ? "text-[10px]" : "text-xs",
+            isMobile ? "text-sm" : "text-xs",
             completed ? 'line-through text-gray-500' : ''
           )}>
             {name}
@@ -124,7 +123,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           {quantity && (
             <p className={cn(
               "truncate mt-0.5",
-              isMobile ? "text-[8px]" : "text-xs",
+              isMobile ? "text-xs" : "text-xs",
               completed ? 'text-gray-400' : 'text-gray-500'
             )}>
               {quantity}
@@ -133,7 +132,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           {notes && (
             <p className={cn(
               "truncate mt-0.5",
-              isMobile ? "text-[8px]" : "text-xs",
+              isMobile ? "text-xs" : "text-xs",
               completed ? 'text-gray-400' : 'text-gray-500'
             )}>
               {notes}
@@ -142,27 +141,24 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
       </div>
 
-      {/* Mobile - Single Expand button */}
       {isMobile && onImagePreview && (
-        <div className="absolute top-0.5 right-0.5">
+        <div className="absolute top-1 right-1">
           <Button
             size="sm"
             variant="secondary"
-            className="h-5 w-5 p-0 opacity-90 rounded-full"
+            className="h-7 w-7 p-0 opacity-90 rounded-full"
             onClick={(e) => {
               e.stopPropagation();
               onImagePreview();
             }}
           >
-            <Maximize2 className="h-3 w-3" />
+            <Maximize2 className="h-4 w-4" />
           </Button>
         </div>
       )}
       
-      {/* Desktop buttons - Unchanged */}
       {!isMobile && (
         <>
-          {/* Delete button in top right */}
           <div className="absolute top-1.5 right-1.5">
             <Button
               size="icon"
@@ -177,7 +173,6 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             </Button>
           </div>
           
-          {/* Edit and Share buttons in top left */}
           <div className="absolute top-1.5 left-1.5 flex gap-1">
             <Button
               size="icon" 
