@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -106,7 +105,7 @@ const ShoppingList = ({
     <div className={cn(
       "grid",
       isMobile 
-        ? "grid-cols-3 gap-1.5 px-2" // Adjusted gap to ensure 3 items fit properly
+        ? "grid-cols-3 gap-2 px-2"
         : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-2"
     )}>
       {items.map((item) => (
@@ -121,7 +120,7 @@ const ShoppingList = ({
           onClick={() => toggleItemCompletion(item.id)}
           onDelete={() => deleteItem(item.id)}
           onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
-          onImagePreview={() => handleImagePreview(item)} // Always provide this function
+          onImagePreview={() => handleImagePreview(item)}
         />
       ))}
     </div>

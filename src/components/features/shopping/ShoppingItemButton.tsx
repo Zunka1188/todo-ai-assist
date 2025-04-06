@@ -59,14 +59,14 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       <div 
         className={cn(
           "flex flex-col rounded-md overflow-hidden border cursor-pointer",
-          isMobile ? "h-26 w-full" : "h-36 w-64", // Adjusted height for mobile
+          isMobile ? "h-24 w-full" : "h-36 w-64", // Adjusted back to original height
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
         onClick={onClick}
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",
-          isMobile ? "h-18" : "h-24" // Adjusted height for mobile
+          isMobile ? "h-16" : "h-24" // Adjusted height for mobile to match the toothpaste button
         )}>
           {imageUrl ? (
             <>
@@ -100,18 +100,16 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             </div>
           )}
           
-          {/* Always show expand button on desktop regardless of image */}
-          {!isMobile && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onImagePreview) onImagePreview();
-              }}
-              className="absolute bottom-0.5 right-0.5 p-0.5 bg-black/30 rounded-full hover:bg-black/50"
-            >
-              <Maximize2 className="h-3.5 w-3.5 text-white" />
-            </button>
-          )}
+          {/* Always show expand button regardless of image */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onImagePreview) onImagePreview();
+            }}
+            className="absolute bottom-0.5 right-0.5 p-0.5 bg-black/30 rounded-full hover:bg-black/50"
+          >
+            <Maximize2 className="h-3.5 w-3.5 text-white" />
+          </button>
         </div>
         
         <div className="p-1 flex-grow">
@@ -143,7 +141,6 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
       </div>
 
-      {/* Always show expand button on mobile regardless of image */}
       {isMobile && (
         <div className="absolute top-1 right-1">
           <Button
