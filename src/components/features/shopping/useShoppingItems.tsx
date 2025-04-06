@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 export interface ShoppingItem {
@@ -96,16 +95,13 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   
-  // Save items to localStorage whenever they change
   useEffect(() => {
     saveToLocalStorage('shoppingItems', items);
   }, [items]);
 
-  // Filter items based on filterMode, and searchTerm
   const getFilteredItems = () => {
     let filtered = items;
     
-    // Apply filter mode
     switch (filterMode) {
       case 'weekly':
         filtered = items.filter(item => item.repeatOption === 'weekly');
@@ -121,7 +117,6 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
         break;
     }
     
-    // Apply search filter
     if (searchTerm.trim() !== '') {
       const lowerSearchTerm = searchTerm.toLowerCase();
       filtered = filtered.filter(item => 
@@ -133,7 +128,6 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     return filtered;
   };
 
-  // Sort items based on sortOption
   const getSortedItems = (filteredItems: ShoppingItem[]) => {
     return filteredItems.sort((a, b) => {
       switch (sortOption) {
@@ -164,15 +158,23 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     });
   };
 
-  // Add a new item to the shopping list
   const addItem = (newItem: Omit<ShoppingItem, 'id' | 'dateAdded'> & {dateAdded?: Date, id?: string}) => {
     try {
-      console.log("Adding new item:", newItem);
+      console.log("[DEBUG] Adding new item:", JSON.stringify(newItem, null, 2));
       
-      // Create a properly structured item with defaults for missing properties
+      if (!newItem || typeof newItem !== 'object') {
+        console.error("[ERROR] Invalid item data:", newItem);
+        return null;
+      }
+      
+      if (!newItem.name) {
+        console.error("[ERROR] Item name is required");
+        return null;
+      }
+      
       const item: ShoppingItem = {
         id: newItem.id || Date.now().toString(),
-        completed: newItem.completed ?? false, // Use nullish coalescing to default to false
+        completed: newItem.completed === undefined ? false : newItem.completed,
         dateAdded: newItem.dateAdded || new Date(),
         name: newItem.name,
         category: newItem.category || '',
@@ -185,22 +187,21 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
         lastPurchased: undefined
       };
       
-      console.log("Structured item to add:", item);
+      console.log("[DEBUG] Structured item to add:", JSON.stringify(item, null, 2));
       
       setItems(prevItems => {
         const updatedItems = [...prevItems, item];
-        console.log("Updated items list:", updatedItems);
+        console.log("[DEBUG] Updated items count:", updatedItems.length);
         return updatedItems;
       });
       
       return item;
     } catch (error) {
-      console.error("Error in addItem:", error);
+      console.error("[ERROR] in addItem:", error);
       return null;
     }
   };
 
-  // Toggle item completion status
   const toggleItem = (id: string) => {
     const item = items.find(item => item.id === id);
     if (!item) return;
@@ -223,14 +224,12 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     }
   };
 
-  // Remove an item from the shopping list
   const removeItem = (id: string) => {
     const itemToRemove = items.find(item => item.id === id);
     setItems(items.filter(item => item.id !== id));
     return itemToRemove;
   };
 
-  // Update an existing item
   const updateItem = (id: string, updatedData: Partial<ShoppingItem>) => {
     const updatedItems = items.map(item => 
       item.id === id ? { ...item, ...updatedData } : item
@@ -239,7 +238,6 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     return updatedItems.find(item => item.id === id);
   };
 
-  // Handle item selection for bulk operations
   const handleItemSelect = (id: string) => {
     if (selectedItems.includes(id)) {
       setSelectedItems(selectedItems.filter(itemId => itemId !== id));
@@ -248,7 +246,6 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     }
   };
 
-  // Delete all selected items
   const deleteSelectedItems = () => {
     const count = selectedItems.length;
     setItems(items.filter(item => !selectedItems.includes(item.id)));

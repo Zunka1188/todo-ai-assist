@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog,
@@ -126,20 +127,29 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       fileName: fileName || undefined,
       fileType: fileType || undefined,
       repeatOption,
-      completed: false // Explicitly add completed property
+      completed: false // Always set completed to false for new items
     };
     
-    console.log("Saving item with data:", itemData);
+    console.log("[DEBUG] AddItemDialog - Saving item with data:", JSON.stringify(itemData, null, 2));
     
-    const result = onSave(itemData);
-    
-    if (result !== false) {
-      resetForm();
-      onOpenChange(false);
+    try {
+      const result = onSave(itemData);
       
+      if (result !== false) {
+        resetForm();
+        onOpenChange(false);
+        
+        toast({
+          title: isEditing ? "Item Updated" : "Item Saved",
+          description: `${itemData.name} has been ${isEditing ? 'updated' : 'added to your ' + (repeatOption === 'none' ? 'shopping list' : repeatOption === 'weekly' ? 'weekly items' : 'monthly items')}.`,
+        });
+      }
+    } catch (error) {
+      console.error("[ERROR] AddItemDialog - Error saving item:", error);
       toast({
-        title: isEditing ? "Item Updated" : "Item Saved",
-        description: `${itemData.name} has been ${isEditing ? 'updated' : 'added to your ' + (repeatOption === 'none' ? 'shopping list' : repeatOption === 'weekly' ? 'weekly items' : 'monthly items')}.`,
+        title: "Error",
+        description: "Something went wrong while saving the item.",
+        variant: "destructive"
       });
     }
   };

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -43,10 +44,10 @@ const ShoppingList = ({
 
   const handleSaveItemFromCapture = (itemData: any) => {
     try {
-      console.log("ShoppingList - Handling save from capture:", itemData);
+      console.log("[DEBUG] ShoppingList - Handling save from capture:", JSON.stringify(itemData, null, 2));
       
       if (!itemData.name) {
-        console.warn("Name is missing, setting default name");
+        console.warn("[WARN] Name is missing, setting default name");
         itemData.name = "Unnamed Item";
       }
       
@@ -63,13 +64,13 @@ const ShoppingList = ({
         repeatOption: itemData.repeatOption || 'none',
         category: itemData.category || '',
         dateToPurchase: '',
-        completed: false // Ensure this is explicitly set
+        completed: false // Always explicitly set completed to false
       };
       
-      console.log("ShoppingList - Structured item to add:", newItem);
+      console.log("[DEBUG] ShoppingList - Structured item to add:", JSON.stringify(newItem, null, 2));
       
       const added = addItem(newItem);
-      console.log("ShoppingList - Result from addItem:", added);
+      console.log("[DEBUG] ShoppingList - Result from addItem:", added);
       
       if (added) {
         toast({
@@ -96,7 +97,7 @@ const ShoppingList = ({
         });
       }
     } catch (error) {
-      console.error("Error adding item to shopping list:", error);
+      console.error("[ERROR] ShoppingList - Error adding item to shopping list:", error);
       toast({
         title: "Error",
         description: "Error adding item to shopping list: " + (error instanceof Error ? error.message : String(error)),

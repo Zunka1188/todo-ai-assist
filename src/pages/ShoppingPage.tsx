@@ -54,7 +54,7 @@ const ShoppingPage: React.FC = () => {
 
   const handleSaveItem = (item: any) => {
     try {
-      console.log('Adding item with data:', item);
+      console.log('[DEBUG] ShoppingPage - Adding item with data:', JSON.stringify(item, null, 2));
       
       // Make sure all required fields are included
       const itemToAdd = {
@@ -66,14 +66,14 @@ const ShoppingPage: React.FC = () => {
         repeatOption: item.repeatOption || 'none',
         category: item.category || '',
         dateToPurchase: item.dateToPurchase || '',
-        completed: false
+        completed: item.completed === undefined ? false : item.completed // Ensure completed property
       };
       
-      console.log('Properly structured item to add:', itemToAdd);
+      console.log('[DEBUG] ShoppingPage - Properly structured item to add:', JSON.stringify(itemToAdd, null, 2));
       
       const result = addItem(itemToAdd);
       
-      console.log('Result from addItem:', result);
+      console.log('[DEBUG] ShoppingPage - Result from addItem:', result);
       
       if (result) {
         toast({
@@ -82,7 +82,7 @@ const ShoppingPage: React.FC = () => {
         });
         return true;
       } else {
-        console.error("Add item returned falsy value");
+        console.error("[ERROR] ShoppingPage - Add item returned falsy value");
         toast({
           title: "Error",
           description: "There was a problem adding the item",
@@ -90,7 +90,7 @@ const ShoppingPage: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error("Error adding item:", error);
+      console.error("[ERROR] ShoppingPage - Error adding item:", error);
       toast({
         title: "Error",
         description: "Failed to add item to list",
