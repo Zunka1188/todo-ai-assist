@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Maximize2, Share2 } from 'lucide-react';
@@ -34,7 +33,6 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
 }) => {
   const { isMobile } = useIsMobile();
   
-  // Get appropriate badge color based on repeat option
   const getBadgeColorClass = () => {
     switch (repeatOption) {
       case 'weekly':
@@ -46,7 +44,6 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
     }
   };
   
-  // For text items that don't have an image
   const getInitial = () => {
     return name.charAt(0).toUpperCase();
   };
@@ -59,14 +56,11 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
   };
 
   return (
-    <div className={cn(
-      "relative",
-      isMobile ? "w-full" : "w-full"
-    )}>
+    <div className="relative w-full">
       <div 
         className={cn(
           "flex flex-col rounded-md overflow-hidden border cursor-pointer",
-          isMobile ? "h-20 w-full" : "h-36 w-full",
+          isMobile ? "h-20" : "h-36",
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
         onClick={handleItemClick}
@@ -75,7 +69,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",
-          isMobile ? "h-12" : "h-24"
+          isMobile ? "h-14" : "h-24"
         )}>
           {imageUrl ? (
             <>
@@ -127,7 +121,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           )}
         </div>
         
-        <div className="p-1 flex-grow">
+        <div className="p-1 flex-grow overflow-hidden">
           <h3 className={cn(
             "font-medium truncate", 
             isMobile ? "text-[11px]" : "text-xs",
@@ -169,7 +163,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             type="button"
             aria-label="Expand item"
           >
-            <Maximize2 className="h-2.5 w-2.5" />
+            <Maximize2 className="h-3 w-3" />
           </Button>
         </div>
       )}
