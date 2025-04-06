@@ -56,19 +56,23 @@ const ShoppingPage: React.FC = () => {
     try {
       console.log('Adding item with data:', item);
       
-      const result = addItem({
+      // Make sure all required fields are included
+      const itemToAdd = {
         name: item.name,
-        amount: item.amount,
+        amount: item.amount || '',
         price: item.price || '',
         imageUrl: item.file || null,
         notes: item.notes || '',
         repeatOption: item.repeatOption || 'none',
-        // Make sure we're providing all required fields
         category: item.category || '',
         dateToPurchase: item.dateToPurchase || '',
         completed: false
-      });
-
+      };
+      
+      console.log('Properly structured item to add:', itemToAdd);
+      
+      const result = addItem(itemToAdd);
+      
       console.log('Result from addItem:', result);
       
       if (result) {
@@ -79,6 +83,11 @@ const ShoppingPage: React.FC = () => {
         return true;
       } else {
         console.error("Add item returned falsy value");
+        toast({
+          title: "Error",
+          description: "There was a problem adding the item",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error("Error adding item:", error);

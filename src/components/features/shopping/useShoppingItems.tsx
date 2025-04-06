@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 export interface ShoppingItem {
@@ -164,15 +165,15 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   };
 
   // Add a new item to the shopping list
-  const addItem = (newItem: Omit<ShoppingItem, 'id' | 'dateAdded' | 'completed'> & {completed?: boolean}) => {
+  const addItem = (newItem: Omit<ShoppingItem, 'id' | 'dateAdded'> & {dateAdded?: Date, id?: string}) => {
     try {
       console.log("Adding new item:", newItem);
       
       // Create a properly structured item with defaults for missing properties
       const item: ShoppingItem = {
-        id: Date.now().toString(),
+        id: newItem.id || Date.now().toString(),
         completed: newItem.completed ?? false,
-        dateAdded: new Date(),
+        dateAdded: newItem.dateAdded || new Date(),
         name: newItem.name,
         category: newItem.category || '',
         amount: newItem.amount || '',

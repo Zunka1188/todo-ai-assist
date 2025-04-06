@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -57,13 +58,19 @@ const ShoppingList = ({
       const newItem = {
         name: itemData.name,
         amount: itemData.amount || '1', 
-        price: itemData.price,
+        price: itemData.price || '',
         imageUrl: itemData.file || null,
-        notes: itemData.notes,
+        notes: itemData.notes || '',
         repeatOption: itemData.repeatOption || 'none',
+        category: itemData.category || '',
+        dateToPurchase: '',
+        completed: false
       };
       
+      console.log("ShoppingList - Structured item to add:", newItem);
+      
       const added = addItem(newItem);
+      console.log("ShoppingList - Result from addItem:", added);
       
       if (added) {
         toast({
