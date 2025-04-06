@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
@@ -11,6 +12,7 @@ import EventViewDialog from './dialogs/EventViewDialog';
 import EventFormDialog from './dialogs/EventFormDialog';
 import { useCalendarEvents } from './hooks/useCalendarEvents';
 import FileUploader from '../scanning/FileUploader';
+import ShareButton from '../shared/ShareButton';
 
 interface CalendarViewProps {
   viewMode: 'month' | 'week' | 'day' | 'agenda';

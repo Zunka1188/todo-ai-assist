@@ -15,6 +15,7 @@ interface PageHeaderProps {
   addItemLabel?: string;
   className?: string;
   extraActions?: React.ReactNode;
+  rightContent?: React.ReactNode; // Added this property
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({
@@ -25,7 +26,8 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   onAddItem,
   addItemLabel = 'Add New',
   className,
-  extraActions
+  extraActions,
+  rightContent // Added this parameter
 }) => {
   const { isMobile } = useIsMobile();
   
@@ -36,6 +38,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
         
         <div className="flex items-center gap-2">
           {extraActions}
+          {rightContent} {/* Render the rightContent if provided */}
           
           {showAddButton && onAddItem && (
             <Button 

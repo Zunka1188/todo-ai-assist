@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
@@ -39,6 +38,7 @@ const CalendarPage = () => {
         title="Calendar"
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
+        showAddButton={false}
         rightContent={
           <Button className="flex items-center gap-1" onClick={handleAddItem}>
             <PlusCircle className="h-4 w-4 mr-1" />
