@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { ArrowLeft, Search, Plus, FileText, Image, Tag, ChefHat, Plane, Dumbbell, Shirt, X, Maximize2, Minimize2, Camera, FileArchive, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -771,7 +772,9 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                     title={`Check out: ${item.title}`}
                     text={item.title}
                     fileUrl={item.content}
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
                     aria-label="Share item"
                   >
                     <Share2 className="h-4 w-4 text-white" />
@@ -849,7 +852,9 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                       className="h-8 w-8 p-0"
                       title={`Check out: ${item.title}`}
                       text={item.content}
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
                       aria-label="Share item"
                     >
                       <Share2 className="h-4 w-4" />
