@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Maximize2, Share2 } from 'lucide-react';
@@ -58,14 +59,14 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       <div 
         className={cn(
           "flex flex-col rounded-md overflow-hidden border cursor-pointer",
-          isMobile ? "h-28 w-full" : "h-36 w-64",
+          isMobile ? "h-32 w-full" : "h-36 w-64", // Increased height from h-28 to h-32 for more space
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
         onClick={onClick}
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",
-          isMobile ? "h-20" : "h-24"
+          isMobile ? "h-24" : "h-24" // Increased height from h-20 to h-24 for mobile
         )}>
           {imageUrl ? (
             <>
@@ -84,15 +85,15 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
               completed ? 'bg-gray-200' : 'bg-gray-200',
               "font-bold"
             )}>
-              <span className={isMobile ? "text-xl" : "text-xl"}>{getInitial()}</span>
+              <span className="text-xl">{getInitial()}</span>
             </div>
           )}
           
           {repeatOption !== 'none' && (
-            <div className="absolute bottom-0.5 left-0.5">
+            <div className="absolute bottom-1 left-1">
               <Badge className={cn(
                 getBadgeColorClass(),
-                isMobile ? "text-xs px-2 py-0.5" : "text-xs py-0"
+                isMobile ? "text-xs px-2 py-1" : "text-xs py-0"
               )}>
                 {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
               </Badge>
@@ -112,7 +113,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           )}
         </div>
         
-        <div className="p-1 flex-grow">
+        <div className="p-2 flex-grow"> {/* Increased padding from p-1 to p-2 */}
           <h3 className={cn(
             "font-medium truncate", 
             isMobile ? "text-sm" : "text-xs",
@@ -142,17 +143,17 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       </div>
 
       {isMobile && onImagePreview && (
-        <div className="absolute top-1 right-1">
+        <div className="absolute top-2 right-2"> {/* Increased top and right from 1 to 2 for better positioning */}
           <Button
             size="sm"
             variant="secondary"
-            className="h-7 w-7 p-0 opacity-90 rounded-full"
+            className="h-8 w-8 p-0 opacity-90 rounded-full" {/* Increased from h-7 w-7 to h-8 w-8 */}
             onClick={(e) => {
               e.stopPropagation();
               onImagePreview();
             }}
           >
-            <Maximize2 className="h-4 w-4" />
+            <Maximize2 className="h-5 w-5" /> {/* Increased from h-4 w-4 to h-5 w-5 */}
           </Button>
         </div>
       )}
