@@ -1,79 +1,63 @@
 
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import SearchInput from '@/components/ui/search-input';
-import { cn } from '@/lib/utils';
-import { useTheme } from '@/hooks/use-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
+import SearchInput from './search-input';
+import { Button } from './button';
+import { Plus } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PageHeaderProps {
   title: string;
   searchTerm?: string;
-  onSearchChange?: (value: string) => void;
+  onSearchChange?: (term: string) => void;
+  showAddButton?: boolean;
   onAddItem?: () => void;
   addItemLabel?: string;
-  showBackButton?: boolean;
-  backTo?: string;
-  showSearch?: boolean;
-  showAddButton?: boolean;
   className?: string;
-  rightContent?: React.ReactNode;
+  extraActions?: React.ReactNode;
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({
   title,
-  searchTerm = '',
+  searchTerm,
   onSearchChange,
-  onAddItem,
-  addItemLabel = '+ Add Item',
-  showBackButton = true,
-  backTo = '/',
-  showSearch = true,
   showAddButton = true,
-  className = '',
-  rightContent,
+  onAddItem,
+  addItemLabel = 'Add New',
+  className,
+  extraActions
 }) => {
-  const { theme } = useTheme();
   const { isMobile } = useIsMobile();
-  const textClass = theme === 'dark' ? 'text-white' : 'text-foreground';
   
   return (
-    <div className={cn('mb-4 flex flex-col gap-4', className)}>
+    <div className={cn("flex flex-col space-y-2 mb-6", className)}>
       <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        
         <div className="flex items-center gap-2">
-          {showBackButton && (
-            <Link to={backTo} className="p-1 rounded-md hover:bg-secondary touch-manipulation">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-          )}
-          <h1 className={cn(
-            isMobile ? "text-[20px] font-bold" : "text-2xl font-bold", // 20px for mobile headings
-            textClass
-          )}>
-            {title}
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-          {rightContent}
-          {showAddButton && onAddItem && !rightContent && (
+          {extraActions}
+          
+          {showAddButton && onAddItem && (
             <Button 
-              onClick={onAddItem}
-              className="shrink-0"
+              onClick={onAddItem} 
+              size={isMobile ? "sm" : "default"}
+              className="bg-todo-purple hover:bg-todo-purple/90 text-white"
             >
-              {addItemLabel}
+              <Plus className="h-4 w-4 mr-2" />
+              {isMobile && addItemLabel.length > 10 ? '+' : addItemLabel}
             </Button>
           )}
         </div>
       </div>
-      {showSearch && onSearchChange && (
-        <SearchInput 
-          value={searchTerm}
-          onChange={onSearchChange}
-          placeholder={`Search ${title.toLowerCase()}`}
-          className="w-full"
-        />
+
+      {onSearchChange && (
+        <div className="w-full sm:max-w-sm">
+          <SearchInput
+            value={searchTerm || ''}
+            onChange={(value) => onSearchChange(value)}
+            placeholder={`Search ${title.toLowerCase()}...`}
+          />
+        </div>
       )}
     </div>
   );

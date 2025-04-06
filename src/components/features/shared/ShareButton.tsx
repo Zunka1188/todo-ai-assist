@@ -5,7 +5,7 @@ import { Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-interface ShareButtonProps extends ButtonProps {
+interface ShareButtonProps extends Omit<ButtonProps, 'onError'> {
   title?: string;
   text?: string;
   url?: string;

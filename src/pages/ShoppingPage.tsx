@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShoppingList from '@/components/features/shopping/ShoppingList';
@@ -10,6 +11,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import PageHeader from '@/components/ui/page-header';
 import { cn } from '@/lib/utils';
+import { Share2 } from 'lucide-react';
+import ShareButton from '@/components/features/shared/ShareButton';
 
 const ShoppingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -115,6 +118,15 @@ const ShoppingPage: React.FC = () => {
     setShowAddDialog(open);
   }
 
+  // Generate a shareable content for the entire shopping list
+  const getShareableContent = () => {
+    // This will be populated from the actual items when share is clicked
+    return {
+      title: "My Shopping List",
+      text: "Check out my shopping list:"
+    };
+  }
+
   return (
     <div className="flex flex-col h-full">
       <PageHeader 
@@ -123,6 +135,18 @@ const ShoppingPage: React.FC = () => {
         onSearchChange={setSearchTerm}
         onAddItem={() => setShowAddDialog(true)}
         addItemLabel="+ Add Item"
+        extraActions={
+          <ShareButton
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1"
+            title={getShareableContent().title}
+            text={getShareableContent().text}
+            url={window.location.href}
+          >
+            <Share2 className="h-4 w-4" /> Share List
+          </ShareButton>
+        }
       />
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
