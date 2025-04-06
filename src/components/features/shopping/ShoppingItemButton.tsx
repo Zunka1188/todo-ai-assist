@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Maximize2, Share2 } from 'lucide-react';
@@ -149,6 +148,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           text={`${name}${quantity ? ` - Quantity: ${quantity}` : ''}${notes ? `\n\nNotes: ${notes}` : ''}`}
           fileUrl={imageUrl}
           onClick={(e) => e.stopPropagation()}
+          showOptions={true}
         >
           <Share2 className="h-4 w-4" />
         </ShareButton>
