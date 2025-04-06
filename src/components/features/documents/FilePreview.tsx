@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { File, FileText, FileSpreadsheet, Image, FileCode, FileArchive, File as FileIcon } from 'lucide-react';
+import { File, FileText, Archive, Image, File as FileIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FilePreviewProps {
@@ -110,11 +110,11 @@ const FilePreview: React.FC<FilePreviewProps> = ({
         <div className="mb-2">
           {fileType === 'pdf' && <FileText size={40} className="text-red-500" />}
           {fileType === 'word' && <FileText size={40} className="text-blue-500" />}
-          {fileType === 'excel' && <FileSpreadsheet size={40} className="text-green-500" />}
+          {fileType === 'excel' && <FileText size={40} className="text-green-500" />}
           {fileType === 'powerpoint' && <FileText size={40} className="text-orange-500" />}
           {fileType === 'text' && <FileText size={40} className="text-gray-500" />}
-          {fileType === 'code' && <FileCode size={40} className="text-purple-500" />}
-          {fileType === 'archive' && <FileArchive size={40} className="text-gray-500" />}
+          {fileType === 'code' && <File size={40} className="text-purple-500" />}
+          {fileType === 'archive' && <Archive size={40} className="text-gray-500" />}
           {(fileType === 'unknown' || !fileType) && <File size={40} className="text-gray-500" />}
         </div>
       )}

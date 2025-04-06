@@ -10,7 +10,7 @@ import {
   TableCell 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Maximize2, FileText, FileImage, FilePdf, FileArchive, File } from 'lucide-react';
+import { Pencil, Trash2, Maximize2, FileText, Image, FileImage, File, Archive } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Card } from '@/components/ui/card';
 
@@ -42,7 +42,7 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
   const getFileIcon = (fileType: string) => {
     switch (fileType) {
       case 'pdf':
-        return <FilePdf className="h-4 w-4 text-red-500" />;
+        return <FileText className="h-4 w-4 text-red-500" />;
       case 'image':
         return <FileImage className="h-4 w-4 text-blue-500" />;
       case 'word':
@@ -51,7 +51,7 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
       case 'excel':
         return <FileText className="h-4 w-4 text-green-500" />;
       case 'archive':
-        return <FileArchive className="h-4 w-4 text-yellow-500" />;
+        return <Archive className="h-4 w-4 text-yellow-500" />;
       default:
         return <File className="h-4 w-4 text-gray-500" />;
     }

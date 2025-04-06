@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { 
-  File, FileText, FileSpreadsheet, FileCode, 
-  Image, FileArchive, Shirt, ChefHat, 
+  File, FileText, FileImage, Image, 
+  Archive, Shirt, ChefHat, 
   Plane, Dumbbell, FileBox
 } from 'lucide-react';
 import { DocumentCategory } from '../types';
@@ -18,7 +18,7 @@ export const getCategoryIcon = (category: DocumentCategory) => {
     case 'fitness':
       return <Dumbbell className="h-5 w-5 text-purple-500" />;
     case 'files':
-      return <FileArchive className="h-5 w-5 text-gray-500" />;
+      return <Archive className="h-5 w-5 text-gray-500" />;
     case 'work':
       return <FileBox className="h-5 w-5 text-blue-600" />;
     case 'other':
@@ -34,13 +34,13 @@ export const getFileTypeIcon = (fileType: string) => {
     case 'word':
       return <FileText className="h-5 w-5 text-blue-500" />;
     case 'excel':
-      return <FileSpreadsheet className="h-5 w-5 text-green-500" />;
+      return <FileText className="h-5 w-5 text-green-500" />;
     case 'image':
       return <Image className="h-5 w-5 text-purple-500" />;
     case 'code':
-      return <FileCode className="h-5 w-5 text-yellow-500" />;
+      return <File className="h-5 w-5 text-yellow-500" />;
     case 'archive':
-      return <FileArchive className="h-5 w-5 text-gray-500" />;
+      return <Archive className="h-5 w-5 text-gray-500" />;
     default:
       return <File className="h-5 w-5 text-gray-500" />;
   }
