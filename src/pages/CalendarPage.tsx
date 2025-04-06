@@ -34,41 +34,47 @@ const CalendarPage = () => {
   };
 
   return (
-    <PageLayout maxWidth="full">
-      <PageHeader
-        title="Calendar"
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        showAddButton={false}
-        showBackButton={true}
-        backTo="/"
-        rightContent={
-          <Button className="flex items-center gap-1" onClick={handleAddItem}>
-            <PlusCircle className="h-4 w-4 mr-1" />
-            Add Event
-          </Button>
-        }
-      />
+    <PageLayout 
+      maxWidth="full" 
+      className="flex flex-col h-[calc(100vh-4rem)]"
+      noPadding={isMobile}
+    >
+      <div className={isMobile ? "px-2 pt-2" : ""}>
+        <PageHeader
+          title="Calendar"
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          showAddButton={false}
+          showBackButton={true}
+          backTo="/"
+          rightContent={
+            <Button className="flex items-center gap-1" onClick={handleAddItem}>
+              <PlusCircle className="h-4 w-4 mr-1" />
+              {isMobile ? "Add" : "Add Event"}
+            </Button>
+          }
+        />
 
-      <div className="flex w-full">
-        <Tabs 
-          defaultValue="day" 
-          value={viewMode} 
-          onValueChange={value => setViewMode(value as 'month' | 'week' | 'day' | 'agenda')} 
-          className="w-full"
-        >
-          <TabsList className="grid grid-cols-4 w-full">
-            <TabsTrigger value="month" className={isMobile ? "text-xs py-1.5" : ""}>Month</TabsTrigger>
-            <TabsTrigger value="week" className={isMobile ? "text-xs py-1.5" : ""}>Week</TabsTrigger>
-            <TabsTrigger value="day" className={isMobile ? "text-xs py-1.5" : ""}>Day</TabsTrigger>
-            <TabsTrigger value="agenda" className={isMobile ? "text-xs py-1.5" : ""}>Upcoming</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex w-full">
+          <Tabs 
+            defaultValue="day" 
+            value={viewMode} 
+            onValueChange={value => setViewMode(value as 'month' | 'week' | 'day' | 'agenda')} 
+            className="w-full"
+          >
+            <TabsList className="grid grid-cols-4 w-full">
+              <TabsTrigger value="month" className={isMobile ? "text-xs py-1.5" : ""}>Month</TabsTrigger>
+              <TabsTrigger value="week" className={isMobile ? "text-xs py-1.5" : ""}>Week</TabsTrigger>
+              <TabsTrigger value="day" className={isMobile ? "text-xs py-1.5" : ""}>Day</TabsTrigger>
+              <TabsTrigger value="agenda" className={isMobile ? "text-xs py-1.5" : ""}>Upcoming</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        <Separator className="my-2" />
       </div>
-
-      <Separator className="my-2" />
       
-      <div className={`flex-1 overflow-hidden w-full h-full ${theme === 'dark' ? 'text-white' : ''}`}>
+      <div className={`flex-1 overflow-hidden w-full ${theme === 'dark' ? 'text-white' : ''} ${isMobile ? "px-2 pb-2" : ""}`}>
         <CalendarView 
           viewMode={viewMode} 
           searchTerm={searchTerm} 

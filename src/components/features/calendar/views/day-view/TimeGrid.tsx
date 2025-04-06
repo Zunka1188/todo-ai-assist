@@ -28,7 +28,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
   return (
     <div className={cn(
       "overflow-y-auto relative",
-      isMobile ? "max-h-[calc(100vh-320px)]" : "max-h-[600px]"
+      isMobile ? "max-h-[calc(100vh-280px)]" : "max-h-[600px]"
     )}>
       {/* Event Overlay Layer */}
       <div className="absolute w-full h-full z-10 pointer-events-none">
@@ -60,20 +60,20 @@ const TimeGrid: React.FC<TimeGridProps> = ({
             key={hour} 
             className={cn(
               "grid grid-cols-[4rem_1fr] border-b",
-              isMobile ? "min-h-[60px]" : "min-h-[80px]",
+              isMobile ? "min-h-[50px]" : "min-h-[80px]",
               isCurrentHour && "bg-accent/20"
             )}
           >
             <div className={cn(
               "p-2 text-right text-muted-foreground border-r",
-              isMobile ? "text-xs" : "text-sm"
+              "text-xs"
             )}>
               {format(hourDate, 'h a')}
             </div>
             
             <div className={cn(
               "p-2 relative", 
-              isMobile ? "min-h-[60px]" : "min-h-[80px]"
+              isMobile ? "min-h-[50px]" : "min-h-[80px]"
             )}>
             </div>
           </div>

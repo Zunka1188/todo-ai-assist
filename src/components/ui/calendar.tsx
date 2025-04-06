@@ -42,14 +42,14 @@ function Calendar({
         head_row: "flex justify-center",
         head_cell: cn(
           "text-muted-foreground rounded-md w-9 font-normal text-center",
-          isMobile ? "text-[0.7rem]" : "text-[0.8rem]"
+          "text-xs"
         ),
         row: "flex w-full mt-2 justify-center",
         cell: "h-9 w-9 text-center p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
           "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
-          isMobile ? "text-xs" : "text-sm"
+          "text-xs"
         ),
         day_range_end: "day-range-end",
         day_selected:
@@ -64,8 +64,8 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ ..._props }) => <ChevronLeft className={cn("h-4 w-4", isMobile && "h-3.5 w-3.5")} />,
-        IconRight: ({ ..._props }) => <ChevronRight className={cn("h-4 w-4", isMobile && "h-3.5 w-3.5")} />,
+        IconLeft: ({ ..._props }) => <ChevronLeft className="h-3.5 w-3.5" />,
+        IconRight: ({ ..._props }) => <ChevronRight className="h-3.5 w-3.5" />,
       }}
       {...props}
     />
