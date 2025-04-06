@@ -56,21 +56,26 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
     onClick();
   };
 
+  // Fixed dimensions for items based on mobile/desktop
+  const itemHeight = isMobile ? "h-24" : "h-36";
+  const imageHeight = isMobile ? "h-16" : "h-24";
+  
   return (
     <div className="relative w-full">
       <div 
         className={cn(
           "flex flex-col rounded-md overflow-hidden border cursor-pointer",
-          isMobile ? "h-24" : "h-36",
+          itemHeight,
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
         onClick={handleItemClick}
         role="button"
         aria-pressed={completed}
+        style={{ width: '100%' }} // Ensure full width
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",
-          isMobile ? "h-16" : "h-24"
+          imageHeight
         )}>
           {imageUrl ? (
             <>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -123,23 +124,24 @@ const ShoppingList = ({
     <div className={cn(
       "grid",
       isMobile 
-        ? "grid-cols-3 gap-2 px-1"
+        ? "grid-cols-2 gap-2 px-1" // Changed from 3 to 2 columns for better spacing on mobile
         : "grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-2"
     )}>
       {items.map((item) => (
-        <ShoppingItemButton
-          key={item.id}
-          name={item.name}
-          completed={item.completed}
-          quantity={item.amount}
-          repeatOption={item.repeatOption}
-          imageUrl={item.imageUrl}
-          notes={item.notes}
-          onClick={() => handleToggleItemCompletion(item.id)}
-          onDelete={() => deleteItem(item.id)}
-          onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
-          onImagePreview={() => handleImagePreview(item)}
-        />
+        <div key={item.id} className={isMobile ? "w-full" : "w-full"}>
+          <ShoppingItemButton
+            name={item.name}
+            completed={item.completed}
+            quantity={item.amount}
+            repeatOption={item.repeatOption}
+            imageUrl={item.imageUrl}
+            notes={item.notes}
+            onClick={() => handleToggleItemCompletion(item.id)}
+            onDelete={() => deleteItem(item.id)}
+            onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
+            onImagePreview={() => handleImagePreview(item)}
+          />
+        </div>
       ))}
     </div>
   );

@@ -79,6 +79,9 @@ const ShoppingPage: React.FC = () => {
       console.log('[DEBUG] ShoppingPage - Add item result:', result);
       
       if (result) {
+        // CRITICAL FIX: Ensure dialog closes after successful add
+        setShowAddDialog(false);
+        
         toast({
           title: "Item Added",
           description: `${item.name} has been added to your shopping list.`
