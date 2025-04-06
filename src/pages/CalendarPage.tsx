@@ -58,17 +58,17 @@ const CalendarPage = () => {
           className="w-full"
         >
           <TabsList className="grid grid-cols-4 w-full">
-            <TabsTrigger value="month">Month</TabsTrigger>
-            <TabsTrigger value="week">Week</TabsTrigger>
-            <TabsTrigger value="day">Day</TabsTrigger>
-            <TabsTrigger value="agenda">Upcoming</TabsTrigger>
+            <TabsTrigger value="month" className={isMobile ? "text-xs py-1.5" : ""}>Month</TabsTrigger>
+            <TabsTrigger value="week" className={isMobile ? "text-xs py-1.5" : ""}>Week</TabsTrigger>
+            <TabsTrigger value="day" className={isMobile ? "text-xs py-1.5" : ""}>Day</TabsTrigger>
+            <TabsTrigger value="agenda" className={isMobile ? "text-xs py-1.5" : ""}>Upcoming</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
       <Separator className="my-2" />
       
-      <div className={`flex-1 overflow-hidden w-full ${theme === 'dark' ? 'text-white' : ''}`}>
+      <div className={`flex-1 overflow-hidden w-full h-full ${theme === 'dark' ? 'text-white' : ''}`}>
         <CalendarView 
           viewMode={viewMode} 
           searchTerm={searchTerm} 

@@ -3,6 +3,7 @@ import React from 'react';
 import { Clock, MapPin } from 'lucide-react';
 import { Event } from '../../types/event';
 import { getFormattedTime } from '../../utils/dateUtils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TimeGridEventProps {
   event: Event;
@@ -19,8 +20,10 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
   handleViewEvent,
   startHour
 }) => {
+  const { isMobile } = useIsMobile();
+  
   // Constants for calculations
-  const HOUR_HEIGHT = 80;
+  const HOUR_HEIGHT = isMobile ? 60 : 80;
   const MINUTES_PER_HOUR = 60;
   const MINUTE_HEIGHT = HOUR_HEIGHT / MINUTES_PER_HOUR;
 
@@ -79,14 +82,16 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
       }}
       onClick={() => handleViewEvent(event)}
     >
-      <div className="font-medium text-white truncate">{event.title}</div>
-      <div className="text-xs flex items-center text-white/90 mt-1">
-        <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+      <div className={`font-medium text-white truncate ${isMobile ? "text-xs" : ""}`}>
+        {event.title}
+      </div>
+      <div className={`flex items-center text-white/90 mt-1 ${isMobile ? "text-[0.65rem]" : "text-xs"}`}>
+        <Clock className={`mr-1 flex-shrink-0 ${isMobile ? "h-2.5 w-2.5" : "h-3 w-3"}`} />
         <span className="truncate">{getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}</span>
       </div>
       {event.location && (
-        <div className="text-xs flex items-center text-white/90 mt-1">
-          <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+        <div className={`flex items-center text-white/90 mt-1 ${isMobile ? "text-[0.65rem]" : "text-xs"}`}>
+          <MapPin className={`mr-1 flex-shrink-0 ${isMobile ? "h-2.5 w-2.5" : "h-3 w-3"}`} />
           <span className="truncate">{event.location}</span>
         </div>
       )}

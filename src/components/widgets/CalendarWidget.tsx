@@ -1,10 +1,9 @@
 
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, ChevronRight, Bell, Clock, MapPin, Edit, Image } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronRight, Bell, Clock, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
 import { format, isSameDay } from 'date-fns';
-import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -96,7 +95,7 @@ const CalendarWidget = () => {
                 )}
                 onClick={() => setOpen(true)}
               >
-                <span>
+                <span className={isMobile ? "text-sm" : ""}>
                   {date ? format(date, 'PPP') : 'Select date'}
                 </span>
                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
@@ -132,11 +131,11 @@ const CalendarWidget = () => {
                 }}
               >
                 <div className="flex justify-between items-start">
-                  <h4 className="font-medium text-sm line-clamp-1">{event.title}</h4>
+                  <h4 className={`font-medium line-clamp-1 ${isMobile ? "text-xs" : "text-sm"}`}>{event.title}</h4>
                 </div>
                 
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3 mr-1" /> 
+                <div className={`flex items-center text-muted-foreground ${isMobile ? "text-[0.65rem]" : "text-xs"}`}>
+                  <Clock className={`mr-1 ${isMobile ? "h-2.5 w-2.5" : "h-3 w-3"}`} /> 
                   <span>
                     {event.allDay 
                       ? 'All day' 
@@ -145,15 +144,15 @@ const CalendarWidget = () => {
                 </div>
                 
                 {event.location && (
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <MapPin className="h-3 w-3 mr-1" /> 
+                  <div className={`flex items-center text-muted-foreground ${isMobile ? "text-[0.65rem]" : "text-xs"}`}>
+                    <MapPin className={`mr-1 ${isMobile ? "h-2.5 w-2.5" : "h-3 w-3"}`} /> 
                     <span className="line-clamp-1">{event.location}</span>
                   </div>
                 )}
                 
                 {event.reminder && (
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <Bell className="h-3 w-3 mr-1" /> 
+                  <div className={`flex items-center text-muted-foreground ${isMobile ? "text-[0.65rem]" : "text-xs"}`}>
+                    <Bell className={`mr-1 ${isMobile ? "h-2.5 w-2.5" : "h-3 w-3"}`} /> 
                     <span>{getReminderLabel(event.reminder)}</span>
                   </div>
                 )}

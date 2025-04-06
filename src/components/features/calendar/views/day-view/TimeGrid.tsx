@@ -59,15 +59,22 @@ const TimeGrid: React.FC<TimeGridProps> = ({
           <div 
             key={hour} 
             className={cn(
-              "grid grid-cols-[4rem_1fr] border-b min-h-[80px]",
+              "grid grid-cols-[4rem_1fr] border-b",
+              isMobile ? "min-h-[60px]" : "min-h-[80px]",
               isCurrentHour && "bg-accent/20"
             )}
           >
-            <div className={cn("p-2 text-sm text-right text-muted-foreground border-r", isMobile ? "text-[0.8rem]" : "")}>
+            <div className={cn(
+              "p-2 text-right text-muted-foreground border-r",
+              isMobile ? "text-xs" : "text-sm"
+            )}>
               {format(hourDate, 'h a')}
             </div>
             
-            <div className="p-2 relative min-h-[80px]">
+            <div className={cn(
+              "p-2 relative", 
+              isMobile ? "min-h-[60px]" : "min-h-[80px]"
+            )}>
             </div>
           </div>
         );
