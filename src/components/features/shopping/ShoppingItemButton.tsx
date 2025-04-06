@@ -56,7 +56,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
     onClick();
   };
 
-  // Fixed dimensions for items based on mobile/desktop
+  // Fixed dimensions for items
   const itemHeight = isMobile ? "h-24" : "h-36";
   const imageHeight = isMobile ? "h-16" : "h-24";
   

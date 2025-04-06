@@ -124,11 +124,11 @@ const ShoppingList = ({
     <div className={cn(
       "grid",
       isMobile 
-        ? "grid-cols-2 gap-2 px-1" // Changed from 3 to 2 columns for better spacing on mobile
+        ? "grid-cols-2 gap-2 px-1" // Using 2 columns on mobile for better sizing
         : "grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-2"
     )}>
       {items.map((item) => (
-        <div key={item.id} className={isMobile ? "w-full" : "w-full"}>
+        <div key={item.id} className="w-full">
           <ShoppingItemButton
             name={item.name}
             completed={item.completed}

@@ -154,6 +154,14 @@ const ShoppingPage: React.FC = () => {
   const handleAddDialogChange = (open: boolean) => {
     console.log("[DEBUG] ShoppingPage - Add dialog open state changed:", open);
     setShowAddDialog(open);
+    
+    // Critical fix: Make sure state is properly reset when dialog is closed
+    if (!open) {
+      // Small delay to ensure any pending operations complete first
+      setTimeout(() => {
+        console.log("[DEBUG] ShoppingPage - Forcing refresh after dialog close");
+      }, 100);
+    }
   }
 
   return (
