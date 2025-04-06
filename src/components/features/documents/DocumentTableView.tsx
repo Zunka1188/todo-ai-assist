@@ -112,7 +112,11 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
     return (
       <div className="space-y-3">
         {documents.map((doc) => (
-          <Card key={doc.id} className="p-3 hover:bg-accent/20 transition-colors">
+          <Card 
+            key={doc.id} 
+            className="p-3 hover:bg-accent/20 transition-colors cursor-pointer"
+            onClick={() => onFullScreen(doc)}
+          >
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="shrink-0">
@@ -131,7 +135,10 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
                   variant="ghost" 
                   size="icon" 
                   className="h-7 w-7" 
-                  onClick={() => onFullScreen(doc)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onFullScreen(doc);
+                  }}
                   aria-label="View full screen"
                 >
                   <Maximize2 className="h-3.5 w-3.5" />
@@ -140,7 +147,10 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
                   variant="ghost" 
                   size="icon" 
                   className="h-7 w-7" 
-                  onClick={() => onEdit(doc)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(doc);
+                  }}
                   aria-label="Edit document"
                 >
                   <Pencil className="h-3.5 w-3.5" />
@@ -149,7 +159,10 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
                   variant="ghost" 
                   size="icon" 
                   className="h-7 w-7 hover:bg-red-100 hover:text-red-500"
-                  onClick={() => onDelete(doc.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(doc.id);
+                  }}
                   aria-label="Delete document"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -177,7 +190,11 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
         </TableHeader>
         <TableBody>
           {documents.map((doc) => (
-            <TableRow key={doc.id} className="hover:bg-accent/40">
+            <TableRow 
+              key={doc.id} 
+              className="hover:bg-accent/40 cursor-pointer"
+              onClick={() => onFullScreen(doc)}
+            >
               <TableCell className="font-medium">
                 <div className="flex items-center gap-2">
                   {getFileIcon(doc.fileType)}
@@ -193,7 +210,10 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
                     variant="ghost" 
                     size="icon" 
                     className="h-7 w-7" 
-                    onClick={() => onFullScreen(doc)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onFullScreen(doc);
+                    }}
                     aria-label="View full screen"
                   >
                     <Maximize2 className="h-3.5 w-3.5" />
@@ -202,7 +222,10 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
                     variant="ghost" 
                     size="icon" 
                     className="h-7 w-7" 
-                    onClick={() => onEdit(doc)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(doc);
+                    }}
                     aria-label="Edit document"
                   >
                     <Pencil className="h-3.5 w-3.5" />
@@ -211,7 +234,10 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
                     variant="ghost" 
                     size="icon" 
                     className="h-7 w-7 hover:bg-red-100 hover:text-red-500"
-                    onClick={() => onDelete(doc.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(doc.id);
+                    }}
                     aria-label="Delete document"
                   >
                     <Trash2 className="h-3.5 w-3.5" />

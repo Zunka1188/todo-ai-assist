@@ -32,7 +32,10 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
   };
   
   return (
-    <div className="p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors">
+    <div 
+      className="p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+      onClick={onFullScreen}
+    >
       <div className="flex items-start">
         <div className="mr-4 shrink-0 w-12">
           {document.category && getCategoryIcon(document.category)}
