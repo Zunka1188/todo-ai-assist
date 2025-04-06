@@ -4,6 +4,7 @@ import { X, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FilePreview from './FilePreview';
 import { DocumentFile, DocumentItem } from './types';
+import { useToast } from '@/hooks/use-toast';
 
 interface FullScreenPreviewProps {
   item: DocumentFile | DocumentItem | null;
@@ -14,6 +15,8 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   item, 
   onClose
 }) => {
+  const { toast } = useToast();
+  
   if (!item) return null;
 
   // Handle different item types (DocumentFile vs DocumentItem)
@@ -40,12 +43,28 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   // Handle download
   const handleDownload = () => {
     if (fileUrl) {
-      const link = document.createElement('a');
-      link.href = fileUrl;
-      link.download = getTitle() || `download.${fileType}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      try {
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = getTitle() || `download.${fileType}`;
+        link.target = "_blank"; // Added for better compatibility
+        link.rel = "noopener noreferrer"; // Security best practice
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: "Download started",
+          description: `Downloading ${getTitle() || "file"}`,
+        });
+      } catch (error) {
+        console.error("Download error:", error);
+        toast({
+          title: "Download failed",
+          description: "There was a problem downloading the file.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -54,6 +73,16 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
       <div className="flex justify-between items-center p-4 bg-background/10 backdrop-blur-sm">
         <div className="text-white font-medium">{getTitle()}</div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-white border-white/30 hover:bg-white/20"
+            onClick={handleDownload}
+            aria-label="Download file"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Download
+          </Button>
           <Button
             variant="ghost"
             size="icon"

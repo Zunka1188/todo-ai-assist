@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { File, FileText, Archive, Image, File as FileIcon, FileSpreadsheet, FileCode, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface FilePreviewProps {
   file: string | null;
@@ -65,7 +65,6 @@ export const getFileTypeFromContent = (fileContent: string): string => {
   if (fileContent.startsWith('data:application/pdf')) {
     return 'pdf';
   }
-  // Add more type detection as needed
   return 'unknown';
 };
 
@@ -77,6 +76,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   fileType: explicitFileType,
   fullScreen = false
 }) => {
+  const { toast } = useToast();
   const fileType = explicitFileType || 
     (fileName ? getFileTypeFromName(fileName) : 
     file ? getFileTypeFromContent(file) : 'unknown');
@@ -91,16 +91,30 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   }
 
   const handleDownload = () => {
-    // Create a temporary anchor element to trigger the download
-    const link = document.createElement('a');
-    link.href = file;
-    link.download = fileName || `download.${fileType}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const link = document.createElement('a');
+      link.href = file;
+      link.download = fileName || `download.${fileType}`;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Download started",
+        description: `Downloading ${fileName || "file"}`,
+      });
+    } catch (error) {
+      console.error("Download error:", error);
+      toast({
+        title: "Download failed",
+        description: "There was a problem downloading your file. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  // For images, show the image
   if (fileType === 'image') {
     return (
       <div className={cn("relative rounded-md overflow-hidden border", className)}>
@@ -127,12 +141,11 @@ const FilePreview: React.FC<FilePreviewProps> = ({
     );
   }
 
-  // For PDF files, embed a PDF viewer
   if (fileType === 'pdf') {
     return (
       <div className={cn("relative rounded-md overflow-hidden border", className)}>
         <iframe 
-          src={`${file}#toolbar=0&navpanes=0`}
+          src={file}
           className={cn(
             "w-full bg-white", 
             fullScreen ? "h-[80vh]" : "h-48"
@@ -154,7 +167,6 @@ const FilePreview: React.FC<FilePreviewProps> = ({
     );
   }
 
-  // For text files, show the content in a pre tag
   if (fileType === 'text') {
     return (
       <div className={cn(
@@ -193,7 +205,6 @@ The preview supports scrolling for longer content.` : file}
     );
   }
 
-  // For Excel, Word, and PowerPoint files
   if (fileType === 'excel' || fileType === 'word' || fileType === 'powerpoint') {
     return (
       <div className={cn(
@@ -301,7 +312,6 @@ The preview supports scrolling for longer content.` : file}
     );
   }
 
-  // For archive files and other unsupported types
   return (
     <div className={cn(
       "flex flex-col items-center justify-center p-6 border rounded-md bg-muted/20 relative", 

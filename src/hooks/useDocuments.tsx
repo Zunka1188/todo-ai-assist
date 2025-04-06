@@ -77,7 +77,7 @@ const initialFiles: DocumentFile[] = [
     category: 'other', 
     date: twoDaysAgo.toISOString(), 
     fileType: 'pdf', 
-    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
+    fileUrl: 'https://www.africau.edu/images/default/sample.pdf' // More reliable PDF sample
   },
   { 
     id: '2', 
@@ -93,7 +93,41 @@ const initialFiles: DocumentFile[] = [
     category: 'recipes', 
     date: fourDaysAgo.toISOString(), 
     fileType: 'text', 
-    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.txt'
+    fileUrl: 'data:text/plain;charset=utf-8,' + encodeURIComponent(`HEALTHY SMOOTHIE RECIPES
+
+BERRY BLAST SMOOTHIE
+- 1 cup mixed berries (strawberries, blueberries, raspberries)
+- 1 banana
+- 1/2 cup Greek yogurt
+- 1/4 cup almond milk
+- 1 tablespoon honey
+- Ice cubes
+
+GREEN MACHINE SMOOTHIE
+- 1 cup spinach
+- 1/2 avocado
+- 1 green apple
+- 1/2 cucumber
+- 1 tablespoon lemon juice
+- 1/2 cup coconut water
+- Ice cubes
+
+TROPICAL PARADISE SMOOTHIE
+- 1 cup pineapple chunks
+- 1/2 mango
+- 1/2 banana
+- 1/4 cup coconut milk
+- 1/2 cup orange juice
+- Ice cubes
+
+PROTEIN POWER SMOOTHIE
+- 1 scoop protein powder
+- 1 tablespoon peanut butter
+- 1 banana
+- 1/2 cup oats
+- 1 cup almond milk
+- 1 tablespoon chia seeds
+- Ice cubes`)
   },
   { 
     id: '4', 
@@ -101,15 +135,15 @@ const initialFiles: DocumentFile[] = [
     category: 'fitness', 
     date: yesterday.toISOString(), 
     fileType: 'excel', 
-    fileUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEekTKR81PXX3Tlb3GktI_CX3ZEZLpRvaXgxK0IEV-wrjrRrR0gUP7tnmWE2K74pZrOW7kvTQpCVQu/pub?output=xlsx'
+    fileUrl: 'https://file-examples.com/storage/fe52cb0b376493c23d94809/2017/02/file_example_XLS_10.xls'
   },
   { 
     id: '5', 
     title: 'Winter Style Guide', 
     category: 'style', 
     date: twoDaysAgo.toISOString(), 
-    fileType: 'word', 
-    fileUrl: 'https://www.africau.edu/images/default/sample.pdf' // Using PDF as fallback since Word docs aren't easily embedded
+    fileType: 'pdf', 
+    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' // Alternative PDF sample
   },
   { 
     id: '6', 
@@ -133,7 +167,7 @@ const initialFiles: DocumentFile[] = [
     category: 'work', 
     date: yesterday.toISOString(), 
     fileType: 'excel', 
-    fileUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRmbGVdWTZ0lzHjX5NU94xNvlh-GWz9rTm-7g3zAuQS4MRuJHDCzOPDVqW9TJEmQw/pub?output=xlsx'
+    fileUrl: 'https://file-examples.com/storage/fe52cb0b376493c23d94809/2017/02/file_example_XLS_5000.xls'
   },
   { 
     id: '9', 
@@ -141,7 +175,7 @@ const initialFiles: DocumentFile[] = [
     category: 'work', 
     date: twoDaysAgo.toISOString(), 
     fileType: 'word', 
-    fileUrl: 'https://www.africau.edu/images/default/sample.pdf' // Using PDF as fallback since Word docs aren't easily embedded
+    fileUrl: 'https://file-examples.com/storage/fe52cb0b376493c23d94809/2017/02/file-sample_100kB.doc'
   },
   { 
     id: '10', 
