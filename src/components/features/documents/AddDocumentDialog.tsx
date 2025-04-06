@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, X, Camera, Upload, Loader2, Save, Maximize2, Minimize2, File as FileIcon, Calendar, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import ImageAnalysisModal from './ImageAnalysisModal';
 import { AnalysisResult } from '@/utils/imageAnalysis';
 import FilePreview, { getFileTypeFromName } from './FilePreview';
+import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 
 interface DocumentItem {
   id: string;
@@ -54,6 +63,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   editItem = null
 }) => {
   const { toast } = useToast();
+  const { isMobile } = useIsMobile();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState(currentCategory);
@@ -67,6 +77,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   const [fullScreenPreview, setFullScreenPreview] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Reset form when dialog opens/closes or when editing mode changes
   useEffect(() => {
@@ -97,10 +108,10 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title.trim()) {
+    if (!title.trim() && !file) {
       toast({
-        title: "Error",
-        description: "Title is required",
+        title: "Input Required",
+        description: "Please enter a title or add an image/file.",
         variant: "destructive",
       });
       return;
@@ -110,7 +121,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 
     const newItem: DocumentItem = {
       id: isEditing && editItem ? editItem.id : Date.now().toString(),
-      title,
+      title: title.trim() || (fileName ? fileName : 'Untitled Document'),
       description: description || undefined,
       category,
       tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
@@ -125,10 +136,10 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     onOpenChange(false);
 
     toast({
-      title: isEditing ? "Item updated" : "Item added",
+      title: isEditing ? "Document updated" : "Document added",
       description: isEditing 
-        ? `${title} has been updated successfully` 
-        : `${title} has been added to ${getCategoryDisplayName(category)}`,
+        ? `${newItem.title} has been updated successfully` 
+        : `${newItem.title} has been added to ${getCategoryDisplayName(category)}`,
     });
   };
 
@@ -212,6 +223,9 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     setFile(null);
     setFileName('');
     setFileType('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const toggleFullScreenPreview = () => {
@@ -282,191 +296,239 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     );
   }
 
+  const dialogContent = (
+    <>
+      <div className={isMobile ? "pb-4 space-y-4" : "space-y-4"}>
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="title">Title*</Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter title"
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="file">File</Label>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-2" />
+                  )}
+                  Upload File
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleCameraCapture}
+                  disabled={isUploading}
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Take Photo
+                </Button>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="*/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Supported files: images, PDFs, documents, spreadsheets, and more
+              </p>
+            </div>
+            
+            {file && (
+              <div className="relative mt-2">
+                <FilePreview 
+                  file={file}
+                  fileName={fileName}
+                  fileType={fileType}
+                  className="max-h-48 w-full"
+                />
+                <div className="absolute top-2 right-2 flex gap-1">
+                  {fileType === 'image' && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
+                      onClick={toggleFullScreenPreview}
+                    >
+                      <Maximize2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={handleRemoveFile}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="category">Category</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {getCategoryDisplayName(cat)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter description"
+              rows={3}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="tags">Tags (comma separated)</Label>
+            <Input
+              id="tags"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              placeholder="e.g., important, work, personal"
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="date" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Document Date
+            </Label>
+            <Input
+              id="date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Date associated with the document's content
+            </p>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden bg-background text-foreground border-gray-700">
-          <DialogHeader>
-            <DialogTitle>
-              {isEditing ? "Edit Item" : "Add New Item"}
-            </DialogTitle>
-            <DialogDescription>
-              Add a document, image, or any other file to your collection
-            </DialogDescription>
-          </DialogHeader>
+      {isMobile ? (
+        <Drawer open={open} onOpenChange={onOpenChange}>
+          <DrawerContent className="max-h-[90vh] overflow-hidden">
+            <DrawerHeader className="px-4 py-2">
+              <DrawerTitle>{isEditing ? "Edit Document" : "Add New Document"}</DrawerTitle>
+            </DrawerHeader>
+            
+            <ScrollArea 
+              className="p-4 pt-0 flex-1 overflow-auto max-h-[65vh]" 
+              scrollRef={scrollRef}
+              style={{ WebkitOverflowScrolling: 'touch', paddingBottom: '100px' }}
+            >
+              {dialogContent}
+              {/* Add extra padding at the bottom to ensure content is scrollable */}
+              <div className="h-16"></div>
+            </ScrollArea>
+            
+            <DrawerFooter className="px-4 py-2 gap-2 border-t mt-auto">
+              <Button variant="outline" className="w-full" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSubmit}
+                className="w-full"
+                disabled={!title.trim() && !file}
+              >
+                {isEditing ? "Save Changes" : "Add Document"}
+              </Button>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+          <DialogContent 
+            className="sm:max-w-md max-h-[90vh] overflow-hidden bg-background text-foreground border-gray-700"
+            preventNavigateOnClose={true}
+          >
+            <DialogHeader>
+              <DialogTitle>
+                {isEditing ? "Edit Document" : "Add New Document"}
+              </DialogTitle>
+              <DialogDescription>
+                Add a document, image, or any other file to your collection
+              </DialogDescription>
+            </DialogHeader>
 
-          <ScrollArea className="max-h-[calc(90vh-10rem)] pr-4">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title*</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Enter title"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {getCategoryDisplayName(cat)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter description"
-                  rows={3}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="tags">Tags (comma separated)</Label>
-                <Input
-                  id="tags"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  placeholder="e.g., important, work, personal"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="date" className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Document Date
-                </Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Date associated with the document's content
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label>File</Label>
-                {file ? (
-                  <div className="relative">
-                    <FilePreview 
-                      file={file}
-                      fileName={fileName}
-                      fileType={fileType}
-                      className="w-full h-48"
-                    />
-                    <div className="absolute top-2 right-2 flex gap-1">
-                      {fileType === 'image' && (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
-                          onClick={toggleFullScreenPreview}
-                        >
-                          <Maximize2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={handleRemoveFile}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading}
+            <ScrollArea className="max-h-[calc(90vh-10rem)] pr-4" scrollRef={scrollRef}>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {dialogContent}
+                
+                <div className="pt-4">
+                  <DialogFooter>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => onOpenChange(false)}
                     >
-                      {isUploading ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="bg-todo-purple hover:bg-todo-purple/90"
+                      disabled={!title.trim() && !file}
+                    >
+                      {isEditing ? (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Update Document
+                        </>
                       ) : (
-                        <Upload className="h-4 w-4 mr-2" />
+                        <>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Document
+                        </>
                       )}
-                      Upload File
                     </Button>
-                    
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={handleCameraCapture}
-                      disabled={isUploading}
-                    >
-                      <Camera className="h-4 w-4 mr-2" />
-                      Take Photo
-                    </Button>
-                    
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="*/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground mt-1">
-                  Supported files: images, PDFs, documents, spreadsheets, and more
-                </p>
-              </div>
-
-              <div className="pt-4">
-                <DialogFooter>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => onOpenChange(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    className="bg-todo-purple hover:bg-todo-purple/90"
-                  >
-                    {isEditing ? (
-                      <>
-                        <Save className="h-4 w-4 mr-2" />
-                        Update Item
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Item
-                      </>
-                    )}
-                  </Button>
-                </DialogFooter>
-              </div>
-            </form>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
+                  </DialogFooter>
+                </div>
+              </form>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+      )}
       
       <ImageAnalysisModal
         imageData={file}

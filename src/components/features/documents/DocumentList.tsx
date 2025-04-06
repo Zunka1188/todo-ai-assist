@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AddDocumentDialog from './AddDocumentDialog';
 import { DocumentFile, DocumentCategory } from './types';
-import { getCategoryIcon, getFileTypeIcon } from './utils/iconHelpers';
+import { getFileTypeIcon } from './utils/iconHelpers';
 import DocumentListItem from './DocumentListItem';
 import DocumentTableView from './DocumentTableView';
 import FullScreenPreview from './FullScreenPreview';
@@ -37,11 +38,16 @@ const DocumentList: React.FC<DocumentListProps> = ({
   const handleAddDocument = (item: any) => {
     onAddDocument(item);
     setIsAddDialogOpen(false);
+    setEditingItem(null);
+  };
+
+  const handleOpenAddDialog = (doc: DocumentFile | null = null) => {
+    setEditingItem(doc);
+    setIsAddDialogOpen(true);
   };
 
   const handleEditDocument = (doc: DocumentFile) => {
-    setEditingItem(doc);
-    setIsAddDialogOpen(true);
+    handleOpenAddDialog(doc);
   };
 
   if (documents.length === 0 && !searchTerm) {
@@ -49,15 +55,17 @@ const DocumentList: React.FC<DocumentListProps> = ({
       <div className="flex flex-col">
         <div className="flex justify-end mb-4">
           <Button 
-            onClick={() => setIsAddDialogOpen(true)} 
+            onClick={() => handleOpenAddDialog()} 
             className="bg-todo-purple hover:bg-todo-purple/90 text-white"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add New Item
+            Add New Document
           </Button>
         </div>
         <div className="flex flex-col items-center justify-center p-8 text-center">
-          {getFileTypeIcon('unknown')}
+          <div className="rounded-full bg-muted p-6 w-20 h-20 flex items-center justify-center">
+            {getFileTypeIcon('unknown')}
+          </div>
           <h3 className={cn("mt-4 text-lg font-medium", isMobile ? "text-[0.95rem]" : "")}>No documents found</h3>
           <p className={cn("text-sm text-muted-foreground mt-1", isMobile ? "text-[0.8rem]" : "")}>
             Add your first document to get started
@@ -67,8 +75,9 @@ const DocumentList: React.FC<DocumentListProps> = ({
           open={isAddDialogOpen}
           onOpenChange={setIsAddDialogOpen}
           onAdd={handleAddDocument}
-          categories={categories}
+          categories={categories as string[]}
           currentCategory="files"
+          isEditing={false}
         />
       </div>
     );
@@ -76,6 +85,16 @@ const DocumentList: React.FC<DocumentListProps> = ({
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end mb-4">
+        <Button 
+          onClick={() => handleOpenAddDialog()} 
+          className="bg-todo-purple hover:bg-todo-purple/90 text-white"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add New Document
+        </Button>
+      </div>
+      
       {viewMode === 'table' ? (
         <DocumentTableView 
           documents={documents}
@@ -101,15 +120,20 @@ const DocumentList: React.FC<DocumentListProps> = ({
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
         onAdd={handleAddDocument}
-        categories={categories}
+        categories={categories as string[]}
         currentCategory="files"
+        isEditing={!!editingItem}
         editItem={editingItem ? {
           id: editingItem.id,
           title: editingItem.title,
           category: editingItem.category,
           date: editingItem.date,
+          description: '',
           tags: [], 
           addedDate: new Date().toISOString().split('T')[0],
+          file: editingItem.fileUrl,
+          fileName: editingItem.title,
+          fileType: editingItem.fileType
         } : null}
       />
       

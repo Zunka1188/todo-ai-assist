@@ -1,21 +1,27 @@
 
 import React from 'react';
-import { X, Download } from 'lucide-react';
+import { X, Download, ArrowLeft, Edit, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FilePreview from './FilePreview';
 import { DocumentFile, DocumentItem } from './types';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface FullScreenPreviewProps {
   item: DocumentFile | DocumentItem | null;
   onClose: () => void;
+  onEdit?: (item: DocumentFile | DocumentItem) => void;
+  onDelete?: (id: string) => void;
 }
 
 const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ 
   item, 
-  onClose
+  onClose,
+  onEdit,
+  onDelete
 }) => {
   const { toast } = useToast();
+  const { isMobile } = useIsMobile();
   
   if (!item) return null;
 
@@ -44,11 +50,22 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   const handleDownload = () => {
     if (fileUrl) {
       try {
+        // Create a temporary anchor element
         const link = document.createElement('a');
-        link.href = fileUrl;
-        link.download = getTitle() || `download.${fileType}`;
-        link.target = "_blank"; // Added for better compatibility
-        link.rel = "noopener noreferrer"; // Security best practice
+        
+        // Handle data URLs (typically for uploaded files)
+        if (fileUrl.startsWith('data:')) {
+          link.href = fileUrl;
+          link.download = getTitle() || `download.${fileType || 'file'}`;
+        } else {
+          // For remote URLs, open in new tab for better cross-browser compatibility
+          link.href = fileUrl;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.download = getTitle() || `download.${fileType || 'file'}`;
+        }
+        
+        // Add to DOM, click and remove
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -65,14 +82,75 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
           variant: "destructive",
         });
       }
+    } else {
+      toast({
+        title: "Download failed",
+        description: "No file available to download.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = () => {
+    if (onEdit && item) {
+      onEdit(item);
+      onClose();
+    }
+  };
+
+  const handleDelete = () => {
+    if (onDelete && item) {
+      onDelete(item.id);
+      onClose();
+      toast({
+        title: "Item deleted",
+        description: `${getTitle()} has been removed`,
+      });
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex flex-col">
       <div className="flex justify-between items-center p-4 bg-background/10 backdrop-blur-sm">
-        <div className="text-white font-medium">{getTitle()}</div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/20"
+            onClick={onClose}
+            aria-label="Back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="text-white font-medium">{getTitle()}</div>
+        </div>
+        <div className="flex items-center gap-2">
+          {onEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-white border-white/30 hover:bg-white/20"
+              onClick={handleEdit}
+              aria-label="Edit item"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              {!isMobile && "Edit"}
+            </Button>
+          )}
+          
+          {onDelete && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-white border-white/30 hover:bg-white/20"
+              onClick={handleDelete}
+              aria-label="Delete item"
+            >
+              <Trash className="h-4 w-4 mr-2" />
+              {!isMobile && "Delete"}
+            </Button>
+          )}
+          
           <Button
             variant="outline"
             size="sm"
@@ -81,8 +159,9 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
             aria-label="Download file"
           >
             <Download className="h-4 w-4 mr-2" />
-            Download
+            {!isMobile && "Download"}
           </Button>
+          
           <Button
             variant="ghost"
             size="icon"
