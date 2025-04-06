@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -123,7 +124,7 @@ const ShoppingList = ({
     <div className={cn(
       "grid",
       isMobile 
-        ? "grid-cols-1 sm:grid-cols-2 gap-2 px-2"
+        ? "grid-cols-2 gap-2 px-1"
         : "grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-2"
     )}>
       {items.map((item) => (

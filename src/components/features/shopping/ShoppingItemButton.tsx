@@ -61,12 +61,12 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
   return (
     <div className={cn(
       "relative",
-      isMobile ? "w-full" : "shopping-item-desktop"
+      isMobile ? "w-full" : "w-full"
     )}>
       <div 
         className={cn(
           "flex flex-col rounded-md overflow-hidden border cursor-pointer",
-          isMobile ? "h-24 w-full" : "h-36 w-64",
+          isMobile ? "h-20 w-full" : "h-36 w-full",
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
         onClick={handleItemClick}
@@ -75,7 +75,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",
-          isMobile ? "h-16" : "h-24"
+          isMobile ? "h-12" : "h-24"
         )}>
           {imageUrl ? (
             <>
@@ -102,7 +102,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             <div className="absolute bottom-1 left-1">
               <Badge className={cn(
                 getBadgeColorClass(),
-                isMobile ? "text-xs px-1 py-0" : "text-xs py-0"
+                isMobile ? "text-[10px] px-1 py-0" : "text-xs py-0"
               )}>
                 {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
               </Badge>
@@ -130,7 +130,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         <div className="p-1 flex-grow">
           <h3 className={cn(
             "font-medium truncate", 
-            "text-xs",
+            isMobile ? "text-[11px]" : "text-xs",
             completed ? 'line-through text-gray-500' : ''
           )}>
             {name}
@@ -138,13 +138,13 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           {quantity && (
             <p className={cn(
               "truncate mt-0.5",
-              "text-xs",
+              isMobile ? "text-[10px]" : "text-xs",
               completed ? 'text-gray-400' : 'text-gray-500'
             )}>
               {quantity}
             </p>
           )}
-          {notes && (
+          {notes && !isMobile && (
             <p className={cn(
               "truncate mt-0.5",
               "text-xs",
@@ -161,7 +161,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           <Button
             size="sm"
             variant="secondary"
-            className="h-6 w-6 p-0 bg-gray-600 hover:bg-gray-700 text-white opacity-85 rounded-full shadow-sm"
+            className="h-5 w-5 p-0 bg-gray-600 hover:bg-gray-700 text-white opacity-85 rounded-full shadow-sm"
             onClick={(e) => {
               e.stopPropagation();
               if (onImagePreview) onImagePreview();
@@ -169,7 +169,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             type="button"
             aria-label="Expand item"
           >
-            <Maximize2 className="h-3.5 w-3.5" />
+            <Maximize2 className="h-2.5 w-2.5" />
           </Button>
         </div>
       )}
