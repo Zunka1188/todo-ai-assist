@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { FileText, Maximize2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,7 +10,7 @@ interface DocumentItemsListProps {
   items: DocumentItem[];
   onEdit: (item: DocumentItem) => void;
   onDelete: (id: string) => void;
-  onViewImage: (imageUrl: string) => void;
+  onViewImage: (item: DocumentItem) => void;
   formatDateRelative: (date: Date) => string;
 }
 
@@ -85,7 +84,7 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                     className="h-9 w-9 p-0 bg-black/20 hover:bg-black/40 rounded-full"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onViewImage(item.content);
+                      onViewImage(item);
                     }}
                     aria-label="View full screen"
                   >

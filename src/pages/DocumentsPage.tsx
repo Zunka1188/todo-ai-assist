@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddDocumentDialog from '@/components/features/documents/AddDocumentDialog';
@@ -119,7 +120,7 @@ const DocumentsPage = () => {
               items={filteredItems}
               onEdit={handleOpenAddDialog}
               onDelete={handleDeleteItem}
-              onViewImage={(item) => handleViewFullScreen(item)}
+              onViewImage={handleViewFullScreen}
               formatDateRelative={formatDateRelative}
             />
           </TabsContent>
