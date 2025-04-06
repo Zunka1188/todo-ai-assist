@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
-import { Share2, Copy, Instagram, MessageSquare, Whatsapp, Link as LinkIcon } from 'lucide-react';
+import { Share2, Copy, Instagram, MessageSquare, Link as LinkIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
@@ -210,7 +210,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
           Copy link
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleAppShare('whatsapp')}>
-          <Whatsapp className="h-4 w-4 mr-2" />
+          <MessageSquare className="h-4 w-4 mr-2" />
           Share to WhatsApp
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleAppShare('instagram')}>
