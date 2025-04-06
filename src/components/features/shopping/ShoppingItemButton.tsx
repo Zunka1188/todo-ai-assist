@@ -51,11 +51,6 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
     return name.charAt(0).toUpperCase();
   };
 
-  const handleExpandClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onImagePreview) onImagePreview();
-  };
-
   return (
     <div className={cn(
       "relative",
@@ -105,10 +100,13 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             </div>
           )}
           
-          {/* Always show expand button on desktop */}
+          {/* Always show expand button on desktop regardless of image */}
           {!isMobile && (
             <button
-              onClick={handleExpandClick}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onImagePreview) onImagePreview();
+              }}
               className="absolute bottom-0.5 right-0.5 p-0.5 bg-black/30 rounded-full hover:bg-black/50"
             >
               <Maximize2 className="h-3.5 w-3.5 text-white" />
@@ -145,14 +143,17 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
       </div>
 
-      {/* Always show expand button on mobile */}
+      {/* Always show expand button on mobile regardless of image */}
       {isMobile && (
         <div className="absolute top-1 right-1">
           <Button
             size="sm"
             variant="secondary"
             className="h-5 w-5 p-0 opacity-90 rounded-full" // Smaller size to fit better
-            onClick={handleExpandClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onImagePreview) onImagePreview();
+            }}
           >
             <Maximize2 className="h-3 w-3" /> {/* Smaller icon */}
           </Button>
