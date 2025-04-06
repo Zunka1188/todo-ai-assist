@@ -1,7 +1,19 @@
+
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentItem, DocumentFile, DocumentCategory, CATEGORIES } from '@/components/features/documents/types';
 import { getFileTypeFromName } from '@/components/features/documents/FilePreview';
+
+// Get today's date to ensure no future dates
+const today = new Date();
+const yesterday = new Date(today);
+yesterday.setDate(yesterday.getDate() - 1);
+
+const twoDaysAgo = new Date(today);
+twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+const fourDaysAgo = new Date(today);
+fourDaysAgo.setDate(fourDaysAgo.getDate() - 4);
 
 // Sample initial items for categories
 const initialCategoryItems: DocumentItem[] = [
@@ -12,8 +24,8 @@ const initialCategoryItems: DocumentItem[] = [
     type: 'image',
     content: 'https://picsum.photos/id/64/400/300',
     tags: ['summer', 'casual'],
-    date: new Date(2025, 3, 1),
-    addedDate: new Date(2025, 3, 4)
+    date: twoDaysAgo, // 2 days ago
+    addedDate: twoDaysAgo
   },
   {
     id: '2',
@@ -22,8 +34,8 @@ const initialCategoryItems: DocumentItem[] = [
     type: 'note',
     content: 'Blend 1 banana, 1 cup spinach, 1/2 cup blueberries, 1 tbsp chia seeds, and almond milk.',
     tags: ['healthy', 'breakfast'],
-    date: new Date(2025, 3, 2),
-    addedDate: new Date(2025, 3, 3)
+    date: yesterday,
+    addedDate: yesterday
   },
   {
     id: '3',
@@ -32,8 +44,8 @@ const initialCategoryItems: DocumentItem[] = [
     type: 'note',
     content: 'Visit Eiffel Tower, Louvre Museum, Notre-Dame Cathedral, and try local pastries.',
     tags: ['europe', 'vacation'],
-    date: new Date(2025, 3, 3),
-    addedDate: new Date(2025, 3, 3)
+    date: today,
+    addedDate: today
   },
   {
     id: '4',
@@ -42,8 +54,8 @@ const initialCategoryItems: DocumentItem[] = [
     type: 'note',
     content: 'Monday: Upper body, Tuesday: Lower body, Wednesday: Rest, Thursday: HIIT, Friday: Full body, Weekend: Active recovery',
     tags: ['workout', 'routine'],
-    date: new Date(2025, 3, 4),
-    addedDate: new Date(2025, 3, 2)
+    date: fourDaysAgo,
+    addedDate: fourDaysAgo
   },
   {
     id: '5',
@@ -52,18 +64,18 @@ const initialCategoryItems: DocumentItem[] = [
     type: 'image',
     content: 'https://picsum.photos/id/96/400/300',
     tags: ['winter', 'fashion'],
-    date: new Date(2025, 4, 5),
-    addedDate: new Date(2025, 4, 1)
+    date: yesterday,
+    addedDate: yesterday
   }
 ];
 
-// Mock data for files
+// Mock data for files - ensure all dates are in the past
 const initialFiles: DocumentFile[] = [
-  { id: '1', title: 'Resume', category: 'other', date: '2025-03-15', fileType: 'pdf', fileUrl: 'https://picsum.photos/id/24/400/300' },
-  { id: '2', title: 'Project Plan', category: 'other', date: '2025-03-20', fileType: 'word', fileUrl: 'https://picsum.photos/id/25/400/300' },
-  { id: '3', title: 'Vacation Itinerary', category: 'travel', date: '2025-03-25', fileType: 'text', fileUrl: 'https://picsum.photos/id/26/400/300' },
-  { id: '4', title: 'Lease Agreement', category: 'files', date: '2025-03-10', fileType: 'pdf', fileUrl: 'https://picsum.photos/id/27/400/300' },
-  { id: '5', title: 'Budget Spreadsheet', category: 'files', date: '2025-03-05', fileType: 'excel', fileUrl: 'https://picsum.photos/id/28/400/300' },
+  { id: '1', title: 'Resume', category: 'other', date: twoDaysAgo.toISOString(), fileType: 'pdf', fileUrl: 'https://picsum.photos/id/24/400/300' },
+  { id: '2', title: 'Project Plan', category: 'other', date: yesterday.toISOString(), fileType: 'word', fileUrl: 'https://picsum.photos/id/25/400/300' },
+  { id: '3', title: 'Vacation Itinerary', category: 'travel', date: fourDaysAgo.toISOString(), fileType: 'text', fileUrl: 'https://picsum.photos/id/26/400/300' },
+  { id: '4', title: 'Lease Agreement', category: 'files', date: yesterday.toISOString(), fileType: 'pdf', fileUrl: 'https://picsum.photos/id/27/400/300' },
+  { id: '5', title: 'Budget Spreadsheet', category: 'files', date: twoDaysAgo.toISOString(), fileType: 'excel', fileUrl: 'https://picsum.photos/id/28/400/300' },
 ];
 
 export function useDocuments() {
@@ -74,8 +86,20 @@ export function useDocuments() {
   // Format date to be more readable with improved relative date recognition
   const formatDateRelative = (date: Date) => {
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    // Ensure we're comparing only the date part (without time)
+    const stripTime = (d: Date) => {
+      const newDate = new Date(d);
+      newDate.setHours(0, 0, 0, 0);
+      return newDate;
+    };
+    
+    const dateWithoutTime = stripTime(date);
+    const nowWithoutTime = stripTime(now);
+    
+    // Calculate difference in days
+    const diffMs = nowWithoutTime.getTime() - dateWithoutTime.getTime();
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
     
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';
@@ -123,6 +147,8 @@ export function useDocuments() {
 
   // Add or update document item
   const handleAddOrUpdateItem = (item: any, editingItem: DocumentItem | null = null) => {
+    const now = new Date();
+    
     if (editingItem) {
       // Update existing item
       setCategoryItems(categoryItems.map(existingItem => existingItem.id === editingItem.id ? {
@@ -132,7 +158,8 @@ export function useDocuments() {
         file: item.file || null,
         fileName: item.fileName || undefined,
         fileType: item.fileType || undefined,
-        date: new Date(item.date || Date.now()),
+        // For documents, ensure we never use future dates
+        date: new Date(Math.min(new Date(item.date || now).getTime(), now.getTime())),
         addedDate: editingItem.addedDate
       } : existingItem));
       toast({
@@ -141,7 +168,6 @@ export function useDocuments() {
       });
     } else {
       // Add new item
-      const now = new Date();
       const newItem: DocumentItem = {
         id: Date.now().toString(),
         title: item.title,
@@ -149,7 +175,8 @@ export function useDocuments() {
         type: item.file && getFileTypeFromName(item.fileName || '') === 'image' ? 'image' : 'note',
         content: item.description || '',
         tags: item.tags || [],
-        date: new Date(item.date || now),
+        // For documents, use current date (never future)
+        date: now,
         addedDate: now,
         file: item.file || null,
         fileName: item.fileName || undefined,
