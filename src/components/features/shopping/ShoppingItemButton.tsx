@@ -59,14 +59,14 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       <div 
         className={cn(
           "flex flex-col rounded-md overflow-hidden border cursor-pointer",
-          isMobile ? "h-28 w-full" : "h-36 w-64", // Reduced height to better fit 3 items layout
+          isMobile ? "h-26 w-full" : "h-36 w-64", // Adjusted height for mobile
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
         onClick={onClick}
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",
-          isMobile ? "h-20" : "h-24" // Reduced height for mobile to fit 3 items layout
+          isMobile ? "h-18" : "h-24" // Adjusted height for mobile
         )}>
           {imageUrl ? (
             <>
@@ -93,14 +93,14 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             <div className="absolute bottom-1 left-1">
               <Badge className={cn(
                 getBadgeColorClass(),
-                isMobile ? "text-xs px-1 py-0" : "text-xs py-0" // Reduced padding for mobile
+                isMobile ? "text-xs px-1 py-0" : "text-xs py-0" // Small badge
               )}>
                 {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
               </Badge>
             </div>
           )}
           
-          {/* We removed the condition for image preview here to make it always visible on desktop */}
+          {/* Always show expand button on desktop regardless of image */}
           {!isMobile && (
             <button
               onClick={(e) => {
@@ -117,7 +117,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         <div className="p-1 flex-grow">
           <h3 className={cn(
             "font-medium truncate", 
-            isMobile ? "text-xs" : "text-xs", // Reduced text size for mobile
+            "text-xs", // Same text size for both mobile and desktop
             completed ? 'line-through text-gray-500' : ''
           )}>
             {name}
@@ -125,7 +125,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           {quantity && (
             <p className={cn(
               "truncate mt-0.5",
-              isMobile ? "text-xs" : "text-xs",
+              "text-xs",
               completed ? 'text-gray-400' : 'text-gray-500'
             )}>
               {quantity}
@@ -134,7 +134,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           {notes && (
             <p className={cn(
               "truncate mt-0.5",
-              isMobile ? "text-xs" : "text-xs",
+              "text-xs",
               completed ? 'text-gray-400' : 'text-gray-500'
             )}>
               {notes}
@@ -143,19 +143,19 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
       </div>
 
-      {/* Always show expand button on mobile, regardless of image */}
+      {/* Always show expand button on mobile regardless of image */}
       {isMobile && (
         <div className="absolute top-1 right-1">
           <Button
             size="sm"
             variant="secondary"
-            className="h-6 w-6 p-0 opacity-90 rounded-full" // Reduced size to fit 3 items layout
+            className="h-5 w-5 p-0 opacity-90 rounded-full" // Smaller size to fit better
             onClick={(e) => {
               e.stopPropagation();
               if (onImagePreview) onImagePreview();
             }}
           >
-            <Maximize2 className="h-4 w-4" />
+            <Maximize2 className="h-3 w-3" /> {/* Smaller icon */}
           </Button>
         </div>
       )}
