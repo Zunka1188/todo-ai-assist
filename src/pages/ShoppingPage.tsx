@@ -34,12 +34,12 @@ const ShoppingPage: React.FC = () => {
 
   useEffect(() => {
     const newTab = validTabs.includes(tabFromUrl || '') ? tabFromUrl : 'one-off';
-    console.log(`URL tab param changed to: ${tabFromUrl}, setting active tab to: ${newTab}`);
+    console.log(`[DEBUG] ShoppingPage - URL tab param changed to: ${tabFromUrl}, setting active tab to: ${newTab}`);
     setActiveTab(newTab);
   }, [location.search, tabFromUrl]);
 
   const handleTabChange = (value: string) => {
-    console.log(`Tab changed to: ${value}`);
+    console.log(`[DEBUG] ShoppingPage - Tab changed to: ${value}`);
     setActiveTab(value);
     navigate(`/shopping?tab=${value}`, { replace: true });
   };
@@ -81,6 +81,18 @@ const ShoppingPage: React.FC = () => {
           title: "Item Added",
           description: `${item.name} has been added to your shopping list.`
         });
+        
+        // Navigate to the appropriate tab if needed
+        const targetTab = itemToAdd.repeatOption === 'weekly' 
+          ? 'weekly' 
+          : itemToAdd.repeatOption === 'monthly' 
+            ? 'monthly' 
+            : 'one-off';
+            
+        if (activeTab !== targetTab && activeTab !== 'all') {
+          navigate(`/shopping?tab=${targetTab}`, { replace: true });
+        }
+        
         return true;
       } else {
         console.error("[ERROR] ShoppingPage - Add item returned falsy value");
@@ -112,7 +124,9 @@ const ShoppingPage: React.FC = () => {
         amount: updatedItem.amount,
         imageUrl: updatedItem.imageUrl,
         notes: updatedItem.notes,
-        repeatOption: updatedItem.repeatOption || 'none'
+        repeatOption: updatedItem.repeatOption || 'none',
+        // Always preserve the completed state, don't override it during edit
+        completed: editItem.item?.completed
       };
       
       const result = updateItem(editItem.id, itemData);
@@ -125,7 +139,7 @@ const ShoppingPage: React.FC = () => {
         return true;
       }
     } catch (error) {
-      console.error("Error updating item:", error);
+      console.error("[ERROR] ShoppingPage - Error updating item:", error);
       toast({
         title: "Error",
         description: "Failed to update item",

@@ -54,7 +54,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
   const handleItemClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("[DEBUG] ShoppingItemButton - Item clicked:", name);
+    console.log("[DEBUG] ShoppingItemButton - Item clicked:", name, "Completed:", completed);
     onClick();
   };
 
@@ -70,6 +70,8 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
         onClick={handleItemClick}
+        role="button"
+        aria-pressed={completed}
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",
@@ -107,7 +109,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             </div>
           )}
           
-          {!isMobile && onImagePreview && (
+          {imageUrl && !isMobile && onImagePreview && (
             <div className="absolute bottom-1 right-1">
               <Button
                 size="sm"
@@ -117,6 +119,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
                   e.stopPropagation();
                   if (onImagePreview) onImagePreview();
                 }}
+                type="button"
               >
                 <Maximize2 className="h-3 w-3" />
               </Button>
@@ -153,7 +156,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
       </div>
 
-      {isMobile && (
+      {isMobile && imageUrl && (
         <div className="absolute top-1 right-1">
           <Button
             size="sm"
@@ -163,6 +166,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
               e.stopPropagation();
               if (onImagePreview) onImagePreview();
             }}
+            type="button"
             aria-label="Expand item"
           >
             <Maximize2 className="h-3.5 w-3.5" />
@@ -181,6 +185,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
                 e.stopPropagation();
                 onDelete();
               }}
+              type="button"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
@@ -195,6 +200,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
                 e.stopPropagation();
                 onEdit();
               }}
+              type="button"
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 export interface ShoppingItem {
@@ -97,6 +98,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   
   useEffect(() => {
     saveToLocalStorage('shoppingItems', items);
+    console.log("[DEBUG] useShoppingItems - Items updated, total count:", items.length);
   }, [items]);
 
   const getFilteredItems = () => {
@@ -160,21 +162,24 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
 
   const addItem = (newItem: Omit<ShoppingItem, 'id' | 'dateAdded'> & {dateAdded?: Date, id?: string}) => {
     try {
-      console.log("[DEBUG] Adding new item:", JSON.stringify(newItem, null, 2));
+      console.log("[DEBUG] useShoppingItems - Adding new item:", JSON.stringify(newItem, null, 2));
       
       if (!newItem || typeof newItem !== 'object') {
-        console.error("[ERROR] Invalid item data:", newItem);
+        console.error("[ERROR] useShoppingItems - Invalid item data:", newItem);
         return null;
       }
       
       if (!newItem.name) {
-        console.error("[ERROR] Item name is required");
+        console.error("[ERROR] useShoppingItems - Item name is required");
         return null;
       }
       
+      // Ensure completed is explicitly set to false if not provided
+      const completed = newItem.completed === undefined ? false : Boolean(newItem.completed);
+      
       const item: ShoppingItem = {
         id: newItem.id || Date.now().toString(),
-        completed: newItem.completed === undefined ? false : newItem.completed,
+        completed: completed,
         dateAdded: newItem.dateAdded || new Date(),
         name: newItem.name,
         category: newItem.category || '',
@@ -187,26 +192,45 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
         lastPurchased: undefined
       };
       
-      console.log("[DEBUG] Structured item to add:", JSON.stringify(item, null, 2));
+      console.log("[DEBUG] useShoppingItems - Structured item to add:", JSON.stringify(item, null, 2));
       
+      let newItems: ShoppingItem[] = [];
       setItems(prevItems => {
-        const updatedItems = [...prevItems, item];
-        console.log("[DEBUG] Updated items count:", updatedItems.length);
-        return updatedItems;
+        newItems = [...prevItems, item];
+        console.log("[DEBUG] useShoppingItems - Updated items count:", newItems.length);
+        return newItems;
       });
+      
+      // Check if the new item has been properly added
+      const added = items.some(i => i.id === item.id) || newItems.some(i => i.id === item.id);
+      
+      if (!added) {
+        console.warn("[WARN] useShoppingItems - Item may not have been added correctly, forcing an update");
+        // Force an update if needed
+        setItems(prevItems => {
+          if (!prevItems.some(i => i.id === item.id)) {
+            return [...prevItems, item];
+          }
+          return prevItems;
+        });
+      }
       
       return item;
     } catch (error) {
-      console.error("[ERROR] in addItem:", error);
+      console.error("[ERROR] useShoppingItems - Error in addItem:", error);
       return null;
     }
   };
 
   const toggleItem = (id: string) => {
     const item = items.find(item => item.id === id);
-    if (!item) return;
+    if (!item) {
+      console.error("[ERROR] useShoppingItems - Item not found for toggle:", id);
+      return null;
+    }
     
     if (!item.completed) {
+      console.log("[DEBUG] useShoppingItems - Marking item as completed:", id);
       const updatedItems = items.map(i => i.id === id ? {
         ...i,
         completed: true,
@@ -215,6 +239,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       setItems(updatedItems);
       return { completed: true, item };
     } else {
+      console.log("[DEBUG] useShoppingItems - Marking item as not completed:", id);
       const updatedItems = items.map(i => i.id === id ? {
         ...i,
         completed: false
@@ -225,17 +250,34 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   };
 
   const removeItem = (id: string) => {
+    console.log("[DEBUG] useShoppingItems - Removing item:", id);
     const itemToRemove = items.find(item => item.id === id);
+    if (!itemToRemove) {
+      console.error("[ERROR] useShoppingItems - Item not found for removal:", id);
+      return null;
+    }
+    
     setItems(items.filter(item => item.id !== id));
     return itemToRemove;
   };
 
   const updateItem = (id: string, updatedData: Partial<ShoppingItem>) => {
+    console.log("[DEBUG] useShoppingItems - Updating item:", id, updatedData);
+    const itemExists = items.some(item => item.id === id);
+    
+    if (!itemExists) {
+      console.error("[ERROR] useShoppingItems - Item not found for update:", id);
+      return null;
+    }
+    
     const updatedItems = items.map(item => 
       item.id === id ? { ...item, ...updatedData } : item
     );
     setItems(updatedItems);
-    return updatedItems.find(item => item.id === id);
+    
+    const updated = updatedItems.find(item => item.id === id);
+    console.log("[DEBUG] useShoppingItems - Updated item result:", updated);
+    return updated;
   };
 
   const handleItemSelect = (id: string) => {

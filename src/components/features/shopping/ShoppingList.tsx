@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import ShoppingItemButton from './ShoppingItemButton';
@@ -33,6 +33,13 @@ const ShoppingList = ({
   
   const unpurchasedItems = filteredItems.filter(item => !item.completed);
   const purchasedItems = filteredItems.filter(item => item.completed);
+  
+  useEffect(() => {
+    // Debug log when items change
+    console.log(`[DEBUG] ShoppingList - ${filterMode} items:`, filteredItems.length, 
+      "Unpurchased:", unpurchasedItems.length, 
+      "Purchased:", purchasedItems.length);
+  }, [filteredItems.length, unpurchasedItems.length, purchasedItems.length, filterMode]);
   
   const handleImagePreview = (item: any) => {
     console.log("[DEBUG] ShoppingList - Opening image preview for:", item.name);
@@ -111,7 +118,13 @@ const ShoppingList = ({
 
   const handleToggleItemCompletion = (itemId: string) => {
     console.log("[DEBUG] ShoppingList - Toggling completion for item ID:", itemId);
-    toggleItemCompletion(itemId);
+    const result = toggleItemCompletion(itemId);
+    
+    if (result) {
+      console.log("[DEBUG] ShoppingList - Toggle result:", result.completed ? "Completed" : "Uncompleted", result.item);
+    } else {
+      console.error("[ERROR] ShoppingList - Failed to toggle item completion");
+    }
   };
 
   const renderShoppingItemsGrid = (items: any[]) => (
