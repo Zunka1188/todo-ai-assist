@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, X, Camera, Upload, Loader2, Save, Maximize2, Minimize2, File as FileIcon } from 'lucide-react';
+import { Plus, X, Upload, Loader2, Save, Maximize2, Minimize2, File as FileIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
@@ -162,56 +162,6 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       reader.readAsDataURL(selectedFile);
     }
   };
-  
-  const handleCameraCapture = async () => {
-    try {
-      // Request camera access
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-      });
-      
-      // Create video element
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      
-      // Create canvas to capture frame
-      const canvas = document.createElement('canvas');
-      
-      // When video can play, capture a frame
-      video.onloadedmetadata = () => {
-        video.play();
-        
-        // Set canvas dimensions
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        
-        // Draw video frame to canvas
-        const context = canvas.getContext('2d');
-        if (context) {
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
-          
-          // Convert canvas to image data
-          const imageData = canvas.toDataURL('image/jpeg');
-          setFile(imageData);
-          setFileName("camera_capture_" + new Date().toISOString().substring(0, 10) + ".jpg");
-          setFileType('image');
-          
-          // Stop camera stream
-          stream.getTracks().forEach(track => track.stop());
-          
-          // Trigger AI analysis
-          setShowAnalysisModal(true);
-        }
-      };
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-      toast({
-        title: "Camera Error",
-        description: "Could not access camera. Please check permissions.",
-        variant: "destructive"
-      });
-    }
-  };
 
   const handleRemoveFile = () => {
     setFile(null);
@@ -320,17 +270,6 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
                     <Upload className="h-4 w-4 mr-2" />
                   )}
                   Upload File
-                </Button>
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={handleCameraCapture}
-                  disabled={isUploading}
-                >
-                  <Camera className="h-4 w-4 mr-2" />
-                  Take Photo
                 </Button>
                 
                 <input

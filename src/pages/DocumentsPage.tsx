@@ -12,6 +12,7 @@ import DocumentList from '@/components/features/documents/DocumentList';
 import PageHeader from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { ChefHat, Dumbbell, FileArchive, Plane, Calendar, FileText, Shirt } from 'lucide-react';
+import AttachmentOptionsDialog from '@/components/features/shopping/AttachmentOptionsDialog';
 
 const DocumentsPage = () => {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ const DocumentsPage = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isOptionsDialogOpen, setIsOptionsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DocumentCategory>('style');
   const [editingItem, setEditingItem] = useState<DocumentItem | null>(null);
   const [fullScreenPreviewItem, setFullScreenPreviewItem] = useState<DocumentItem | DocumentFile | null>(null);
@@ -40,6 +42,17 @@ const DocumentsPage = () => {
   const handleOpenAddDialog = (editing: DocumentItem | null = null) => {
     setEditingItem(editing);
     setIsAddDialogOpen(true);
+  };
+
+  const handleOpenFileUploader = () => {
+    // For Files tab, directly open the add dialog
+    if (activeTab === 'files') {
+      setEditingItem(null);
+      setIsAddDialogOpen(true);
+    } else {
+      // For other tabs, show options dialog
+      setIsOptionsDialogOpen(true);
+    }
   };
 
   const handleAddItem = (item: any) => {
@@ -82,7 +95,7 @@ const DocumentsPage = () => {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         showAddButton={true}
-        onAddItem={() => handleOpenAddDialog()}
+        onAddItem={handleOpenFileUploader}
         addItemLabel="+ Add Item"
       />
 
@@ -145,6 +158,24 @@ const DocumentsPage = () => {
           </TabsContent>
         )}
       </Tabs>
+
+      <AttachmentOptionsDialog
+        open={isOptionsDialogOpen}
+        onOpenChange={setIsOptionsDialogOpen}
+        onCameraCapture={() => {
+          setIsOptionsDialogOpen(false);
+          handleOpenAddDialog(null);
+        }}
+        onFileUpload={() => {
+          setIsOptionsDialogOpen(false);
+          handleOpenAddDialog(null);
+        }}
+        onDocumentUpload={() => {
+          setIsOptionsDialogOpen(false);
+          handleOpenAddDialog(null);
+        }}
+        title="Add Document"
+      />
 
       <AddDocumentDialog 
         open={isAddDialogOpen} 
