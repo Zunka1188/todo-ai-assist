@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddDocumentDialog from '@/components/features/documents/AddDocumentDialog';
@@ -81,7 +80,9 @@ const DocumentsPage = () => {
         title="Documents"
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        showAddButton={false}
+        showAddButton={true}
+        onAddItem={() => handleOpenAddDialog()}
+        addItemLabel="+ Add Item"
       />
 
       <Tabs defaultValue="style" value={activeTab} onValueChange={value => setActiveTab(value as DocumentCategory)} className="w-full">
@@ -118,19 +119,11 @@ const DocumentsPage = () => {
 
         {activeTab !== 'files' ? (
           <TabsContent value={activeTab}>
-            <div className="flex justify-end mb-4">
-              <Button 
-                onClick={() => handleOpenAddDialog()} 
-                className="bg-todo-purple hover:bg-todo-purple/90 text-white"
-              >
-                + Add Item
-              </Button>
-            </div>
             <DocumentItemsList 
               items={filteredItems}
               onEdit={handleOpenAddDialog}
               onDelete={handleDeleteItem}
-              onViewImage={handleViewFullScreen}
+              onViewImage={(item) => handleViewFullScreen(item as DocumentItem)}
               formatDateRelative={formatDateRelative}
             />
           </TabsContent>
@@ -146,6 +139,7 @@ const DocumentsPage = () => {
               searchTerm={searchTerm} 
               categories={CATEGORIES as DocumentCategory[]} 
               viewMode="table"
+              showAddButton={false}
             />
           </TabsContent>
         )}
@@ -163,12 +157,12 @@ const DocumentsPage = () => {
           title: editingItem.title,
           description: editingItem.content,
           category: editingItem.category,
-          tags: editingItem.tags,
+          tags: editingItem.tags || [],
           date: editingItem.date.toISOString().split('T')[0],
           addedDate: editingItem.addedDate.toISOString().split('T')[0],
-          file: editingItem.type === 'image' ? editingItem.content : editingItem.file,
-          fileName: editingItem.fileName,
-          fileType: editingItem.fileType
+          file: editingItem.type === 'image' ? editingItem.content : editingItem.file || null,
+          fileName: editingItem.fileName || "",
+          fileType: editingItem.fileType || ""
         } : null} 
       />
 

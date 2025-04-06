@@ -19,6 +19,7 @@ interface DocumentListProps {
   searchTerm?: string;
   categories?: DocumentCategory[];
   viewMode?: 'grid' | 'table';
+  showAddButton?: boolean;
 }
 
 const DocumentList: React.FC<DocumentListProps> = ({ 
@@ -28,7 +29,8 @@ const DocumentList: React.FC<DocumentListProps> = ({
   onDeleteDocument,
   searchTerm = '', 
   categories = [],
-  viewMode = 'table'
+  viewMode = 'table',
+  showAddButton = true
 }) => {
   const { isMobile } = useIsMobile();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -53,15 +55,17 @@ const DocumentList: React.FC<DocumentListProps> = ({
   if (documents.length === 0 && !searchTerm) {
     return (
       <div className="flex flex-col">
-        <div className="flex justify-end mb-4">
-          <Button 
-            onClick={() => handleOpenAddDialog()} 
-            className="bg-todo-purple hover:bg-todo-purple/90 text-white"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Document
-          </Button>
-        </div>
+        {showAddButton && (
+          <div className="flex justify-end mb-4">
+            <Button 
+              onClick={() => handleOpenAddDialog()} 
+              className="bg-todo-purple hover:bg-todo-purple/90 text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Item
+            </Button>
+          </div>
+        )}
         <div className="flex flex-col items-center justify-center p-8 text-center">
           <div className="rounded-full bg-muted p-6 w-20 h-20 flex items-center justify-center">
             {getFileTypeIcon('unknown')}
@@ -85,15 +89,17 @@ const DocumentList: React.FC<DocumentListProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end mb-4">
-        <Button 
-          onClick={() => handleOpenAddDialog()} 
-          className="bg-todo-purple hover:bg-todo-purple/90 text-white"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Document
-        </Button>
-      </div>
+      {showAddButton && (
+        <div className="flex justify-end mb-4">
+          <Button 
+            onClick={() => handleOpenAddDialog()} 
+            className="bg-todo-purple hover:bg-todo-purple/90 text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Item
+          </Button>
+        </div>
+      )}
       
       {viewMode === 'table' ? (
         <DocumentTableView 
