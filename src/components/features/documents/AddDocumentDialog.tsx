@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, X, Camera, Upload, Loader2, Save, Maximize2, Minimize2, File as FileIcon, Calendar, Clock } from 'lucide-react';
+import { Plus, X, Camera, Upload, Loader2, Save, Maximize2, Minimize2, File as FileIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
@@ -50,15 +50,12 @@ interface AddDocumentDialogProps {
   editItem?: DocumentItem | null;
 }
 
-// Define the available categories to match the list requested by the user
-const DEFAULT_CATEGORIES = ['other', 'style', 'recipes', 'travel', 'fitness', 'files'];
-
 const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   open,
   onOpenChange,
   onAdd,
   currentCategory = 'style',
-  categories = DEFAULT_CATEGORIES,
+  categories = [],
   isEditing = false,
   editItem = null
 }) => {
@@ -68,7 +65,6 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState(currentCategory);
   const [tags, setTags] = useState('');
-  const [date, setDate] = useState('');
   const [file, setFile] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>('');
   const [fileType, setFileType] = useState<string>('');
@@ -87,7 +83,6 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
         setDescription(editItem.description || '');
         setCategory(editItem.category);
         setTags(editItem.tags ? editItem.tags.join(', ') : '');
-        setDate(editItem.date);
         setFile(editItem.file || null);
         setFileName(editItem.fileName || '');
         setFileType(editItem.fileType || '');
@@ -97,7 +92,6 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
         setDescription('');
         setCategory(currentCategory);
         setTags('');
-        setDate('');
         setFile(null);
         setFileName('');
         setFileType('');
@@ -125,7 +119,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       description: description || undefined,
       category,
       tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
-      date: date || today,
+      date: today, // We always use today's date now
       addedDate: editItem?.addedDate || today,
       file,
       fileName: fileName || undefined,
@@ -247,7 +241,6 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     
     if (result.description) setDescription(result.description);
     if (result.tags) setTags(result.tags.join(', '));
-    if (result.date) setDate(result.date);
     
     // Close analysis modal
     setShowAnalysisModal(false);
@@ -422,22 +415,6 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
               onChange={(e) => setTags(e.target.value)}
               placeholder="e.g., important, work, personal"
             />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="date" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Document Date
-            </Label>
-            <Input
-              id="date"
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Date associated with the document's content
-            </p>
           </div>
         </div>
       </div>
