@@ -226,13 +226,12 @@ const ShoppingPage: React.FC = () => {
         </div>
       )}
 
-      {showAddDialog && (
-        <AddItemDialog 
-          open={showAddDialog} 
-          onOpenChange={handleAddDialogChange}
-          onSave={handleSaveItem}
-        />
-      )}
+      {/* Fixed issue with mobile view dialog */}
+      <AddItemDialog 
+        open={showAddDialog} 
+        onOpenChange={handleAddDialogChange}
+        onSave={handleSaveItem}
+      />
 
       {editItem && editItem.item && (
         <EditItemDialog 

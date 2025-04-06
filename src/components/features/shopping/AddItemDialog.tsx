@@ -40,7 +40,7 @@ interface ItemData {
   notes?: string;
   amount?: string;
   file?: string | null;
-  imageUrl?: string | null; // Added imageUrl property
+  imageUrl?: string | null;
   fileName?: string;
   fileType?: string;
   repeatOption?: 'none' | 'weekly' | 'monthly';
@@ -72,6 +72,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // This ensures form state is reset when dialog opens/closes
   useEffect(() => {
     if (editItem && open) {
       setName(editItem.name || '');
@@ -144,6 +145,8 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       if (result !== false) {
         resetForm();
         console.log("[DEBUG] AddItemDialog - Closing dialog after successful save");
+        
+        // CRITICAL FIX: Ensure dialog closes on mobile too
         onOpenChange(false);
         
         toast({
@@ -197,6 +200,12 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       title: "AI Analysis Complete",
       description: "We've pre-filled the form based on your file",
     });
+  };
+
+  // Handle dialog cancellation - consistent between mobile and desktop
+  const handleCancel = () => {
+    resetForm();
+    onOpenChange(false);
   };
 
   if (fullScreenPreview && file && fileType === 'image') {
@@ -366,10 +375,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
             </ScrollArea>
             
             <DrawerFooter className="px-4 py-2 gap-2">
-              <Button variant="outline" className="w-full" onClick={() => {
-                resetForm();
-                onOpenChange(false);
-              }}>
+              <Button variant="outline" className="w-full" onClick={handleCancel}>
                 Cancel
               </Button>
               <Button 
@@ -397,10 +403,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
             </ScrollArea>
 
             <DialogFooter className="mt-4 pt-2 border-t">
-              <Button variant="outline" onClick={() => {
-                resetForm();
-                onOpenChange(false);
-              }}>
+              <Button variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>
               <Button 
