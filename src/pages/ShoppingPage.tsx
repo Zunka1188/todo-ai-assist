@@ -45,6 +45,7 @@ const ShoppingPage: React.FC = () => {
   };
 
   const handleEditItem = (id: string, name?: string, item?: any) => {
+    console.log("[DEBUG] ShoppingPage - Editing item:", id, name, item);
     setEditItem({ id, name, item });
   }
 
@@ -58,7 +59,7 @@ const ShoppingPage: React.FC = () => {
       
       // Make sure all required fields are included
       const itemToAdd = {
-        name: item.name,
+        name: item.name || 'Unnamed Item',
         amount: item.amount || '',
         price: item.price || '',
         imageUrl: item.file || null,
@@ -66,7 +67,7 @@ const ShoppingPage: React.FC = () => {
         repeatOption: item.repeatOption || 'none',
         category: item.category || '',
         dateToPurchase: item.dateToPurchase || '',
-        completed: item.completed === undefined ? false : item.completed // Ensure completed property
+        completed: false // Always explicitly set completed to false
       };
       
       console.log('[DEBUG] ShoppingPage - Properly structured item to add:', JSON.stringify(itemToAdd, null, 2));
@@ -104,6 +105,8 @@ const ShoppingPage: React.FC = () => {
     try {
       if (!editItem || !editItem.id) return false;
       
+      console.log("[DEBUG] ShoppingPage - Updating item:", JSON.stringify(updatedItem, null, 2));
+      
       const itemData = {
         name: updatedItem.name,
         amount: updatedItem.amount,
@@ -133,6 +136,7 @@ const ShoppingPage: React.FC = () => {
   }
 
   const handleAddDialogChange = (open: boolean) => {
+    console.log("[DEBUG] ShoppingPage - Add dialog open state changed:", open);
     setShowAddDialog(open);
   }
 
@@ -142,7 +146,10 @@ const ShoppingPage: React.FC = () => {
         title="Shopping List"
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        onAddItem={() => setShowAddDialog(true)}
+        onAddItem={() => {
+          console.log("[DEBUG] ShoppingPage - Add button clicked");
+          setShowAddDialog(true);
+        }}
         addItemLabel="Add Item"
       />
 

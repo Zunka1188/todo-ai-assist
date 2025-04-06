@@ -51,6 +51,13 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
     return name.charAt(0).toUpperCase();
   };
 
+  const handleItemClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("[DEBUG] ShoppingItemButton - Item clicked:", name);
+    onClick();
+  };
+
   return (
     <div className={cn(
       "relative",
@@ -62,7 +69,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           isMobile ? "h-24 w-full" : "h-36 w-64",
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
-        onClick={onClick}
+        onClick={handleItemClick}
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",

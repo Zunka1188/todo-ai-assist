@@ -35,6 +35,7 @@ const ShoppingList = ({
   const purchasedItems = filteredItems.filter(item => item.completed);
   
   const handleImagePreview = (item: any) => {
+    console.log("[DEBUG] ShoppingList - Opening image preview for:", item.name);
     setSelectedItem(item);
   };
   
@@ -108,11 +109,16 @@ const ShoppingList = ({
     return false;
   };
 
+  const handleToggleItemCompletion = (itemId: string) => {
+    console.log("[DEBUG] ShoppingList - Toggling completion for item ID:", itemId);
+    toggleItemCompletion(itemId);
+  };
+
   const renderShoppingItemsGrid = (items: any[]) => (
     <div className={cn(
       "grid",
       isMobile 
-        ? "grid-cols-3 gap-2 px-2"
+        ? "grid-cols-1 sm:grid-cols-2 gap-2 px-2"
         : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-2"
     )}>
       {items.map((item) => (
@@ -124,7 +130,7 @@ const ShoppingList = ({
           repeatOption={item.repeatOption}
           imageUrl={item.imageUrl}
           notes={item.notes}
-          onClick={() => toggleItemCompletion(item.id)}
+          onClick={() => handleToggleItemCompletion(item.id)}
           onDelete={() => deleteItem(item.id)}
           onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
           onImagePreview={() => handleImagePreview(item)}

@@ -63,34 +63,34 @@ const DirectAddItem = () => {
   };
 
   return (
-    <div className="fixed bottom-16 left-0 z-10 p-2 bg-background/50 backdrop-blur-sm rounded-r-md">
+    <div className="fixed bottom-24 right-0 z-10 p-2 bg-background/80 backdrop-blur-sm rounded-l-md shadow-md border border-primary/20">
       <div className="flex flex-col gap-2">
         <Button 
           size="sm" 
           variant="outline" 
           onClick={() => handleAddItem('none')} 
           disabled={isAdding}
-          className="text-xs py-1 px-2"
+          className="text-xs py-1 px-2 border-primary/50"
         >
-          Add One-Off
+          Quick Add One-Off
         </Button>
         <Button 
           size="sm" 
           variant="outline" 
           onClick={() => handleAddItem('weekly')} 
           disabled={isAdding}
-          className="text-xs py-1 px-2"
+          className="text-xs py-1 px-2 border-primary/50"
         >
-          Add Weekly
+          Quick Add Weekly
         </Button>
         <Button 
           size="sm" 
           variant="outline" 
           onClick={() => handleAddItem('monthly')} 
           disabled={isAdding}
-          className="text-xs py-1 px-2"
+          className="text-xs py-1 px-2 border-primary/50"
         >
-          Add Monthly
+          Quick Add Monthly
         </Button>
       </div>
     </div>
