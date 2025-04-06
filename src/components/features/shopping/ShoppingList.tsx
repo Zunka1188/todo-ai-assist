@@ -112,10 +112,7 @@ const ShoppingList = ({
 
   // Shopping items grid renderer
   const renderShoppingItemsGrid = (items: any[]) => (
-    <div className={cn(
-      "shopping-items-grid grid",
-      isMobile ? "grid-cols-4 gap-1" : "grid-cols-3 lg:grid-cols-4 gap-4"
-    )}>
+    <div className="shopping-items-grid">
       {items.map((item) => (
         <ShoppingItemButton
           key={item.id}

@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -123,12 +122,12 @@
     width: 100%;
   }
   
-  /* Optimized for mobile - two items per row */
+  /* Optimized for mobile - four items per row */
   @media (max-width: 479px) {
     .shopping-items-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 0.5rem;
-      justify-items: center;
+      justify-items: stretch;
       align-items: start;
     }
   }
@@ -136,7 +135,7 @@
   /* Optimized for tablets */
   @media (min-width: 480px) and (max-width: 767px) {
     .shopping-items-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
     }
   }
   
