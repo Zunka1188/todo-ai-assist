@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Maximize2, Share2 } from 'lucide-react';
@@ -58,7 +59,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       <div 
         className={cn(
           "flex flex-col rounded-md overflow-hidden border cursor-pointer",
-          isMobile ? "h-24 w-20" : "h-36 w-56",
+          isMobile ? "h-24 w-20" : "h-36 w-64", // Increased width from 56 to 64
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
         onClick={onClick}
@@ -77,17 +78,6 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
                   completed ? 'opacity-50' : ''
                 )}
               />
-              {onImagePreview && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onImagePreview();
-                  }}
-                  className="absolute top-0.5 right-0.5 p-0.5 bg-black/30 rounded-full hover:bg-black/50"
-                >
-                  <Maximize2 className={cn(isMobile ? "h-2.5 w-2.5" : "h-3.5 w-3.5", "text-white")} />
-                </button>
-              )}
             </>
           ) : (
             <div className={cn(
@@ -108,6 +98,19 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
                 {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
               </Badge>
             </div>
+          )}
+          
+          {/* Image preview button moved to bottom right only for desktop */}
+          {!isMobile && onImagePreview && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onImagePreview();
+              }}
+              className="absolute bottom-0.5 right-0.5 p-0.5 bg-black/30 rounded-full hover:bg-black/50"
+            >
+              <Maximize2 className="h-3.5 w-3.5 text-white" />
+            </button>
           )}
         </div>
         
@@ -140,6 +143,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
       </div>
 
+      {/* Mobile buttons */}
       {isMobile && (
         <div className="absolute top-0.5 left-0.5 flex gap-0.5">
           <Button
@@ -178,11 +182,27 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           >
             <Share2 className="h-2 w-2" />
           </ShareButton>
+          
+          {onImagePreview && (
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-3 w-3 p-0 opacity-90"
+              onClick={(e) => {
+                e.stopPropagation();
+                onImagePreview();
+              }}
+            >
+              <Maximize2 className="h-2 w-2" />
+            </Button>
+          )}
         </div>
       )}
       
+      {/* Desktop buttons */}
       {!isMobile && (
         <>
+          {/* Delete button in top right */}
           <div className="absolute top-1.5 right-1.5">
             <Button
               size="icon"
@@ -197,6 +217,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             </Button>
           </div>
           
+          {/* Edit and Share buttons in top left */}
           <div className="absolute top-1.5 left-1.5 flex gap-1">
             <Button
               size="icon" 
@@ -222,20 +243,6 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             >
               <Share2 className="h-3.5 w-3.5" />
             </ShareButton>
-            
-            {onImagePreview && (
-              <Button
-                size="icon"
-                variant="secondary"
-                className="h-6 w-6 p-0 opacity-90"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onImagePreview();
-                }}
-              >
-                <Maximize2 className="h-3.5 w-3.5" />
-              </Button>
-            )}
           </div>
         </>
       )}

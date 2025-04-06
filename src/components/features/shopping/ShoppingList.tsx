@@ -106,7 +106,7 @@ const ShoppingList = ({
       "grid",
       isMobile 
         ? "grid-cols-4 gap-1 px-1" 
-        : "grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-2"
+        : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-2"
     )}>
       {items.map((item) => (
         <ShoppingItemButton
