@@ -101,7 +101,7 @@ const initialFiles: DocumentFile[] = [
     category: 'fitness', 
     date: yesterday.toISOString(), 
     fileType: 'excel', 
-    fileUrl: 'https://file-examples.com/storage/fe8c7eef0c6364f6c9504cc/2017/02/file_example_XLSX_10.xlsx'
+    fileUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEekTKR81PXX3Tlb3GktI_CX3ZEZLpRvaXgxK0IEV-wrjrRrR0gUP7tnmWE2K74pZrOW7kvTQpCVQu/pub?output=xlsx'
   },
   { 
     id: '5', 
@@ -109,7 +109,7 @@ const initialFiles: DocumentFile[] = [
     category: 'style', 
     date: twoDaysAgo.toISOString(), 
     fileType: 'word', 
-    fileUrl: 'https://file-examples.com/storage/fe8c7eef0c6364f6c9504cc/2017/02/file-sample_100kB.doc'
+    fileUrl: 'https://www.africau.edu/images/default/sample.pdf' // Using PDF as fallback since Word docs aren't easily embedded
   },
   { 
     id: '6', 
@@ -126,6 +126,64 @@ const initialFiles: DocumentFile[] = [
     date: fourDaysAgo.toISOString(), 
     fileType: 'image', 
     fileUrl: 'https://images.unsplash.com/photo-1466721591366-2d5fba72006d'
+  },
+  { 
+    id: '8', 
+    title: 'Monthly Budget Template', 
+    category: 'work', 
+    date: yesterday.toISOString(), 
+    fileType: 'excel', 
+    fileUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRmbGVdWTZ0lzHjX5NU94xNvlh-GWz9rTm-7g3zAuQS4MRuJHDCzOPDVqW9TJEmQw/pub?output=xlsx'
+  },
+  { 
+    id: '9', 
+    title: 'Project Proposal', 
+    category: 'work', 
+    date: twoDaysAgo.toISOString(), 
+    fileType: 'word', 
+    fileUrl: 'https://www.africau.edu/images/default/sample.pdf' // Using PDF as fallback since Word docs aren't easily embedded
+  },
+  { 
+    id: '10', 
+    title: 'Recipe Collection', 
+    category: 'recipes', 
+    date: fourDaysAgo.toISOString(), 
+    fileType: 'text', 
+    fileUrl: 'data:text/plain;charset=utf-8,' + encodeURIComponent(`HEALTHY SMOOTHIE RECIPES
+
+BERRY BLAST SMOOTHIE
+- 1 cup mixed berries (strawberries, blueberries, raspberries)
+- 1 banana
+- 1/2 cup Greek yogurt
+- 1/4 cup almond milk
+- 1 tablespoon honey
+- Ice cubes
+
+GREEN MACHINE SMOOTHIE
+- 1 cup spinach
+- 1/2 avocado
+- 1 green apple
+- 1/2 cucumber
+- 1 tablespoon lemon juice
+- 1/2 cup coconut water
+- Ice cubes
+
+TROPICAL PARADISE SMOOTHIE
+- 1 cup pineapple chunks
+- 1/2 mango
+- 1/2 banana
+- 1/4 cup coconut milk
+- 1/2 cup orange juice
+- Ice cubes
+
+PROTEIN POWER SMOOTHIE
+- 1 scoop protein powder
+- 1 tablespoon peanut butter
+- 1 banana
+- 1/2 cup oats
+- 1 cup almond milk
+- 1 tablespoon chia seeds
+- Ice cubes`)
   },
 ];
 

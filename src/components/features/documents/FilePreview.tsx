@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { File, FileText, Archive, Image, File as FileIcon, FileSpreadsheet, FileCode } from 'lucide-react';
+import { File, FileText, Archive, Image, File as FileIcon, FileSpreadsheet, FileCode, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface FilePreviewProps {
   file: string | null;
@@ -89,6 +90,16 @@ const FilePreview: React.FC<FilePreviewProps> = ({
     );
   }
 
+  const handleDownload = () => {
+    // Create a temporary anchor element to trigger the download
+    const link = document.createElement('a');
+    link.href = file;
+    link.download = fileName || `download.${fileType}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // For images, show the image
   if (fileType === 'image') {
     return (
@@ -101,6 +112,17 @@ const FilePreview: React.FC<FilePreviewProps> = ({
             fullScreen ? "max-h-[80vh]" : "max-h-48"
           )}
         />
+        {fullScreen && (
+          <div className="absolute bottom-4 right-4">
+            <Button 
+              onClick={handleDownload}
+              className="bg-black/40 hover:bg-black/60 text-white"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -108,7 +130,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   // For PDF files, embed a PDF viewer
   if (fileType === 'pdf') {
     return (
-      <div className={cn("rounded-md overflow-hidden border", className)}>
+      <div className={cn("relative rounded-md overflow-hidden border", className)}>
         <iframe 
           src={`${file}#toolbar=0&navpanes=0`}
           className={cn(
@@ -117,6 +139,17 @@ const FilePreview: React.FC<FilePreviewProps> = ({
           )}
           title={fileName || "PDF Preview"}
         />
+        {fullScreen && (
+          <div className="absolute bottom-4 right-4">
+            <Button 
+              onClick={handleDownload}
+              className="bg-black/40 hover:bg-black/60 text-white"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -125,7 +158,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   if (fileType === 'text') {
     return (
       <div className={cn(
-        "rounded-md overflow-hidden border bg-muted/20 p-4",
+        "rounded-md overflow-hidden border bg-muted/20 p-4 relative",
         className
       )}>
         <div className="flex items-center mb-2">
@@ -145,37 +178,94 @@ You can use this for notes, recipes, or any other text-based content.
 
 The preview supports scrolling for longer content.` : file}
         </div>
+        {fullScreen && (
+          <div className="absolute bottom-4 right-4">
+            <Button 
+              onClick={handleDownload}
+              className="bg-primary/90 hover:bg-primary text-white"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
 
-  // For other file types that might be downloadable
-  if (fileType === 'word' || fileType === 'excel' || fileType === 'powerpoint') {
+  // For Excel, Word, and PowerPoint files
+  if (fileType === 'excel' || fileType === 'word' || fileType === 'powerpoint') {
     return (
       <div className={cn(
-        "flex flex-col p-4 border rounded-md bg-muted/20", 
+        "flex flex-col p-6 border rounded-md bg-muted/20 relative", 
         className
       )}>
-        <div className="flex items-center justify-center mb-4">
-          {fileType === 'word' && <FileText size={40} className="text-blue-500" />}
-          {fileType === 'excel' && <FileSpreadsheet size={40} className="text-green-500" />}
-          {fileType === 'powerpoint' && <FileText size={40} className="text-orange-500" />}
+        <div className="flex flex-col items-center justify-center mb-4">
+          {fileType === 'word' && <FileText size={60} className="text-blue-500 mb-4" />}
+          {fileType === 'excel' && <FileSpreadsheet size={60} className="text-green-500 mb-4" />}
+          {fileType === 'powerpoint' && <FileText size={60} className="text-orange-500 mb-4" />}
+          
+          {fileName && <p className="text-center font-medium mb-2">{fileName}</p>}
+          <p className="text-sm text-center text-muted-foreground mb-6">
+            {fileType === 'word' ? 'Word Document' : 
+             fileType === 'excel' ? 'Excel Spreadsheet' : 
+             'PowerPoint Presentation'}
+          </p>
+          
+          <div className="w-full max-w-xs">
+            <Button 
+              onClick={handleDownload}
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download {fileType.charAt(0).toUpperCase() + fileType.slice(1)} File
+            </Button>
+          </div>
+          
+          {fileType === 'excel' && (
+            <div className="mt-6 border rounded-md overflow-hidden w-full max-w-lg">
+              <div className="bg-green-100 p-2 text-xs font-medium text-center border-b">
+                Sample Excel Content Preview
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full bg-white text-sm">
+                  <thead>
+                    <tr className="bg-green-50 border-b">
+                      <th className="p-2 border-r text-left">Product</th>
+                      <th className="p-2 border-r text-right">Quantity</th>
+                      <th className="p-2 border-r text-right">Price</th>
+                      <th className="p-2 text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="p-2 border-r">Item A</td>
+                      <td className="p-2 border-r text-right">3</td>
+                      <td className="p-2 border-r text-right">$25.00</td>
+                      <td className="p-2 text-right">$75.00</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 border-r">Item B</td>
+                      <td className="p-2 border-r text-right">5</td>
+                      <td className="p-2 border-r text-right">$10.00</td>
+                      <td className="p-2 text-right">$50.00</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="p-2 border-r">Item C</td>
+                      <td className="p-2 border-r text-right">2</td>
+                      <td className="p-2 border-r text-right">$15.00</td>
+                      <td className="p-2 text-right">$30.00</td>
+                    </tr>
+                    <tr className="bg-green-50">
+                      <td className="p-2 border-r font-medium text-right" colSpan={3}>Grand Total:</td>
+                      <td className="p-2 text-right font-medium">$155.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
-        {fileName && <p className="text-sm text-center font-medium mb-2">{fileName}</p>}
-        <p className="text-xs text-center text-muted-foreground mb-4">
-          {fileType === 'word' ? 'Word Document' : 
-           fileType === 'excel' ? 'Excel Spreadsheet' : 
-           'PowerPoint Presentation'}
-        </p>
-        <a 
-          href={file} 
-          download={fileName || `file.${fileType}`}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 py-2 px-4 rounded text-center text-sm"
-          target="_blank" 
-          rel="noopener noreferrer"
-        >
-          Download {fileType.charAt(0).toUpperCase() + fileType.slice(1)} File
-        </a>
       </div>
     );
   }
@@ -183,7 +273,7 @@ The preview supports scrolling for longer content.` : file}
   if (fileType === 'code') {
     return (
       <div className={cn(
-        "rounded-md overflow-hidden border bg-muted/20 p-4",
+        "rounded-md overflow-hidden border bg-muted/20 p-4 relative",
         className
       )}>
         <div className="flex items-center mb-2">
@@ -196,38 +286,43 @@ The preview supports scrolling for longer content.` : file}
         )}>
           <pre>{file}</pre>
         </div>
+        {fullScreen && (
+          <div className="absolute bottom-4 right-4">
+            <Button 
+              onClick={handleDownload}
+              className="bg-primary/90 hover:bg-primary text-white"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
 
-  // For other file types, show an icon and the file name
+  // For archive files and other unsupported types
   return (
     <div className={cn(
-      "flex flex-col items-center justify-center p-4 border rounded-md bg-muted/20", 
+      "flex flex-col items-center justify-center p-6 border rounded-md bg-muted/20 relative", 
       className
     )}>
       {showIcon && (
-        <div className="mb-2">
-          {fileType === 'pdf' && <FileText size={40} className="text-red-500" />}
-          {fileType === 'word' && <FileText size={40} className="text-blue-500" />}
-          {fileType === 'excel' && <FileSpreadsheet size={40} className="text-green-500" />}
-          {fileType === 'powerpoint' && <FileText size={40} className="text-orange-500" />}
-          {fileType === 'text' && <FileText size={40} className="text-gray-500" />}
-          {fileType === 'code' && <File size={40} className="text-purple-500" />}
-          {fileType === 'archive' && <Archive size={40} className="text-gray-500" />}
-          {(fileType === 'unknown' || !fileType) && <File size={40} className="text-gray-500" />}
+        <div className="mb-4">
+          {fileType === 'archive' && <Archive size={60} className="text-yellow-500" />}
+          {(fileType === 'unknown' || !fileType) && <File size={60} className="text-gray-500" />}
         </div>
       )}
-      {fileName && <p className="text-sm text-center break-all">{fileName}</p>}
-      {!fileName && <p className="text-sm text-muted-foreground">File</p>}
-      <a 
-        href={file} 
-        className="mt-4 text-xs text-primary hover:underline"
-        target="_blank" 
-        rel="noopener noreferrer"
+      {fileName && <p className="text-center break-all font-medium mb-4">{fileName}</p>}
+      {!fileName && <p className="text-center text-muted-foreground mb-4">Unknown File</p>}
+      
+      <Button 
+        onClick={handleDownload}
+        className="mt-2 bg-primary text-primary-foreground hover:bg-primary/90"
       >
-        View Original
-      </a>
+        <Download className="mr-2 h-4 w-4" />
+        Download File
+      </Button>
     </div>
   );
 };

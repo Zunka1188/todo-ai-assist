@@ -36,39 +36,24 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   
   const fileUrl = getFileUrl();
   const fileType = getFileType();
-  const isDownloadable = fileUrl && (
-    fileType === 'pdf' || 
-    fileType === 'word' || 
-    fileType === 'excel' || 
-    fileType === 'powerpoint' || 
-    fileType === 'text'
-  );
+
+  // Handle download
+  const handleDownload = () => {
+    if (fileUrl) {
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = getTitle() || `download.${fileType}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex flex-col">
       <div className="flex justify-between items-center p-4 bg-background/10 backdrop-blur-sm">
         <div className="text-white font-medium">{getTitle()}</div>
         <div className="flex items-center gap-2">
-          {isDownloadable && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-white hover:bg-white/20"
-              onClick={() => {
-                if (fileUrl) {
-                  const a = document.createElement('a');
-                  a.href = fileUrl;
-                  a.download = getTitle();
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                }
-              }}
-              aria-label="Download file"
-            >
-              <Download className="h-5 w-5" />
-            </Button>
-          )}
           <Button
             variant="ghost"
             size="icon"
