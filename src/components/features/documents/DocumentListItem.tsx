@@ -35,10 +35,18 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
     return `${day}/${month}/${year}`;
   };
   
+  const handleItemClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onFullScreen();
+  };
+
   return (
     <div 
       className="p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors cursor-pointer"
-      onClick={onFullScreen}
+      onClick={handleItemClick}
+      role="button"
+      tabIndex={0}
+      aria-label={`View ${document.title}`}
     >
       <div className="flex items-start">
         <div className="mr-4 shrink-0 w-12">

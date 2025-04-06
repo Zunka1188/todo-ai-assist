@@ -69,13 +69,64 @@ const initialCategoryItems: DocumentItem[] = [
   }
 ];
 
-// Mock data for files - ensure all dates are in the past
+// Sample files with various document types for interactive preview
 const initialFiles: DocumentFile[] = [
-  { id: '1', title: 'Resume', category: 'other', date: twoDaysAgo.toISOString(), fileType: 'pdf', fileUrl: 'https://picsum.photos/id/24/400/300' },
-  { id: '2', title: 'Project Plan', category: 'other', date: yesterday.toISOString(), fileType: 'word', fileUrl: 'https://picsum.photos/id/25/400/300' },
-  { id: '3', title: 'Vacation Itinerary', category: 'travel', date: fourDaysAgo.toISOString(), fileType: 'text', fileUrl: 'https://picsum.photos/id/26/400/300' },
-  { id: '4', title: 'Lease Agreement', category: 'files', date: yesterday.toISOString(), fileType: 'pdf', fileUrl: 'https://picsum.photos/id/27/400/300' },
-  { id: '5', title: 'Budget Spreadsheet', category: 'files', date: twoDaysAgo.toISOString(), fileType: 'excel', fileUrl: 'https://picsum.photos/id/28/400/300' },
+  { 
+    id: '1', 
+    title: 'Nature Photography Guide', 
+    category: 'other', 
+    date: twoDaysAgo.toISOString(), 
+    fileType: 'pdf', 
+    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
+  },
+  { 
+    id: '2', 
+    title: 'Mountain Landscape', 
+    category: 'travel', 
+    date: yesterday.toISOString(), 
+    fileType: 'image', 
+    fileUrl: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e'
+  },
+  { 
+    id: '3', 
+    title: 'Smoothie Recipes', 
+    category: 'recipes', 
+    date: fourDaysAgo.toISOString(), 
+    fileType: 'text', 
+    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.txt'
+  },
+  { 
+    id: '4', 
+    title: 'Fitness Tracker', 
+    category: 'fitness', 
+    date: yesterday.toISOString(), 
+    fileType: 'excel', 
+    fileUrl: 'https://file-examples.com/storage/fe8c7eef0c6364f6c9504cc/2017/02/file_example_XLSX_10.xlsx'
+  },
+  { 
+    id: '5', 
+    title: 'Winter Style Guide', 
+    category: 'style', 
+    date: twoDaysAgo.toISOString(), 
+    fileType: 'word', 
+    fileUrl: 'https://file-examples.com/storage/fe8c7eef0c6364f6c9504cc/2017/02/file-sample_100kB.doc'
+  },
+  { 
+    id: '6', 
+    title: 'Architecture Photography', 
+    category: 'other', 
+    date: yesterday.toISOString(), 
+    fileType: 'image', 
+    fileUrl: 'https://images.unsplash.com/photo-1486718448742-163732cd1544'
+  },
+  { 
+    id: '7', 
+    title: 'Wildlife Images', 
+    category: 'other', 
+    date: fourDaysAgo.toISOString(), 
+    fileType: 'image', 
+    fileUrl: 'https://images.unsplash.com/photo-1466721591366-2d5fba72006d'
+  },
 ];
 
 export function useDocuments() {
