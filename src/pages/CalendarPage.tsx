@@ -26,7 +26,11 @@ const CalendarPage = () => {
   // Handle dialog close without navigation
   const handleDialogClose = (open: boolean) => {
     setCreateDialogOpen(open);
-    // No navigation, just update the dialog state
+  };
+
+  // Handle file uploader state without navigation
+  const handleFileUploaderChange = (open: boolean) => {
+    setShowFileUploader(open);
   };
 
   return (
@@ -69,7 +73,7 @@ const CalendarPage = () => {
           isCreateDialogOpen={createDialogOpen} 
           setIsCreateDialogOpen={handleDialogClose}
           isFileUploaderOpen={showFileUploader}
-          setIsFileUploaderOpen={setShowFileUploader}
+          setIsFileUploaderOpen={handleFileUploaderChange}
         />
       </div>
     </PageLayout>

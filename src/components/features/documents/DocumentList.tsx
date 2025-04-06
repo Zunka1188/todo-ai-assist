@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -51,16 +50,14 @@ const DocumentList: React.FC<DocumentListProps> = ({
   // Handle dialog closure without navigation
   const handleDialogOpenChange = (open: boolean) => {
     setIsAddDialogOpen(open);
-    // No navigation, just update the dialog state
   };
 
   const handleFullScreenClose = () => {
     setFullScreenItem(null);
-    // No navigation, just close the preview
   };
 
+  // Directly handle the edit action by opening the dialog with the document
   const handleEditDocument = (doc: DocumentFile) => {
-    // Instead of navigating, just open the edit dialog
     handleOpenAddDialog(doc);
   };
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShoppingList from '@/components/features/shopping/ShoppingList';
@@ -49,7 +48,6 @@ const ShoppingPage: React.FC = () => {
 
   const handleCloseEditDialog = () => {
     setEditItem(null);
-    // No navigation, just close the dialog
   }
 
   const handleSaveItem = (item: any) => {
@@ -113,6 +111,10 @@ const ShoppingPage: React.FC = () => {
     return false;
   }
 
+  const handleAddDialogChange = (open: boolean) => {
+    setShowAddDialog(open);
+  }
+
   return (
     <div className="flex flex-col h-full">
       <PageHeader 
@@ -173,7 +175,7 @@ const ShoppingPage: React.FC = () => {
       {showAddDialog && (
         <AddItemDialog 
           open={showAddDialog} 
-          onOpenChange={setShowAddDialog}
+          onOpenChange={handleAddDialogChange}
           onSave={handleSaveItem}
         />
       )}

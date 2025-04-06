@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddDocumentDialog from '@/components/features/documents/AddDocumentDialog';
@@ -46,7 +45,6 @@ const DocumentsPage = () => {
   };
 
   const handleOpenFileUploader = () => {
-    // For all tabs, directly open the add dialog
     setEditingItem(null);
     setIsAddDialogOpen(true);
   };
@@ -64,16 +62,12 @@ const DocumentsPage = () => {
   const filteredItems = filterDocuments(categoryItems, activeTab, searchTerm);
   const filteredFiles = filterFiles(files, searchTerm);
 
-  // Handle dialog close to ensure we stay on the same tab
   const handleDialogClose = (open: boolean) => {
     setIsAddDialogOpen(open);
-    // We don't navigate anywhere when closing dialog, just stay on current tab
   };
 
-  // Similarly for full screen preview
   const handleFullScreenClose = () => {
     setFullScreenPreviewItem(null);
-    // No navigation, stay on current tab
   };
 
   return (
@@ -135,7 +129,6 @@ const DocumentsPage = () => {
               documents={filteredFiles}
               onAddDocument={handleAddOrUpdateFile}
               onEditDocument={(doc) => {
-                // Pass the document object directly
                 handleViewFullScreen(doc);
               }}
               onDeleteDocument={handleDeleteFile}
