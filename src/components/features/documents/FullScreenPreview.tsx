@@ -3,10 +3,11 @@ import React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { X, ExternalLink, Download, ArrowLeft } from 'lucide-react';
+import { X, ExternalLink, Download, ArrowLeft, Share2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import FilePreview from './FilePreview';
 import { DocumentItem, DocumentFile } from './types';
+import ShareButton from '@/components/features/shared/ShareButton';
 
 interface FullScreenPreviewProps {
   item: DocumentItem | DocumentFile | null;
@@ -65,6 +66,17 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) 
             </Button>
           </>
         )}
+        <ShareButton 
+          title={`Check out this ${fileType || 'document'}: ${title}`}
+          text={isDocumentItem ? item.content || undefined : undefined}
+          fileUrl={fileUrl}
+          size="sm"
+          variant="outline"
+          className="gap-2"
+        >
+          <Share2 className="h-4 w-4" />
+          Share
+        </ShareButton>
         <Button onClick={onClose} variant="default" size="sm">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Close

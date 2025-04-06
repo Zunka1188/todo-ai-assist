@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { Maximize2, Pencil, Trash2 } from 'lucide-react';
+import { Maximize2, Pencil, Trash2, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FilePreview from './FilePreview';
 import { DocumentFile } from './types';
 import { getCategoryIcon, getFileTypeIcon } from './utils/iconHelpers';
 import { useIsMobile } from '@/hooks/use-mobile';
+import ShareButton from '@/components/features/shared/ShareButton';
 
 interface DocumentListItemProps {
   document: DocumentFile;
@@ -76,6 +77,17 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
               >
                 <Maximize2 className="h-4 w-4" />
               </Button>
+              <ShareButton
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                title={`Check out this file: ${document.title}`}
+                fileUrl={document.fileUrl}
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Share document"
+              >
+                <Share2 className="h-4 w-4" />
+              </ShareButton>
               <Button 
                 variant="outline" 
                 size="icon" 

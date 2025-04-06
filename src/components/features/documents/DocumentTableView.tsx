@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DocumentFile } from './types';
 import { 
@@ -9,11 +10,12 @@ import {
   TableCell 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Maximize2, FileText, Image, File, Archive } from 'lucide-react';
+import { Pencil, Trash2, Maximize2, FileText, Image, File, Archive, Share2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Card } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import ShareButton from '@/components/features/shared/ShareButton';
 
 interface DocumentTableViewProps {
   documents: DocumentFile[];
@@ -135,6 +137,17 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
                 >
                   <Maximize2 className="h-3.5 w-3.5" />
                 </Button>
+                <ShareButton
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  title={`Check out this file: ${doc.title}`}
+                  fileUrl={doc.fileUrl}
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label="Share document"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                </ShareButton>
                 <Button 
                   variant="ghost" 
                   size="icon" 
@@ -172,11 +185,11 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-accent/70 bg-muted/50">
-            <TableHead className="w-[40%]">Name</TableHead>
-            <TableHead className="w-[25%]">Date added</TableHead>
-            <TableHead className="w-[20%]">Type</TableHead>
+            <TableHead className="w-[35%]">Name</TableHead>
+            <TableHead className="w-[20%]">Date added</TableHead>
+            <TableHead className="w-[15%]">Type</TableHead>
             <TableHead className="w-[10%]">Size</TableHead>
-            <TableHead className="w-[5%]"></TableHead>
+            <TableHead className="w-[20%]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -209,6 +222,17 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
                   >
                     <Maximize2 className="h-3.5 w-3.5" />
                   </Button>
+                  <ShareButton
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7"
+                    title={`Check out this file: ${doc.title}`}
+                    fileUrl={doc.fileUrl}
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label="Share document"
+                  >
+                    <Share2 className="h-3.5 w-3.5" />
+                  </ShareButton>
                   <Button 
                     variant="ghost" 
                     size="icon" 

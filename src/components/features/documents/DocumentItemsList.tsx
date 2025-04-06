@@ -1,10 +1,12 @@
+
 import React from 'react';
-import { FileText, Maximize2 } from 'lucide-react';
+import { FileText, Maximize2, Share2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DocumentItem } from './types';
 import { getTypeIcon } from './utils/iconHelpers';
 import { useIsMobile } from '@/hooks/use-mobile';
+import ShareButton from '@/components/features/shared/ShareButton';
 
 interface DocumentItemsListProps {
   items: DocumentItem[];
@@ -90,6 +92,17 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                   >
                     <Maximize2 className="h-4 w-4 text-white" />
                   </Button>
+                  <ShareButton
+                    size="sm"
+                    className="h-9 w-9 p-0 bg-black/20 hover:bg-black/40 rounded-full"
+                    title={`Check out: ${item.title}`}
+                    text={item.title}
+                    fileUrl={item.content}
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label="Share item"
+                  >
+                    <Share2 className="h-4 w-4 text-white" />
+                  </ShareButton>
                   <Button
                     size="sm"
                     variant="secondary"
@@ -151,6 +164,17 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                     </div>
                   </div>
                   <div className="flex gap-1 ml-2 shrink-0">
+                    <ShareButton
+                      size="sm"
+                      variant="outline"
+                      className="h-8 w-8 p-0"
+                      title={`Check out: ${item.title}`}
+                      text={item.content}
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label="Share item"
+                    >
+                      <Share2 className="h-4 w-4" />
+                    </ShareButton>
                     <Button
                       size="sm"
                       variant="outline"
