@@ -50,9 +50,24 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
         if (!open) onClose();
       }}
     >
-      <DialogContent className="max-w-3xl p-0 relative flex items-center justify-center" preventNavigateOnClose={true}>
-        <div className="w-full h-full flex items-center justify-center overflow-hidden p-4">
-          <img src={imageUrl} alt="Preview" className="max-w-full max-h-[70vh] object-contain" />
+      <DialogContent 
+        className="max-w-3xl p-0 flex items-center justify-center" 
+        preventNavigateOnClose={true}
+        style={{ 
+          minHeight: '50vh', 
+          maxHeight: '90vh',
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)'
+        }}
+      >
+        <div className="w-full h-full flex items-center justify-center p-4">
+          <img 
+            src={imageUrl} 
+            alt="Preview" 
+            className="max-w-full max-h-[80vh] object-contain" 
+          />
         </div>
         
         <div className="absolute top-4 left-4 flex gap-2">
