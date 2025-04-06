@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -115,186 +116,149 @@
     opacity: 1 !important;
   }
   
-  /* Shopping items grid layout for responsive display */
-  .shopping-items-grid {
-    display: grid;
-    gap: 1rem;
-    width: 100%;
-  }
-  
-  /* Optimized for mobile - four items per row */
-  @media (max-width: 479px) {
-    .shopping-items-grid {
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.5rem;
-      justify-items: stretch;
-      align-items: start;
+  /* ... keep existing code (the rest of the component and utility classes) */
+  @layer utilities {
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
     }
-  }
-  
-  /* Optimized for tablets */
-  @media (min-width: 480px) and (max-width: 767px) {
-    .shopping-items-grid {
-      grid-template-columns: repeat(3, 1fr);
+    
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
-  }
-  
-  /* Optimized for desktop */
-  @media (min-width: 768px) and (max-width: 1023px) {
-    .shopping-items-grid {
-      grid-template-columns: repeat(3, 1fr);
+    
+    .smooth-scroll {
+      scroll-behavior: smooth;
     }
-  }
-  
-  /* Optimized for large desktop */
-  @media (min-width: 1024px) {
-    .shopping-items-grid {
-      grid-template-columns: repeat(4, 1fr);
+    
+    /* Yuka-inspired button styles */
+    .yuka-button {
+      @apply bg-primary text-white rounded-lg px-4 py-2.5 flex items-center justify-center;
+      @apply transition-all duration-200 hover:bg-primary-light active:bg-primary-dark;
+      @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50;
     }
-  }
-}
-
-@layer utilities {
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .smooth-scroll {
-    scroll-behavior: smooth;
-  }
-  
-  /* Yuka-inspired button styles */
-  .yuka-button {
-    @apply bg-primary text-white rounded-lg px-4 py-2.5 flex items-center justify-center;
-    @apply transition-all duration-200 hover:bg-primary-light active:bg-primary-dark;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50;
-  }
-  
-  .responsive-button {
-    @apply flex items-center justify-between w-auto max-w-[200px] rounded-lg px-4 py-2.5 min-h-[44px];
-    @apply transition-all duration-200 hover:cursor-pointer;
-    @apply overflow-hidden;
-  }
-  
-  .responsive-button-text {
-    @apply truncate text-base font-medium;
-  }
-  
-  .responsive-button-icon {
-    @apply flex items-center justify-center ml-2;
-    @apply hover:bg-black/10 dark:hover:bg-white/10 rounded-full p-0.5 transition-colors;
-  }
-  
-  /* Button hover animations */
-  .button-hover-scale {
-    @apply transition-transform duration-200 hover:scale-105;
-  }
-  
-  .button-hover-shadow {
-    @apply transition-shadow duration-200 hover:shadow-md;
-  }
-  
-  /* Icon animations */
-  .icon-hover-rotate {
-    @apply transition-transform duration-200 hover:rotate-90;
-  }
-  
-  .icon-hover-pulse {
-    @apply hover:animate-pulse;
-  }
-  
-  /* High contrast text utilities */
-  .text-high-contrast {
-    @apply text-foreground dark:text-white;
-  }
-  
-  .text-medium-contrast {
-    @apply text-foreground/80 dark:text-white/90;
-  }
-  
-  .text-low-contrast {
-    @apply text-muted-foreground dark:text-white/70;
-  }
-  
-  /* Button contrast utilities */
-  .button-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 dark:hover:bg-primary/80;
-  }
-  
-  .button-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 dark:hover:bg-secondary/70;
-  }
-  
-  .button-outline {
-    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
-  }
-  
-  /* Icon contrast utilities */
-  .icon-high-contrast {
-    @apply text-foreground dark:text-white;
-  }
-  
-  .icon-medium-contrast {
-    @apply text-muted-foreground dark:text-primary;
-  }
-  
-  .icon-low-contrast {
-    @apply text-muted-foreground/70 dark:text-white/70;
-  }
-  
-  /* Tab contrast utilities */
-  .tab-active {
-    @apply text-primary font-medium dark:text-white;
-  }
-  
-  .tab-inactive-light {
-    @apply text-foreground/90 hover:text-primary;
-  }
-  
-  .tab-inactive-dark {
-    @apply text-white/80 hover:text-white;
-  }
-  
-  /* Mobile specific utilities */
-  .touch-manipulation {
-    touch-action: manipulation;
-  }
-  
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  
-  .safe-top {
-    padding-top: env(safe-area-inset-top);
-  }
-  
-  /* Mobile tappable area - ensure touch targets are at least 44x44px */
-  .tap-target {
-    @apply min-h-[44px] min-w-[44px];
-  }
-  
-  /* Mobile active state */
-  .mobile-active-effect {
-    @apply active:bg-black/5 dark:active:bg-white/10;
-  }
-  
-  /* Card styles */
-  .card-gradient {
-    @apply bg-gradient-to-br from-card to-secondary/80 backdrop-blur-sm;
-  }
-  
-  /* Glassmorphism */
-  .glass {
-    @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl;
-  }
-  
-  .dark .glass {
-    @apply bg-black/20 backdrop-blur-lg border border-white/10 rounded-2xl;
+    
+    .responsive-button {
+      @apply flex items-center justify-between w-auto max-w-[200px] rounded-lg px-4 py-2.5 min-h-[44px];
+      @apply transition-all duration-200 hover:cursor-pointer;
+      @apply overflow-hidden;
+    }
+    
+    .responsive-button-text {
+      @apply truncate text-base font-medium;
+    }
+    
+    .responsive-button-icon {
+      @apply flex items-center justify-center ml-2;
+      @apply hover:bg-black/10 dark:hover:bg-white/10 rounded-full p-0.5 transition-colors;
+    }
+    
+    /* Button hover animations */
+    .button-hover-scale {
+      @apply transition-transform duration-200 hover:scale-105;
+    }
+    
+    .button-hover-shadow {
+      @apply transition-shadow duration-200 hover:shadow-md;
+    }
+    
+    /* Icon animations */
+    .icon-hover-rotate {
+      @apply transition-transform duration-200 hover:rotate-90;
+    }
+    
+    .icon-hover-pulse {
+      @apply hover:animate-pulse;
+    }
+    
+    /* High contrast text utilities */
+    .text-high-contrast {
+      @apply text-foreground dark:text-white;
+    }
+    
+    .text-medium-contrast {
+      @apply text-foreground/80 dark:text-white/90;
+    }
+    
+    .text-low-contrast {
+      @apply text-muted-foreground dark:text-white/70;
+    }
+    
+    /* Button contrast utilities */
+    .button-primary {
+      @apply bg-primary text-primary-foreground hover:bg-primary/90 dark:hover:bg-primary/80;
+    }
+    
+    .button-secondary {
+      @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 dark:hover:bg-secondary/70;
+    }
+    
+    .button-outline {
+      @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
+    }
+    
+    /* Icon contrast utilities */
+    .icon-high-contrast {
+      @apply text-foreground dark:text-white;
+    }
+    
+    .icon-medium-contrast {
+      @apply text-muted-foreground dark:text-primary;
+    }
+    
+    .icon-low-contrast {
+      @apply text-muted-foreground/70 dark:text-white/70;
+    }
+    
+    /* Tab contrast utilities */
+    .tab-active {
+      @apply text-primary font-medium dark:text-white;
+    }
+    
+    .tab-inactive-light {
+      @apply text-foreground/90 hover:text-primary;
+    }
+    
+    .tab-inactive-dark {
+      @apply text-white/80 hover:text-white;
+    }
+    
+    /* Mobile specific utilities */
+    .touch-manipulation {
+      touch-action: manipulation;
+    }
+    
+    .safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    
+    .safe-top {
+      padding-top: env(safe-area-inset-top);
+    }
+    
+    /* Mobile tappable area - ensure touch targets are at least 44x44px */
+    .tap-target {
+      @apply min-h-[44px] min-w-[44px];
+    }
+    
+    /* Mobile active state */
+    .mobile-active-effect {
+      @apply active:bg-black/5 dark:active:bg-white/10;
+    }
+    
+    /* Card styles */
+    .card-gradient {
+      @apply bg-gradient-to-br from-card to-secondary/80 backdrop-blur-sm;
+    }
+    
+    /* Glassmorphism */
+    .glass {
+      @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl;
+    }
+    
+    .dark .glass {
+      @apply bg-black/20 backdrop-blur-lg border border-white/10 rounded-2xl;
+    }
   }
 }
 

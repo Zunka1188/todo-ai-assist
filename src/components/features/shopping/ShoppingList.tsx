@@ -28,10 +28,8 @@ const ShoppingList = ({
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  // Filter items based on search term (filtering is now handled in the hook)
   const filteredItems = items;
   
-  // Separate unpurchased and purchased items
   const unpurchasedItems = filteredItems.filter(item => !item.completed);
   const purchasedItems = filteredItems.filter(item => item.completed);
   
@@ -43,23 +41,19 @@ const ShoppingList = ({
     setSelectedImageUrl(null);
   };
 
-  // Handle adding items from camera capture or uploads
   const handleSaveItemFromCapture = (itemData: any) => {
     try {
       console.log("ShoppingList - Handling save from capture:", itemData);
       
-      // Ensure required fields are present
       if (!itemData.name) {
         console.warn("Name is missing, setting default name");
         itemData.name = "Unnamed Item";
       }
       
-      // Add brand name to the item name if it was detected
       if (itemData.brand && !itemData.name.includes(itemData.brand)) {
         itemData.name = `${itemData.brand} ${itemData.name}`;
       }
       
-      // Create a new item for the shopping list
       const newItem = {
         name: itemData.name,
         amount: itemData.amount || '1', 
@@ -69,7 +63,6 @@ const ShoppingList = ({
         repeatOption: itemData.repeatOption || 'none',
       };
       
-      // Add to shopping list
       const added = addItem(newItem);
       
       if (added) {
@@ -78,14 +71,12 @@ const ShoppingList = ({
           description: `${itemData.name} has been added to your shopping list.`,
         });
         
-        // Force an update to the appropriate tab based on repeatOption
         const targetTab = newItem.repeatOption === 'weekly' 
           ? 'weekly' 
           : newItem.repeatOption === 'monthly' 
             ? 'monthly' 
             : 'one-off';
             
-        // Navigate if needed
         if (filterMode !== targetTab && filterMode !== 'all') {
           navigate(`/shopping?tab=${targetTab}`, { replace: true });
         }
@@ -110,9 +101,13 @@ const ShoppingList = ({
     return false;
   };
 
-  // Shopping items grid renderer
   const renderShoppingItemsGrid = (items: any[]) => (
-    <div className="shopping-items-grid">
+    <div className={cn(
+      "grid",
+      isMobile 
+        ? "grid-cols-4 gap-1 px-1" 
+        : "grid-cols-3 lg:grid-cols-4 gap-3 px-2"
+    )}>
       {items.map((item) => (
         <ShoppingItemButton
           key={item.id}
@@ -142,16 +137,14 @@ const ShoppingList = ({
         </div>
       ) : (
         <ScrollArea className="h-[calc(100vh-280px)] overflow-y-auto touch-auto" style={{
-          WebkitOverflowScrolling: 'touch' // Improve iOS scrolling
+          WebkitOverflowScrolling: 'touch'
         }}>
           <div className={cn(
-            "px-1 pb-16", // Add padding for better touch area and bottom space for scrolling
+            "pb-16",
             isMobile ? "mb-8" : ""
           )}>
-            {/* Unpurchased Items Section */}
             {unpurchasedItems.length > 0 && renderShoppingItemsGrid(unpurchasedItems)}
             
-            {/* Purchased Items Section - only show if there are purchased items */}
             {purchasedItems.length > 0 && (
               <div className="mt-6 mb-8">
                 <Separator className="mb-4" />
@@ -163,7 +156,6 @@ const ShoppingList = ({
         </ScrollArea>
       )}
 
-      {/* Image preview dialog */}
       <ImagePreviewDialog 
         imageUrl={selectedImageUrl}
         onClose={handleCloseImageDialog}

@@ -53,29 +53,30 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
 
   return (
     <div className={cn(
-      "relative h-full",
+      "relative",
       isMobile ? "" : "shopping-item-desktop"
     )}>
       <div 
-        className={`
-          flex flex-col h-full rounded-md overflow-hidden border cursor-pointer
-          ${completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'}
-        `}
+        className={cn(
+          "flex flex-col rounded-md overflow-hidden border cursor-pointer",
+          isMobile ? "h-24 w-20" : "h-36 w-48", // Explicit sizing for mobile and desktop
+          completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
+        )}
         onClick={onClick}
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",
-          isMobile ? "pt-[100%]" : "pt-[70%]" // Reduced height ratio for desktop
+          isMobile ? "h-14" : "h-24" // Reduced height ratio for desktop and mobile
         )}>
           {imageUrl ? (
             <>
               <img
                 src={imageUrl}
                 alt={name}
-                className={`
-                  absolute top-0 left-0 w-full h-full object-cover
-                  ${completed ? 'opacity-50' : ''}
-                `}
+                className={cn(
+                  "w-full h-full object-cover",
+                  completed ? 'opacity-50' : ''
+                )}
               />
               {onImagePreview && (
                 <button
@@ -83,26 +84,29 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
                     e.stopPropagation();
                     onImagePreview();
                   }}
-                  className="absolute top-2 right-2 p-1 bg-black/30 rounded-full hover:bg-black/50"
+                  className="absolute top-0.5 right-0.5 p-0.5 bg-black/30 rounded-full hover:bg-black/50"
                 >
-                  <Maximize2 className="h-4 w-4 text-white" />
+                  <Maximize2 className={cn(isMobile ? "h-2.5 w-2.5" : "h-3.5 w-3.5", "text-white")} />
                 </button>
               )}
             </>
           ) : (
-            <div className={`
-              absolute top-0 left-0 w-full h-full flex items-center justify-center
-              ${completed ? 'bg-gray-200' : 'bg-gray-200'}
-              font-bold text-3xl
-            `}>
-              {getInitial()}
+            <div className={cn(
+              "w-full h-full flex items-center justify-center",
+              completed ? 'bg-gray-200' : 'bg-gray-200',
+              "font-bold"
+            )}>
+              <span className={isMobile ? "text-lg" : "text-xl"}>{getInitial()}</span>
             </div>
           )}
           
           {/* Badge for repeat option */}
           {repeatOption !== 'none' && (
-            <div className="absolute bottom-2 left-2">
-              <Badge className={getBadgeColorClass()}>
+            <div className="absolute bottom-0.5 left-0.5">
+              <Badge className={cn(
+                getBadgeColorClass(),
+                isMobile ? "text-[8px] px-1 py-0 h-3" : "text-xs py-0"
+              )}>
                 {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
               </Badge>
             </div>
@@ -110,16 +114,28 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
         
         <div className="p-1 flex-grow">
-          <h3 className={`text-xs font-medium truncate ${completed ? 'line-through text-gray-500' : ''}`}>
+          <h3 className={cn(
+            "font-medium truncate", 
+            isMobile ? "text-[10px]" : "text-xs",
+            completed ? 'line-through text-gray-500' : ''
+          )}>
             {name}
           </h3>
           {quantity && (
-            <p className={`text-xs mt-0.5 truncate ${completed ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p className={cn(
+              "truncate mt-0.5",
+              isMobile ? "text-[8px]" : "text-xs",
+              completed ? 'text-gray-400' : 'text-gray-500'
+            )}>
               {quantity}
             </p>
           )}
           {notes && (
-            <p className={`text-xs mt-0.5 truncate ${completed ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p className={cn(
+              "truncate mt-0.5",
+              isMobile ? "text-[8px]" : "text-xs",
+              completed ? 'text-gray-400' : 'text-gray-500'
+            )}>
               {notes}
             </p>
           )}
@@ -129,15 +145,15 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       <div className={cn(
         "flex gap-0.5",
         isMobile 
-          ? "absolute top-1 left-1" 
-          : "absolute top-2 right-2" // Position like in DocumentListItem for desktop
+          ? "absolute top-0.5 left-0.5" 
+          : "absolute top-1.5 right-1.5"
       )}>
         <Button
           size="sm"
           variant="destructive"
           className={cn(
             "opacity-90",
-            isMobile ? "h-4 w-4 p-0" : "h-8 w-8"
+            isMobile ? "h-3 w-3 p-0" : "h-6 w-6 p-0"
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -145,7 +161,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           }}
         >
           <Trash2 className={cn(
-            isMobile ? "h-2.5 w-2.5" : "h-4 w-4"
+            isMobile ? "h-2 w-2" : "h-3.5 w-3.5"
           )} />
         </Button>
         
@@ -154,7 +170,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           variant="secondary"
           className={cn(
             "opacity-90",
-            isMobile ? "h-4 w-4 p-0" : "h-8 w-8"
+            isMobile ? "h-3 w-3 p-0" : "h-6 w-6 p-0"
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -162,7 +178,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           }}
         >
           <Pencil className={cn(
-            isMobile ? "h-2.5 w-2.5" : "h-4 w-4"
+            isMobile ? "h-2 w-2" : "h-3.5 w-3.5"
           )} />
         </Button>
         
@@ -171,7 +187,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           variant="secondary"
           className={cn(
             "opacity-90",
-            isMobile ? "h-4 w-4 p-0" : "h-8 w-8"
+            isMobile ? "h-3 w-3 p-0" : "h-6 w-6 p-0"
           )}
           title={`Shopping item: ${name}`}
           text={`${name}${quantity ? ` - Quantity: ${quantity}` : ''}${notes ? `\n\nNotes: ${notes}` : ''}`}
@@ -180,7 +196,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           showOptions={true}
         >
           <Share2 className={cn(
-            isMobile ? "h-2.5 w-2.5" : "h-4 w-4"
+            isMobile ? "h-2 w-2" : "h-3.5 w-3.5"
           )} />
         </ShareButton>
       </div>
