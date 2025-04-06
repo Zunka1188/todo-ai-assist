@@ -3,8 +3,9 @@ import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import SearchInput from './search-input';
 import { Button } from './button';
-import { Plus } from 'lucide-react';
+import { Plus, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 interface PageHeaderProps {
   title: string;
@@ -15,7 +16,9 @@ interface PageHeaderProps {
   addItemLabel?: string;
   className?: string;
   extraActions?: React.ReactNode;
-  rightContent?: React.ReactNode; // Added this property
+  rightContent?: React.ReactNode;
+  showBackButton?: boolean;
+  backTo?: string;
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({
@@ -27,18 +30,33 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   addItemLabel = 'Add New',
   className,
   extraActions,
-  rightContent // Added this parameter
+  rightContent,
+  showBackButton = false,
+  backTo = '/'
 }) => {
   const { isMobile } = useIsMobile();
+  const navigate = useNavigate();
   
   return (
     <div className={cn("flex flex-col space-y-2 mb-6", className)}>
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        <div className="flex items-center gap-2">
+          {showBackButton && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(backTo)}
+              className="mr-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          )}
+          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        </div>
         
         <div className="flex items-center gap-2">
           {extraActions}
-          {rightContent} {/* Render the rightContent if provided */}
+          {rightContent}
           
           {showAddButton && onAddItem && (
             <Button 
