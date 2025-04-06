@@ -66,7 +66,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
           onOpenChange={setIsAddDialogOpen}
           onAdd={handleAddDocument}
           categories={categories}
-          currentCategory="other"
+          currentCategory="files"
         />
       </div>
     );
@@ -74,8 +74,6 @@ const DocumentList: React.FC<DocumentListProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Removed the Add button here as it will be moved to DocumentsPage */}
-      
       <div className="space-y-3">
         {documents.map((doc) => (
           <DocumentListItem 
@@ -94,7 +92,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
         onOpenChange={setIsAddDialogOpen}
         onAdd={handleAddDocument}
         categories={categories}
-        currentCategory="other"
+        currentCategory="files"
         editItem={editingItem ? {
           id: editingItem.id,
           title: editingItem.title,

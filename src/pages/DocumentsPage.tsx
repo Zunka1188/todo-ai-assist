@@ -11,6 +11,7 @@ import { useDocuments } from '@/hooks/useDocuments';
 import DocumentList from '@/components/features/documents/DocumentList';
 import PageHeader from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
+import { ChefHat, Dumbbell, FileArchive, Plane, Calendar, FileText, Shirt } from 'lucide-react';
 
 const DocumentsPage = () => {
   const navigate = useNavigate();
@@ -30,13 +31,12 @@ const DocumentsPage = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'style' | 'files'>('style');
-  const [activeCategoryTab, setActiveCategoryTab] = useState<DocumentCategory>('style');
+  const [activeTab, setActiveTab] = useState<DocumentCategory>('style');
   const [editingItem, setEditingItem] = useState<DocumentItem | null>(null);
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
   // Default category for new documents
-  const currentCategory = activeCategoryTab;
+  const currentCategory = activeTab;
 
   const handleOpenAddDialog = (editing: DocumentItem | null = null) => {
     if (editing) {
@@ -48,11 +48,7 @@ const DocumentsPage = () => {
   };
 
   const handleAddItem = (item: any) => {
-    if (activeTab === 'files') {
-      handleAddOrUpdateFile(item, !!editingItem);
-    } else {
-      handleAddOrUpdateItem(item, editingItem);
-    }
+    handleAddOrUpdateItem(item, editingItem);
     setIsAddDialogOpen(false);
     setEditingItem(null);
   };
@@ -61,7 +57,27 @@ const DocumentsPage = () => {
     setFullScreenImage(imageUrl);
   };
 
-  const filteredCategoryItems = filterDocuments(categoryItems, activeCategoryTab, searchTerm);
+  const getCategoryIcon = (category: DocumentCategory) => {
+    switch (category) {
+      case 'style':
+        return <Shirt className="h-4 w-4" />;
+      case 'recipes':
+        return <ChefHat className="h-4 w-4" />;
+      case 'travel':
+        return <Plane className="h-4 w-4" />;
+      case 'fitness':
+        return <Dumbbell className="h-4 w-4" />;
+      case 'work':
+        return <Calendar className="h-4 w-4" />;
+      case 'files':
+        return <FileArchive className="h-4 w-4" />;
+      case 'other':
+      default:
+        return <FileText className="h-4 w-4" />;
+    }
+  };
+
+  const filteredItems = filterDocuments(categoryItems, activeTab, searchTerm);
   const filteredFiles = filterFiles(files, searchTerm, CATEGORIES as DocumentCategory[]);
 
   return (
@@ -75,48 +91,112 @@ const DocumentsPage = () => {
         addItemLabel="+ Add Item"
       />
 
-      <Tabs defaultValue="style" value={activeTab} onValueChange={value => setActiveTab(value as 'style' | 'files')} className="w-full">
-        <TabsList className="grid grid-cols-2 w-full">
+      <Tabs defaultValue="style" value={activeTab} onValueChange={value => setActiveTab(value as DocumentCategory)} className="w-full">
+        <TabsList className="grid grid-cols-7 w-full mb-4">
           <TabsTrigger value="style" className="flex items-center gap-2">
-            Style
+            <Shirt className="h-4 w-4" />
+            <span className={isMobile ? "sr-only" : ""}>Style</span>
+          </TabsTrigger>
+          <TabsTrigger value="recipes" className="flex items-center gap-2">
+            <ChefHat className="h-4 w-4" />
+            <span className={isMobile ? "sr-only" : ""}>Recipes</span>
+          </TabsTrigger>
+          <TabsTrigger value="travel" className="flex items-center gap-2">
+            <Plane className="h-4 w-4" />
+            <span className={isMobile ? "sr-only" : ""}>Travel</span>
+          </TabsTrigger>
+          <TabsTrigger value="fitness" className="flex items-center gap-2">
+            <Dumbbell className="h-4 w-4" />
+            <span className={isMobile ? "sr-only" : ""}>Fitness</span>
+          </TabsTrigger>
+          <TabsTrigger value="work" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            <span className={isMobile ? "sr-only" : ""}>Events</span>
+          </TabsTrigger>
+          <TabsTrigger value="other" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            <span className={isMobile ? "sr-only" : ""}>Other</span>
           </TabsTrigger>
           <TabsTrigger value="files" className="flex items-center gap-2">
-            Files
+            <FileArchive className="h-4 w-4" />
+            <span className={isMobile ? "sr-only" : ""}>Files</span>
           </TabsTrigger>
         </TabsList>
 
-        {/* Categories Tab Content */}
-        <TabsContent value="style" className="mt-4">
-          {/* Category Subtabs */}
-          <Tabs 
-            defaultValue="style" 
-            value={activeCategoryTab} 
-            onValueChange={value => setActiveCategoryTab(value as DocumentCategory)} 
-            className="w-full"
-          >
-            <TabsList className="grid grid-cols-6 w-full mb-4">
-              {CATEGORIES.slice(0, 6).map((category) => (
-                <TabsTrigger key={category} value={category} className="flex items-center gap-2">
-                  <span className={isMobile ? "sr-only" : ""}>{category.charAt(0).toUpperCase() + category.slice(1)}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            {/* Category Content */}
-            <div>
-              <DocumentItemsList 
-                items={filteredCategoryItems}
-                onEdit={handleOpenAddDialog}
-                onDelete={handleDeleteItem}
-                onViewImage={handleViewImage}
-                formatDateRelative={formatDateRelative}
-              />
-            </div>
-          </Tabs>
+        {/* Category Content Tabs */}
+        <TabsContent value="style">
+          <div>
+            <DocumentItemsList 
+              items={filteredItems}
+              onEdit={handleOpenAddDialog}
+              onDelete={handleDeleteItem}
+              onViewImage={handleViewImage}
+              formatDateRelative={formatDateRelative}
+            />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="recipes">
+          <div>
+            <DocumentItemsList 
+              items={filteredItems}
+              onEdit={handleOpenAddDialog}
+              onDelete={handleDeleteItem}
+              onViewImage={handleViewImage}
+              formatDateRelative={formatDateRelative}
+            />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="travel">
+          <div>
+            <DocumentItemsList 
+              items={filteredItems}
+              onEdit={handleOpenAddDialog}
+              onDelete={handleDeleteItem}
+              onViewImage={handleViewImage}
+              formatDateRelative={formatDateRelative}
+            />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="fitness">
+          <div>
+            <DocumentItemsList 
+              items={filteredItems}
+              onEdit={handleOpenAddDialog}
+              onDelete={handleDeleteItem}
+              onViewImage={handleViewImage}
+              formatDateRelative={formatDateRelative}
+            />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="work">
+          <div>
+            <DocumentItemsList 
+              items={filteredItems}
+              onEdit={handleOpenAddDialog}
+              onDelete={handleDeleteItem}
+              onViewImage={handleViewImage}
+              formatDateRelative={formatDateRelative}
+            />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="other">
+          <div>
+            <DocumentItemsList 
+              items={filteredItems}
+              onEdit={handleOpenAddDialog}
+              onDelete={handleDeleteItem}
+              onViewImage={handleViewImage}
+              formatDateRelative={formatDateRelative}
+            />
+          </div>
         </TabsContent>
 
-        {/* Files Tab Content */}
-        <TabsContent value="files" className="mt-4">
+        <TabsContent value="files">
           <div className="flex-1 overflow-auto">
             <DocumentList 
               documents={filteredFiles}
