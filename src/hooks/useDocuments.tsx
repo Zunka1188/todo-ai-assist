@@ -72,14 +72,26 @@ export function useDocuments() {
   const [files, setFiles] = useState<DocumentFile[]>(initialFiles);
   const { toast } = useToast();
 
-  // Format date to be more readable
+  // Format date to be more readable with improved relative date recognition
   const formatDateRelative = (date: Date) => {
     const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString();
+    if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+    }
+    if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30);
+      return `${months} ${months === 1 ? 'month' : 'months'} ago`;
+    }
+    
+    const years = Math.floor(diffDays / 365);
+    return `${years} ${years === 1 ? 'year' : 'years'} ago`;
   };
 
   // Filter documents based on category and search term
