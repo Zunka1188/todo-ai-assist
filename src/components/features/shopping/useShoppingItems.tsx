@@ -160,7 +160,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     });
   };
 
-  const addItem = (newItem: Omit<ShoppingItem, 'id' | 'dateAdded'> & {dateAdded?: Date, id?: string}) => {
+  const addItem = (newItem: Omit<ShoppingItem, 'id' | 'dateAdded'> & {dateAdded?: Date, id?: string, file?: string | null}) => {
     try {
       console.log("[DEBUG] useShoppingItems - Adding new item:", JSON.stringify(newItem, null, 2));
       
@@ -180,6 +180,9 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       // Check if this is an update (item with existing ID)
       const isUpdate = newItem.id && items.some(item => item.id === newItem.id);
       
+      // CRITICAL FIX: Handle both imageUrl and file fields for backward compatibility
+      const imageUrl = newItem.imageUrl || newItem.file || '';
+      
       const item: ShoppingItem = {
         id: newItem.id || Date.now().toString(),
         completed: completed,
@@ -189,7 +192,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
         amount: newItem.amount || '',
         dateToPurchase: newItem.dateToPurchase || '',
         price: newItem.price || '',
-        imageUrl: newItem.imageUrl || '',
+        imageUrl: imageUrl,
         notes: newItem.notes || '',
         repeatOption: newItem.repeatOption || 'none',
         lastPurchased: undefined

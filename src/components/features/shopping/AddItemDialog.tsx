@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Dialog,
@@ -39,6 +40,7 @@ interface ItemData {
   notes?: string;
   amount?: string;
   file?: string | null;
+  imageUrl?: string | null; // Added imageUrl property
   fileName?: string;
   fileType?: string;
   repeatOption?: 'none' | 'weekly' | 'monthly';
@@ -75,7 +77,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       setName(editItem.name || '');
       setNotes(editItem.notes || '');
       setAmount(editItem.amount || '');
-      setFile(editItem.file || null);
+      setFile(editItem.file || editItem.imageUrl || null);
       setFileName(editItem.fileName || '');
       setFileType(editItem.fileType || '');
       setRepeatOption(editItem.repeatOption || 'none');
@@ -117,12 +119,14 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       return;
     }
     
+    // Create properly structured item data
     const itemData: ItemData = {
       ...(editItem?.id ? { id: editItem.id } : {}),
       name: name.trim() || (fileName ? fileName : 'Untitled Item'),
       notes,
       amount,
-      file,
+      imageUrl: file, // Important: Set imageUrl to match what useShoppingItems expects
+      file, // Keep file for backward compatibility
       fileName: fileName || undefined,
       fileType: fileType || undefined,
       repeatOption,
@@ -132,16 +136,22 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     console.log("[DEBUG] AddItemDialog - Saving item with data:", JSON.stringify(itemData, null, 2));
     
     try {
+      // Call onSave and store result
       const result = onSave(itemData);
+      console.log("[DEBUG] AddItemDialog - Save result:", result);
       
+      // Only reset and close if result isn't explicitly false
       if (result !== false) {
         resetForm();
+        console.log("[DEBUG] AddItemDialog - Closing dialog after successful save");
         onOpenChange(false);
         
         toast({
           title: isEditing ? "Item Updated" : "Item Saved",
           description: `${itemData.name} has been ${isEditing ? 'updated' : 'added to your ' + (repeatOption === 'none' ? 'shopping list' : repeatOption === 'weekly' ? 'weekly items' : 'monthly items')}.`,
         });
+      } else {
+        console.warn("[WARN] AddItemDialog - Save operation returned false");
       }
     } catch (error) {
       console.error("[ERROR] AddItemDialog - Error saving item:", error);

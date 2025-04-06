@@ -64,7 +64,8 @@ const ShoppingPage: React.FC = () => {
         name: item.name || 'Unnamed Item',
         amount: item.amount || '',
         price: item.price || '',
-        imageUrl: item.file || null,
+        // CRITICAL FIX: Use imageUrl from the item, falling back to file if needed
+        imageUrl: item.imageUrl || item.file || null,
         notes: item.notes || '',
         repeatOption: item.repeatOption || 'none',
         category: item.category || '',
@@ -80,6 +81,7 @@ const ShoppingPage: React.FC = () => {
       
       if (result) {
         // CRITICAL FIX: Ensure dialog closes after successful add
+        console.log('[DEBUG] ShoppingPage - Successfully added item, closing dialog');
         setShowAddDialog(false);
         
         toast({
@@ -120,7 +122,8 @@ const ShoppingPage: React.FC = () => {
       const itemData = {
         name: updatedItem.name,
         amount: updatedItem.amount,
-        imageUrl: updatedItem.imageUrl,
+        // CRITICAL FIX: Use imageUrl for consistency
+        imageUrl: updatedItem.imageUrl || updatedItem.file || null,
         notes: updatedItem.notes,
         repeatOption: updatedItem.repeatOption || 'none',
         // Always preserve the completed state, don't override it during edit
@@ -155,12 +158,11 @@ const ShoppingPage: React.FC = () => {
     console.log("[DEBUG] ShoppingPage - Add dialog open state changed:", open);
     setShowAddDialog(open);
     
-    // Critical fix: Make sure state is properly reset when dialog is closed
+    // For debugging: Add additional logs to track dialog state
     if (!open) {
-      // Small delay to ensure any pending operations complete first
-      setTimeout(() => {
-        console.log("[DEBUG] ShoppingPage - Forcing refresh after dialog close");
-      }, 100);
+      console.log("[DEBUG] ShoppingPage - Dialog closed, showAddDialog set to false");
+    } else {
+      console.log("[DEBUG] ShoppingPage - Dialog opened, showAddDialog set to true");
     }
   }
 
