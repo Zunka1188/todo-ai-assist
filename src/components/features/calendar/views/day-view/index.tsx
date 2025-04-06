@@ -51,7 +51,7 @@ const DayView: React.FC<DayViewProps> = ({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 mx-auto w-full">
       <DayHeader 
         date={date}
         theme={theme}
@@ -76,7 +76,7 @@ const DayView: React.FC<DayViewProps> = ({
         handleViewEvent={handleViewEvent}
       />
       
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded-lg overflow-hidden w-full">
         <div className="grid grid-cols-[3.5rem_1fr] bg-muted/30 p-2 border-b">
           <div className="text-xs font-medium">Time</div>
           <div className="text-xs font-medium">Events</div>

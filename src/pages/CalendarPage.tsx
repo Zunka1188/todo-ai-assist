@@ -39,7 +39,7 @@ const CalendarPage = () => {
       className="flex flex-col h-[calc(100vh-4rem)]"
       noPadding
     >
-      <div className={isMobile ? "px-3 pt-3" : "px-4 pt-4"}>
+      <div className="px-3 pt-3">
         <PageHeader 
           title="Calendar"
           searchTerm={searchTerm}
@@ -79,15 +79,17 @@ const CalendarPage = () => {
       </div>
       
       <div className={`flex-1 overflow-hidden w-full ${theme === 'dark' ? 'text-white' : ''}`}>
-        <CalendarView 
-          viewMode={viewMode} 
-          searchTerm={searchTerm} 
-          weekStartsOn={1} // Set to 1 for Monday (0 is Sunday)
-          isCreateDialogOpen={createDialogOpen} 
-          setIsCreateDialogOpen={handleDialogClose}
-          isFileUploaderOpen={showFileUploader}
-          setIsFileUploaderOpen={handleFileUploaderChange}
-        />
+        <div className="px-3">
+          <CalendarView 
+            viewMode={viewMode} 
+            searchTerm={searchTerm} 
+            weekStartsOn={1} // Set to 1 for Monday (0 is Sunday)
+            isCreateDialogOpen={createDialogOpen} 
+            setIsCreateDialogOpen={handleDialogClose}
+            isFileUploaderOpen={showFileUploader}
+            setIsFileUploaderOpen={handleFileUploaderChange}
+          />
+        </div>
       </div>
     </PageLayout>
   );
