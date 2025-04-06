@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Maximize2, Share2 } from 'lucide-react';
@@ -150,13 +151,14 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           <Button
             size="sm"
             variant="secondary"
-            className="h-5 w-5 p-0 opacity-90 rounded-full"
+            className="h-6 w-6 p-0 bg-gray-600 hover:bg-gray-700 text-white opacity-85 rounded-full shadow-sm"
             onClick={(e) => {
               e.stopPropagation();
               if (onImagePreview) onImagePreview();
             }}
+            aria-label="Expand item"
           >
-            <Maximize2 className="h-3 w-3" />
+            <Maximize2 className="h-3.5 w-3.5" />
           </Button>
         </div>
       )}
