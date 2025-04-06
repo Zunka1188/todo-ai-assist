@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -23,7 +24,7 @@ const ShoppingList = ({
   onEditItem
 }: ShoppingListProps) => {
   const { items, removeItem: deleteItem, toggleItem: toggleItemCompletion, addItem } = useShoppingItems(filterMode, searchTerm);
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -33,12 +34,12 @@ const ShoppingList = ({
   const unpurchasedItems = filteredItems.filter(item => !item.completed);
   const purchasedItems = filteredItems.filter(item => item.completed);
   
-  const handleImagePreview = (imageUrl: string) => {
-    setSelectedImageUrl(imageUrl);
+  const handleImagePreview = (item: any) => {
+    setSelectedItem(item);
   };
   
   const handleCloseImageDialog = () => {
-    setSelectedImageUrl(null);
+    setSelectedItem(null);
   };
 
   const handleSaveItemFromCapture = (itemData: any) => {
@@ -120,7 +121,7 @@ const ShoppingList = ({
           onClick={() => toggleItemCompletion(item.id)}
           onDelete={() => deleteItem(item.id)}
           onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
-          onImagePreview={item.imageUrl ? () => handleImagePreview(item.imageUrl!) : undefined}
+          onImagePreview={item.imageUrl || isMobile ? () => handleImagePreview(item) : undefined}
         />
       ))}
     </div>
@@ -157,9 +158,22 @@ const ShoppingList = ({
       )}
 
       <ImagePreviewDialog 
-        imageUrl={selectedImageUrl}
+        imageUrl={selectedItem?.imageUrl || null}
+        item={selectedItem}
         onClose={handleCloseImageDialog}
         onSaveItem={handleSaveItemFromCapture}
+        onEdit={() => {
+          handleCloseImageDialog();
+          if (selectedItem && onEditItem) {
+            onEditItem(selectedItem.id, selectedItem.name, selectedItem);
+          }
+        }}
+        onDelete={() => {
+          if (selectedItem) {
+            deleteItem(selectedItem.id);
+          }
+          handleCloseImageDialog();
+        }}
       />
     </div>
   );

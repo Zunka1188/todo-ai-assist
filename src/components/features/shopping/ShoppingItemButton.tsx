@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Maximize2, Share2 } from 'lucide-react';
@@ -59,7 +58,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
       <div 
         className={cn(
           "flex flex-col rounded-md overflow-hidden border cursor-pointer",
-          isMobile ? "h-24 w-20" : "h-36 w-64", // Increased width from 56 to 64
+          isMobile ? "h-24 w-20" : "h-36 w-64",
           completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
         )}
         onClick={onClick}
@@ -143,63 +142,24 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
       </div>
 
-      {/* Mobile buttons */}
-      {isMobile && (
-        <div className="absolute top-0.5 left-0.5 flex gap-0.5">
+      {/* Mobile - Single Expand button */}
+      {isMobile && onImagePreview && (
+        <div className="absolute top-0.5 right-0.5">
           <Button
             size="sm"
-            variant="destructive"
-            className="h-3 w-3 p-0 opacity-90"
+            variant="secondary"
+            className="h-5 w-5 p-0 opacity-90 rounded-full"
             onClick={(e) => {
               e.stopPropagation();
-              onDelete();
+              onImagePreview();
             }}
           >
-            <Trash2 className="h-2 w-2" />
+            <Maximize2 className="h-3 w-3" />
           </Button>
-          
-          <Button
-            size="sm" 
-            variant="secondary"
-            className="h-3 w-3 p-0 opacity-90"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
-          >
-            <Pencil className="h-2 w-2" />
-          </Button>
-          
-          <ShareButton
-            size="sm"
-            variant="secondary"
-            className="h-3 w-3 p-0 opacity-90"
-            title={`Shopping item: ${name}`}
-            text={`${name}${quantity ? ` - Quantity: ${quantity}` : ''}${notes ? `\n\nNotes: ${notes}` : ''}`}
-            fileUrl={imageUrl}
-            onClick={(e) => e.stopPropagation()}
-            showOptions={true}
-          >
-            <Share2 className="h-2 w-2" />
-          </ShareButton>
-          
-          {onImagePreview && (
-            <Button
-              size="sm"
-              variant="secondary"
-              className="h-3 w-3 p-0 opacity-90"
-              onClick={(e) => {
-                e.stopPropagation();
-                onImagePreview();
-              }}
-            >
-              <Maximize2 className="h-2 w-2" />
-            </Button>
-          )}
         </div>
       )}
       
-      {/* Desktop buttons */}
+      {/* Desktop buttons - Unchanged */}
       {!isMobile && (
         <>
           {/* Delete button in top right */}
