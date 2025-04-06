@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 export interface ShoppingItem {
@@ -82,6 +81,7 @@ const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
 const saveToLocalStorage = (key: string, value: any): void => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
+    console.log(`[DEBUG] useShoppingItems - Saved ${key} to localStorage`, value.length ? `(${value.length} items)` : '');
   } catch (error) {
     console.error("Error saving to localStorage:", error);
   }
@@ -177,6 +177,9 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       // Ensure completed is explicitly set to false if not provided
       const completed = newItem.completed === undefined ? false : Boolean(newItem.completed);
       
+      // Check if this is an update (item with existing ID)
+      const isUpdate = newItem.id && items.some(item => item.id === newItem.id);
+      
       const item: ShoppingItem = {
         id: newItem.id || Date.now().toString(),
         completed: completed,
@@ -192,29 +195,24 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
         lastPurchased: undefined
       };
       
-      console.log("[DEBUG] useShoppingItems - Structured item to add:", JSON.stringify(item, null, 2));
+      console.log("[DEBUG] useShoppingItems - Structured item to add/update:", JSON.stringify(item, null, 2));
       
-      let newItems: ShoppingItem[] = [];
+      // Use functional update to ensure we have the latest state
       setItems(prevItems => {
-        newItems = [...prevItems, item];
-        console.log("[DEBUG] useShoppingItems - Updated items count:", newItems.length);
-        return newItems;
+        // If this is an update, replace the existing item
+        if (isUpdate) {
+          console.log(`[DEBUG] useShoppingItems - Updating existing item with ID: ${item.id}`);
+          return prevItems.map(existingItem => 
+            existingItem.id === item.id ? item : existingItem
+          );
+        }
+        
+        // Otherwise, add as a new item
+        console.log(`[DEBUG] useShoppingItems - Adding new item with ID: ${item.id}`);
+        return [...prevItems, item];
       });
       
-      // Check if the new item has been properly added
-      const added = items.some(i => i.id === item.id) || newItems.some(i => i.id === item.id);
-      
-      if (!added) {
-        console.warn("[WARN] useShoppingItems - Item may not have been added correctly, forcing an update");
-        // Force an update if needed
-        setItems(prevItems => {
-          if (!prevItems.some(i => i.id === item.id)) {
-            return [...prevItems, item];
-          }
-          return prevItems;
-        });
-      }
-      
+      console.log("[DEBUG] useShoppingItems - Item successfully added/updated");
       return item;
     } catch (error) {
       console.error("[ERROR] useShoppingItems - Error in addItem:", error);

@@ -22,8 +22,10 @@ const ShoppingPage: React.FC = () => {
   const location = useLocation();
   const { enabled: debugEnabled } = useDebugMode();
   const { toast } = useToast();
-  const { updateItem, addItem } = useShoppingItems('all', '');
   const { isMobile } = useIsMobile();
+  
+  // Create a separate instance of useShoppingItems to avoid state conflicts
+  const { addItem } = useShoppingItems('all', '');
   
   const searchParams = new URLSearchParams(location.search);
   const tabFromUrl = searchParams.get('tab');
@@ -72,36 +74,27 @@ const ShoppingPage: React.FC = () => {
       
       console.log('[DEBUG] ShoppingPage - Properly structured item to add:', JSON.stringify(itemToAdd, null, 2));
       
-      const result = addItem(itemToAdd);
+      // Call addItem directly without checking result
+      addItem(itemToAdd);
+      console.log('[DEBUG] ShoppingPage - Called addItem function');
       
-      console.log('[DEBUG] ShoppingPage - Result from addItem:', result);
+      toast({
+        title: "Item Added",
+        description: `${item.name} has been added to your shopping list.`
+      });
       
-      if (result) {
-        toast({
-          title: "Item Added",
-          description: `${item.name} has been added to your shopping list.`
-        });
-        
-        // Navigate to the appropriate tab if needed
-        const targetTab = itemToAdd.repeatOption === 'weekly' 
-          ? 'weekly' 
-          : itemToAdd.repeatOption === 'monthly' 
-            ? 'monthly' 
-            : 'one-off';
-            
-        if (activeTab !== targetTab && activeTab !== 'all') {
-          navigate(`/shopping?tab=${targetTab}`, { replace: true });
-        }
-        
-        return true;
-      } else {
-        console.error("[ERROR] ShoppingPage - Add item returned falsy value");
-        toast({
-          title: "Error",
-          description: "There was a problem adding the item",
-          variant: "destructive"
-        });
+      // Navigate to the appropriate tab if needed
+      const targetTab = itemToAdd.repeatOption === 'weekly' 
+        ? 'weekly' 
+        : itemToAdd.repeatOption === 'monthly' 
+          ? 'monthly' 
+          : 'one-off';
+          
+      if (activeTab !== targetTab && activeTab !== 'all') {
+        navigate(`/shopping?tab=${targetTab}`, { replace: true });
       }
+      
+      return true;
     } catch (error) {
       console.error("[ERROR] ShoppingPage - Error adding item:", error);
       toast({
@@ -129,7 +122,11 @@ const ShoppingPage: React.FC = () => {
         completed: editItem.item?.completed
       };
       
-      const result = updateItem(editItem.id, itemData);
+      // We're using a dedicated instance of useShoppingItems from above
+      const result = addItem({
+        ...itemData,
+        id: editItem.id // Pass the ID to ensure it updates rather than creates new
+      });
       
       if (result) {
         toast({

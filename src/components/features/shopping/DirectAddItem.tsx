@@ -30,32 +30,22 @@ const DirectAddItem = () => {
         imageUrl: null, 
         notes: `Test note for ${repeatOption} item`,
         repeatOption: repeatOption,
-        completed: false // Explicitly set completed to false
+        completed: false
       };
       
       console.log("[DEBUG] DirectAddItem - Adding test item:", JSON.stringify(newItem, null, 2));
       
-      const added = addItem(newItem);
+      // Call addItem directly without reassigning the result
+      addItem(newItem);
       
-      if (added) {
-        console.log("[DEBUG] DirectAddItem - Test item successfully added:", added);
-        
-        setLastAddedStatus({success: true, time: new Date().toLocaleTimeString()});
-        
-        toast({
-          title: "Test Item Added",
-          description: `${newItem.name} (${repeatOption}) has been added.`,
-        });
-      } else {
-        console.error("[ERROR] DirectAddItem - Failed to add test item");
-        setLastAddedStatus({success: false, time: new Date().toLocaleTimeString()});
-        
-        toast({
-          title: "Error",
-          description: "Failed to add test item",
-          variant: "destructive",
-        });
-      }
+      console.log("[DEBUG] DirectAddItem - Test item successfully called addItem function");
+      
+      setLastAddedStatus({success: true, time: new Date().toLocaleTimeString()});
+      
+      toast({
+        title: "Test Item Added",
+        description: `${newItem.name} (${repeatOption}) has been added.`,
+      });
     } catch (error) {
       console.error("[ERROR] DirectAddItem - Error in direct item addition:", error);
       setLastAddedStatus({success: false, time: new Date().toLocaleTimeString()});

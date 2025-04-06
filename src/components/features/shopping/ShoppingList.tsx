@@ -23,23 +23,25 @@ const ShoppingList = ({
   className,
   onEditItem
 }: ShoppingListProps) => {
-  const { items, removeItem: deleteItem, toggleItem: toggleItemCompletion, addItem } = useShoppingItems(filterMode, searchTerm);
+  const { 
+    notPurchasedItems, 
+    purchasedItems, 
+    removeItem: deleteItem, 
+    toggleItem: toggleItemCompletion, 
+    addItem 
+  } = useShoppingItems(filterMode, searchTerm);
+  
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  const filteredItems = items;
-  
-  const unpurchasedItems = filteredItems.filter(item => !item.completed);
-  const purchasedItems = filteredItems.filter(item => item.completed);
-  
   useEffect(() => {
     // Debug log when items change
-    console.log(`[DEBUG] ShoppingList - ${filterMode} items:`, filteredItems.length, 
-      "Unpurchased:", unpurchasedItems.length, 
+    console.log(`[DEBUG] ShoppingList - ${filterMode} items:`, 
+      "Unpurchased:", notPurchasedItems.length, 
       "Purchased:", purchasedItems.length);
-  }, [filteredItems.length, unpurchasedItems.length, purchasedItems.length, filterMode]);
+  }, [notPurchasedItems.length, purchasedItems.length, filterMode]);
   
   const handleImagePreview = (item: any) => {
     console.log("[DEBUG] ShoppingList - Opening image preview for:", item.name);
@@ -77,33 +79,26 @@ const ShoppingList = ({
       
       console.log("[DEBUG] ShoppingList - Structured item to add:", JSON.stringify(newItem, null, 2));
       
-      const added = addItem(newItem);
-      console.log("[DEBUG] ShoppingList - Result from addItem:", added);
+      // Call addItem directly without checking result
+      addItem(newItem);
+      console.log("[DEBUG] ShoppingList - Called addItem function");
       
-      if (added) {
-        toast({
-          title: "Item Added",
-          description: `${itemData.name} has been added to your shopping list.`,
-        });
-        
-        const targetTab = newItem.repeatOption === 'weekly' 
-          ? 'weekly' 
-          : newItem.repeatOption === 'monthly' 
-            ? 'monthly' 
-            : 'one-off';
-            
-        if (filterMode !== targetTab && filterMode !== 'all') {
-          navigate(`/shopping?tab=${targetTab}`, { replace: true });
-        }
-        
-        return true;
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to add item to shopping list. Please try again.",
-          variant: "destructive",
-        });
+      toast({
+        title: "Item Added",
+        description: `${itemData.name} has been added to your shopping list.`,
+      });
+      
+      const targetTab = newItem.repeatOption === 'weekly' 
+        ? 'weekly' 
+        : newItem.repeatOption === 'monthly' 
+          ? 'monthly' 
+          : 'one-off';
+          
+      if (filterMode !== targetTab && filterMode !== 'all') {
+        navigate(`/shopping?tab=${targetTab}`, { replace: true });
       }
+      
+      return true;
     } catch (error) {
       console.error("[ERROR] ShoppingList - Error adding item to shopping list:", error);
       toast({
@@ -154,7 +149,7 @@ const ShoppingList = ({
 
   return (
     <div className={cn('w-full', className)}>
-      {filteredItems.length === 0 ? (
+      {notPurchasedItems.length === 0 && purchasedItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-4 text-center">
           <p className="text-muted-foreground mb-2">No items found</p>
           <p className="text-sm text-muted-foreground">
@@ -169,7 +164,7 @@ const ShoppingList = ({
             "pb-16",
             isMobile ? "mb-8" : ""
           )}>
-            {unpurchasedItems.length > 0 && renderShoppingItemsGrid(unpurchasedItems)}
+            {notPurchasedItems.length > 0 && renderShoppingItemsGrid(notPurchasedItems)}
             
             {purchasedItems.length > 0 && (
               <div className="mt-6 mb-8">
