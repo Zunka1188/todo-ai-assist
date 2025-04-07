@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -75,15 +75,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   
   const filteredEvents = filterEvents(searchTerm);
 
-  const handleViewToEdit = () => {
+  const handleViewToEdit = useCallback(() => {
     setIsViewDialogOpen(false);
     setIsEditMode(true);
     setTimeout(() => {
       effectiveSetCreateDialogOpen(true);
     }, 100);
-  };
+  }, [setIsViewDialogOpen, setIsEditMode, effectiveSetCreateDialogOpen]);
 
-  const handleFileUploadSuccess = (data: any) => {
+  const handleFileUploadSuccess = useCallback((data: any) => {
     setIsFileUploaderOpen(false);
     
     const newEvent = {
@@ -100,9 +100,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     };
     
     handleSaveEvent(newEvent);
-  };
+  }, [setIsFileUploaderOpen, handleSaveEvent]);
   
-  const handleOpenImagePreview = (event: any) => {
+  const handleOpenImagePreview = useCallback((event: any) => {
     if (event.image) {
       setPreviewItem({
         id: event.id,
@@ -113,31 +113,91 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       });
       setIsImagePreviewOpen(true);
     }
-  };
+  }, []);
 
   // Handle sharing an event
-  const handleShareEvent = (event: Event) => {
+  const handleShareEvent = useCallback((event: Event) => {
     setEventToShare(event);
     setShareDialogOpen(true);
-  };
+  }, []);
 
   // Handle RSVP for an event
-  const handleRSVP = (event: Event) => {
+  const handleRSVP = useCallback((event: Event) => {
     setEventToShare(event);
     setRsvpDialogOpen(true);
-  };
+  }, []);
 
   // Submit RSVP response
-  const submitRSVP = (status: 'yes' | 'no' | 'maybe', name: string) => {
+  const submitRSVP = useCallback((status: 'yes' | 'no' | 'maybe', name: string) => {
     if (!eventToShare) return;
     recordRSVP(eventToShare.id, name, status);
-  };
+  }, [eventToShare, recordRSVP]);
 
   // Handle share link generation
-  const handleShareLink = (link: string) => {
+  const handleShareLink = useCallback((link: string) => {
     console.log("Share link generated:", link);
     // Additional logic if needed
-  };
+  }, []);
+
+  // Memoize view components to prevent unnecessary re-renders
+  const monthViewComponent = React.useMemo(() => {
+    if (viewMode !== 'month' || isFileUploaderOpen) return null;
+    return (
+      <MonthView
+        date={date}
+        setDate={setDate}
+        events={filteredEvents}
+        handleViewEvent={handleViewEvent}
+        theme={theme}
+        weekStartsOn={weekStartsOn}
+      />
+    );
+  }, [date, filteredEvents, handleViewEvent, isFileUploaderOpen, theme, viewMode, weekStartsOn]);
+
+  const weekViewComponent = React.useMemo(() => {
+    if (viewMode !== 'week' || isFileUploaderOpen) return null;
+    return (
+      <WeekView
+        date={date}
+        setDate={setDate}
+        events={filteredEvents}
+        handleViewEvent={handleViewEvent}
+        theme={theme}
+        weekStartsOn={weekStartsOn}
+      />
+    );
+  }, [date, filteredEvents, handleViewEvent, isFileUploaderOpen, theme, viewMode, weekStartsOn]);
+
+  const dayViewComponent = React.useMemo(() => {
+    if (viewMode !== 'day' || isFileUploaderOpen) return null;
+    return (
+      <DayView
+        date={date}
+        setDate={setDate}
+        events={filteredEvents}
+        handleViewEvent={handleViewEvent}
+        theme={theme}
+      />
+    );
+  }, [date, filteredEvents, handleViewEvent, isFileUploaderOpen, theme, viewMode]);
+
+  const agendaViewComponent = React.useMemo(() => {
+    if (viewMode !== 'agenda' || isFileUploaderOpen) return null;
+    return (
+      <AgendaView
+        date={date}
+        setDate={setDate}
+        events={filteredEvents}
+        handleViewEvent={handleViewEvent}
+        theme={theme}
+      />
+    );
+  }, [date, filteredEvents, handleViewEvent, isFileUploaderOpen, theme, viewMode]);
+
+  const handleCloseImagePreview = useCallback(() => {
+    setIsImagePreviewOpen(false);
+    setPreviewItem(null);
+  }, []);
 
   return (
     <div className={cn(
@@ -176,10 +236,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       
       <FullScreenPreview 
         item={previewItem}
-        onClose={() => {
-          setIsImagePreviewOpen(false);
-          setPreviewItem(null);
-        }}
+        onClose={handleCloseImagePreview}
         readOnly={false}
       />
 
@@ -201,51 +258,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       
       {!isFileUploaderOpen && (
         <>
-          {viewMode === 'month' && (
-            <MonthView
-              date={date}
-              setDate={setDate}
-              events={filteredEvents}
-              handleViewEvent={handleViewEvent}
-              theme={theme}
-              weekStartsOn={weekStartsOn}
-            />
-          )}
-          
-          {viewMode === 'week' && (
-            <WeekView
-              date={date}
-              setDate={setDate}
-              events={filteredEvents}
-              handleViewEvent={handleViewEvent}
-              theme={theme}
-              weekStartsOn={weekStartsOn}
-            />
-          )}
-          
-          {viewMode === 'day' && (
-            <DayView
-              date={date}
-              setDate={setDate}
-              events={filteredEvents}
-              handleViewEvent={handleViewEvent}
-              theme={theme}
-            />
-          )}
-          
-          {viewMode === 'agenda' && (
-            <AgendaView
-              date={date}
-              setDate={setDate}
-              events={filteredEvents}
-              handleViewEvent={handleViewEvent}
-              theme={theme}
-            />
-          )}
+          {monthViewComponent}
+          {weekViewComponent}
+          {dayViewComponent}
+          {agendaViewComponent}
         </>
       )}
     </div>
   );
 };
 
-export default CalendarView;
+export default memo(CalendarView);

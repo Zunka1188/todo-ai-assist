@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -22,42 +22,42 @@ const CalendarPage = () => {
   const { theme } = useTheme();
   const { toast } = useToast();
 
-  const handleAddItem = () => {
+  const handleAddItem = useCallback(() => {
     setCreateDialogOpen(true);
     setShowFileUploader(false);
-  };
+  }, []);
 
   // Handle dialog close without navigation
-  const handleDialogClose = (open: boolean) => {
+  const handleDialogClose = useCallback((open: boolean) => {
     setCreateDialogOpen(open);
-  };
+  }, []);
 
   // Handle file uploader state without navigation
-  const handleFileUploaderChange = (open: boolean) => {
+  const handleFileUploaderChange = useCallback((open: boolean) => {
     setShowFileUploader(open);
-  };
+  }, []);
   
   // Notification on view mode change
-  const handleViewModeChange = (value: string) => {
+  const handleViewModeChange = useCallback((value: string) => {
     setViewMode(value as 'month' | 'week' | 'day' | 'agenda');
     toast({
       title: "View Changed",
       description: `Calendar view set to ${value}`
     });
-  };
+  }, [toast]);
 
   // Handle sharing the calendar
-  const handleShareCalendar = () => {
+  const handleShareCalendar = useCallback(() => {
     setInviteDialogOpen(true);
-  };
+  }, []);
 
   // Handle invitation sent successfully
-  const handleInviteSent = (link: string) => {
+  const handleInviteSent = useCallback((link: string) => {
     toast({
       title: "Invitation Link Generated",
       description: "The link has been created and is ready to share"
     });
-  };
+  }, [toast]);
 
   return (
     <PageLayout 

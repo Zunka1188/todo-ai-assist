@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Event } from '../types/event';
 import { initialEvents } from '../data/initialEvents';
 import { useToast } from '@/hooks/use-toast';
@@ -12,20 +12,20 @@ export const useCalendarEvents = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleViewEvent = (event: Event) => {
+  const handleViewEvent = useCallback((event: Event) => {
     setSelectedEvent(event);
     setIsViewDialogOpen(true);
-  };
+  }, []);
 
-  const handleEditEvent = () => {
+  const handleEditEvent = useCallback(() => {
     setIsEditMode(true);
     setIsViewDialogOpen(false);
     setIsCreateDialogOpen(true);
-  };
+  }, []);
 
-  const handleDeleteEvent = () => {
+  const handleDeleteEvent = useCallback(() => {
     if (selectedEvent) {
-      setEvents(events.filter(event => event.id !== selectedEvent.id));
+      setEvents(prev => prev.filter(event => event.id !== selectedEvent.id));
       setIsViewDialogOpen(false);
       toast({
         title: "Event deleted",
@@ -33,23 +33,23 @@ export const useCalendarEvents = () => {
       });
       setSelectedEvent(null);
     }
-  };
+  }, [selectedEvent, toast]);
 
-  const handleCreateEvent = (date: Date) => {
+  const handleCreateEvent = useCallback((date: Date) => {
     setSelectedEvent(null);
     setIsEditMode(false);
     setIsCreateDialogOpen(true);
-  };
+  }, []);
 
-  const handleSaveEvent = (newEvent: Event) => {
+  const handleSaveEvent = useCallback((newEvent: Event) => {
     if (isEditMode && selectedEvent) {
-      setEvents(events.map(event => event.id === selectedEvent.id ? newEvent : event));
+      setEvents(prev => prev.map(event => event.id === selectedEvent.id ? newEvent : event));
       toast({
         title: "Event updated",
         description: `Changes to "${newEvent.title}" have been saved.`
       });
     } else {
-      setEvents([...events, newEvent]);
+      setEvents(prev => [...prev, newEvent]);
       toast({
         title: "Event created",
         description: `"${newEvent.title}" has been added to your calendar.`
@@ -58,17 +58,18 @@ export const useCalendarEvents = () => {
     setIsCreateDialogOpen(false);
     setIsEditMode(false);
     setSelectedEvent(null);
-  };
+  }, [isEditMode, selectedEvent, toast]);
 
-  const filterEvents = (searchTerm: string) => {
+  const filterEvents = useCallback((searchTerm: string) => {
     if (!searchTerm) return events;
     
+    const lowerSearchTerm = searchTerm.toLowerCase();
     return events.filter(event => 
-      event.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      event.description && event.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      event.location && event.location.toLowerCase().includes(searchTerm.toLowerCase())
+      event.title.toLowerCase().includes(lowerSearchTerm) || 
+      (event.description && event.description.toLowerCase().includes(lowerSearchTerm)) || 
+      (event.location && event.location.toLowerCase().includes(lowerSearchTerm))
     );
-  };
+  }, [events]);
 
   return {
     events,

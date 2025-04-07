@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Event } from '../../types/event';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,36 +15,39 @@ export const useEventManagement = (
   const [endInputValue, setEndInputValue] = useState("23");
   const { toast } = useToast();
 
-  // Get events for the current day
-  const getEventsForDay = () => {
-    return events.filter(event => 
-      isSameDay(event.startDate, date) || 
-      isSameDay(event.endDate, date) ||
-      (event.startDate <= date && event.endDate >= date)
-    );
-  };
-  
   // Helper function to check if two dates are the same day
-  const isSameDay = (date1: Date, date2: Date) => {
+  const isSameDay = useCallback((date1: Date, date2: Date) => {
     return (
       date1.getFullYear() === date2.getFullYear() &&
       date1.getMonth() === date2.getMonth() &&
       date1.getDate() === date2.getDate()
     );
-  };
+  }, []);
+  
+  // Get events for the current day
+  const getEventsForDay = useCallback(() => {
+    return events.filter(event => 
+      isSameDay(event.startDate, date) || 
+      isSameDay(event.endDate, date) ||
+      (event.startDate <= date && event.endDate >= date)
+    );
+  }, [events, date, isSameDay]);
   
   // Get day events and separate all-day events from timed events
-  const dayEvents = getEventsForDay();
-  const allDayEvents = dayEvents.filter(event => event.allDay);
-  const timeEvents = dayEvents.filter(event => !event.allDay);
+  const dayEvents = useMemo(() => getEventsForDay(), [getEventsForDay]);
+  const allDayEvents = useMemo(() => dayEvents.filter(event => event.allDay), [dayEvents]);
+  const timeEvents = useMemo(() => dayEvents.filter(event => !event.allDay), [dayEvents]);
   
   // Calculate hours to display based on filters
-  const hours = showAllHours 
-    ? Array.from({ length: 24 }, (_, i) => i) 
-    : Array.from({ length: (endHour - startHour) + 1 }, (_, i) => i + startHour);
+  const hours = useMemo(() => 
+    showAllHours 
+      ? Array.from({ length: 24 }, (_, i) => i) 
+      : Array.from({ length: (endHour - startHour) + 1 }, (_, i) => i + startHour),
+    [showAllHours, startHour, endHour]
+  );
 
   // Check if an event should be visible in the current time range
-  const isEventVisible = (event: Event): boolean => {
+  const isEventVisible = useCallback((event: Event): boolean => {
     if (event.allDay) return true;
     
     const eventStartHour = event.startDate.getHours();
@@ -56,10 +59,10 @@ export const useEventManagement = (
     const eventEnd = eventEndHour + (eventEndMinute / 60);
     
     return eventStart < endHour && eventEnd > startHour;
-  };
+  }, [startHour, endHour]);
 
   // Get multi-hour events that span across multiple hour blocks
-  const getMultiHourEvents = (): Event[] => {
+  const getMultiHourEvents = useCallback((): Event[] => {
     return timeEvents.filter(event => {
       const startHour = event.startDate.getHours();
       const endHour = event.endDate.getHours();
@@ -68,16 +71,16 @@ export const useEventManagement = (
       
       return (endDay > startDay) || (endHour > startHour);
     });
-  };
+  }, [timeEvents]);
 
   // Get multi-hour events that are visible in the current time range
-  const getVisibleMultiHourEvents = (): Event[] => {
+  const getVisibleMultiHourEvents = useCallback((): Event[] => {
     const multiHourEvents = getMultiHourEvents();
     return multiHourEvents.filter(event => isEventVisible(event));
-  };
+  }, [getMultiHourEvents, isEventVisible]);
 
   // Group events that overlap in time
-  const groupOverlappingEvents = (events: Event[]): Event[][] => {
+  const groupOverlappingEvents = useCallback((events: Event[]): Event[][] => {
     if (events.length === 0) return [];
     
     const sortedEvents = [...events].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
@@ -102,10 +105,10 @@ export const useEventManagement = (
     }
     
     return groups;
-  };
+  }, []);
 
   // Check for events that would be hidden with the current time range
-  const checkForHiddenEvents = (start: number, end: number) => {
+  const checkForHiddenEvents = useCallback((start: number, end: number) => {
     const hidden = timeEvents.filter(event => {
       const eventStartHour = event.startDate.getHours();
       const eventStartMinute = event.startDate.getMinutes();
@@ -129,10 +132,10 @@ export const useEventManagement = (
     }
     
     return hidden;
-  };
+  }, [timeEvents, toast]);
 
   // Handle time range toggle for preset time periods
-  const handleTimeRangeToggle = (preset: string) => {
+  const handleTimeRangeToggle = useCallback((preset: string) => {
     switch (preset) {
       case 'full':
         setStartHour(0);
@@ -167,10 +170,10 @@ export const useEventManagement = (
         checkForHiddenEvents(4, 12);
         break;
     }
-  };
+  }, [checkForHiddenEvents]);
 
   // Handle manual time range input changes
-  const handleTimeRangeChange = (type: 'start' | 'end', value: string) => {
+  const handleTimeRangeChange = useCallback((type: 'start' | 'end', value: string) => {
     if (type === 'start') {
       setStartInputValue(value);
     } else {
@@ -202,10 +205,10 @@ export const useEventManagement = (
     else setEndHour(newEnd);
     
     setShowAllHours(newStart === 0 && newEnd === 23);
-  };
+  }, [startHour, endHour, checkForHiddenEvents]);
 
   // Handle input blur for time range inputs
-  const handleInputBlur = (type: 'start' | 'end') => {
+  const handleInputBlur = useCallback((type: 'start' | 'end') => {
     if (type === 'start') {
       const value = startInputValue.trim();
       
@@ -241,10 +244,13 @@ export const useEventManagement = (
     }
     
     setShowAllHours(startHour === 0 && endHour === 23);
-  };
+  }, [startHour, endHour, startInputValue, endInputValue]);
 
   // Group events by overlapping time to handle layout
-  const eventGroups = groupOverlappingEvents(getVisibleMultiHourEvents());
+  const eventGroups = useMemo(() => 
+    groupOverlappingEvents(getVisibleMultiHourEvents()),
+    [groupOverlappingEvents, getVisibleMultiHourEvents]
+  );
 
   return {
     startHour,
