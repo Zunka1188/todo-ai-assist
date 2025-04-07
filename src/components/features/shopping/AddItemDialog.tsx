@@ -75,16 +75,20 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
 
   // Reset form when dialog opens or closes
   useEffect(() => {
-    if (editItem && open) {
-      setName(editItem.name || '');
-      setNotes(editItem.notes || '');
-      setAmount(editItem.amount || '');
-      setFile(editItem.file || editItem.imageUrl || null);
-      setFileName(editItem.fileName || '');
-      setFileType(editItem.fileType || '');
-      setRepeatOption(editItem.repeatOption || 'none');
-    } else if (!editItem && open) {
-      resetForm();
+    // Only update state when dialog is open to prevent unnecessary renders
+    if (open) {
+      if (editItem) {
+        setName(editItem.name || '');
+        setNotes(editItem.notes || '');
+        setAmount(editItem.amount || '');
+        setFile(editItem.file || editItem.imageUrl || null);
+        setFileName(editItem.fileName || '');
+        setFileType(editItem.fileType || '');
+        setRepeatOption(editItem.repeatOption || 'none');
+      } else {
+        // Only reset if not editing an item
+        resetForm();
+      }
     }
   }, [editItem, open]);
 
@@ -148,17 +152,20 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       
       // Only reset and close if result isn't explicitly false
       if (result !== false) {
-        toast({
-          title: isEditing ? "Item Updated" : "Item Saved",
-          description: `${itemData.name} has been ${isEditing ? 'updated' : 'added to your ' + (repeatOption === 'none' ? 'shopping list' : repeatOption === 'weekly' ? 'weekly items' : 'monthly items')}.`,
-        });
-        
-        // CRITICAL FIX: First reset form, then close dialog
-        resetForm();
-        console.log("[DEBUG] AddItemDialog - Closing dialog after successful save");
+        // CRITICAL FIX: Close dialog first, then reset form
+        // This prevents state updates on unmounted components
         onOpenChange(false);
+        
+        // Use a timeout to ensure the dialog is closed before resetting the form
+        // This fixes the race condition where form reset happens during unmounting
+        setTimeout(() => {
+          resetForm();
+        }, 100);
+        
+        console.log("[DEBUG] AddItemDialog - Dialog closed after successful save");
       } else {
         console.warn("[WARN] AddItemDialog - Save operation returned false");
+        setIsSaving(false);
       }
     } catch (error) {
       console.error("[ERROR] AddItemDialog - Error saving item:", error);
@@ -167,7 +174,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
         description: "Something went wrong while saving the item.",
         variant: "destructive"
       });
-    } finally {
       setIsSaving(false);
     }
   };
@@ -181,6 +187,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     setFileType('');
     setFullScreenPreview(false);
     setRepeatOption('none');
+    setIsSaving(false);
   };
 
   const clearFile = () => {
@@ -210,9 +217,13 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
 
   // Handle dialog cancellation - consistent between mobile and desktop
   const handleCancel = () => {
-    console.log("[DEBUG] AddItemDialog - Cancel button clicked, resetting form and closing dialog");
-    resetForm();
+    console.log("[DEBUG] AddItemDialog - Cancel button clicked, closing dialog");
     onOpenChange(false);
+    
+    // Use a timeout to ensure the dialog is closed before resetting form
+    setTimeout(() => {
+      resetForm();
+    }, 100);
   };
 
   if (fullScreenPreview && file && fileType === 'image') {
@@ -368,11 +379,22 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     </>
   );
 
-  // CRITICAL FIX: Separate rendering paths for mobile vs desktop
+  // CRITICAL FIX: Use consistent rendering paths for mobile vs desktop
   if (isMobile) {
     return (
       <>
-        <Drawer open={open} onOpenChange={onOpenChange}>
+        <Drawer 
+          open={open} 
+          onOpenChange={(isOpen) => {
+            console.log("[DEBUG] AddItemDialog - Drawer onOpenChange:", isOpen);
+            if (!isOpen) {
+              // If drawer is closing and not during a save operation, reset form
+              if (!isSaving) {
+                onOpenChange(false);
+              }
+            }
+          }}
+        >
           <DrawerContent className="max-h-[85vh] overflow-hidden">
             <DrawerHeader className="px-4 py-2">
               <DrawerTitle>{isEditing ? "Edit Item" : "Add New Item"}</DrawerTitle>
@@ -420,7 +442,18 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog 
+        open={open} 
+        onOpenChange={(isOpen) => {
+          console.log("[DEBUG] AddItemDialog - Dialog onOpenChange:", isOpen);
+          if (!isOpen) {
+            // If dialog is closing and not during a save operation, close it
+            if (!isSaving) {
+              onOpenChange(false);
+            }
+          }
+        }}
+      >
         <DialogContent 
           className="sm:max-w-md overflow-hidden max-h-[85vh] flex flex-col"
           preventNavigateOnClose={true}

@@ -210,7 +210,7 @@ const ShoppingPage: React.FC = () => {
         </div>
       )}
 
-      {/* Fixed: Controlled dialog visibility directly with open prop */}
+      {/* CRITICAL FIX: Controlled dialog visibility directly with open prop */}
       <AddItemDialog 
         open={showAddDialog}
         onOpenChange={(open) => {
