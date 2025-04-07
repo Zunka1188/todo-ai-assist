@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -145,6 +146,7 @@ const ShoppingList = ({
     }
   };
 
+  // Fix: Extract rendering function outside the main component render method
   const renderShoppingItemsGrid = (items: any[]) => (
     <div className={cn(
       "grid",

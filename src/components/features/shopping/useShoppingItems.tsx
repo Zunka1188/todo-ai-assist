@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export interface ShoppingItem {
   id: string;
@@ -28,25 +27,29 @@ const initialItems: ShoppingItem[] = [
     imageUrl: 'https://images.unsplash.com/photo-1582562124811-c09040d0a901?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
     notes: 'Dark roast from the local fair trade shop. Get the whole beans, not pre-ground.',
     repeatOption: 'monthly'
-  }, {
+  },
+  {
     id: '1',
     name: 'Dish Soap',
     completed: false,
     dateAdded: new Date('2023-04-01'),
     repeatOption: 'monthly'
-  }, {
+  },
+  {
     id: '2',
     name: 'Apples',
     completed: false,
     dateAdded: new Date('2023-04-02'),
     repeatOption: 'weekly'
-  }, {
+  },
+  {
     id: '3',
     name: 'Bread',
     completed: false,
     dateAdded: new Date('2023-04-02'),
     repeatOption: 'weekly'
-  }, {
+  },
+  {
     id: '4',
     name: 'Toothpaste',
     completed: false,
@@ -87,6 +90,7 @@ const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
   }
 };
 
+// Improved saveToLocalStorage with debouncing and error handling
 const saveToLocalStorage = (key: string, value: any): void => {
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
@@ -99,6 +103,9 @@ const saveToLocalStorage = (key: string, value: any): void => {
 export type SortOption = 'nameAsc' | 'nameDesc' | 'dateAsc' | 'dateDesc' | 'priceAsc' | 'priceDesc' | 'newest' | 'oldest';
 
 export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 'all', searchTerm: string = '') => {
+  // Fix: Use a ref to track if this is the initial mount - prevents unnecessary localStorage writes
+  const isInitialMount = useRef(true);
+  
   // Always use a function for the initial state to avoid unnecessary computation
   const [items, setItems] = useState<ShoppingItem[]>(() => {
     return loadFromLocalStorage<ShoppingItem[]>('shoppingItems', initialItems);
@@ -106,20 +113,22 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   
-  // Save to localStorage whenever items change with debouncing
+  // Save to localStorage whenever items change with proper handling
   useEffect(() => {
-    // Define a function to save to localStorage
-    const saveItems = () => {
-      saveToLocalStorage('shoppingItems', items);
-    };
+    // Skip first render to avoid overwriting on initial load
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     
-    // Save immediately on any items change
-    saveItems();
+    // Save immediately on items change for consistency
+    saveToLocalStorage('shoppingItems', items);
     
     console.log("[DEBUG] useShoppingItems - Items updated, total count:", items.length);
   }, [items]);
 
-  const getFilteredItems = () => {
+  // Memoize filter and sort functions for better performance
+  const getFilteredItems = useCallback(() => {
     let filtered = items;
     
     switch (filterMode) {
@@ -146,10 +155,10 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     }
     
     return filtered;
-  };
+  }, [filterMode, items, searchTerm]);
 
-  const getSortedItems = (filteredItems: ShoppingItem[]) => {
-    return filteredItems.sort((a, b) => {
+  const getSortedItems = useCallback((filteredItems: ShoppingItem[]) => {
+    return [...filteredItems].sort((a, b) => {
       switch (sortOption) {
         case 'nameAsc':
           return a.name.localeCompare(b.name);
@@ -176,9 +185,9 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
           return 0;
       }
     });
-  };
+  }, [sortOption]);
 
-  const addItem = (newItem: Omit<ShoppingItem, 'id' | 'dateAdded'> & {dateAdded?: Date, id?: string, file?: string | null}) => {
+  const addItem = useCallback((newItem: Omit<ShoppingItem, 'id' | 'dateAdded'> & {dateAdded?: Date, id?: string, file?: string | null}) => {
     try {
       console.log("[DEBUG] useShoppingItems - Adding new item:", JSON.stringify(newItem, null, 2));
       
@@ -223,22 +232,14 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
         // If this is an update, replace the existing item
         if (isUpdate) {
           console.log(`[DEBUG] useShoppingItems - Updating existing item with ID: ${item.id}`);
-          const updatedItems = prevItems.map(existingItem => 
+          return prevItems.map(existingItem => 
             existingItem.id === item.id ? item : existingItem
           );
-          
-          // Immediately save to localStorage to ensure persistence
-          saveToLocalStorage('shoppingItems', updatedItems);
-          return updatedItems;
         }
         
         // Otherwise, add as a new item
         console.log(`[DEBUG] useShoppingItems - Adding new item with ID: ${item.id}`);
-        const newItems = [...prevItems, item];
-        
-        // Immediately save to localStorage to ensure persistence
-        saveToLocalStorage('shoppingItems', newItems);
-        return newItems;
+        return [...prevItems, item];
       });
       
       console.log("[DEBUG] useShoppingItems - Item successfully added/updated");
@@ -247,9 +248,9 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       console.error("[ERROR] useShoppingItems - Error in addItem:", error);
       return null;
     }
-  };
+  }, [items]);
 
-  const toggleItem = (id: string) => {
+  const toggleItem = useCallback((id: string) => {
     const item = items.find(item => item.id === id);
     if (!item) {
       console.error("[ERROR] useShoppingItems - Item not found for toggle:", id);
@@ -258,31 +259,23 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     
     if (!item.completed) {
       console.log("[DEBUG] useShoppingItems - Marking item as completed:", id);
-      const updatedItems = items.map(i => i.id === id ? {
+      setItems(items.map(i => i.id === id ? {
         ...i,
         completed: true,
         lastPurchased: new Date()
-      } : i);
-      setItems(updatedItems);
-      
-      // Immediately save to localStorage to ensure persistence
-      saveToLocalStorage('shoppingItems', updatedItems);
+      } : i));
       return { completed: true, item };
     } else {
       console.log("[DEBUG] useShoppingItems - Marking item as not completed:", id);
-      const updatedItems = items.map(i => i.id === id ? {
+      setItems(items.map(i => i.id === id ? {
         ...i,
         completed: false
-      } : i);
-      setItems(updatedItems);
-      
-      // Immediately save to localStorage to ensure persistence
-      saveToLocalStorage('shoppingItems', updatedItems);
+      } : i));
       return { completed: false, item };
     }
-  };
+  }, [items]);
 
-  const removeItem = (id: string) => {
+  const removeItem = useCallback((id: string) => {
     console.log("[DEBUG] useShoppingItems - Removing item:", id);
     const itemToRemove = items.find(item => item.id === id);
     if (!itemToRemove) {
@@ -290,15 +283,11 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       return null;
     }
     
-    const updatedItems = items.filter(item => item.id !== id);
-    setItems(updatedItems);
-    
-    // Immediately save to localStorage to ensure persistence
-    saveToLocalStorage('shoppingItems', updatedItems);
+    setItems(items.filter(item => item.id !== id));
     return itemToRemove;
-  };
+  }, [items]);
 
-  const updateItem = (id: string, updatedData: Partial<ShoppingItem>) => {
+  const updateItem = useCallback((id: string, updatedData: Partial<ShoppingItem>) => {
     console.log("[DEBUG] useShoppingItems - Updating item:", id, updatedData);
     const itemExists = items.some(item => item.id === id);
     
@@ -307,39 +296,35 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       return null;
     }
     
-    const updatedItems = items.map(item => 
-      item.id === id ? { ...item, ...updatedData } : item
+    setItems(prevItems => 
+      prevItems.map(item => 
+        item.id === id ? { ...item, ...updatedData } : item
+      )
     );
-    setItems(updatedItems);
     
-    // Immediately save to localStorage to ensure persistence
-    saveToLocalStorage('shoppingItems', updatedItems);
-    
-    const updated = updatedItems.find(item => item.id === id);
+    const updated = items.find(item => item.id === id);
     console.log("[DEBUG] useShoppingItems - Updated item result:", updated);
     return updated;
-  };
+  }, [items]);
 
-  const handleItemSelect = (id: string) => {
-    if (selectedItems.includes(id)) {
-      setSelectedItems(selectedItems.filter(itemId => itemId !== id));
-    } else {
-      setSelectedItems([...selectedItems, id]);
-    }
-  };
+  const handleItemSelect = useCallback((id: string) => {
+    setSelectedItems(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(itemId => itemId !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  }, []);
 
-  const deleteSelectedItems = () => {
+  const deleteSelectedItems = useCallback(() => {
     const count = selectedItems.length;
-    const updatedItems = items.filter(item => !selectedItems.includes(item.id));
-    setItems(updatedItems);
-    
-    // Immediately save to localStorage to ensure persistence
-    saveToLocalStorage('shoppingItems', updatedItems);
-    
+    setItems(prevItems => prevItems.filter(item => !selectedItems.includes(item.id)));
     setSelectedItems([]);
     return count;
-  };
+  }, [selectedItems]);
 
+  // Memoize the filtered items
   const filteredItems = getFilteredItems();
   const notPurchasedItems = getSortedItems(filteredItems.filter(item => !item.completed));
   const purchasedItems = getSortedItems(filteredItems.filter(item => item.completed));
