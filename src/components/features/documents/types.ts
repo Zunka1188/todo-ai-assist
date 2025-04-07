@@ -1,3 +1,4 @@
+
 export type DocumentCategory = 'style' | 'recipes' | 'travel' | 'fitness' | 'events' | 'other' | 'files';
 
 export interface DocumentItem {
@@ -23,4 +24,5 @@ export interface DocumentFile {
   fileUrl?: string;
 }
 
-export const CATEGORIES: DocumentCategory[] = ['style', 'recipes', 'travel', 'fitness', 'events', 'other', 'files'];
+// Removing this export so it uses the memoized version in useDocuments
+// export const CATEGORIES: DocumentCategory[] = ['style', 'recipes', 'travel', 'fitness', 'events', 'other', 'files'];

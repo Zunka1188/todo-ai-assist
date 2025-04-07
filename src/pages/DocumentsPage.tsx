@@ -134,6 +134,24 @@ const DocumentsPage = () => {
     setFullScreenPreviewItem(null);
   }, []);
 
+  // Memoize editItem object to prevent unnecessary re-renders
+  const memoizedEditItem = useMemo(() => {
+    if (!editingItem) return null;
+    
+    return {
+      id: editingItem.id,
+      title: editingItem.title,
+      description: editingItem.content,
+      category: editingItem.category,
+      tags: editingItem.tags || [],
+      date: editingItem.date.toISOString().split('T')[0],
+      addedDate: editingItem.addedDate.toISOString().split('T')[0],
+      file: editingItem.type === 'image' ? editingItem.content : editingItem.file || null,
+      fileName: editingItem.fileName || "",
+      fileType: editingItem.fileType || ""
+    };
+  }, [editingItem]);
+
   // If we have no documents at all, render a fallback UI
   if (!categoryItems?.length && !files?.length) {
     return (
@@ -244,18 +262,7 @@ const DocumentsPage = () => {
           categories={CATEGORIES as string[]} 
           currentCategory={activeTab} 
           isEditing={!!editingItem} 
-          editItem={editingItem ? {
-            id: editingItem.id,
-            title: editingItem.title,
-            description: editingItem.content,
-            category: editingItem.category,
-            tags: editingItem.tags || [],
-            date: editingItem.date.toISOString().split('T')[0],
-            addedDate: editingItem.addedDate.toISOString().split('T')[0],
-            file: editingItem.type === 'image' ? editingItem.content : editingItem.file || null,
-            fileName: editingItem.fileName || "",
-            fileType: editingItem.fileType || ""
-          } : null} 
+          editItem={memoizedEditItem} 
         />
       )}
 

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { DocumentItem, DocumentFile, DocumentCategory, CATEGORIES } from '@/components/features/documents/types';
+import { DocumentItem, DocumentFile, DocumentCategory } from '@/components/features/documents/types';
 import { getFileTypeFromName } from '@/components/features/documents/FilePreview';
 import { toast } from 'sonner';
 
@@ -307,7 +308,7 @@ export function useDocuments() {
   }, [files]);
 
   // Format date to be more readable with improved relative date recognition
-  const formatDateRelative = (date: Date) => {
+  const formatDateRelative = useCallback((date: Date) => {
     const now = new Date();
     
     // Ensure we're comparing only the date part (without time)
@@ -338,10 +339,10 @@ export function useDocuments() {
     
     const years = Math.floor(diffDays / 365);
     return `${years} ${years === 1 ? 'year' : 'years'} ago`;
-  };
+  }, []);
 
-  // Filter documents based on category and search term
-  const filterDocuments = (
+  // Filter documents based on category and search term - memoized with useCallback
+  const filterDocuments = useCallback((
     items: DocumentItem[], 
     category: DocumentCategory, 
     searchTerm: string
@@ -362,10 +363,10 @@ export function useDocuments() {
       console.error("Error filtering documents:", error);
       return [];
     }
-  };
+  }, []);
 
-  // Filter files based on search term and optional categories
-  const filterFiles = (
+  // Filter files based on search term and optional categories - memoized with useCallback
+  const filterFiles = useCallback((
     files: DocumentFile[], 
     searchTerm: string,
     categories?: DocumentCategory[]
@@ -383,7 +384,12 @@ export function useDocuments() {
       console.error("Error filtering files:", error);
       return [];
     }
-  };
+  }, []);
+
+  // Memoize CATEGORIES array to ensure it's stable across renders
+  const CATEGORIES = useMemo(() => 
+    ['style', 'recipes', 'travel', 'fitness', 'events', 'other', 'files'] as DocumentCategory[],
+  []);
 
   // Add or update document item
   const handleAddOrUpdateItem = (item: any, editingItem: DocumentItem | null = null) => {
