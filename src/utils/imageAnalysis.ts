@@ -1,6 +1,16 @@
-
 import { DocumentType } from './detectionEngine/types';
 import { DocumentCategory } from '@/components/features/documents/types';
+
+// Define the AnalysisResult interface that's being imported by other files
+export interface AnalysisResult {
+  title?: string;
+  category?: DocumentCategory | string;
+  tags?: string[];
+  description?: string;
+  date?: string;
+  extractedText?: string;
+  metadata?: Record<string, any>;
+}
 
 // Helper function to map detected document types to document categories
 export const mapDocumentTypeToCategory = (docType: DocumentType): DocumentCategory => {
@@ -378,4 +388,102 @@ export const detectLanguage = (text: string): string => {
   }
   
   return detectedLanguage;
+};
+
+export const analyzeImage = async (imageData: string, fileName?: string): Promise<AnalysisResult> => {
+  // Determine file type
+  const fileType = getFileType(imageData, fileName);
+  
+  // Extract text if possible (would use OCR in a real implementation)
+  const extractedText = await mockExtractText(imageData);
+  
+  // Determine document type based on extracted text
+  const docType = analyzeText(extractedText);
+  
+  // Map document type to category
+  const category = mapDocumentTypeToCategory(docType);
+  
+  // Generate tags based on document type
+  const tags = generateTagsFromDocumentType(docType);
+  
+  // Suggest a title based on content
+  const title = suggestTitle(extractedText, docType);
+  
+  // Extract date if available
+  const eventDate = extractEventDate(extractedText);
+  
+  // Extract location if available
+  const location = extractLocation(extractedText);
+  
+  // Create metadata object
+  const metadata: Record<string, any> = {};
+  if (eventDate) metadata.date = eventDate.toISOString().split('T')[0];
+  if (location) metadata.location = location;
+  
+  // Detect language
+  metadata.language = detectLanguage(extractedText);
+  
+  return {
+    title,
+    category,
+    tags,
+    description: extractedText.substring(0, 150),
+    date: eventDate ? eventDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    extractedText,
+    metadata
+  };
+};
+
+export const getFileType = (
+  fileData: string, 
+  fileName?: string
+): 'image' | 'pdf' | 'document' | 'unknown' => {
+  // Check file data signature
+  if (fileData.startsWith('data:image/')) {
+    return 'image';
+  } else if (fileData.startsWith('data:application/pdf')) {
+    return 'pdf';
+  } else if (
+    fileData.startsWith('data:application/msword') || 
+    fileData.startsWith('data:application/vnd.openxmlformats-officedocument.wordprocessingml.document') ||
+    fileData.startsWith('data:text/plain')
+  ) {
+    return 'document';
+  }
+  
+  // Check file extension if available
+  if (fileName) {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension || '')) {
+      return 'image';
+    } else if (extension === 'pdf') {
+      return 'pdf';
+    } else if (['doc', 'docx', 'txt', 'rtf'].includes(extension || '')) {
+      return 'document';
+    }
+  }
+  
+  return 'unknown';
+};
+
+// Mock function to extract text - in a real app this would use OCR services
+const mockExtractText = async (imageData: string): Promise<string> => {
+  // Simple mock based on image hash to return different texts for testing
+  const hash = Array.from(imageData.substring(0, 100)).reduce(
+    (h, c) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0
+  );
+  
+  // Sample texts for different document types
+  const sampleTexts = [
+    "Team Meeting\nDate: May 15, 2025\nTime: 10:00 AM\nLocation: Conference Room A\n\nAgenda:\n1. Project updates\n2. Budget review\n3. Q&A",
+    "Chocolate Chip Cookies Recipe\n\nIngredients:\n- 2 1/4 cups flour\n- 1 tsp baking soda\n- 1 cup butter\n- 3/4 cup sugar\n- 3/4 cup brown sugar\n- 2 eggs\n- 2 cups chocolate chips\n\nBake at 375°F for 10-12 minutes.",
+    "Summer Outfit Ideas\n\n- Light blue linen shirt with white shorts\n- Floral sundress with sandals\n- White t-shirt with navy chino shorts\n- Striped tee with denim shorts",
+    "Paris Travel Itinerary\nDay 1: Eiffel Tower & Louvre\nDay 2: Notre Dame & Seine Cruise\nDay 3: Versailles\nHotel: Grand Paris Hotel\nFlight: AA123 on June 15th",
+    "Full Body Workout\n\n1. Squats - 3 sets x 12 reps\n2. Push-ups - 3 sets x 10 reps\n3. Lunges - 3 sets x 10 per leg\n4. Plank - 3 x 60 seconds"
+  ];
+  
+  // Delay to simulate processing time
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  return sampleTexts[Math.abs(hash) % sampleTexts.length];
 };

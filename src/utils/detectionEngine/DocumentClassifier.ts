@@ -1,3 +1,6 @@
+
+import { DocumentType, DocumentResult, DetectionOptions } from './types';
+
 /**
  * DocumentClassifier
  * Analyzes images/documents and classifies them into appropriate categories
@@ -170,7 +173,7 @@ export class DocumentClassifier {
         lowerText.includes('bake') || 
         lowerText.includes('cook') ||
         visualFeatures.some(f => ['food', 'plate', 'ingredients', 'kitchen'].includes(f))) {
-      return 'recipe';
+      return 'recipe' as DocumentType;
     }
     
     // Outfit/clothing indicators
@@ -178,7 +181,7 @@ export class DocumentClassifier {
         lowerText.includes('wear') || 
         lowerText.includes('fashion') ||
         visualFeatures.some(f => ['clothing', 'outfit', 'fashion', 'dress', 'shirt', 'shoes'].includes(f))) {
-      return 'clothing';
+      return 'clothing' as DocumentType;
     }
     
     // Travel indicators
@@ -188,7 +191,7 @@ export class DocumentClassifier {
         lowerText.includes('itinerary') || 
         lowerText.includes('hotel') ||
         visualFeatures.some(f => ['landscape', 'beach', 'mountain', 'city', 'landmark', 'hotel'].includes(f))) {
-      return 'travel';
+      return 'travel' as DocumentType;
     }
     
     // Fitness indicators
@@ -197,7 +200,7 @@ export class DocumentClassifier {
         lowerText.includes('fitness') ||
         lowerText.includes('gym') ||
         visualFeatures.some(f => ['gym', 'exercise', 'workout', 'fitness', 'weights', 'running'].includes(f))) {
-      return 'fitness';
+      return 'fitness' as DocumentType;
     }
     
     // Event indicators
@@ -207,7 +210,7 @@ export class DocumentClassifier {
         lowerText.includes('party') ||
         lowerText.includes('rsvp') ||
         visualFeatures.some(f => ['party', 'celebration', 'invitation', 'event', 'wedding', 'birthday'].includes(f))) {
-      return 'event';
+      return 'event' as DocumentType;
     }
     
     // Document type indicators
@@ -216,25 +219,25 @@ export class DocumentClassifier {
         lowerText.includes('invoice') ||
         lowerText.includes('receipt')) {
       
-      if (lowerText.includes('invoice')) return 'invoice';
-      if (lowerText.includes('receipt')) return 'receipt';
-      if (lowerText.includes('resume') || lowerText.includes('cv')) return 'resume';
+      if (lowerText.includes('invoice')) return 'invoice' as DocumentType;
+      if (lowerText.includes('receipt')) return 'receipt' as DocumentType;
+      if (lowerText.includes('resume') || lowerText.includes('cv')) return 'resume' as DocumentType;
     }
     
     // Check if it looks like a formal letter
     if ((lowerText.includes('dear') && lowerText.includes('sincerely')) ||
         (lowerText.includes('dear') && lowerText.includes('regards')) ||
         (lowerText.includes('to whom it may concern'))) {
-      return 'letter';
+      return 'letter' as DocumentType;
     }
     
     // If no specific type matches, but it contains substantial text, classify as general document
     if (text.length > 100) {
-      return 'document';
+      return 'document' as DocumentType;
     }
     
     // Default to document for anything else
-    return 'document';
+    return 'document' as DocumentType;
   }
   
   /**
@@ -248,7 +251,7 @@ export class DocumentClassifier {
     if (text.length > 500) confidence += 0.05;
     
     // Adjust based on visual features
-    const relevantFeatures = {
+    const relevantFeatures: Record<string, string[]> = {
       'recipe': ['food', 'plate', 'ingredients', 'kitchen', 'cooking'],
       'clothing': ['clothing', 'outfit', 'fashion', 'dress', 'shirt', 'shoes'],
       'travel': ['landscape', 'beach', 'mountain', 'city', 'landmark', 'hotel'],
@@ -279,7 +282,6 @@ export class DocumentClassifier {
    */
   private static extractMetadata(text: string, documentType: DocumentType): Record<string, any> {
     const metadata: Record<string, any> = {};
-    const lowerText = text.toLowerCase();
     
     // Extract based on document type
     switch(documentType) {
@@ -339,8 +341,7 @@ export class DocumentClassifier {
     return metadata;
   }
   
-  // Various extraction helper methods - these would use more sophisticated
-  // NLP techniques in a real implementation
+  // Various extraction helper methods
   
   private static extractIngredients(text: string): string[] {
     const ingredients: string[] = [];
