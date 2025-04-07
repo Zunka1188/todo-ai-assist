@@ -16,6 +16,7 @@ interface ImagePreviewDialogProps {
   item?: any; // The shopping item data
   onEdit?: () => void;
   onDelete?: () => void;
+  readOnly?: boolean; // Add the readOnly property to the interface
 }
 
 const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({ 
@@ -24,7 +25,8 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
   onSaveItem,
   item,
   onEdit,
-  onDelete
+  onDelete,
+  readOnly = false // Set a default value
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -96,7 +98,7 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
             </ShareButton>
             
             {/* Edit button */}
-            {onEdit && (
+            {onEdit && !readOnly && (
               <Button
                 onClick={() => {
                   onClose();
@@ -111,7 +113,7 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
             )}
             
             {/* Delete button */}
-            {onDelete && (
+            {onDelete && !readOnly && (
               <Button
                 onClick={() => setShowDeleteConfirm(true)}
                 variant="destructive" 
