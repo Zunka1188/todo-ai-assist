@@ -73,10 +73,10 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Reset form when dialog opens or closes
+  // Reset form when dialog opens with new data or closes
   useEffect(() => {
-    // Only update state when dialog is open to prevent unnecessary renders
     if (open) {
+      // If in edit mode, populate form with item data
       if (editItem) {
         setName(editItem.name || '');
         setNotes(editItem.notes || '');
@@ -86,11 +86,24 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
         setFileType(editItem.fileType || '');
         setRepeatOption(editItem.repeatOption || 'none');
       } else {
-        // Only reset if not editing an item
+        // Only reset if not editing an item and dialog is opening
         resetForm();
       }
     }
   }, [editItem, open]);
+  
+  // Reset form function - extracted for clarity and reuse
+  const resetForm = () => {
+    setName('');
+    setNotes('');
+    setAmount('');
+    setFile(null);
+    setFileName('');
+    setFileType('');
+    setFullScreenPreview(false);
+    setRepeatOption('none');
+    setIsSaving(false);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -150,19 +163,10 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       const result = onSave(itemData);
       console.log("[DEBUG] AddItemDialog - Save result:", result);
       
-      // Only reset and close if result isn't explicitly false
+      // Only close if result isn't explicitly false
       if (result !== false) {
-        // CRITICAL FIX: Close dialog first, then reset form
-        // This prevents state updates on unmounted components
+        // First close the dialog to prevent state updates on unmounted components
         onOpenChange(false);
-        
-        // Use a timeout to ensure the dialog is closed before resetting the form
-        // This fixes the race condition where form reset happens during unmounting
-        setTimeout(() => {
-          resetForm();
-        }, 100);
-        
-        console.log("[DEBUG] AddItemDialog - Dialog closed after successful save");
       } else {
         console.warn("[WARN] AddItemDialog - Save operation returned false");
         setIsSaving(false);
@@ -176,18 +180,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       });
       setIsSaving(false);
     }
-  };
-
-  const resetForm = () => {
-    setName('');
-    setNotes('');
-    setAmount('');
-    setFile(null);
-    setFileName('');
-    setFileType('');
-    setFullScreenPreview(false);
-    setRepeatOption('none');
-    setIsSaving(false);
   };
 
   const clearFile = () => {
@@ -219,11 +211,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   const handleCancel = () => {
     console.log("[DEBUG] AddItemDialog - Cancel button clicked, closing dialog");
     onOpenChange(false);
-    
-    // Use a timeout to ensure the dialog is closed before resetting form
-    setTimeout(() => {
-      resetForm();
-    }, 100);
   };
 
   if (fullScreenPreview && file && fileType === 'image') {
@@ -379,7 +366,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     </>
   );
 
-  // CRITICAL FIX: Use consistent rendering paths for mobile vs desktop
+  // Use consistent rendering paths for mobile vs desktop
   if (isMobile) {
     return (
       <>
@@ -387,12 +374,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
           open={open} 
           onOpenChange={(isOpen) => {
             console.log("[DEBUG] AddItemDialog - Drawer onOpenChange:", isOpen);
-            if (!isOpen) {
-              // If drawer is closing and not during a save operation, reset form
-              if (!isSaving) {
-                onOpenChange(false);
-              }
-            }
+            onOpenChange(isOpen);
           }}
         >
           <DrawerContent className="max-h-[85vh] overflow-hidden">
@@ -446,12 +428,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
         open={open} 
         onOpenChange={(isOpen) => {
           console.log("[DEBUG] AddItemDialog - Dialog onOpenChange:", isOpen);
-          if (!isOpen) {
-            // If dialog is closing and not during a save operation, close it
-            if (!isSaving) {
-              onOpenChange(false);
-            }
-          }
+          onOpenChange(isOpen);
         }}
       >
         <DialogContent 

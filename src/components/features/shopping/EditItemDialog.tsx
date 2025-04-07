@@ -51,17 +51,18 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
 }) => {
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
-  const [name, setName] = useState(item?.name || '');
-  const [notes, setNotes] = useState(item?.notes || '');
-  const [amount, setAmount] = useState(item?.amount || '');
-  const [file, setFile] = useState<string | null>(item?.imageUrl || null);
+  const [name, setName] = useState('');
+  const [notes, setNotes] = useState('');
+  const [amount, setAmount] = useState('');
+  const [file, setFile] = useState<string | null>(null);
   const [fileName, setFileName] = useState('');
   const [fileType, setFileType] = useState('');
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [fullScreenPreview, setFullScreenPreview] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [repeatOption, setRepeatOption] = useState<'none' | 'weekly' | 'monthly'>(item?.repeatOption || 'none');
+  const [repeatOption, setRepeatOption] = useState<'none' | 'weekly' | 'monthly'>('none');
   const [editItemImage, setEditItemImage] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -75,6 +76,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
       setFile(item.imageUrl || null);
       setRepeatOption(item.repeatOption || 'none');
       setEditItemImage(null);
+      setIsSaving(false);
       
       if (item.imageUrl) {
         // Extract filename from URL if possible
@@ -119,6 +121,10 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
       });
       return;
     }
+    
+    // Prevent double-saving
+    if (isSaving) return;
+    setIsSaving(true);
     
     const updatedItem: ShoppingItem = {
       ...item,
@@ -345,9 +351,16 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
               <Button 
                 onClick={handleSave}
                 className="w-full"
-                disabled={name.trim() === '' && !file}
+                disabled={isSaving || (name.trim() === '' && !file)}
               >
-                Save Changes
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
               </Button>
             </DrawerFooter>
           </DrawerContent>
@@ -388,9 +401,16 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
             </Button>
             <Button 
               onClick={handleSave}
-              disabled={name.trim() === '' && !file}
+              disabled={isSaving || (name.trim() === '' && !file)}
             >
-              Save Changes
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

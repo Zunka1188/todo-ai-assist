@@ -64,7 +64,7 @@ const ShoppingPage: React.FC = () => {
         name: item.name || 'Unnamed Item',
         amount: item.amount || '',
         price: item.price || '',
-        // CRITICAL FIX: Use imageUrl from the item, falling back to file if needed
+        // Use imageUrl from the item, falling back to file if needed
         imageUrl: item.imageUrl || item.file || null,
         notes: item.notes || '',
         repeatOption: item.repeatOption || 'none',
@@ -118,7 +118,7 @@ const ShoppingPage: React.FC = () => {
       const itemData = {
         name: updatedItem.name,
         amount: updatedItem.amount,
-        // CRITICAL FIX: Use imageUrl for consistency
+        // Use imageUrl for consistency
         imageUrl: updatedItem.imageUrl || updatedItem.file || null,
         notes: updatedItem.notes,
         repeatOption: updatedItem.repeatOption || 'none',
@@ -210,7 +210,7 @@ const ShoppingPage: React.FC = () => {
         </div>
       )}
 
-      {/* CRITICAL FIX: Controlled dialog visibility directly with open prop */}
+      {/* Control dialog visibility directly with open prop */}
       <AddItemDialog 
         open={showAddDialog}
         onOpenChange={(open) => {
