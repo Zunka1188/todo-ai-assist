@@ -68,11 +68,12 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   const [fullScreenPreview, setFullScreenPreview] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [repeatOption, setRepeatOption] = useState<'none' | 'weekly' | 'monthly'>('none');
+  const [isSaving, setIsSaving] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // This ensures form state is reset when dialog opens/closes
+  // Reset form when dialog opens or closes
   useEffect(() => {
     if (editItem && open) {
       setName(editItem.name || '');
@@ -119,40 +120,43 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       });
       return;
     }
-    
-    // Create properly structured item data
-    const itemData: ItemData = {
-      ...(editItem?.id ? { id: editItem.id } : {}),
-      name: name.trim() || (fileName ? fileName : 'Untitled Item'),
-      notes,
-      amount,
-      imageUrl: file, // Important: Set imageUrl to match what useShoppingItems expects
-      file, // Keep file for backward compatibility
-      fileName: fileName || undefined,
-      fileType: fileType || undefined,
-      repeatOption,
-      completed: false
-    };
-    
-    console.log("[DEBUG] AddItemDialog - Saving item with data:", JSON.stringify(itemData, null, 2));
+
+    // Prevent double-saving
+    if (isSaving) return;
+    setIsSaving(true);
     
     try {
+      // Create properly structured item data
+      const itemData: ItemData = {
+        ...(editItem?.id ? { id: editItem.id } : {}),
+        name: name.trim() || (fileName ? fileName : 'Untitled Item'),
+        notes,
+        amount,
+        imageUrl: file, // Important: Set imageUrl to match what useShoppingItems expects
+        file, // Keep file for backward compatibility
+        fileName: fileName || undefined,
+        fileType: fileType || undefined,
+        repeatOption,
+        completed: false
+      };
+      
+      console.log("[DEBUG] AddItemDialog - Saving item with data:", JSON.stringify(itemData, null, 2));
+      
       // Call onSave and store result
       const result = onSave(itemData);
       console.log("[DEBUG] AddItemDialog - Save result:", result);
       
       // Only reset and close if result isn't explicitly false
       if (result !== false) {
-        console.log("[DEBUG] AddItemDialog - Closing dialog after successful save");
-        resetForm();
-        
-        // CRITICAL FIX: Close the dialog AFTER resetting the form
-        onOpenChange(false);
-        
         toast({
           title: isEditing ? "Item Updated" : "Item Saved",
           description: `${itemData.name} has been ${isEditing ? 'updated' : 'added to your ' + (repeatOption === 'none' ? 'shopping list' : repeatOption === 'weekly' ? 'weekly items' : 'monthly items')}.`,
         });
+        
+        // CRITICAL FIX: First reset form, then close dialog
+        resetForm();
+        console.log("[DEBUG] AddItemDialog - Closing dialog after successful save");
+        onOpenChange(false);
       } else {
         console.warn("[WARN] AddItemDialog - Save operation returned false");
       }
@@ -163,6 +167,8 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
         description: "Something went wrong while saving the item.",
         variant: "destructive"
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -366,14 +372,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   if (isMobile) {
     return (
       <>
-        <Drawer open={open} onOpenChange={(isOpen) => {
-          console.log("[DEBUG] AddItemDialog - Mobile drawer onOpenChange triggered with value:", isOpen);
-          if (!isOpen) {
-            handleCancel();
-          } else {
-            onOpenChange(true);
-          }
-        }}>
+        <Drawer open={open} onOpenChange={onOpenChange}>
           <DrawerContent className="max-h-[85vh] overflow-hidden">
             <DrawerHeader className="px-4 py-2">
               <DrawerTitle>{isEditing ? "Edit Item" : "Add New Item"}</DrawerTitle>
@@ -393,9 +392,16 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
               <Button 
                 onClick={handleSave}
                 className="w-full"
-                disabled={name.trim() === '' && !file}
+                disabled={isSaving || (name.trim() === '' && !file)}
               >
-                {isEditing ? "Save Changes" : "Add to Shopping List"}
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isEditing ? "Saving..." : "Adding..."}
+                  </>
+                ) : (
+                  isEditing ? "Save Changes" : "Add to Shopping List"
+                )}
               </Button>
             </DrawerFooter>
           </DrawerContent>
@@ -414,14 +420,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
 
   return (
     <>
-      <Dialog open={open} onOpenChange={(isOpen) => {
-        console.log("[DEBUG] AddItemDialog - Desktop dialog onOpenChange triggered with value:", isOpen);
-        if (!isOpen) {
-          handleCancel();
-        } else {
-          onOpenChange(true);
-        }
-      }}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent 
           className="sm:max-w-md overflow-hidden max-h-[85vh] flex flex-col"
           preventNavigateOnClose={true}
@@ -440,9 +439,16 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
             </Button>
             <Button 
               onClick={handleSave}
-              disabled={name.trim() === '' && !file}
+              disabled={isSaving || (name.trim() === '' && !file)}
             >
-              {isEditing ? "Save Changes" : "Add to Shopping List"}
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isEditing ? "Saving..." : "Adding..."}
+                </>
+              ) : (
+                isEditing ? "Save Changes" : "Add to Shopping List"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

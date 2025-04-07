@@ -150,19 +150,6 @@ const ShoppingPage: React.FC = () => {
     return false;
   }
 
-  const handleAddDialogChange = (open: boolean) => {
-    console.log("[DEBUG] ShoppingPage - Add dialog open state changed:", open);
-    
-    // When the dialog is closing, we want to make sure showAddDialog is set to false
-    if (!open) {
-      console.log("[DEBUG] ShoppingPage - Dialog closed, showAddDialog set to false");
-      setShowAddDialog(false);
-    } else {
-      console.log("[DEBUG] ShoppingPage - Dialog opened, showAddDialog set to true");
-      setShowAddDialog(true);
-    }
-  }
-
   return (
     <div className="flex flex-col h-full">
       <PageHeader 
@@ -170,7 +157,7 @@ const ShoppingPage: React.FC = () => {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onAddItem={() => {
-          console.log("[DEBUG] ShoppingPage - Add button clicked");
+          console.log("[DEBUG] ShoppingPage - Add button clicked, setting showAddDialog to true");
           setShowAddDialog(true);
         }}
         addItemLabel="Add Item"
@@ -223,10 +210,13 @@ const ShoppingPage: React.FC = () => {
         </div>
       )}
 
-      {/* Explicitly control visibility with open prop and make sure to call handleAddDialogChange */}
+      {/* Fixed: Controlled dialog visibility directly with open prop */}
       <AddItemDialog 
-        open={showAddDialog} 
-        onOpenChange={handleAddDialogChange}
+        open={showAddDialog}
+        onOpenChange={(open) => {
+          console.log("[DEBUG] ShoppingPage - AddItemDialog onOpenChange called with value:", open);
+          setShowAddDialog(open);
+        }}
         onSave={handleSaveItem}
       />
 
