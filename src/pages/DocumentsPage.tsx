@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddDocumentDialog from '@/components/features/documents/AddDocumentDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -14,10 +14,12 @@ import { ChefHat, Dumbbell, FileArchive, Plane, Calendar, FileText, Shirt } from
 import { toast } from 'sonner';
 
 const DocumentsPage = () => {
+  console.log("DocumentsPage render"); // Debug render cycles
+  
   const navigate = useNavigate();
   const { isMobile } = useIsMobile();
   
-  // Fetch documents data
+  // Fetch documents data - now properly memoized in the hook
   const {
     categoryItems,
     files,
@@ -110,10 +112,11 @@ const DocumentsPage = () => {
   }, []);
 
   // Filter items based on current tab and search term - memoized to prevent recalculation
-  const filteredItems = useMemo(() => 
-    filterDocuments(categoryItems, activeTab, searchTerm),
-    [filterDocuments, categoryItems, activeTab, searchTerm]
-  );
+  // VERIFICATION: Add console log to track re-renders of filtered items
+  const filteredItems = useMemo(() => {
+    console.log("filteredItems re-rendered");
+    return filterDocuments(categoryItems, activeTab, searchTerm);
+  }, [filterDocuments, categoryItems, activeTab, searchTerm]);
   
   const filteredFiles = useMemo(() => 
     filterFiles(files, searchTerm),
@@ -134,7 +137,7 @@ const DocumentsPage = () => {
     setFullScreenPreviewItem(null);
   }, []);
 
-  // Memoize editItem object to prevent unnecessary re-renders
+  // Memoize editItem object with proper dependencies to prevent unnecessary re-renders
   const memoizedEditItem = useMemo(() => {
     if (!editingItem) return null;
     

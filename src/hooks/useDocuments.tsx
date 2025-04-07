@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentItem, DocumentFile, DocumentCategory } from '@/components/features/documents/types';
@@ -263,6 +262,8 @@ const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
 };
 
 export function useDocuments() {
+  console.log("useDocuments re-rendered"); // VERIFICATION LOG
+  
   // Use state initialization with proper error handling
   const [categoryItems, setCategoryItems] = useState<DocumentItem[]>(() => {
     try {
@@ -307,7 +308,7 @@ export function useDocuments() {
     }
   }, [files]);
 
-  // Format date to be more readable with improved relative date recognition
+  // Format date to be more readable with improved relative date recognition - MEMOIZED
   const formatDateRelative = useCallback((date: Date) => {
     const now = new Date();
     
@@ -341,7 +342,7 @@ export function useDocuments() {
     return `${years} ${years === 1 ? 'year' : 'years'} ago`;
   }, []);
 
-  // Filter documents based on category and search term - memoized with useCallback
+  // Filter documents based on category and search term - PROPERLY MEMOIZED
   const filterDocuments = useCallback((
     items: DocumentItem[], 
     category: DocumentCategory, 
@@ -365,7 +366,7 @@ export function useDocuments() {
     }
   }, []);
 
-  // Filter files based on search term and optional categories - memoized with useCallback
+  // Filter files based on search term and optional categories - PROPERLY MEMOIZED
   const filterFiles = useCallback((
     files: DocumentFile[], 
     searchTerm: string,
@@ -392,7 +393,7 @@ export function useDocuments() {
   []);
 
   // Add or update document item
-  const handleAddOrUpdateItem = (item: any, editingItem: DocumentItem | null = null) => {
+  const handleAddOrUpdateItem = useCallback((item: any, editingItem: DocumentItem | null = null) => {
     try {
       const now = new Date();
       
@@ -458,10 +459,10 @@ export function useDocuments() {
       console.error("Error in handleAddOrUpdateItem:", error);
       throw error; // Let the calling component handle this error
     }
-  };
+  }, []);
 
   // Delete document item
-  const handleDeleteItem = (id: string) => {
+  const handleDeleteItem = useCallback((id: string) => {
     try {
       setCategoryItems(prevItems => {
         const updated = prevItems.filter(item => item.id !== id);
@@ -473,10 +474,10 @@ export function useDocuments() {
       console.error("Error deleting item:", error);
       throw error; // Let the calling component handle this error
     }
-  };
+  }, []);
 
   // Add or update file
-  const handleAddOrUpdateFile = (file: DocumentFile, isEditing: boolean = false) => {
+  const handleAddOrUpdateFile = useCallback((file: DocumentFile, isEditing: boolean = false) => {
     try {
       if (isEditing) {
         setFiles(prevFiles => {
@@ -497,10 +498,10 @@ export function useDocuments() {
       console.error("Error in handleAddOrUpdateFile:", error);
       throw error; // Let the calling component handle this error
     }
-  };
+  }, []);
 
   // Delete file
-  const handleDeleteFile = (id: string) => {
+  const handleDeleteFile = useCallback((id: string) => {
     try {
       setFiles(prevFiles => {
         const updated = prevFiles.filter(file => file.id !== id);
@@ -512,9 +513,10 @@ export function useDocuments() {
       console.error("Error deleting file:", error);
       throw error; // Let the calling component handle this error
     }
-  };
+  }, []);
 
-  return {
+  // CRITICAL: Return all values wrapped in useMemo with ALL dependencies
+  return useMemo(() => ({
     categoryItems,
     files,
     filterDocuments,
@@ -525,5 +527,16 @@ export function useDocuments() {
     handleDeleteFile,
     formatDateRelative,
     CATEGORIES
-  };
+  }), [
+    categoryItems, 
+    files, 
+    filterDocuments, 
+    filterFiles, 
+    handleAddOrUpdateItem, 
+    handleDeleteItem, 
+    handleAddOrUpdateFile, 
+    handleDeleteFile, 
+    formatDateRelative, 
+    CATEGORIES
+  ]);
 }
