@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentItem, DocumentFile, DocumentCategory } from '@/components/features/documents/types';
@@ -86,7 +85,7 @@ const initialFiles: DocumentFile[] = [
     category: 'travel', 
     date: yesterday.toISOString(), 
     fileType: 'image', 
-    fileUrl: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e'
+    fileUrl: 'https://images.unsplash.com/photo-1469474968028-163732cd1544'
   },
   { 
     id: '3', 
@@ -293,7 +292,6 @@ export function useDocuments() {
   // Save to localStorage whenever data changes - using separate effects to avoid cross-dependencies
   useEffect(() => {
     try {
-      // Don't save during the initial render to avoid unnecessary writes
       saveToLocalStorage('documentCategoryItems', categoryItems);
       console.log('[DEBUG] useDocuments - Saved categoryItems to localStorage', categoryItems.length);
     } catch (error) {
