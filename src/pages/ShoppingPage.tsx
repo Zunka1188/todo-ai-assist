@@ -142,7 +142,7 @@ const ShoppingPage: React.FC = () => {
         name: item.name || 'Unnamed Item',
         amount: item.amount || '',
         price: item.price || '',
-        // FIXED: Use imageUrl from the item, falling back to file if needed
+        // Use imageUrl from the item, falling back to file if needed
         imageUrl: item.imageUrl || item.file || null,
         notes: item.notes || '',
         repeatOption: item.repeatOption || 'none',
@@ -176,7 +176,7 @@ const ShoppingPage: React.FC = () => {
         
         return true;
       } else {
-        // FIXED: Add toast notification when item couldn't be added
+        // Add toast notification when item couldn't be added
         toast({
           title: "Failed to Add Item",
           description: "The item could not be added to your shopping list.",
@@ -346,7 +346,7 @@ const ShoppingPage: React.FC = () => {
         </div>
       )}
 
-      {/* FIXED: Ensure proper dialog opening and closing on mobile */}
+      {/* Fixed: Don't update dialog open state in render */}
       <AddItemDialog 
         open={showAddDialog}
         onOpenChange={(open) => {

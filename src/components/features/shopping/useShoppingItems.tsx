@@ -68,7 +68,7 @@ const parseStoredItems = (items: any[]): ShoppingItem[] => {
 // Enhanced localStorage handling with better error messages and debugging
 const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
   try {
-    const storedValue = localStorage.getItem(key);
+    const storedValue = window.localStorage.getItem(key);
     if (!storedValue) {
       console.log(`[DEBUG] No ${key} found in localStorage, using default values`);
       return defaultValue;
@@ -89,7 +89,7 @@ const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
 
 const saveToLocalStorage = (key: string, value: any): void => {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    window.localStorage.setItem(key, JSON.stringify(value));
     console.log(`[DEBUG] Saved ${key} to localStorage with ${value.length} items`);
   } catch (error) {
     console.error(`[ERROR] Error saving ${key} to localStorage:`, error);

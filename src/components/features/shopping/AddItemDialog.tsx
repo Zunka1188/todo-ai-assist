@@ -163,7 +163,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       const saveResult = onSave(itemData);
       console.log("[DEBUG] AddItemDialog - Save result:", saveResult);
       
-      // FIXED: Only close if saveResult isn't explicitly false and ensure we're not closing before the save operation completes
+      // Only close if saveResult isn't explicitly false and ensure we're not closing before the save operation completes
       if (saveResult !== false) {
         // First reset form data to prevent state updates on unmounted components
         resetForm();
@@ -380,7 +380,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
           onOpenChange={(isOpen) => {
             console.log("[DEBUG] AddItemDialog - Drawer onOpenChange:", isOpen);
             if (!isOpen) {
-              // FIXED: Reset form before closing dialog
+              // Reset form before closing dialog
               resetForm();
             }
             onOpenChange(isOpen);
@@ -438,7 +438,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
         onOpenChange={(isOpen) => {
           console.log("[DEBUG] AddItemDialog - Dialog onOpenChange:", isOpen);
           if (!isOpen) {
-            // FIXED: Reset form before closing dialog
+            // Reset form before closing dialog
             resetForm();
           }
           onOpenChange(isOpen);

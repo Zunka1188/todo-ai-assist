@@ -18,8 +18,13 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   onClose,
   readOnly = false
 }) => {
-  // Use local state to control the dialog
-  const [isOpen, setIsOpen] = useState(Boolean(item));
+  // Only set isOpen based on item prop, not directly manipulating it in render
+  const [isOpen, setIsOpen] = useState(false);
+  
+  // Update isOpen when item changes
+  React.useEffect(() => {
+    setIsOpen(Boolean(item));
+  }, [item]);
   
   if (!item) return null;
 
@@ -69,7 +74,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   };
 
   return (
-    <Dialog open={Boolean(item)} onOpenChange={handleDialogChange}>
+    <Dialog open={isOpen} onOpenChange={handleDialogChange}>
       <DialogContent className="max-w-4xl w-[90vw] max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
