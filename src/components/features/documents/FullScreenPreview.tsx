@@ -56,7 +56,9 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   };
 
   return (
-    <Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={!!item} onOpenChange={(open) => {
+      if (!open) onClose();
+    }}>
       <DialogContent className="max-w-4xl w-[90vw] max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
