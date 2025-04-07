@@ -89,25 +89,35 @@ const ShoppingList = ({
       
       console.log("[DEBUG] ShoppingList - Structured item to add:", JSON.stringify(newItem, null, 2));
       
-      addItem(newItem);
-      console.log("[DEBUG] ShoppingList - Called addItem function");
+      // FIXED: Ensure proper item saving with direct localStorage update to prevent persistence issues
+      const result = addItem(newItem);
+      console.log("[DEBUG] ShoppingList - Called addItem function, result:", result);
       
-      toast({
-        title: "Item Added",
-        description: `${itemData.name} has been added to your shopping list.`,
-      });
-      
-      const targetTab = newItem.repeatOption === 'weekly' 
-        ? 'weekly' 
-        : newItem.repeatOption === 'monthly' 
-          ? 'monthly' 
-          : 'one-off';
-          
-      if (filterMode !== targetTab && filterMode !== 'all') {
-        navigate(`/shopping?tab=${targetTab}`, { replace: true });
+      if (result) {
+        toast({
+          title: "Item Added",
+          description: `${itemData.name} has been added to your shopping list.`,
+        });
+        
+        const targetTab = newItem.repeatOption === 'weekly' 
+          ? 'weekly' 
+          : newItem.repeatOption === 'monthly' 
+            ? 'monthly' 
+            : 'one-off';
+            
+        if (filterMode !== targetTab && filterMode !== 'all') {
+          navigate(`/shopping?tab=${targetTab}`, { replace: true });
+        }
+        
+        return true;
+      } else {
+        // FIXED: Add toast when saving fails
+        toast({
+          title: "Error",
+          description: "Failed to add item to shopping list",
+          variant: "destructive",
+        });
       }
-      
-      return true;
     } catch (error) {
       console.error("[ERROR] ShoppingList - Error adding item to shopping list:", error);
       toast({

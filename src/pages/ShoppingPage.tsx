@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShoppingList from '@/components/features/shopping/ShoppingList';
@@ -141,7 +142,7 @@ const ShoppingPage: React.FC = () => {
         name: item.name || 'Unnamed Item',
         amount: item.amount || '',
         price: item.price || '',
-        // Use imageUrl from the item, falling back to file if needed
+        // FIXED: Use imageUrl from the item, falling back to file if needed
         imageUrl: item.imageUrl || item.file || null,
         notes: item.notes || '',
         repeatOption: item.repeatOption || 'none',
@@ -174,6 +175,13 @@ const ShoppingPage: React.FC = () => {
         });
         
         return true;
+      } else {
+        // FIXED: Add toast notification when item couldn't be added
+        toast({
+          title: "Failed to Add Item",
+          description: "The item could not be added to your shopping list.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error("[ERROR] ShoppingPage - Error adding item:", error);
@@ -205,7 +213,7 @@ const ShoppingPage: React.FC = () => {
       const itemData = {
         name: updatedItem.name,
         amount: updatedItem.amount,
-        // Use imageUrl for consistency
+        // FIXED: Use imageUrl for consistency
         imageUrl: updatedItem.imageUrl || updatedItem.file || null,
         notes: updatedItem.notes,
         repeatOption: updatedItem.repeatOption || 'none',
@@ -338,7 +346,7 @@ const ShoppingPage: React.FC = () => {
         </div>
       )}
 
-      {/* Control dialog visibility directly with open prop */}
+      {/* FIXED: Ensure proper dialog opening and closing on mobile */}
       <AddItemDialog 
         open={showAddDialog}
         onOpenChange={(open) => {

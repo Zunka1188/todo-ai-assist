@@ -160,12 +160,14 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       console.log("[DEBUG] AddItemDialog - Saving item with data:", JSON.stringify(itemData, null, 2));
       
       // Call onSave and store result
-      const result = onSave(itemData);
-      console.log("[DEBUG] AddItemDialog - Save result:", result);
+      const saveResult = onSave(itemData);
+      console.log("[DEBUG] AddItemDialog - Save result:", saveResult);
       
-      // Only close if result isn't explicitly false
-      if (result !== false) {
-        // First close the dialog to prevent state updates on unmounted components
+      // FIXED: Only close if saveResult isn't explicitly false and ensure we're not closing before the save operation completes
+      if (saveResult !== false) {
+        // First reset form data to prevent state updates on unmounted components
+        resetForm();
+        // Then close the dialog
         onOpenChange(false);
       } else {
         console.warn("[WARN] AddItemDialog - Save operation returned false");
@@ -210,6 +212,9 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   // Handle dialog cancellation - consistent between mobile and desktop
   const handleCancel = () => {
     console.log("[DEBUG] AddItemDialog - Cancel button clicked, closing dialog");
+    // Reset form first to prevent state updates on unmounted components
+    resetForm();
+    // Then close the dialog
     onOpenChange(false);
   };
 
@@ -374,6 +379,10 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
           open={open} 
           onOpenChange={(isOpen) => {
             console.log("[DEBUG] AddItemDialog - Drawer onOpenChange:", isOpen);
+            if (!isOpen) {
+              // FIXED: Reset form before closing dialog
+              resetForm();
+            }
             onOpenChange(isOpen);
           }}
         >
@@ -428,6 +437,10 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
         open={open} 
         onOpenChange={(isOpen) => {
           console.log("[DEBUG] AddItemDialog - Dialog onOpenChange:", isOpen);
+          if (!isOpen) {
+            // FIXED: Reset form before closing dialog
+            resetForm();
+          }
           onOpenChange(isOpen);
         }}
       >

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 export interface ShoppingItem {
@@ -96,6 +97,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   
+  // Save to localStorage whenever items change
   useEffect(() => {
     saveToLocalStorage('shoppingItems', items);
     console.log("[DEBUG] useShoppingItems - Items updated, total count:", items.length);
@@ -180,7 +182,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       // Check if this is an update (item with existing ID)
       const isUpdate = newItem.id && items.some(item => item.id === newItem.id);
       
-      // CRITICAL FIX: Handle both imageUrl and file fields for backward compatibility
+      // FIXED: Handle both imageUrl and file fields for backward compatibility
       const imageUrl = newItem.imageUrl || newItem.file || '';
       
       const item: ShoppingItem = {
@@ -205,14 +207,22 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
         // If this is an update, replace the existing item
         if (isUpdate) {
           console.log(`[DEBUG] useShoppingItems - Updating existing item with ID: ${item.id}`);
-          return prevItems.map(existingItem => 
+          const updatedItems = prevItems.map(existingItem => 
             existingItem.id === item.id ? item : existingItem
           );
+          
+          // FIXED: Immediately save to localStorage to ensure persistence
+          saveToLocalStorage('shoppingItems', updatedItems);
+          return updatedItems;
         }
         
         // Otherwise, add as a new item
         console.log(`[DEBUG] useShoppingItems - Adding new item with ID: ${item.id}`);
-        return [...prevItems, item];
+        const newItems = [...prevItems, item];
+        
+        // FIXED: Immediately save to localStorage to ensure persistence
+        saveToLocalStorage('shoppingItems', newItems);
+        return newItems;
       });
       
       console.log("[DEBUG] useShoppingItems - Item successfully added/updated");
@@ -238,6 +248,9 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
         lastPurchased: new Date()
       } : i);
       setItems(updatedItems);
+      
+      // FIXED: Immediately save to localStorage to ensure persistence
+      saveToLocalStorage('shoppingItems', updatedItems);
       return { completed: true, item };
     } else {
       console.log("[DEBUG] useShoppingItems - Marking item as not completed:", id);
@@ -246,6 +259,9 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
         completed: false
       } : i);
       setItems(updatedItems);
+      
+      // FIXED: Immediately save to localStorage to ensure persistence
+      saveToLocalStorage('shoppingItems', updatedItems);
       return { completed: false, item };
     }
   };
@@ -258,7 +274,11 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       return null;
     }
     
-    setItems(items.filter(item => item.id !== id));
+    const updatedItems = items.filter(item => item.id !== id);
+    setItems(updatedItems);
+    
+    // FIXED: Immediately save to localStorage to ensure persistence
+    saveToLocalStorage('shoppingItems', updatedItems);
     return itemToRemove;
   };
 
@@ -276,6 +296,9 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     );
     setItems(updatedItems);
     
+    // FIXED: Immediately save to localStorage to ensure persistence
+    saveToLocalStorage('shoppingItems', updatedItems);
+    
     const updated = updatedItems.find(item => item.id === id);
     console.log("[DEBUG] useShoppingItems - Updated item result:", updated);
     return updated;
@@ -291,7 +314,12 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
 
   const deleteSelectedItems = () => {
     const count = selectedItems.length;
-    setItems(items.filter(item => !selectedItems.includes(item.id)));
+    const updatedItems = items.filter(item => !selectedItems.includes(item.id));
+    setItems(updatedItems);
+    
+    // FIXED: Immediately save to localStorage to ensure persistence
+    saveToLocalStorage('shoppingItems', updatedItems);
+    
     setSelectedItems([]);
     return count;
   };
