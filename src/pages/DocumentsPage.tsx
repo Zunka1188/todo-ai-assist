@@ -58,17 +58,20 @@ const DocumentsPage = () => {
       setIsAddDialogOpen(false);
       setEditingItem(null);
       
-      toast({
-        title: editingItem ? "Document Updated" : "Document Added",
-        description: `${item.title} has been ${editingItem ? 'updated' : 'added'} successfully.`
-      });
+      toast.success(
+        editingItem ? "Document Updated" : "Document Added",
+        { 
+          description: `${item.title} has been ${editingItem ? 'updated' : 'added'} successfully.` 
+        }
+      );
     } catch (error) {
       console.error("Error handling document:", error);
-      toast({
-        title: "Error",
-        description: "Failed to process document. Please try again.",
-        variant: "destructive"
-      });
+      toast.error(
+        "Error", 
+        { 
+          description: "Failed to process document. Please try again."
+        }
+      );
     } finally {
       setIsLoading(false);
     }
@@ -77,17 +80,20 @@ const DocumentsPage = () => {
   const handleDeleteItemWithConfirmation = (id: string) => {
     try {
       handleDeleteItem(id);
-      toast({
-        title: "Document Deleted",
-        description: "The document has been removed successfully."
-      });
+      toast.success(
+        "Document Deleted", 
+        { 
+          description: "The document has been removed successfully."
+        }
+      );
     } catch (error) {
       console.error("Error deleting document:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete document. Please try again.",
-        variant: "destructive"
-      });
+      toast.error(
+        "Error", 
+        { 
+          description: "Failed to delete document. Please try again."
+        }
+      );
     }
   };
 

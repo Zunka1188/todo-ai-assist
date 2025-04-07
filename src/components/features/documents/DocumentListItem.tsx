@@ -56,9 +56,9 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
       const downloadLink = document.createElement('a');
       downloadLink.href = document.fileUrl;
       downloadLink.download = document.title || 'download';
-      document.body.appendChild(downloadLink);
+      window.document.body.appendChild(downloadLink);
       downloadLink.click();
-      document.body.removeChild(downloadLink);
+      window.document.body.removeChild(downloadLink);
       
       toast.success(`Downloading: ${document.title}`);
     } catch (error) {

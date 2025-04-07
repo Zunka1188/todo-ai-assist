@@ -46,12 +46,12 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
     
     try {
       // Create a new anchor element
-      const downloadLink = document.createElement('a');
+      const downloadLink = window.document.createElement('a');
       downloadLink.href = fileUrl;
       downloadLink.download = title || 'document';
-      document.body.appendChild(downloadLink);
+      window.document.body.appendChild(downloadLink);
       downloadLink.click();
-      document.body.removeChild(downloadLink);
+      window.document.body.removeChild(downloadLink);
       
       toast.success(`Downloading: ${title}`);
     } catch (error) {
