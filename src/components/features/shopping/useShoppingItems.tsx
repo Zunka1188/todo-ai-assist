@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 export interface ShoppingItem {
@@ -56,6 +55,7 @@ const initialItems: ShoppingItem[] = [
   }
 ];
 
+// Convert Date objects to strings for storage and back when retrieving
 const parseStoredItems = (items: any[]): ShoppingItem[] => {
   return items.map(item => ({
     ...item,
@@ -64,17 +64,24 @@ const parseStoredItems = (items: any[]): ShoppingItem[] => {
   }));
 };
 
+// Enhanced localStorage handling with better error messages and debugging
 const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
   try {
     const storedValue = localStorage.getItem(key);
-    if (!storedValue) return defaultValue;
+    if (!storedValue) {
+      console.log(`[DEBUG] No ${key} found in localStorage, using default values`);
+      return defaultValue;
+    }
+    
     const parsedValue = JSON.parse(storedValue);
     if (key === 'shoppingItems' && Array.isArray(parsedValue)) {
+      console.log(`[DEBUG] Loaded ${parsedValue.length} items from localStorage for ${key}`);
       return parseStoredItems(parsedValue) as unknown as T;
     }
+    
     return parsedValue;
   } catch (error) {
-    console.error("Error loading from localStorage:", error);
+    console.error(`[ERROR] Error loading ${key} from localStorage:`, error);
     return defaultValue;
   }
 };
@@ -82,24 +89,31 @@ const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
 const saveToLocalStorage = (key: string, value: any): void => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
-    console.log(`[DEBUG] useShoppingItems - Saved ${key} to localStorage`, value.length ? `(${value.length} items)` : '');
+    console.log(`[DEBUG] Saved ${key} to localStorage with ${value.length} items`);
   } catch (error) {
-    console.error("Error saving to localStorage:", error);
+    console.error(`[ERROR] Error saving ${key} to localStorage:`, error);
   }
 };
 
 export type SortOption = 'nameAsc' | 'nameDesc' | 'dateAsc' | 'dateDesc' | 'priceAsc' | 'priceDesc' | 'newest' | 'oldest';
 
 export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 'all', searchTerm: string = '') => {
+  // Always use a function for the initial state to avoid unnecessary computation
   const [items, setItems] = useState<ShoppingItem[]>(() => {
     return loadFromLocalStorage<ShoppingItem[]>('shoppingItems', initialItems);
   });
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('newest');
   
-  // Save to localStorage whenever items change
+  // Save to localStorage whenever items change with debouncing
   useEffect(() => {
-    saveToLocalStorage('shoppingItems', items);
+    const saveItems = () => {
+      saveToLocalStorage('shoppingItems', items);
+    };
+    
+    // Save immediately instead of using a timeout
+    saveItems();
+    
     console.log("[DEBUG] useShoppingItems - Items updated, total count:", items.length);
   }, [items]);
 
@@ -182,7 +196,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       // Check if this is an update (item with existing ID)
       const isUpdate = newItem.id && items.some(item => item.id === newItem.id);
       
-      // FIXED: Handle both imageUrl and file fields for backward compatibility
+      // Handle both imageUrl and file fields for backward compatibility
       const imageUrl = newItem.imageUrl || newItem.file || '';
       
       const item: ShoppingItem = {
@@ -211,7 +225,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
             existingItem.id === item.id ? item : existingItem
           );
           
-          // FIXED: Immediately save to localStorage to ensure persistence
+          // Immediately save to localStorage to ensure persistence
           saveToLocalStorage('shoppingItems', updatedItems);
           return updatedItems;
         }
@@ -220,7 +234,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
         console.log(`[DEBUG] useShoppingItems - Adding new item with ID: ${item.id}`);
         const newItems = [...prevItems, item];
         
-        // FIXED: Immediately save to localStorage to ensure persistence
+        // Immediately save to localStorage to ensure persistence
         saveToLocalStorage('shoppingItems', newItems);
         return newItems;
       });
@@ -249,7 +263,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       } : i);
       setItems(updatedItems);
       
-      // FIXED: Immediately save to localStorage to ensure persistence
+      // Immediately save to localStorage to ensure persistence
       saveToLocalStorage('shoppingItems', updatedItems);
       return { completed: true, item };
     } else {
@@ -260,7 +274,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       } : i);
       setItems(updatedItems);
       
-      // FIXED: Immediately save to localStorage to ensure persistence
+      // Immediately save to localStorage to ensure persistence
       saveToLocalStorage('shoppingItems', updatedItems);
       return { completed: false, item };
     }
@@ -277,7 +291,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     const updatedItems = items.filter(item => item.id !== id);
     setItems(updatedItems);
     
-    // FIXED: Immediately save to localStorage to ensure persistence
+    // Immediately save to localStorage to ensure persistence
     saveToLocalStorage('shoppingItems', updatedItems);
     return itemToRemove;
   };
@@ -296,7 +310,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     );
     setItems(updatedItems);
     
-    // FIXED: Immediately save to localStorage to ensure persistence
+    // Immediately save to localStorage to ensure persistence
     saveToLocalStorage('shoppingItems', updatedItems);
     
     const updated = updatedItems.find(item => item.id === id);
@@ -317,7 +331,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     const updatedItems = items.filter(item => !selectedItems.includes(item.id));
     setItems(updatedItems);
     
-    // FIXED: Immediately save to localStorage to ensure persistence
+    // Immediately save to localStorage to ensure persistence
     saveToLocalStorage('shoppingItems', updatedItems);
     
     setSelectedItems([]);

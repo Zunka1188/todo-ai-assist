@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentItem, DocumentFile, DocumentCategory, CATEGORIES } from '@/components/features/documents/types';
 import { getFileTypeFromName } from '@/components/features/documents/FilePreview';
@@ -220,10 +220,57 @@ PROTEIN POWER SMOOTHIE
   },
 ];
 
+// Helper function to save data to localStorage
+const saveToLocalStorage = (key: string, data: any) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+    console.log(`[DEBUG] useDocuments - Saved ${key} to localStorage`);
+  } catch (error) {
+    console.error(`Error saving ${key} to localStorage:`, error);
+  }
+};
+
+// Helper function to load data from localStorage
+const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
+  try {
+    const storedValue = localStorage.getItem(key);
+    if (!storedValue) return defaultValue;
+    
+    const parsedValue = JSON.parse(storedValue);
+    
+    if (key === 'documentCategoryItems') {
+      // Convert date strings back to Date objects
+      return parsedValue.map((item: any) => ({
+        ...item,
+        date: new Date(item.date),
+        addedDate: new Date(item.addedDate)
+      })) as T;
+    }
+    
+    return parsedValue;
+  } catch (error) {
+    console.error(`Error loading ${key} from localStorage:`, error);
+    return defaultValue;
+  }
+};
+
 export function useDocuments() {
-  const [categoryItems, setCategoryItems] = useState<DocumentItem[]>(initialCategoryItems);
-  const [files, setFiles] = useState<DocumentFile[]>(initialFiles);
+  const [categoryItems, setCategoryItems] = useState<DocumentItem[]>(() => 
+    loadFromLocalStorage<DocumentItem[]>('documentCategoryItems', initialCategoryItems)
+  );
+  const [files, setFiles] = useState<DocumentFile[]>(() => 
+    loadFromLocalStorage<DocumentFile[]>('documentFiles', initialFiles)
+  );
   const { toast } = useToast();
+  
+  // Save to localStorage whenever data changes
+  useEffect(() => {
+    saveToLocalStorage('documentCategoryItems', categoryItems);
+  }, [categoryItems]);
+  
+  useEffect(() => {
+    saveToLocalStorage('documentFiles', files);
+  }, [files]);
 
   // Format date to be more readable with improved relative date recognition
   const formatDateRelative = (date: Date) => {
