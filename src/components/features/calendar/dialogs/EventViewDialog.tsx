@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Event } from '../types/event';
 import { format, isSameDay } from 'date-fns';
-import { Clock, MapPin, Bell, FileText, Edit, Image, Share2 } from 'lucide-react';
+import { Clock, MapPin, Bell, FileText, Edit, Image, Share2, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -17,15 +17,22 @@ interface EventViewDialogProps {
   selectedEvent: Event | null;
   onEdit: () => void;
   onDelete: () => void;
+  onViewImage?: (event: Event) => void;
 }
 
-const EventViewDialog = ({ isOpen, setIsOpen, selectedEvent, onEdit, onDelete }: EventViewDialogProps) => {
+const EventViewDialog = ({ isOpen, setIsOpen, selectedEvent, onEdit, onDelete, onViewImage }: EventViewDialogProps) => {
   const [showImagePreview, setShowImagePreview] = useState(false);
   const { isMobile } = useIsMobile();
   
   if (!selectedEvent) return null;
 
   const hasImage = !!selectedEvent.image;
+
+  const handleViewFullImage = () => {
+    if (onViewImage && selectedEvent) {
+      onViewImage(selectedEvent);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -49,14 +56,20 @@ const EventViewDialog = ({ isOpen, setIsOpen, selectedEvent, onEdit, onDelete }:
                       variant="outline" 
                       size="icon" 
                       className="h-8 w-8"
-                      onClick={() => setShowImagePreview(!showImagePreview)}
+                      onClick={() => {
+                        if (onViewImage) {
+                          handleViewFullImage();
+                        } else {
+                          setShowImagePreview(!showImagePreview);
+                        }
+                      }}
                     >
                       <Image className="h-4 w-4" />
-                      <span className="sr-only">Toggle image preview</span>
+                      <span className="sr-only">View image</span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {showImagePreview ? 'Hide image' : 'Show image'}
+                    {showImagePreview ? 'Hide image' : 'View image'}
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -85,9 +98,14 @@ ${selectedEvent.description ? `\n${selectedEvent.description}` : ''}`}
         
         <ScrollArea className="max-h-[70vh]">
           <div className="space-y-4 p-1">
-            {selectedEvent.image && showImagePreview && (
+            {selectedEvent.image && showImagePreview && !onViewImage && (
               <div className="mb-4">
-                <img src={selectedEvent.image} alt={selectedEvent.title} className="w-full h-48 object-cover rounded-md" />
+                <img 
+                  src={selectedEvent.image} 
+                  alt={selectedEvent.title} 
+                  className="w-full h-48 object-cover rounded-md cursor-pointer"
+                  onClick={handleViewFullImage}
+                />
               </div>
             )}
             
@@ -129,10 +147,36 @@ ${selectedEvent.description ? `\n${selectedEvent.description}` : ''}`}
                   <p className="whitespace-pre-line">{selectedEvent.description}</p>
                 </div>
               </div>}
+              
+            {hasImage && (
+              <div className="flex items-start gap-3">
+                <Image className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div className="flex items-center">
+                  <p className="text-sm text-muted-foreground mr-2">Image attached</p>
+                  {!showImagePreview && !onViewImage && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-7 px-2 py-1 text-xs"
+                      onClick={() => setShowImagePreview(true)}
+                    >
+                      Show
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </ScrollArea>
         
         <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-4">
+          <Button 
+            variant="outline" 
+            className="flex-1"
+            onClick={() => onDelete()}
+          >
+            Delete
+          </Button>
           <DialogClose asChild>
             <Button variant="outline" className="flex-1">Close</Button>
           </DialogClose>

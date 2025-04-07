@@ -14,6 +14,7 @@ import EventFormDialog from './dialogs/EventFormDialog';
 import { useCalendarEvents } from './hooks/useCalendarEvents';
 import FileUploader from '../scanning/FileUploader';
 import ShareButton from '../shared/ShareButton';
+import FullScreenPreview from '../documents/FullScreenPreview';
 
 interface CalendarViewProps {
   viewMode: 'month' | 'week' | 'day' | 'agenda';
@@ -37,6 +38,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const [date, setDate] = useState<Date>(new Date());
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
+  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
+  const [previewItem, setPreviewItem] = useState<any>(null);
   
   const {
     events,
@@ -86,6 +89,18 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     
     handleSaveEvent(newEvent);
   };
+  
+  const handleOpenImagePreview = (event: any) => {
+    if (event.image) {
+      setPreviewItem({
+        title: event.title,
+        type: 'image',
+        content: event.image,
+        fileName: `${event.title}-image`
+      });
+      setIsImagePreviewOpen(true);
+    }
+  };
 
   return (
     <div className={cn(
@@ -117,6 +132,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         selectedEvent={selectedEvent}
         onEdit={handleViewToEdit}
         onDelete={handleDeleteEvent}
+        onViewImage={handleOpenImagePreview}
+      />
+      
+      <FullScreenPreview 
+        item={previewItem}
+        onClose={() => {
+          setIsImagePreviewOpen(false);
+          setPreviewItem(null);
+        }}
       />
       
       {!isFileUploaderOpen && (

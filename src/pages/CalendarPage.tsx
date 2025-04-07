@@ -9,6 +9,7 @@ import PageHeader from '@/components/ui/page-header';
 import { useTheme } from '@/hooks/use-theme';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const CalendarPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,6 +18,7 @@ const CalendarPage = () => {
   const [showFileUploader, setShowFileUploader] = useState(false);
   const { isMobile } = useIsMobile();
   const { theme } = useTheme();
+  const { toast } = useToast();
 
   const handleAddItem = () => {
     setCreateDialogOpen(true);
@@ -31,6 +33,15 @@ const CalendarPage = () => {
   // Handle file uploader state without navigation
   const handleFileUploaderChange = (open: boolean) => {
     setShowFileUploader(open);
+  };
+  
+  // Notification on view mode change
+  const handleViewModeChange = (value: string) => {
+    setViewMode(value as 'month' | 'week' | 'day' | 'agenda');
+    toast({
+      title: "View Changed",
+      description: `Calendar view set to ${value}`
+    });
   };
 
   return (
@@ -63,7 +74,7 @@ const CalendarPage = () => {
           <Tabs 
             defaultValue="day" 
             value={viewMode} 
-            onValueChange={value => setViewMode(value as 'month' | 'week' | 'day' | 'agenda')} 
+            onValueChange={handleViewModeChange} 
             className="w-full"
           >
             <TabsList className="grid grid-cols-4 w-full">
@@ -83,7 +94,7 @@ const CalendarPage = () => {
           <CalendarView 
             viewMode={viewMode} 
             searchTerm={searchTerm} 
-            weekStartsOn={1} // Set to 1 for Monday (0 is Sunday)
+            weekStartsOn={1} 
             isCreateDialogOpen={createDialogOpen} 
             setIsCreateDialogOpen={handleDialogClose}
             isFileUploaderOpen={showFileUploader}

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Calendar as CalendarIcon, ChevronRight, Bell, Clock, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, addDays } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,7 @@ import { WidgetWrapper } from './shared/WidgetWrapper';
 import { useIsMobile } from '@/hooks/use-mobile';
 import EventFormDialog from '../features/calendar/dialogs/EventFormDialog';
 import EventViewDialog from '../features/calendar/dialogs/EventViewDialog';
+import { useToast } from '@/hooks/use-toast';
 
 const CalendarWidget = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -25,6 +26,7 @@ const CalendarWidget = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
+  const { toast } = useToast();
 
   // Filter events for the current date
   const eventsForToday = initialEvents.filter((event) => {
@@ -36,13 +38,25 @@ const CalendarWidget = () => {
     return isSameDay(event.startDate, selectedDate);
   });
 
+  // Get events for the upcoming days
+  const getUpcomingEvents = () => {
+    const today = new Date();
+    const nextWeek = addDays(today, 7);
+    
+    return initialEvents
+      .filter(event => event.startDate >= today && event.startDate <= nextWeek)
+      .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+  };
+  
+  const upcomingEvents = getUpcomingEvents();
+
   // Handle date selection in calendar
   const handleSelect = (date: Date | undefined) => {
     setDate(date);
     if (date) {
       setSelectedDate(date);
     }
-    setOpen(false); // Close the popover after selecting a date
+    setOpen(false);
   };
 
   // Handle event click to show details
@@ -61,15 +75,23 @@ const CalendarWidget = () => {
   const handleSaveEvent = (updatedEvent: Event) => {
     console.log("Event saved:", updatedEvent);
     setIsEditMode(false);
-    // In a real app, you would update the event in your state or database here
+    toast({
+      title: "Event Updated",
+      description: `"${updatedEvent.title}" has been updated.`
+    });
   };
 
   // Handle delete event
   const handleDeleteEvent = () => {
+    const eventTitle = selectedEvent?.title || 'Event';
     console.log("Event deleted:", selectedEvent?.id);
     setIsEditMode(false);
+    setIsViewDialogOpen(false);
     setSelectedEvent(null);
-    // In a real app, you would remove the event from your state or database here
+    toast({
+      title: "Event Deleted",
+      description: `"${eventTitle}" has been removed from your calendar.`
+    });
   };
 
   return (
@@ -123,7 +145,7 @@ const CalendarWidget = () => {
             eventsForSelectedDate.map((event) => (
               <div
                 key={event.id}
-                className="flex flex-col space-y-1 p-3 rounded-md cursor-pointer hover:bg-accent transition-colors"
+                className="flex flex-col space-y-1 p-3 rounded-md cursor-pointer hover:bg-accent transition-colors touch-manipulation"
                 onClick={() => handleEventClick(event)}
                 style={{ 
                   borderLeft: `4px solid ${event.color || '#4285F4'}`,
@@ -150,7 +172,7 @@ const CalendarWidget = () => {
                   </div>
                 )}
                 
-                {event.reminder && (
+                {event.reminder && event.reminder !== 'none' && (
                   <div className={`flex items-center text-muted-foreground ${isMobile ? "text-[0.65rem]" : "text-xs"}`}>
                     <Bell className={`mr-1 ${isMobile ? "h-2.5 w-2.5" : "h-3 w-3"}`} /> 
                     <span>{getReminderLabel(event.reminder)}</span>
