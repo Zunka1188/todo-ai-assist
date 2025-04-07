@@ -22,8 +22,8 @@ export class DocumentClassifier {
       // Simulate processing delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // For demo purposes, randomly detect a document or return null
-      const detected = Math.random() > 0.2;
+      // For demo purposes, randomly detect a document or return null (higher detection rate now)
+      const detected = Math.random() > 0.1;
       if (!detected) return null;
       
       // If there's a preferred document type in options, use that
@@ -53,10 +53,16 @@ export class DocumentClassifier {
   }
   
   /**
-   * Get a random document type for mock data
+   * Get a random document type for mock data - now expanded with more categories
    */
   private static getMockDocumentType(): DocumentType {
-    const types: DocumentType[] = ['invitation', 'receipt', 'invoice', 'resume', 'flyer', 'letter', 'document'];
+    const types: DocumentType[] = [
+      // Original types
+      'invitation', 'receipt', 'invoice', 'resume', 'flyer', 'letter', 'document',
+      // Expanded types to match our new categories
+      'outfit', 'clothing', 'fashion', 'recipe', 'food', 'travel', 'destination',
+      'fitness', 'workout', 'exercise', 'event', 'party'
+    ];
     return types[Math.floor(Math.random() * types.length)];
   }
   
@@ -116,6 +122,116 @@ export class DocumentClassifier {
             paymentTerms: '30 days'
           }
         };
+
+      case 'outfit':
+      case 'clothing':
+      case 'fashion':
+        return {
+          extractedText: `Summer Collection 2025\n\nWhite linen shirt\nBeige tailored shorts\nStraw hat\nLeather sandals\n\nPerfect for beach vacations and summer outings.`,
+          metadata: {
+            category: 'style',
+            season: 'Summer',
+            items: [
+              'White linen shirt',
+              'Beige tailored shorts',
+              'Straw hat',
+              'Leather sandals'
+            ],
+            occasion: 'Beach, Casual',
+            imageObjects: ['clothing', 'fashion', 'summer wear']
+          }
+        };
+
+      case 'recipe':
+      case 'food':
+        return {
+          extractedText: `Classic Chocolate Chip Cookies\n\nIngredients:\n2 1/4 cups all-purpose flour\n1 tsp baking soda\n1 tsp salt\n1 cup butter, softened\n3/4 cup granulated sugar\n3/4 cup packed brown sugar\n2 large eggs\n2 tsp vanilla extract\n2 cups chocolate chips\n\nInstructions:\n1. Preheat oven to 375°F\n2. Mix flour, baking soda, and salt\n3. Cream butter and sugars\n4. Add eggs and vanilla\n5. Gradually add flour mixture\n6. Stir in chocolate chips\n7. Drop by rounded tablespoons onto baking sheets\n8. Bake 9-11 minutes until golden brown`,
+          metadata: {
+            category: 'recipes',
+            type: 'Dessert',
+            prepTime: '15 minutes',
+            cookTime: '10 minutes',
+            servings: 24,
+            items: [
+              'all-purpose flour', 
+              'baking soda',
+              'salt',
+              'butter',
+              'granulated sugar',
+              'brown sugar',
+              'eggs',
+              'vanilla extract',
+              'chocolate chips'
+            ],
+            imageObjects: ['food', 'baking', 'cookies', 'dessert']
+          }
+        };
+
+      case 'travel':
+      case 'destination':
+        return {
+          extractedText: `Travel Itinerary\n\nJapan Adventure - October 2025\n\nDay 1-3: Tokyo\n- Tokyo Tower\n- Shibuya Crossing\n- Meiji Shrine\n\nDay 4-6: Kyoto\n- Kinkaku-ji (Golden Pavilion)\n- Fushimi Inari Shrine\n- Arashiyama Bamboo Grove\n\nDay 7-8: Osaka\n- Osaka Castle\n- Dotonbori\n- Universal Studios Japan\n\nAccommodations:\nTokyo: Park Hotel Tokyo\nKyoto: Ryokan Yoshida-Sanso\nOsaka: Hotel Nikko Osaka`,
+          metadata: {
+            category: 'travel',
+            destination: 'Japan',
+            dates: '2025-10-01 to 2025-10-08',
+            cities: ['Tokyo', 'Kyoto', 'Osaka'],
+            attractions: [
+              'Tokyo Tower',
+              'Shibuya Crossing',
+              'Meiji Shrine',
+              'Kinkaku-ji',
+              'Fushimi Inari Shrine',
+              'Arashiyama Bamboo Grove',
+              'Osaka Castle',
+              'Dotonbori',
+              'Universal Studios Japan'
+            ],
+            imageObjects: ['landscape', 'destination', 'travel', 'landmark']
+          }
+        };
+
+      case 'fitness':
+      case 'workout':
+      case 'exercise':
+        return {
+          extractedText: `Weekly Workout Plan\n\nMonday: Upper Body\n- Bench press: 3 sets x 10 reps\n- Pull-ups: 3 sets x 8 reps\n- Shoulder press: 3 sets x 12 reps\n- Bicep curls: 3 sets x 15 reps\n\nTuesday: Lower Body\n- Squats: 4 sets x 10 reps\n- Deadlifts: 3 sets x 8 reps\n- Lunges: 3 sets x 12 reps per leg\n- Calf raises: 3 sets x 20 reps\n\nWednesday: Rest day\n\nThursday: HIIT\n- 30 min high intensity interval training\n\nFriday: Full Body\n- Circuit training: 3 rounds\n\nSaturday/Sunday: Active recovery\n- Walking, swimming, or light yoga`,
+          metadata: {
+            category: 'fitness',
+            type: 'Weekly Plan',
+            workoutDays: 4,
+            restDays: 3,
+            focus: ['Strength', 'Endurance', 'Recovery'],
+            equipment: ['Dumbbells', 'Barbell', 'Bodyweight'],
+            imageObjects: ['gym', 'workout', 'fitness', 'exercise equipment']
+          }
+        };
+
+      case 'event':
+      case 'party':
+      case 'flyer':
+        return {
+          extractedText: `SUMMER MUSIC FESTIVAL\n\nJuly 15-17, 2025\nRiverside Park\nGates open at 12pm daily\n\nFEATURING:\n- The Sound Waves\n- Electric Dreams\n- Lunar Echo\n- Rhythm Republic\n- And 20+ more artists!\n\nFood trucks, art installations, and games\n\nTickets: $89 single-day / $199 weekend pass\nVIP packages available\n\nGet tickets at www.summerfest.example.com`,
+          metadata: {
+            category: 'events',
+            eventType: 'Festival',
+            title: 'Summer Music Festival',
+            date: '2025-07-15',
+            endDate: '2025-07-17',
+            location: 'Riverside Park',
+            performers: [
+              'The Sound Waves',
+              'Electric Dreams',
+              'Lunar Echo',
+              'Rhythm Republic'
+            ],
+            ticketPrice: {
+              singleDay: 89,
+              weekend: 199
+            },
+            imageObjects: ['event', 'festival', 'concert', 'crowd']
+          }
+        };
         
       default:
         return {
@@ -124,7 +240,8 @@ export class DocumentClassifier {
             type: documentType,
             pageCount: Math.floor(Math.random() * 10) + 1,
             dateDetected: new Date().toISOString().split('T')[0],
-            estimatedWordCount: Math.floor(Math.random() * 500) + 100
+            estimatedWordCount: Math.floor(Math.random() * 500) + 100,
+            category: 'other'
           }
         };
     }

@@ -1,11 +1,13 @@
+
 import { useState } from 'react';
 import { useDocumentClassification as useDetectionEngineDocClassification } from '@/utils/detectionEngine/hooks';
 import { DocumentResult } from '@/utils/detectionEngine/types';
 import { analyzeImage, AnalysisResult } from '@/utils/imageAnalysis';
+import { DocumentCategory } from '@/components/features/documents/types';
 
 interface DocumentClassificationResult {
   title?: string;
-  category?: string;
+  category?: DocumentCategory;
   tags?: string[];
   description?: string;
   date?: string;
@@ -53,7 +55,7 @@ export const useDocumentClassification = () => {
     return {
       title: result.metadata?.title || generateTitleFromText(result.extractedText),
       category: mapDocumentTypeToCategory(result.documentType),
-      tags: generateTagsFromMetadata(result.metadata) || [],
+      tags: generateTagsFromMetadata(result.metadata, result.documentType) || [],
       description: result.extractedText?.substring(0, 150) || '',
       date: result.metadata?.date || new Date().toISOString().split('T')[0],
       extractedText: result.extractedText,
@@ -65,7 +67,7 @@ export const useDocumentClassification = () => {
   const transformAnalysisResult = (result: AnalysisResult): DocumentClassificationResult => {
     return {
       title: result.title || 'Untitled Document',
-      category: result.category || 'other',
+      category: result.category as DocumentCategory || 'other',
       tags: result.tags || [],
       description: result.description || '',
       date: result.date || new Date().toISOString().split('T')[0],
@@ -74,20 +76,42 @@ export const useDocumentClassification = () => {
     };
   };
   
-  const mapDocumentTypeToCategory = (documentType?: string): string => {
+  const mapDocumentTypeToCategory = (documentType?: string): DocumentCategory => {
     if (!documentType) return 'other';
     
-    const categoryMap: Record<string, string> = {
+    const categoryMap: Record<string, DocumentCategory> = {
       'invitation': 'events',
       'receipt': 'other',
       'invoice': 'other',
       'resume': 'other',
       'flyer': 'events',
       'letter': 'other',
-      'document': 'other'
+      'document': 'other',
+      // Add more mappings based on AI recognition logic
+      'clothing': 'style',
+      'outfit': 'style',
+      'fashion': 'style',
+      'food': 'recipes',
+      'recipe': 'recipes',
+      'meal': 'recipes',
+      'travel': 'travel',
+      'vacation': 'travel',
+      'landscape': 'travel',
+      'workout': 'fitness',
+      'exercise': 'fitness',
+      'fitness': 'fitness',
+      'event': 'events',
+      'party': 'events',
+      'celebration': 'events',
+      'wedding': 'events',
+      'pdf': 'files',
+      'excel': 'files',
+      'word': 'files',
+      'spreadsheet': 'files',
+      'document': 'files'
     };
     
-    return categoryMap[documentType] || 'other';
+    return categoryMap[documentType.toLowerCase()] || 'other';
   };
   
   const generateTitleFromText = (text?: string): string => {
@@ -103,22 +127,92 @@ export const useDocumentClassification = () => {
     return text.substring(0, 40).trim() + (text.length > 40 ? '...' : '');
   };
   
-  const generateTagsFromMetadata = (metadata?: Record<string, any>): string[] => {
+  const generateTagsFromMetadata = (metadata?: Record<string, any>, documentType?: string): string[] => {
     if (!metadata) return [];
     
     const tags: string[] = [];
+    
+    // Add document type as a tag if available
+    if (documentType) tags.push(documentType.toLowerCase());
     
     // Extract potential tags from metadata
     if (metadata.eventType) tags.push(metadata.eventType.toLowerCase());
     if (metadata.vendor) tags.push(metadata.vendor.toLowerCase());
     if (metadata.pageCount && metadata.pageCount > 1) tags.push('multi-page');
     
-    // Add type-specific tags
-    if (metadata.hosts) tags.push('invitation');
-    if (metadata.items && Array.isArray(metadata.items)) tags.push('itemized');
-    if (metadata.invoiceNumber) tags.push('invoice');
+    // Add category-specific tags based on metadata
+    if (metadata.hosts) {
+      tags.push('invitation');
+      tags.push('event');
+    }
     
-    return tags.slice(0, 5); // Limit to 5 tags
+    if (metadata.items && Array.isArray(metadata.items)) {
+      tags.push('itemized');
+      
+      // Check if it's a recipe by looking at the items
+      const foodRelatedWords = ['ingredient', 'cup', 'tablespoon', 'teaspoon', 'ounce', 'pound', 'gram'];
+      const isFoodRelated = metadata.items.some((item: any) => 
+        foodRelatedWords.some(word => 
+          (typeof item === 'string' && item.toLowerCase().includes(word)) || 
+          (item.name && item.name.toLowerCase().includes(word))
+        )
+      );
+      
+      if (isFoodRelated) {
+        tags.push('recipe');
+        tags.push('food');
+      }
+    }
+    
+    if (metadata.invoiceNumber) {
+      tags.push('invoice');
+      tags.push('payment');
+    }
+    
+    // Add image recognition tags if available
+    if (metadata.imageObjects && Array.isArray(metadata.imageObjects)) {
+      // Map detected objects to appropriate categories
+      const styleObjects = ['clothing', 'fashion', 'dress', 'shirt', 'pants', 'shoes', 'accessory'];
+      const foodObjects = ['food', 'meal', 'dish', 'ingredient', 'recipe', 'kitchen'];
+      const travelObjects = ['landscape', 'mountain', 'beach', 'city', 'monument', 'hotel', 'vacation'];
+      const fitnessObjects = ['gym', 'workout', 'exercise', 'fitness', 'sport', 'athletic'];
+      const eventObjects = ['party', 'celebration', 'wedding', 'conference', 'meeting'];
+      
+      metadata.imageObjects.forEach((obj: string) => {
+        const objLower = obj.toLowerCase();
+        
+        // Add the object as a tag
+        tags.push(objLower);
+        
+        // Add category tags based on detected objects
+        if (styleObjects.some(item => objLower.includes(item))) {
+          tags.push('style');
+          tags.push('fashion');
+        }
+        
+        if (foodObjects.some(item => objLower.includes(item))) {
+          tags.push('recipe');
+          tags.push('food');
+        }
+        
+        if (travelObjects.some(item => objLower.includes(item))) {
+          tags.push('travel');
+          tags.push('destination');
+        }
+        
+        if (fitnessObjects.some(item => objLower.includes(item))) {
+          tags.push('fitness');
+          tags.push('workout');
+        }
+        
+        if (eventObjects.some(item => objLower.includes(item))) {
+          tags.push('event');
+        }
+      });
+    }
+    
+    // Remove duplicates and limit to 8 tags
+    return [...new Set(tags)].slice(0, 8);
   };
   
   return {

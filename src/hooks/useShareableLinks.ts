@@ -31,6 +31,18 @@ export const useShareableLinks = () => {
   useEffect(() => {
     localStorage.setItem('shareable-links', JSON.stringify(links));
   }, [links]);
+
+  // Clean up expired links on component mount
+  useEffect(() => {
+    cleanupExpiredLinks();
+    
+    // Set up a daily cleanup interval
+    const cleanupInterval = setInterval(() => {
+      cleanupExpiredLinks();
+    }, 24 * 60 * 60 * 1000); // Once per day
+    
+    return () => clearInterval(cleanupInterval);
+  }, []);
   
   /**
    * Generate a new shareable link
@@ -129,9 +141,11 @@ export const useShareableLinks = () => {
    * Get links for a specific item
    */
   const getLinksForItem = (itemId: string): ShareableLink[] => {
-    return links.filter(link => link.itemId === itemId);
+    return links.filter(link => 
+      link.itemId === itemId && !link.revoked && new Date() < new Date(link.expires)
+    );
   };
-  
+
   /**
    * Get link details from a link ID
    */
@@ -175,6 +189,44 @@ export const useShareableLinks = () => {
     // In a real app, this would be a proper domain with possible route params
     return `${window.location.origin}/share/${linkId}`;
   };
+
+  /**
+   * Extend an existing link's expiration date
+   */
+  const extendLinkExpiration = (linkId: string, additionalDays: number = 7): boolean => {
+    let found = false;
+    
+    setLinks(prevLinks => 
+      prevLinks.map(link => {
+        if (link.id === linkId && !link.revoked) {
+          found = true;
+          const currentExpiry = new Date(link.expires);
+          currentExpiry.setDate(currentExpiry.getDate() + additionalDays);
+          return { ...link, expires: currentExpiry.toISOString() };
+        }
+        return link;
+      })
+    );
+    
+    return found;
+  };
+
+  /**
+   * Get all active links
+   */
+  const getAllActiveLinks = (): ShareableLink[] => {
+    const now = new Date();
+    return links.filter(link => 
+      !link.revoked && new Date(link.expires) > now
+    );
+  };
+
+  /**
+   * Get all links, including expired and revoked ones
+   */
+  const getAllLinks = (): ShareableLink[] => {
+    return links;
+  };
   
   return {
     createShareableLink,
@@ -184,6 +236,9 @@ export const useShareableLinks = () => {
     getLinksForItem,
     getLinkDetails,
     cleanupExpiredLinks,
+    extendLinkExpiration,
+    getAllActiveLinks,
+    getAllLinks,
     links
   };
 };

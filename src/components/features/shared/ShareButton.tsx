@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
-import { Share2, Copy, Instagram, MessageSquare, Link as LinkIcon } from 'lucide-react';
+import { Share2, Copy, Instagram, MessageSquare, Link as LinkIcon, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useShareableLinks } from '@/hooks/useShareableLinks';
@@ -9,8 +9,17 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ShareButtonProps extends Omit<ButtonProps, 'onError'> {
   title?: string;
@@ -46,14 +55,19 @@ const ShareButton: React.FC<ShareButtonProps> = ({
 }) => {
   const { isMobile } = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
-  const { createShareableLink } = useShareableLinks();
+  const { createShareableLink, getLinksForItem } = useShareableLinks();
   
   // Generate a shareable URL using our system if itemId is provided
-  const shareUrl = itemId
-    ? createShareableLink(itemId, itemType, expiresInDays)
-    : (url || window.location.href);
+  const generateLink = () => {
+    if (itemId) {
+      return createShareableLink(itemId, itemType, expiresInDays);
+    }
+    return url || window.location.href;
+  };
   
+  const shareUrl = itemId ? generateLink() : (url || window.location.href);
   const isToDoAppInstalled = window.navigator.userAgent.includes('ToDoApp');
+  const existingLinks = itemId ? getLinksForItem(itemId) : [];
 
   const handleNativeShare = async () => {
     try {
@@ -167,8 +181,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
       setIsOpen(true);
     } else {
       if (!isMobile) {
-        navigator.clipboard.writeText(shareUrl);
-        toast.success('Link copied to clipboard');
+        handleCopyLink();
       } else {
         toast.error('Sharing not supported on this device');
       }
@@ -177,56 +190,101 @@ const ShareButton: React.FC<ShareButtonProps> = ({
 
   if (!showOptions) {
     return (
-      <Button 
-        onClick={handleShare} 
-        size="icon" 
-        variant="outline"
-        className={className}
-        {...buttonProps}
-      >
-        {children || <Share2 className="h-4 w-4" />}
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              onClick={handleShare} 
+              size="icon" 
+              variant="outline"
+              className={className}
+              {...buttonProps}
+            >
+              {children || <Share2 className="h-4 w-4" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Copy Link / Share to app</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button 
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-          }}
-          size="icon" 
-          variant="outline"
-          className={className}
-          {...buttonProps}
-        >
-          {children || <Share2 className="h-4 w-4" />}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem onClick={handleCopyLink}>
-          <Copy className="h-4 w-4 mr-2" />
-          Copy link
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleAppShare('whatsapp')}>
-          <MessageSquare className="h-4 w-4 mr-2" />
-          Share to WhatsApp
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleAppShare('instagram')}>
-          <Instagram className="h-4 w-4 mr-2" />
-          Share to Instagram
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleAppShare('messenger')}>
-          <MessageSquare className="h-4 w-4 mr-2" />
-          Share to Messenger App
-        </DropdownMenuItem>
-        {isToDoAppInstalled && (
-          <DropdownMenuItem onClick={handleToDoAppShare}>
-            <LinkIcon className="h-4 w-4 mr-2" />
-            Share to ToDo App
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                }}
+                size="icon" 
+                variant="outline"
+                className={className}
+                {...buttonProps}
+              >
+                {children || <Share2 className="h-4 w-4" />}
+              </Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Copy Link / Share to app</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuLabel>Share Options</DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={handleCopyLink}>
+            <Copy className="h-4 w-4 mr-2" />
+            Copy link
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAppShare('whatsapp')}>
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Share to WhatsApp
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAppShare('instagram')}>
+            <Instagram className="h-4 w-4 mr-2" />
+            Share to Instagram
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAppShare('messenger')}>
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Share to Messenger App
+          </DropdownMenuItem>
+          {isToDoAppInstalled && (
+            <DropdownMenuItem onClick={handleToDoAppShare}>
+              <LinkIcon className="h-4 w-4 mr-2" />
+              Share to ToDo App
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuGroup>
+        
+        {itemId && existingLinks.length > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Existing Links</DropdownMenuLabel>
+            {existingLinks.slice(0, 2).map((link) => (
+              <DropdownMenuItem key={link.id} onSelect={(e) => e.preventDefault()}>
+                <div className="flex items-center justify-between w-full text-xs">
+                  <span className="truncate max-w-[120px]">
+                    {new Date(link.expires).toLocaleDateString()}
+                  </span>
+                  <ExternalLink className="h-3 w-3 ml-2 text-muted-foreground" />
+                </div>
+              </DropdownMenuItem>
+            ))}
+            {existingLinks.length > 2 && (
+              <DropdownMenuItem className="justify-center">
+                <span className="text-xs text-muted-foreground">
+                  +{existingLinks.length - 2} more
+                </span>
+              </DropdownMenuItem>
+            )}
+          </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

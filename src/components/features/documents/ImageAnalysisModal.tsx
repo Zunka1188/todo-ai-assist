@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import FilePreview, { getFileTypeFromName } from './FilePreview';
 import { analyzeImage, AnalysisResult, getFileType } from '@/utils/imageAnalysis';
 import { useDocumentClassification } from '@/hooks/useDocumentClassification';
+import { Badge } from '@/components/ui/badge';
 
 interface ImageAnalysisModalProps {
   imageData: string | null;
@@ -30,6 +31,8 @@ const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
   const [fullScreen, setFullScreen] = useState(false);
   const [fileType, setFileType] = useState<'image' | 'pdf' | 'document' | 'unknown'>('unknown');
   const [textPreview, setTextPreview] = useState<string | null>(null);
+  const [detectedCategory, setDetectedCategory] = useState<string | null>(null);
+  const [detectedTags, setDetectedTags] = useState<string[]>([]);
   
   const { classifyDocument, isAnalyzing } = useDocumentClassification();
   
@@ -80,9 +83,15 @@ const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
           extractedText: docResult.extractedText,
           metadata: docResult.metadata
         };
+        
+        // Store detected category and tags for UI display
+        setDetectedCategory(docResult.category);
+        setDetectedTags(docResult.tags || []);
       } else {
         // Fall back to standard image analysis
         result = await analyzeImage(imageData, fileName);
+        setDetectedCategory(result.category);
+        setDetectedTags(result.tags || []);
       }
       
       // If text was extracted, show it
@@ -205,6 +214,22 @@ const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
                 <Check className="h-6 w-6 text-green-600" />
               </div>
               <p className="text-center font-medium">Analysis Complete</p>
+              
+              {detectedCategory && (
+                <div className="flex flex-col items-center gap-2">
+                  <p className="text-sm text-center">
+                    Detected Category: <span className="font-medium capitalize">{detectedCategory}</span>
+                  </p>
+                  {detectedTags && detectedTags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 justify-center">
+                      {detectedTags.slice(0, 5).map((tag, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">{tag}</Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              
               <p className="text-sm text-center text-muted-foreground">
                 We've extracted information from your {fileType === 'pdf' ? 'PDF document' : 
                                                      fileType === 'document' ? 'document' : 
