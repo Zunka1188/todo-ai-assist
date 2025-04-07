@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import AddDocumentDialog from '@/components/features/documents/AddDocumentDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 const DocumentsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const params = useParams();
   const { isMobile } = useIsMobile();
   
   // Fetch documents data
@@ -36,35 +37,31 @@ const DocumentsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   
-  // Initialize activeTab state from URL path
+  // Initialize activeTab state from URL params
   const [activeTab, setActiveTab] = useState<DocumentCategory>(() => {
-    const pathParts = location.pathname.split('/');
-    const lastPart = pathParts[pathParts.length - 1];
-
-    if (CATEGORIES.includes(lastPart as DocumentCategory)) {
-      return lastPart as DocumentCategory;
-    }
-    return 'style'; // Default tab
+    const subtab = params.subtab;
+    return (subtab && CATEGORIES.includes(subtab as DocumentCategory)) 
+      ? subtab as DocumentCategory 
+      : 'style';
   });
   
-  // Update activeTab when location changes, with a guard to prevent unnecessary state updates
+  // Update activeTab when URL changes, with a guard to prevent loops
   useEffect(() => {
-    const pathParts = location.pathname.split('/');
-    const lastPart = pathParts[pathParts.length - 1];
-    const newTab = CATEGORIES.includes(lastPart as DocumentCategory)
-      ? lastPart as DocumentCategory
+    const subtab = params.subtab;
+    const newTab = (subtab && CATEGORIES.includes(subtab as DocumentCategory))
+      ? subtab as DocumentCategory
       : 'style';
-
+      
     if (newTab !== activeTab) {
       setActiveTab(newTab);
     }
-  }, [location.pathname, CATEGORIES, activeTab]);
+  }, [params.subtab, CATEGORIES, activeTab]);
 
   const [editingItem, setEditingItem] = useState<DocumentItem | null>(null);
   const [fullScreenPreviewItem, setFullScreenPreviewItem] = useState<DocumentItem | DocumentFile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Update URL when tab changes - this is a callback to prevent recreating on every render
+  // Update URL when tab changes
   const handleTabChange = useCallback((value: string) => {
     setActiveTab(value as DocumentCategory);
     navigate(`/documents/${value}`, { replace: true });
@@ -135,9 +132,16 @@ const DocumentsPage = () => {
     setFullScreenPreviewItem(item);
   }, []);
 
-  // Filter items based on current tab and search term
-  const filteredItems = filterDocuments(categoryItems, activeTab, searchTerm);
-  const filteredFiles = filterFiles(files, searchTerm);
+  // Filter items based on current tab and search term - memoized to prevent recalculation
+  const filteredItems = useMemo(() => 
+    filterDocuments(categoryItems, activeTab, searchTerm),
+    [filterDocuments, categoryItems, activeTab, searchTerm]
+  );
+  
+  const filteredFiles = useMemo(() => 
+    filterFiles(files, searchTerm),
+    [filterFiles, files, searchTerm]
+  );
 
   // Handle dialog close
   const handleDialogClose = useCallback((open: boolean) => {
