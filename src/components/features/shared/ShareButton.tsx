@@ -245,7 +245,7 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
               <Button 
-                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
                 }}

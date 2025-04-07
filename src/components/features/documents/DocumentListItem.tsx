@@ -50,7 +50,7 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
       return;
     }
     
-    // Use the browser's document object instead of document prop
+    // Use window.document instead of the document prop to avoid conflicts
     const a = window.document.createElement('a');
     a.href = document.fileUrl;
     a.download = document.title || 'download';

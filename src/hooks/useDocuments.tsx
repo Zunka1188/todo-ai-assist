@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentItem, DocumentFile, DocumentCategory, CATEGORIES } from '@/components/features/documents/types';
@@ -263,13 +264,15 @@ export function useDocuments() {
   );
   const { toast } = useToast();
   
-  // Save to localStorage whenever data changes
+  // Save to localStorage whenever data changes - immediately to ensure cross-device sync
   useEffect(() => {
     saveToLocalStorage('documentCategoryItems', categoryItems);
+    console.log('[DEBUG] useDocuments - Saved categoryItems to localStorage', categoryItems.length);
   }, [categoryItems]);
   
   useEffect(() => {
     saveToLocalStorage('documentFiles', files);
+    console.log('[DEBUG] useDocuments - Saved files to localStorage', files.length);
   }, [files]);
 
   // Format date to be more readable with improved relative date recognition
@@ -340,17 +343,24 @@ export function useDocuments() {
     
     if (editingItem) {
       // Update existing item
-      setCategoryItems(categoryItems.map(existingItem => existingItem.id === editingItem.id ? {
-        ...item,
-        category: item.category as DocumentCategory,
-        content: item.description || item.content || '',
-        file: item.file || null,
-        fileName: item.fileName || undefined,
-        fileType: item.fileType || undefined,
-        // For documents, ensure we never use future dates
-        date: new Date(Math.min(new Date(item.date || now).getTime(), now.getTime())),
-        addedDate: editingItem.addedDate
-      } : existingItem));
+      setCategoryItems(prevItems => {
+        const updated = prevItems.map(existingItem => existingItem.id === editingItem.id ? {
+          ...item,
+          category: item.category as DocumentCategory,
+          content: item.description || item.content || '',
+          file: item.file || null,
+          fileName: item.fileName || undefined,
+          fileType: item.fileType || undefined,
+          // For documents, ensure we never use future dates
+          date: new Date(Math.min(new Date(item.date || now).getTime(), now.getTime())),
+          addedDate: editingItem.addedDate
+        } : existingItem);
+        
+        // Save immediately to localStorage
+        saveToLocalStorage('documentCategoryItems', updated);
+        return updated;
+      });
+      
       toast({
         title: "Item Updated",
         description: `"${item.title}" has been updated`
@@ -371,7 +381,14 @@ export function useDocuments() {
         fileName: item.fileName || undefined,
         fileType: item.fileType || undefined
       };
-      setCategoryItems([...categoryItems, newItem]);
+      
+      setCategoryItems(prevItems => {
+        const updated = [...prevItems, newItem];
+        // Save immediately to localStorage
+        saveToLocalStorage('documentCategoryItems', updated);
+        return updated;
+      });
+      
       toast({
         title: "Item Added",
         description: `"${item.title}" has been added to your collection`
@@ -381,7 +398,13 @@ export function useDocuments() {
 
   // Delete document item
   const handleDeleteItem = (id: string) => {
-    setCategoryItems(categoryItems.filter(item => item.id !== id));
+    setCategoryItems(prevItems => {
+      const updated = prevItems.filter(item => item.id !== id);
+      // Save immediately to localStorage
+      saveToLocalStorage('documentCategoryItems', updated);
+      return updated;
+    });
+    
     toast({
       title: "Item Removed",
       description: "The item has been deleted"
@@ -391,13 +414,25 @@ export function useDocuments() {
   // Add or update file
   const handleAddOrUpdateFile = (file: DocumentFile, isEditing: boolean = false) => {
     if (isEditing) {
-      setFiles(files.map(f => f.id === file.id ? file : f));
+      setFiles(prevFiles => {
+        const updated = prevFiles.map(f => f.id === file.id ? file : f);
+        // Save immediately to localStorage
+        saveToLocalStorage('documentFiles', updated);
+        return updated;
+      });
+      
       toast({
         title: "File Updated",
         description: `"${file.title}" has been updated`
       });
     } else {
-      setFiles([...files, { ...file, id: Date.now().toString() }]);
+      setFiles(prevFiles => {
+        const updated = [...prevFiles, { ...file, id: Date.now().toString() }];
+        // Save immediately to localStorage
+        saveToLocalStorage('documentFiles', updated);
+        return updated;
+      });
+      
       toast({
         title: "File Added",
         description: `"${file.title}" has been added to your files`
@@ -407,7 +442,13 @@ export function useDocuments() {
 
   // Delete file
   const handleDeleteFile = (id: string) => {
-    setFiles(files.filter(file => file.id !== id));
+    setFiles(prevFiles => {
+      const updated = prevFiles.filter(file => file.id !== id);
+      // Save immediately to localStorage
+      saveToLocalStorage('documentFiles', updated);
+      return updated;
+    });
+    
     toast({
       title: "File Removed",
       description: "The file has been deleted"

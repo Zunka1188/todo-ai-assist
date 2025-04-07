@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 export interface ShoppingItem {
@@ -107,11 +108,12 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   
   // Save to localStorage whenever items change with debouncing
   useEffect(() => {
+    // Define a function to save to localStorage
     const saveItems = () => {
       saveToLocalStorage('shoppingItems', items);
     };
     
-    // Save immediately instead of using a timeout
+    // Save immediately on any items change
     saveItems();
     
     console.log("[DEBUG] useShoppingItems - Items updated, total count:", items.length);
