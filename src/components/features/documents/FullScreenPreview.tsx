@@ -47,6 +47,11 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) 
       document.body.removeChild(a);
       
       setIsLoading(false);
+      
+      toast({
+        title: "Download Started",
+        description: "Your file is being downloaded"
+      });
     } catch (error) {
       console.error("Download error:", error);
       setIsLoading(false);

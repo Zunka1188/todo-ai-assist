@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Plus, X, Upload, Loader2, Save, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -76,7 +75,6 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Reset form when dialog opens/closes or when editing mode changes
   useEffect(() => {
     if (open) {
       setError(null);
@@ -90,7 +88,6 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
         setFileName(editItem.fileName || '');
         setFileType(editItem.fileType || '');
       } else {
-        // New item - reset form
         setTitle('');
         setDescription('');
         setCategory(currentCategory);
@@ -158,14 +155,19 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     
     if (!selectedFile) return;
     
-    // Add file size validation
-    if (selectedFile.size > 10 * 1024 * 1024) { // 10 MB limit
-      setError("File size exceeds 10MB limit");
+    const maxSizeMB = 10;
+    const maxSizeBytes = maxSizeMB * 1024 * 1024;
+    
+    if (selectedFile.size > maxSizeBytes) {
+      setError(`File size exceeds ${maxSizeMB}MB limit`);
       toast({
         title: "File too large",
-        description: "The selected file exceeds the 10MB limit.",
+        description: `The selected file exceeds the ${maxSizeMB}MB limit.`,
         variant: "destructive"
       });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       return;
     }
     
@@ -182,7 +184,6 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
         setFile(fileData);
         setIsUploading(false);
         
-        // Trigger AI analysis for images, PDFs and documents
         if (['image', 'pdf', 'document'].includes(detectedFileType)) {
           setShowAnalysisModal(true);
         }
@@ -217,13 +218,10 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   };
 
   const handleAnalysisComplete = (result: AnalysisResult) => {
-    // Apply AI analysis results to form fields
     if (result.title) setTitle(result.title);
     
-    // Match the category from analysis to one of our available categories
     if (result.category) {
       const lowerCaseCategory = result.category.toLowerCase();
-      // Check if the category exists in our list
       if (categories.some(cat => cat.toLowerCase() === lowerCaseCategory)) {
         setCategory(lowerCaseCategory);
       }
@@ -232,7 +230,6 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     if (result.description) setDescription(result.description);
     if (result.tags) setTags(result.tags.join(', '));
     
-    // Close analysis modal
     setShowAnalysisModal(false);
     
     toast({
@@ -242,11 +239,9 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   };
 
   const getCategoryDisplayName = (cat: string): string => {
-    // Convert the category to a nicer display format
     return cat.charAt(0).toUpperCase() + cat.slice(1);
   };
 
-  // If in full screen mode for image preview, show a simplified view
   if (fullScreenPreview && file && fileType === 'image') {
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col">
@@ -421,7 +416,6 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
               style={{ WebkitOverflowScrolling: 'touch', paddingBottom: '100px' }}
             >
               {dialogContent}
-              {/* Add extra padding at the bottom to ensure content is scrollable */}
               <div className="h-16"></div>
             </ScrollArea>
             
