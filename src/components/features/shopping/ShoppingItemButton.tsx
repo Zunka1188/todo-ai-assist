@@ -1,9 +1,8 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Maximize2, Share2 } from 'lucide-react';
+import { Pencil, Trash2, Maximize2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import ShareButton from '@/components/features/shared/ShareButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
@@ -191,7 +190,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             </Button>
           </div>
           
-          <div className="absolute top-1.5 left-1.5 flex gap-1">
+          <div className="absolute top-1.5 left-1.5">
             <Button
               size="icon" 
               variant="secondary"
@@ -204,19 +203,6 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-            
-            <ShareButton
-              size="icon"
-              variant="secondary"
-              className="h-6 w-6 p-0 opacity-90"
-              title={`Shopping item: ${name}`}
-              text={`${name}${quantity ? ` - Quantity: ${quantity}` : ''}${notes ? `\n\nNotes: ${notes}` : ''}`}
-              fileUrl={imageUrl}
-              onClick={(e) => e.stopPropagation()}
-              showOptions={true}
-            >
-              <Share2 className="h-3.5 w-3.5" />
-            </ShareButton>
           </div>
         </>
       )}

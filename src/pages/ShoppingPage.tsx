@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShoppingList from '@/components/features/shopping/ShoppingList';
 import AddItemDialog from '@/components/features/shopping/AddItemDialog';
 import EditItemDialog from '@/components/features/shopping/EditItemDialog';
+import InviteDialog from '@/components/features/shopping/InviteDialog';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { useShoppingItems } from '@/components/features/shopping/useShoppingItems';
@@ -12,10 +13,13 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import PageHeader from '@/components/ui/page-header';
 import { cn } from '@/lib/utils';
 import DirectAddItem from '@/components/features/shopping/DirectAddItem';
+import { Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const ShoppingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [editItem, setEditItem] = useState<{ id: string, name?: string, item?: any } | null>(null);
   
   const navigate = useNavigate();
@@ -39,6 +43,20 @@ const ShoppingPage: React.FC = () => {
     console.log(`[DEBUG] ShoppingPage - URL tab param changed to: ${tabFromUrl}, setting active tab to: ${newTab}`);
     setActiveTab(newTab);
   }, [location.search, tabFromUrl]);
+
+  // Check for invitation parameter
+  useEffect(() => {
+    const inviteParam = searchParams.get('invite');
+    if (inviteParam) {
+      toast({
+        title: "Invitation Accepted",
+        description: "You've joined a shared shopping list"
+      });
+      // Remove the invitation parameter from the URL without navigation
+      const newUrl = `${window.location.pathname}?tab=${activeTab}`;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [location.search]);
 
   const handleTabChange = (value: string) => {
     console.log(`[DEBUG] ShoppingPage - Tab changed to: ${value}`);
@@ -161,6 +179,17 @@ const ShoppingPage: React.FC = () => {
           setShowAddDialog(true);
         }}
         addItemLabel="Add Item"
+        rightContent={
+          <Button
+            onClick={() => setShowInviteDialog(true)}
+            size={isMobile ? "sm" : "default"}
+            variant="secondary"
+            className="flex items-center gap-1"
+          >
+            <Users className="h-4 w-4" />
+            {isMobile ? "" : "Invite"}
+          </Button>
+        }
       />
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
@@ -218,6 +247,12 @@ const ShoppingPage: React.FC = () => {
           setShowAddDialog(open);
         }}
         onSave={handleSaveItem}
+      />
+
+      {/* New Invite Dialog */}
+      <InviteDialog
+        open={showInviteDialog}
+        onOpenChange={setShowInviteDialog}
       />
 
       {editItem && editItem.item && (
