@@ -44,21 +44,27 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
   
   const handleDownload = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     
     if (!document.fileUrl) {
       toast.error("No file available to download");
       return;
     }
     
-    // Use window.document to avoid confusion with the component's document prop
-    const downloadLink = window.document.createElement('a');
-    downloadLink.href = document.fileUrl;
-    downloadLink.download = document.title || 'download';
-    window.document.body.appendChild(downloadLink);
-    downloadLink.click();
-    window.document.body.removeChild(downloadLink);
-    
-    toast.success(`Downloading: ${document.title}`);
+    try {
+      // Create a new anchor element
+      const downloadLink = document.createElement('a');
+      downloadLink.href = document.fileUrl;
+      downloadLink.download = document.title || 'download';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      toast.success(`Downloading: ${document.title}`);
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download file");
+    }
   };
 
   return (
@@ -92,6 +98,7 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
                 className="h-8 w-8" 
                 onClick={(e) => {
                   e.stopPropagation();
+                  e.preventDefault();
                   onFullScreen();
                 }}
                 aria-label="View full screen"
@@ -106,7 +113,10 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
                 className="h-8 w-8"
                 title={`Check out this document: ${document.title}`}
                 fileUrl={document.fileUrl}
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                }}
                 showOptions={true}
                 itemId={document.id}
                 aria-label="Share document"
@@ -130,6 +140,7 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
                 className="h-8 w-8" 
                 onClick={(e) => {
                   e.stopPropagation();
+                  e.preventDefault();
                   onEdit();
                 }}
                 aria-label="Edit document"
@@ -144,6 +155,7 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
                 className={`h-8 w-8 ${isMobile ? "text-destructive hover:bg-destructive/10" : ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
+                  e.preventDefault();
                   onDelete();
                 }}
                 aria-label="Delete document"

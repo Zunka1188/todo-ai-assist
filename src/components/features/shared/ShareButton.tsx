@@ -151,15 +151,20 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
       return;
     }
     
-    const downloadLink = window.document.createElement('a');
-    downloadLink.href = fileUrl;
-    downloadLink.download = fileUrl.split('/').pop() || 'download';
-    window.document.body.appendChild(downloadLink);
-    downloadLink.click();
-    window.document.body.removeChild(downloadLink);
-    
-    toast.success('Download started');
-    setIsOpen(false);
+    try {
+      const downloadLink = document.createElement('a');
+      downloadLink.href = fileUrl;
+      downloadLink.download = fileUrl.split('/').pop() || 'download';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      toast.success('Download started');
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download file");
+    }
   };
 
   const handleAppShare = (app: string) => {
@@ -196,6 +201,7 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
   
   const handleShare = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
+    e.preventDefault();
     
     if (onClick) {
       onClick(e);

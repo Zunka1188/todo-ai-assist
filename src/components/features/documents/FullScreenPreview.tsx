@@ -44,21 +44,28 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
       return;
     }
     
-    // Use window.document to avoid confusion with global document
-    const downloadLink = window.document.createElement('a');
-    downloadLink.href = fileUrl;
-    downloadLink.download = title || 'document';
-    window.document.body.appendChild(downloadLink);
-    downloadLink.click();
-    window.document.body.removeChild(downloadLink);
-    
-    toast.success(`Downloading: ${title}`);
+    try {
+      // Create a new anchor element
+      const downloadLink = document.createElement('a');
+      downloadLink.href = fileUrl;
+      downloadLink.download = title || 'document';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      toast.success(`Downloading: ${title}`);
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download file");
+    }
+  };
+
+  const handleDialogChange = (open: boolean) => {
+    if (!open) onClose();
   };
 
   return (
-    <Dialog open={!!item} onOpenChange={(open) => {
-      if (!open) onClose();
-    }}>
+    <Dialog open={Boolean(item)} onOpenChange={handleDialogChange}>
       <DialogContent className="max-w-4xl w-[90vw] max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

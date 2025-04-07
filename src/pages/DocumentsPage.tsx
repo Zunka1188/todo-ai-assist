@@ -13,12 +13,11 @@ import PageHeader from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { ChefHat, Dumbbell, FileArchive, Plane, Calendar, FileText, Shirt } from 'lucide-react';
 import { getCategoryIcon } from '@/components/features/documents/utils/iconHelpers';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const DocumentsPage = () => {
   const navigate = useNavigate();
   const { isMobile } = useIsMobile();
-  const { toast } = useToast();
   
   const {
     categoryItems,
@@ -122,7 +121,7 @@ const DocumentsPage = () => {
         addItemLabel="+ Add Item"
       />
 
-      <Tabs defaultValue="style" value={activeTab} onValueChange={value => setActiveTab(value as DocumentCategory)} className="w-full">
+      <Tabs defaultValue="style" value={activeTab} onValueChange={(value) => setActiveTab(value as DocumentCategory)} className="w-full">
         <TabsList className="grid grid-cols-7 w-full mb-4">
           <TabsTrigger value="style" className="flex items-center gap-2">
             <Shirt className="h-4 w-4" />
@@ -203,10 +202,12 @@ const DocumentsPage = () => {
         } : null} 
       />
 
-      <FullScreenPreview
-        item={fullScreenPreviewItem}
-        onClose={handleFullScreenClose}
-      />
+      {fullScreenPreviewItem && (
+        <FullScreenPreview
+          item={fullScreenPreviewItem}
+          onClose={handleFullScreenClose}
+        />
+      )}
     </div>
   );
 };
