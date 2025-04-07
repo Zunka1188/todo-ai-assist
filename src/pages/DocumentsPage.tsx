@@ -36,30 +36,33 @@ const DocumentsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   
-  // Extract tab from URL or use default
-  const getInitialTab = useCallback((): DocumentCategory => {
-    // Check if the path is like /documents/style or similar
+  // Initialize activeTab state from URL path
+  const [activeTab, setActiveTab] = useState<DocumentCategory>(() => {
     const pathParts = location.pathname.split('/');
     const lastPart = pathParts[pathParts.length - 1];
-    
+
     if (CATEGORIES.includes(lastPart as DocumentCategory)) {
       return lastPart as DocumentCategory;
     }
     return 'style'; // Default tab
-  }, [location.pathname, CATEGORIES]);
+  });
   
-  const [activeTab, setActiveTab] = useState<DocumentCategory>(() => getInitialTab());
+  // Update activeTab when location changes, with a guard to prevent unnecessary state updates
+  useEffect(() => {
+    const pathParts = location.pathname.split('/');
+    const lastPart = pathParts[pathParts.length - 1];
+    const newTab = CATEGORIES.includes(lastPart as DocumentCategory)
+      ? lastPart as DocumentCategory
+      : 'style';
+
+    if (newTab !== activeTab) {
+      setActiveTab(newTab);
+    }
+  }, [location.pathname, CATEGORIES, activeTab]);
+
   const [editingItem, setEditingItem] = useState<DocumentItem | null>(null);
   const [fullScreenPreviewItem, setFullScreenPreviewItem] = useState<DocumentItem | DocumentFile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Update activeTab when location changes
-  useEffect(() => {
-    setActiveTab(getInitialTab());
-  }, [getInitialTab]);
-
-  // Use this variable without recalculating it on every render
-  const currentCategory = activeTab;
 
   // Update URL when tab changes - this is a callback to prevent recreating on every render
   const handleTabChange = useCallback((value: string) => {
@@ -258,7 +261,7 @@ const DocumentsPage = () => {
           onOpenChange={handleDialogClose} 
           onAdd={handleAddItem} 
           categories={CATEGORIES as string[]} 
-          currentCategory={currentCategory} 
+          currentCategory={activeTab} 
           isEditing={!!editingItem} 
           editItem={editingItem ? {
             id: editingItem.id,
