@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddDocumentDialog from '@/components/features/documents/AddDocumentDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -10,15 +10,14 @@ import { DocumentCategory, DocumentItem, DocumentFile } from '@/components/featu
 import { useDocuments } from '@/hooks/useDocuments';
 import DocumentList from '@/components/features/documents/DocumentList';
 import PageHeader from '@/components/ui/page-header';
-import { Button } from '@/components/ui/button';
 import { ChefHat, Dumbbell, FileArchive, Plane, Calendar, FileText, Shirt } from 'lucide-react';
-import { getCategoryIcon } from '@/components/features/documents/utils/iconHelpers';
 import { toast } from 'sonner';
 
 const DocumentsPage = () => {
   const navigate = useNavigate();
   const { isMobile } = useIsMobile();
   
+  // Fetch documents data
   const {
     categoryItems,
     files,
@@ -32,6 +31,7 @@ const DocumentsPage = () => {
     CATEGORIES
   } = useDocuments();
   
+  // Local state
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DocumentCategory>('style');
@@ -39,18 +39,22 @@ const DocumentsPage = () => {
   const [fullScreenPreviewItem, setFullScreenPreviewItem] = useState<DocumentItem | DocumentFile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Use this variable without recalculating it on every render
   const currentCategory = activeTab;
 
+  // Open add dialog with optional item to edit
   const handleOpenAddDialog = (editing: DocumentItem | null = null) => {
     setEditingItem(editing);
     setIsAddDialogOpen(true);
   };
 
+  // Open file uploader
   const handleOpenFileUploader = () => {
     setEditingItem(null);
     setIsAddDialogOpen(true);
   };
 
+  // Handle adding or updating an item
   const handleAddItem = (item: any) => {
     try {
       setIsLoading(true);
@@ -77,6 +81,7 @@ const DocumentsPage = () => {
     }
   };
 
+  // Handle deleting an item with confirmation toast
   const handleDeleteItemWithConfirmation = (id: string) => {
     try {
       handleDeleteItem(id);
@@ -97,13 +102,16 @@ const DocumentsPage = () => {
     }
   };
 
+  // Open full screen preview for an item
   const handleViewFullScreen = (item: DocumentItem | DocumentFile) => {
     setFullScreenPreviewItem(item);
   };
 
+  // Filter items based on current tab and search term
   const filteredItems = filterDocuments(categoryItems, activeTab, searchTerm);
   const filteredFiles = filterFiles(files, searchTerm);
 
+  // Handle dialog close
   const handleDialogClose = (open: boolean) => {
     setIsAddDialogOpen(open);
     if (!open) {
@@ -112,9 +120,37 @@ const DocumentsPage = () => {
     }
   };
 
+  // Handle full screen preview close
   const handleFullScreenClose = () => {
     setFullScreenPreviewItem(null);
   };
+
+  // If we have no documents at all, render a fallback UI
+  if (!categoryItems?.length && !files?.length) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center p-8">
+        <PageHeader
+          title="Documents"
+          showAddButton={true}
+          onAddItem={handleOpenFileUploader}
+          addItemLabel="+ Add Document"
+        />
+        <div className="text-center mt-12">
+          <FileText size={48} className="mx-auto text-muted-foreground mb-4" />
+          <h2 className="text-xl font-semibold mb-2">No Documents Found</h2>
+          <p className="text-muted-foreground mb-6">
+            Add your first document to get started
+          </p>
+          <button 
+            onClick={handleOpenFileUploader}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+          >
+            Add Your First Document
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -187,26 +223,28 @@ const DocumentsPage = () => {
         )}
       </Tabs>
 
-      <AddDocumentDialog 
-        open={isAddDialogOpen} 
-        onOpenChange={handleDialogClose} 
-        onAdd={handleAddItem} 
-        categories={CATEGORIES as string[]} 
-        currentCategory={currentCategory} 
-        isEditing={!!editingItem} 
-        editItem={editingItem ? {
-          id: editingItem.id,
-          title: editingItem.title,
-          description: editingItem.content,
-          category: editingItem.category,
-          tags: editingItem.tags || [],
-          date: editingItem.date.toISOString().split('T')[0],
-          addedDate: editingItem.addedDate.toISOString().split('T')[0],
-          file: editingItem.type === 'image' ? editingItem.content : editingItem.file || null,
-          fileName: editingItem.fileName || "",
-          fileType: editingItem.fileType || ""
-        } : null} 
-      />
+      {isAddDialogOpen && (
+        <AddDocumentDialog 
+          open={isAddDialogOpen} 
+          onOpenChange={handleDialogClose} 
+          onAdd={handleAddItem} 
+          categories={CATEGORIES as string[]} 
+          currentCategory={currentCategory} 
+          isEditing={!!editingItem} 
+          editItem={editingItem ? {
+            id: editingItem.id,
+            title: editingItem.title,
+            description: editingItem.content,
+            category: editingItem.category,
+            tags: editingItem.tags || [],
+            date: editingItem.date.toISOString().split('T')[0],
+            addedDate: editingItem.addedDate.toISOString().split('T')[0],
+            file: editingItem.type === 'image' ? editingItem.content : editingItem.file || null,
+            fileName: editingItem.fileName || "",
+            fileType: editingItem.fileType || ""
+          } : null} 
+        />
+      )}
 
       {fullScreenPreviewItem && (
         <FullScreenPreview

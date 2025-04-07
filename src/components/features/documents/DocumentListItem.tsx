@@ -26,15 +26,20 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
   
   // Format ISO date string to European format (DD/MM/YYYY)
   const formatDateEuropean = (dateString: string): string => {
-    const date = new Date(dateString);
-    // Ensure we don't display future dates
-    const today = new Date();
-    const dateToUse = date > today ? today : date;
-    
-    const day = dateToUse.getDate().toString().padStart(2, '0');
-    const month = (dateToUse.getMonth() + 1).toString().padStart(2, '0');
-    const year = dateToUse.getFullYear();
-    return `${day}/${month}/${year}`;
+    try {
+      const date = new Date(dateString);
+      // Ensure we don't display future dates
+      const today = new Date();
+      const dateToUse = date > today ? today : date;
+      
+      const day = dateToUse.getDate().toString().padStart(2, '0');
+      const month = (dateToUse.getMonth() + 1).toString().padStart(2, '0');
+      const year = dateToUse.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
   };
   
   const handleItemClick = (e: React.MouseEvent) => {
@@ -52,13 +57,19 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
     }
     
     try {
-      // Create a new anchor element - properly referencing window.document
-      const downloadLink = window.document.createElement('a');
-      downloadLink.href = document.fileUrl;
-      downloadLink.download = document.title || 'download';
-      window.document.body.appendChild(downloadLink);
-      downloadLink.click();
-      window.document.body.removeChild(downloadLink);
+      const link = document.createElement('a');
+      link.href = document.fileUrl;
+      link.download = document.title || 'download';
+      
+      // We need to add the link to the DOM for Firefox
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      }, 100);
       
       toast.success(`Downloading: ${document.title}`);
     } catch (error) {
