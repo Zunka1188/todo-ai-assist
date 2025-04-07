@@ -1,0 +1,117 @@
+
+{
+  "name": "Document Upload User Journey",
+  "url": "http://localhost:3000/documents",
+  "steps": [
+    {
+      "type": "navigate",
+      "url": "/documents"
+    },
+    {
+      "type": "assertion",
+      "selector": "h1",
+      "text": "Documents",
+      "assertion": "contains"
+    },
+    {
+      "type": "click",
+      "selector": "button:contains('Add Item')"
+    },
+    {
+      "type": "assertion",
+      "selector": "dialog",
+      "assertion": "visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "h2",
+      "text": "Add New Document",
+      "assertion": "contains"
+    },
+    {
+      "type": "type",
+      "selector": "input#title",
+      "text": "Test Document"
+    },
+    {
+      "type": "click",
+      "selector": "button:contains('Upload File')"
+    },
+    {
+      "type": "fileUpload",
+      "selector": "input[type='file']",
+      "filePath": "test-document.pdf"
+    },
+    {
+      "type": "assertion",
+      "selector": "div",
+      "text": "test-document.pdf",
+      "assertion": "contains"
+    },
+    {
+      "type": "click",
+      "selector": "[role='combobox']"
+    },
+    {
+      "type": "click",
+      "selector": "[role='option']:contains('Files')"
+    },
+    {
+      "type": "type",
+      "selector": "#description",
+      "text": "This is a test document for automated testing"
+    },
+    {
+      "type": "type",
+      "selector": "#tags",
+      "text": "test, automation, document"
+    },
+    {
+      "type": "click",
+      "selector": "button:contains('Add Document')"
+    },
+    {
+      "type": "assertion",
+      "selector": "div",
+      "text": "Test Document",
+      "assertion": "contains"
+    },
+    {
+      "type": "click",
+      "selector": "div:contains('Test Document')"
+    },
+    {
+      "type": "assertion",
+      "selector": "dialog",
+      "assertion": "visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "h2",
+      "text": "Test Document",
+      "assertion": "contains"
+    },
+    {
+      "type": "click",
+      "selector": "button[aria-label='Close']"
+    },
+    {
+      "type": "click",
+      "selector": "div:contains('Test Document')"
+    },
+    {
+      "type": "click",
+      "selector": "button:contains('Delete')"
+    },
+    {
+      "type": "click",
+      "selector": "button:contains('Confirm')"
+    },
+    {
+      "type": "assertion",
+      "selector": "div",
+      "text": "Test Document",
+      "assertion": "notExists"
+    }
+  ]
+}
