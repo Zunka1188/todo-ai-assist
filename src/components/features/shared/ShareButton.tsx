@@ -38,7 +38,7 @@ interface ShareButtonProps extends Omit<ButtonProps, 'onError'> {
   onDownload?: () => void;
 }
 
-const ShareButton: React.FC<ShareButtonProps> = ({
+const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
   title = 'Check this out!',
   text,
   url,
@@ -53,8 +53,9 @@ const ShareButton: React.FC<ShareButtonProps> = ({
   className,
   showOptions = false,
   onDownload,
+  onClick,
   ...buttonProps
-}) => {
+}, ref) => {
   const { isMobile } = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const { createShareableLink, getLinksForItem } = useShareableLinks();
@@ -194,6 +195,10 @@ const ShareButton: React.FC<ShareButtonProps> = ({
     e.stopPropagation();
     e.preventDefault();
     
+    if (onClick) {
+      onClick(e);
+    }
+    
     if (navigator.share && isMobile) {
       handleNativeShare();
     } else if (isToDoAppInstalled) {
@@ -219,6 +224,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
               size="icon" 
               variant="outline"
               className={className}
+              ref={ref}
               {...buttonProps}
             >
               {children || <Share2 className="h-4 w-4" />}
@@ -246,6 +252,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
                 size="icon" 
                 variant="outline"
                 className={className}
+                ref={ref}
                 {...buttonProps}
               >
                 {children || <Share2 className="h-4 w-4" />}
@@ -314,6 +321,8 @@ const ShareButton: React.FC<ShareButtonProps> = ({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-};
+});
+
+ShareButton.displayName = "ShareButton";
 
 export default ShareButton;

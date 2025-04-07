@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { Maximize2, Pencil, Trash2 } from 'lucide-react';
+import { Maximize2, Pencil, Trash2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FilePreview from './FilePreview';
 import { DocumentFile } from './types';
 import { getCategoryIcon } from './utils/iconHelpers';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ShareButton from '@/components/features/shared/ShareButton';
+import { toast } from 'sonner';
 
 interface DocumentListItemProps {
   document: DocumentFile;
@@ -39,6 +40,24 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
   const handleItemClick = (e: React.MouseEvent) => {
     e.preventDefault();
     onFullScreen();
+  };
+  
+  const handleDownload = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!document.fileUrl) {
+      toast.error("No file available to download");
+      return;
+    }
+    
+    const a = document.createElement('a');
+    a.href = document.fileUrl;
+    a.download = document.title || 'download';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    toast.success(`Downloading: ${document.title}`);
   };
 
   return (
@@ -88,9 +107,22 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
                 fileUrl={document.fileUrl}
                 onClick={(e) => e.stopPropagation()}
                 showOptions={true}
+                itemId={document.id}
                 aria-label="Share document"
               />
               
+              {/* Download button */}
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8" 
+                onClick={handleDownload}
+                aria-label="Download document"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+              
+              {/* Edit button */}
               <Button 
                 variant="outline" 
                 size="icon" 
@@ -103,6 +135,8 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
               >
                 <Pencil className="h-4 w-4" />
               </Button>
+              
+              {/* Delete button */}
               <Button 
                 variant="outline" 
                 size="icon" 

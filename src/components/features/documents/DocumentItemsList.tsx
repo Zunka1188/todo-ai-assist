@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { FileText, Maximize2, Share2 } from 'lucide-react';
+import { FileText, Maximize2, Share2, Download, Trash2, Pencil } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DocumentItem } from './types';
 import { getTypeIcon } from './utils/iconHelpers';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ShareButton from '@/components/features/shared/ShareButton';
+import { toast } from 'sonner';
 
 interface DocumentItemsListProps {
   items: DocumentItem[];
@@ -31,6 +32,28 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+  };
+  
+  // Handle download for document items
+  const handleDownload = (item: DocumentItem) => {
+    if (item.type === 'image' || item.file) {
+      const url = item.type === 'image' ? item.content : item.file;
+      if (!url) {
+        toast.error("No file available to download");
+        return;
+      }
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = item.fileName || item.title || 'document';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      toast.success(`Downloading: ${item.title}`);
+    } else {
+      toast.error("No downloadable content available");
+    }
   };
 
   if (items.length === 0) {
@@ -92,6 +115,7 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                   >
                     <Maximize2 className="h-4 w-4 text-white" />
                   </Button>
+                  
                   <ShareButton
                     size="sm"
                     className="h-9 w-9 p-0 bg-black/20 hover:bg-black/40 rounded-full"
@@ -99,10 +123,25 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                     text={item.title}
                     fileUrl={item.content}
                     onClick={(e) => e.stopPropagation()}
+                    itemId={item.id}
                     aria-label="Share item"
                   >
                     <Share2 className="h-4 w-4 text-white" />
                   </ShareButton>
+                  
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-9 w-9 p-0 bg-black/20 hover:bg-black/40 rounded-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownload(item);
+                    }}
+                    aria-label="Download item"
+                  >
+                    <Download className="h-4 w-4 text-white" />
+                  </Button>
+                  
                   <Button
                     size="sm"
                     variant="secondary"
@@ -113,8 +152,9 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                     }}
                     aria-label="Edit item"
                   >
-                    <FileText className="h-4 w-4 text-white" />
+                    <Pencil className="h-4 w-4 text-white" />
                   </Button>
+                  
                   <Button
                     size="sm"
                     variant="destructive"
@@ -125,19 +165,7 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                     }}
                     aria-label="Delete item"
                   >
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 15 15"
-                      fill="currentColor"
-                      className="h-4 w-4 text-white"
-                    >
-                      <path
-                        d="M5.5 1C5.22386 1 5 1.22386 5 1.5C5 1.77614 5.22386 2 5.5 2H9.5C9.77614 2 10 1.77614 10 1.5C10 1.22386 9.77614 1 9.5 1H5.5ZM3 3.5C3 3.22386 3.22386 3 3.5 3H11.5C11.7761 3 12 3.22386 12 3.5C12 3.77614 11.7761 4 11.5 4H3.5C3.22386 4 3 3.77614 3 3.5ZM3.5 5C3.22386 5 3 5.22386 3 5.5C3 5.77614 3.22386 6 3.5 6H4V12C4 12.5523 4.44772 13 5 13H10C10.5523 13 11 12.5523 11 12V6H11.5C11.7761 6 12 5.77614 12 5.5C12 5.22386 11.7761 5 11.5 5H3.5ZM5 6H10V12H5V6Z"
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+                    <Trash2 className="h-4 w-4 text-white" />
                   </Button>
                 </div>
               </div>
@@ -171,10 +199,25 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                       title={`Check out: ${item.title}`}
                       text={item.content}
                       onClick={(e) => e.stopPropagation()}
+                      itemId={item.id}
                       aria-label="Share item"
                     >
                       <Share2 className="h-4 w-4" />
                     </ShareButton>
+                    
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 w-8 p-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(item);
+                      }}
+                      aria-label="Download item"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    
                     <Button
                       size="sm"
                       variant="outline"
@@ -185,8 +228,9 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                       }}
                       aria-label="Edit item"
                     >
-                      <FileText className="h-4 w-4" />
+                      <Pencil className="h-4 w-4" />
                     </Button>
+                    
                     <Button
                       size="sm"
                       variant="destructive"
@@ -197,19 +241,7 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                       }}
                       aria-label="Delete item"
                     >
-                      <svg
-                        width="15"
-                        height="15"
-                        viewBox="0 0 15 15"
-                        fill="currentColor"
-                        className="h-4 w-4"
-                      >
-                        <path
-                          d="M5.5 1C5.22386 1 5 1.22386 5 1.5C5 1.77614 5.22386 2 5.5 2H9.5C9.77614 2 10 1.77614 10 1.5C10 1.22386 9.77614 1 9.5 1H5.5ZM3 3.5C3 3.22386 3.22386 3 3.5 3H11.5C11.7761 3 12 3.22386 12 3.5C12 3.77614 11.7761 4 11.5 4H3.5C3.22386 4 3 3.77614 3 3.5ZM3.5 5C3.22386 5 3 5.22386 3 5.5C3 5.77614 3.22386 6 3.5 6H4V12C4 12.5523 4.44772 13 5 13H10C10.5523 13 11 12.5523 11 12V6H11.5C11.7761 6 12 5.77614 12 5.5C12 5.22386 11.7761 5 11.5 5H3.5ZM5 6H10V12H5V6Z"
-                          fillRule="evenodd"
-                          clipRule="evenodd"
-                        />
-                      </svg>
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
