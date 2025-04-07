@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentItem, DocumentFile, DocumentCategory } from '@/components/features/documents/types';
@@ -293,7 +294,6 @@ export function useDocuments() {
   useEffect(() => {
     try {
       // Don't save during the initial render to avoid unnecessary writes
-      // Using a ref to track initial render would be better, but keeping it simple
       saveToLocalStorage('documentCategoryItems', categoryItems);
       console.log('[DEBUG] useDocuments - Saved categoryItems to localStorage', categoryItems.length);
     } catch (error) {
@@ -394,7 +394,7 @@ export function useDocuments() {
     ['style', 'recipes', 'travel', 'fitness', 'events', 'other', 'files'] as DocumentCategory[],
   []);
 
-  // Add or update document item - FIX: Removed inline localStorage saving
+  // Add or update document item - Using immutable state updates
   const handleAddOrUpdateItem = useCallback((item: any, editingItem: DocumentItem | null = null) => {
     try {
       const now = new Date();
@@ -403,6 +403,7 @@ export function useDocuments() {
         // Update existing item with immutable update
         setCategoryItems(prevItems => {
           try {
+            // Create a new array with the updated item
             const updated = prevItems.map(existingItem => 
               existingItem.id === editingItem.id 
                 ? {
@@ -460,7 +461,7 @@ export function useDocuments() {
     }
   }, []);
 
-  // Delete document item - FIX: Removed inline localStorage saving
+  // Delete document item - Using immutable state updates
   const handleDeleteItem = useCallback((id: string) => {
     try {
       setCategoryItems(prevItems => prevItems.filter(item => item.id !== id));
@@ -470,7 +471,7 @@ export function useDocuments() {
     }
   }, []);
 
-  // Add or update file - FIX: Removed inline localStorage saving
+  // Add or update file - Using immutable state updates
   const handleAddOrUpdateFile = useCallback((file: DocumentFile, isEditing: boolean = false) => {
     try {
       if (isEditing) {
@@ -484,7 +485,7 @@ export function useDocuments() {
     }
   }, []);
 
-  // Delete file - FIX: Removed inline localStorage saving
+  // Delete file - Using immutable state updates
   const handleDeleteFile = useCallback((id: string) => {
     try {
       setFiles(prevFiles => prevFiles.filter(file => file.id !== id));

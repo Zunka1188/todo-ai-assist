@@ -111,7 +111,7 @@ const DocumentsPage = () => {
     setFullScreenPreviewItem(item);
   }, []);
 
-  // Filter items based on current tab and search term - VERIFICATION: Add console log
+  // Filter items based on current tab and search term - properly memoized
   const filteredItems = useMemo(() => {
     console.log("filteredItems re-rendered");
     return filterDocuments(categoryItems, activeTab, searchTerm);
