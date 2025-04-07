@@ -1,8 +1,10 @@
+
 import React, { useState } from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Share2, Copy, Instagram, MessageSquare, Link as LinkIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useShareableLinks } from '@/hooks/useShareableLinks';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +18,9 @@ interface ShareButtonProps extends Omit<ButtonProps, 'onError'> {
   url?: string;
   file?: File | null;
   fileUrl?: string;
+  itemId?: string;
+  itemType?: 'document' | 'shopping' | 'todo' | 'note';
+  expiresInDays?: number;
   children?: React.ReactNode;
   onSuccess?: () => void;
   onError?: (error: Error) => void;
@@ -29,6 +34,9 @@ const ShareButton: React.FC<ShareButtonProps> = ({
   url,
   file,
   fileUrl,
+  itemId,
+  itemType = 'document',
+  expiresInDays = 7,
   children,
   onSuccess,
   onError,
@@ -38,8 +46,12 @@ const ShareButton: React.FC<ShareButtonProps> = ({
 }) => {
   const { isMobile } = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
+  const { createShareableLink } = useShareableLinks();
   
-  const shareUrl = url || window.location.href;
+  // Generate a shareable URL using our system if itemId is provided
+  const shareUrl = itemId
+    ? createShareableLink(itemId, itemType, expiresInDays)
+    : (url || window.location.href);
   
   const isToDoAppInstalled = window.navigator.userAgent.includes('ToDoApp');
 

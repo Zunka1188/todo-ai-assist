@@ -1,12 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Loader2, Check, Maximize2, Minimize2, X, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { analyzeImage, AnalysisResult, getFileType } from '@/utils/imageAnalysis';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import FilePreview, { getFileTypeFromName } from './FilePreview';
+import { analyzeImage, AnalysisResult, getFileType } from '@/utils/imageAnalysis';
+import { useDocumentClassification } from '@/hooks/useDocumentClassification';
 
 interface ImageAnalysisModalProps {
   imageData: string | null;
@@ -30,7 +31,9 @@ const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
   const [fileType, setFileType] = useState<'image' | 'pdf' | 'document' | 'unknown'>('unknown');
   const [textPreview, setTextPreview] = useState<string | null>(null);
   
-  React.useEffect(() => {
+  const { classifyDocument, isAnalyzing } = useDocumentClassification();
+  
+  useEffect(() => {
     if (isOpen && imageData && !analyzing && !completed) {
       // Determine file type
       const type = getFileType(imageData, fileName);
@@ -61,8 +64,26 @@ const ImageAnalysisModal: React.FC<ImageAnalysisModalProps> = ({
     }, 200);
     
     try {
-      // Perform actual analysis
-      const result = await analyzeImage(imageData, fileName);
+      // Try enhanced document classification first
+      const docResult = await classifyDocument(imageData, fileName);
+      
+      let result: AnalysisResult;
+      
+      if (docResult) {
+        // Convert document classification result to analysis result
+        result = {
+          title: docResult.title,
+          category: docResult.category,
+          tags: docResult.tags,
+          description: docResult.description,
+          date: docResult.date,
+          extractedText: docResult.extractedText,
+          metadata: docResult.metadata
+        };
+      } else {
+        // Fall back to standard image analysis
+        result = await analyzeImage(imageData, fileName);
+      }
       
       // If text was extracted, show it
       if (result.extractedText) {

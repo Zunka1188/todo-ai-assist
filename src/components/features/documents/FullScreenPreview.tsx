@@ -1,159 +1,147 @@
 
 import React, { useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { X, ExternalLink, Download, ArrowLeft, Loader2 } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { X, Share2, Pencil, Trash2, Download } from 'lucide-react';
+import { DocumentFile, DocumentItem } from './types';
 import FilePreview from './FilePreview';
-import { DocumentItem, DocumentFile } from './types';
 import ShareButton from '@/components/features/shared/ShareButton';
-import { useToast } from '@/hooks/use-toast';
 
 interface FullScreenPreviewProps {
   item: DocumentItem | DocumentFile | null;
   onClose: () => void;
+  onEdit?: (item: DocumentItem | DocumentFile) => void;
+  onDelete?: (id: string) => void;
+  readOnly?: boolean;
 }
 
-const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) => {
-  const { isMobile } = useIsMobile();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  
-  if (!item) return null;
+const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ 
+  item, 
+  onClose,
+  onEdit,
+  onDelete,
+  readOnly = false
+}) => {
+  const [showFullScreen, setShowFullScreen] = useState(false);
 
+  if (!item) return null;
+  
+  // Determine if we're dealing with a DocumentItem or DocumentFile
   const isDocumentItem = 'type' in item;
   
+  // Get the file URL or content to display
   const fileUrl = isDocumentItem 
-    ? (item.type === 'image' ? item.content : item.file || '') 
-    : (item.fileUrl || '');
-    
-  const fileType = isDocumentItem
-    ? (item.type === 'image' ? 'image' : item.fileType || '')
-    : (item.fileType || '');
-    
-  const title = item.title || 'Document Preview';
+    ? (item.type === 'image' ? item.content : item.file) 
+    : item.fileUrl;
   
-  const handleDownload = async () => {
-    try {
-      setIsLoading(true);
-      
-      // For data URLs or blob URLs, create a download link
-      const a = document.createElement('a');
-      a.href = fileUrl;
-      a.download = title || 'download';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      
-      setIsLoading(false);
-      
-      toast({
-        title: "Download Started",
-        description: "Your file is being downloaded"
-      });
-    } catch (error) {
-      console.error("Download error:", error);
-      setIsLoading(false);
-      toast({
-        title: "Download Error",
-        description: "Failed to download the file. Please try again.",
-        variant: "destructive"
-      });
-    }
+  // Document type, either from the DocumentItem or DocumentFile
+  const fileType = isDocumentItem 
+    ? (item.type === 'image' ? 'image' : item.fileType || 'unknown')
+    : item.fileType;
+    
+  // Title of the document
+  const title = item.title;
+  
+  const handleDownload = () => {
+    if (!fileUrl) return;
+    
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = title || 'document';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
-  const content = (
-    <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold truncate max-w-[70%]">{title}</h2>
-        <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-500">
-          <X className="h-5 w-5" />
-        </Button>
-      </div>
-      
-      <div className="flex-1 overflow-hidden rounded-md border bg-background relative">
-        <FilePreview 
-          file={fileUrl} 
-          fileName={isDocumentItem ? (item.fileName || title) : title} 
-          fileType={fileType} 
-          className="w-full h-full object-contain"
-        />
-      </div>
-      
-      <div className="flex justify-end space-x-2 mt-4">
-        {fileUrl && !fileUrl.startsWith('data:') && (
-          <>
-            <Button variant="outline" size="sm" asChild>
-              <a href={fileUrl} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Open
-              </a>
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleDownload}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4 mr-2" />
-              )}
-              Download
-            </Button>
-          </>
-        )}
-        <ShareButton 
-          title={`Check out this ${fileType || 'document'}: ${title}`}
-          text={isDocumentItem ? item.content || undefined : undefined}
-          fileUrl={fileUrl}
-          size="sm"
-          variant="outline"
-          className="gap-2"
-          showOptions={true}
-        >
-          Share
-        </ShareButton>
-        <Button onClick={onClose} variant="default" size="sm">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Close
-        </Button>
-      </div>
-    </div>
-  );
-
-  if (isMobile) {
-    return (
-      <Drawer 
-        open={!!item} 
-        onOpenChange={(open) => {
-          if (!open) onClose();
-        }} 
-        shouldScaleBackground={false}
-        dismissible={false}
-      >
-        <DrawerContent className="px-4 pb-6 pt-4 h-[85vh]">
-          {content}
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
   return (
-    <Dialog 
-      open={!!item} 
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }} 
-      modal={true}
-    >
+    <Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
       <DialogContent 
-        className="sm:max-w-[600px] p-6 max-h-[85vh]"
-        preventNavigateOnClose={true}
+        className="p-0 max-w-4xl flex items-center justify-center" 
+        style={{ 
+          minHeight: '50vh', 
+          maxHeight: '90vh'
+        }}
       >
-        {content}
+        <div className="w-full h-full flex flex-col">
+          {/* Header */}
+          <div className="flex justify-between items-center p-4 border-b">
+            <h3 className="font-medium truncate">{title}</h3>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onClose}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </Button>
+          </div>
+          
+          {/* Content */}
+          <div className="flex-1 overflow-auto flex items-center justify-center p-4">
+            <FilePreview 
+              file={fileUrl || ''} 
+              fileName={title}
+              fileType={fileType}
+              className="max-w-full max-h-[70vh] object-contain"
+            />
+          </div>
+          
+          {/* Action buttons */}
+          <div className="p-4 border-t flex justify-between">
+            <div className="flex gap-2">
+              <ShareButton
+                title={`Check out: ${title}`}
+                text={title}
+                fileUrl={fileUrl || undefined}
+                variant="outline"
+                size="sm"
+                showOptions={true}
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </ShareButton>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownload}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download
+              </Button>
+            </div>
+            
+            <div className="flex gap-2">
+              {!readOnly && onEdit && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    onClose();
+                    if (onEdit) onEdit(item);
+                  }}
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              )}
+              
+              {!readOnly && onDelete && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    if (onDelete) onDelete(item.id);
+                    onClose();
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
