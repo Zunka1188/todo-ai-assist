@@ -7,7 +7,6 @@ import CalendarPage from '@/pages/CalendarPage';
 import ShoppingPage from '@/pages/ShoppingPage';
 import TasksPage from '@/pages/TasksPage';
 import DocumentsPage from '@/pages/DocumentsPage';
-import DocumentsSubtabPage from '@/pages/DocumentsSubtabPage';
 import SettingsPage from '@/pages/SettingsPage';
 import NotFound from '@/pages/NotFound';
 import TroubleshootPage from '@/pages/TroubleshootPage';
@@ -24,7 +23,7 @@ const Router = () => {
       <Route path="/shopping" element={<ShoppingPage />} />
       <Route path="/tasks" element={<TasksPage />} />
       <Route path="/documents" element={<DocumentsPage />} />
-      <Route path="/documents/:subtab" element={<DocumentsSubtabPage />} />
+      <Route path="/documents/:subtab" element={<DocumentsPage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/troubleshoot" element={<TroubleshootPage />} />
       <Route path="/ai-models" element={<AIModelsPage />} />

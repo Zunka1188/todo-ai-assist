@@ -11,7 +11,6 @@ import ShoppingPage from "./pages/ShoppingPage";
 import CalendarPage from "./pages/CalendarPage";
 import ScanPage from "./pages/ScanPage";
 import DocumentsPage from "./pages/DocumentsPage";
-import DocumentsSubtabPage from "./pages/DocumentsSubtabPage";
 import UploadPage from "./pages/UploadPage";
 import TasksPage from "./pages/TasksPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -43,7 +42,7 @@ const App = () => (
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/scan" element={<ScanPage />} />
               <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/documents/:subtab" element={<DocumentsSubtabPage />} />
+              <Route path="/documents/:subtab" element={<DocumentsPage />} />
               <Route path="/upload" element={<UploadPage />} />
               <Route path="/tasks" element={<TasksPage />} />
               <Route path="/settings" element={<SettingsPage />} />
