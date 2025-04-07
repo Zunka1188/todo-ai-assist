@@ -148,12 +148,12 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
 
     if (!fileUrl) return;
     
-    const a = document.createElement('a');
+    const a = window.document.createElement('a');
     a.href = fileUrl;
     a.download = fileUrl.split('/').pop() || 'download';
-    document.body.appendChild(a);
+    window.document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
+    window.document.body.removeChild(a);
     
     toast.success('Download started');
     setIsOpen(false);
@@ -193,7 +193,6 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
   
   const handleShare = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    e.preventDefault();
     
     if (onClick) {
       onClick(e);
@@ -211,6 +210,17 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
       } else {
         toast.error('Sharing not supported on this device');
       }
+    }
+  };
+
+  // For dropdown menu version
+  const handleDropdownTriggerClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    // No need to toggle isOpen here as it's handled by the DropdownMenu onOpenChange
+    
+    if (onClick) {
+      onClick(e);
     }
   };
 
@@ -245,10 +255,7 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
               <Button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                }}
+                onClick={handleDropdownTriggerClick}
                 size="icon" 
                 variant="outline"
                 className={className}

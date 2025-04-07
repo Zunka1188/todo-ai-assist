@@ -50,12 +50,13 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
       return;
     }
     
-    const a = document.createElement('a');
-    a.href = document.fileUrl;
-    a.download = document.title || 'download';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    // Use window.document to avoid confusion with the component's document prop
+    const downloadLink = window.document.createElement('a');
+    downloadLink.href = document.fileUrl;
+    downloadLink.download = document.title || 'download';
+    window.document.body.appendChild(downloadLink);
+    downloadLink.click();
+    window.document.body.removeChild(downloadLink);
     
     toast.success(`Downloading: ${document.title}`);
   };
