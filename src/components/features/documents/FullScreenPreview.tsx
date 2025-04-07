@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { X, Download } from 'lucide-react';
 import { DocumentItem, DocumentFile } from './types';
 import FilePreview from './FilePreview';
+import { toast } from 'sonner';
 
 interface FullScreenPreviewProps {
   item: DocumentItem | DocumentFile | null;
@@ -38,14 +39,20 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   }
   
   const handleDownload = () => {
-    if (!fileUrl) return;
+    if (!fileUrl) {
+      toast.error("No file available to download");
+      return;
+    }
     
-    const a = document.createElement('a');
-    a.href = fileUrl;
-    a.download = `${title || 'document'}.${fileType || 'pdf'}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    // Use window.document to avoid confusion with global document
+    const downloadLink = window.document.createElement('a');
+    downloadLink.href = fileUrl;
+    downloadLink.download = title || 'document';
+    window.document.body.appendChild(downloadLink);
+    downloadLink.click();
+    window.document.body.removeChild(downloadLink);
+    
+    toast.success(`Downloading: ${title}`);
   };
 
   return (

@@ -146,14 +146,17 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
       return;
     }
 
-    if (!fileUrl) return;
+    if (!fileUrl) {
+      toast.error("No file available to download");
+      return;
+    }
     
-    const a = window.document.createElement('a');
-    a.href = fileUrl;
-    a.download = fileUrl.split('/').pop() || 'download';
-    window.document.body.appendChild(a);
-    a.click();
-    window.document.body.removeChild(a);
+    const downloadLink = window.document.createElement('a');
+    downloadLink.href = fileUrl;
+    downloadLink.download = fileUrl.split('/').pop() || 'download';
+    window.document.body.appendChild(downloadLink);
+    downloadLink.click();
+    window.document.body.removeChild(downloadLink);
     
     toast.success('Download started');
     setIsOpen(false);
