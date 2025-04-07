@@ -23,7 +23,6 @@ const Router = () => {
       <Route path="/shopping" element={<ShoppingPage />} />
       <Route path="/tasks" element={<TasksPage />} />
       <Route path="/documents" element={<DocumentsPage />} />
-      <Route path="/documents/:subtab" element={<DocumentsPage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/troubleshoot" element={<TroubleshootPage />} />
       <Route path="/ai-models" element={<AIModelsPage />} />

@@ -13,13 +13,7 @@ const BottomNavigation = () => {
   const { isMobile } = useIsMobile();
   const { theme } = useTheme();
 
-  const isActive = (path: string) => {
-    // Special case for documents with subtabs
-    if (path === '/documents' && currentPath.startsWith('/documents/')) {
-      return true;
-    }
-    return currentPath === path;
-  };
+  const isActive = (path: string) => currentPath === path;
 
   const navItems = [
     { path: '/', icon: Home, label: 'Home', action: () => navigate('/') },

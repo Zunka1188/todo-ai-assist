@@ -42,7 +42,6 @@ const App = () => (
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/scan" element={<ScanPage />} />
               <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/documents/:subtab" element={<DocumentsPage />} />
               <Route path="/upload" element={<UploadPage />} />
               <Route path="/tasks" element={<TasksPage />} />
               <Route path="/settings" element={<SettingsPage />} />

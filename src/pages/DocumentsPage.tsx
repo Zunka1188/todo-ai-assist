@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import React, { useState, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AddDocumentDialog from '@/components/features/documents/AddDocumentDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,8 +15,6 @@ import { toast } from 'sonner';
 
 const DocumentsPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const params = useParams();
   const { isMobile } = useIsMobile();
   
   // Fetch documents data
@@ -36,36 +34,15 @@ const DocumentsPage = () => {
   // Local state
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  
-  // Initialize activeTab state from URL params
-  const [activeTab, setActiveTab] = useState<DocumentCategory>(() => {
-    const subtab = params.subtab;
-    return (subtab && CATEGORIES.includes(subtab as DocumentCategory)) 
-      ? subtab as DocumentCategory 
-      : 'style';
-  });
-  
-  // Update activeTab when URL changes, with a guard to prevent loops
-  useEffect(() => {
-    const subtab = params.subtab;
-    const newTab = (subtab && CATEGORIES.includes(subtab as DocumentCategory))
-      ? subtab as DocumentCategory
-      : 'style';
-      
-    if (newTab !== activeTab) {
-      setActiveTab(newTab);
-    }
-  }, [params.subtab, CATEGORIES, activeTab]);
-
+  const [activeTab, setActiveTab] = useState<DocumentCategory>('style');
   const [editingItem, setEditingItem] = useState<DocumentItem | null>(null);
   const [fullScreenPreviewItem, setFullScreenPreviewItem] = useState<DocumentItem | DocumentFile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Update URL when tab changes
+  // Handle tab change without URL updates
   const handleTabChange = useCallback((value: string) => {
     setActiveTab(value as DocumentCategory);
-    navigate(`/documents/${value}`, { replace: true });
-  }, [navigate]);
+  }, []);
 
   // Open add dialog with optional item to edit
   const handleOpenAddDialog = useCallback((editing: DocumentItem | null = null) => {
