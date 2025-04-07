@@ -390,6 +390,7 @@ export const detectLanguage = (text: string): string => {
   return detectedLanguage;
 };
 
+// Export the main image analysis function
 export const analyzeImage = async (imageData: string, fileName?: string): Promise<AnalysisResult> => {
   // Determine file type
   const fileType = getFileType(imageData, fileName);

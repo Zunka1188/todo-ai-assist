@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -50,6 +51,9 @@ const DocumentList: React.FC<DocumentListProps> = ({
   // Handle dialog closure without navigation
   const handleDialogOpenChange = (open: boolean) => {
     setIsAddDialogOpen(open);
+    if (!open) {
+      setEditingItem(null);
+    }
   };
 
   const handleFullScreenClose = () => {
@@ -152,10 +156,12 @@ const DocumentList: React.FC<DocumentListProps> = ({
         } : null}
       />
       
-      <FullScreenPreview
-        item={fullScreenItem}
-        onClose={handleFullScreenClose}
-      />
+      {fullScreenItem && (
+        <FullScreenPreview
+          item={fullScreenItem}
+          onClose={handleFullScreenClose}
+        />
+      )}
     </div>
   );
 };
