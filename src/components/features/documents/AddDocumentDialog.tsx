@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, X, Upload, Loader2, Save, Maximize2, Minimize2, File as FileIcon } from 'lucide-react';
+import { Plus, X, Upload, Loader2, Save, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
@@ -71,6 +71,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [fullScreenPreview, setFullScreenPreview] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -78,6 +79,8 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   // Reset form when dialog opens/closes or when editing mode changes
   useEffect(() => {
     if (open) {
+      setError(null);
+      
       if (isEditing && editItem) {
         setTitle(editItem.title);
         setDescription(editItem.description || '');
@@ -101,8 +104,10 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     if (!title.trim() && !file) {
+      setError("Please enter a title or add an image/file.");
       toast({
         title: "Input Required",
         description: "Please enter a title or add an image/file.",
@@ -126,47 +131,82 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       fileType: fileType || undefined,
     };
 
-    onAdd(newItem);
-    onOpenChange(false);
+    try {
+      onAdd(newItem);
+      onOpenChange(false);
 
-    toast({
-      title: isEditing ? "Document updated" : "Document added",
-      description: isEditing 
-        ? `${newItem.title} has been updated successfully` 
-        : `${newItem.title} has been added to ${getCategoryDisplayName(category)}`,
-    });
+      toast({
+        title: isEditing ? "Document updated" : "Document added",
+        description: isEditing 
+          ? `${newItem.title} has been updated successfully` 
+          : `${newItem.title} has been added to ${getCategoryDisplayName(category)}`,
+      });
+    } catch (err) {
+      console.error("Error saving document:", err);
+      setError("Failed to save document. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to save document. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setIsUploading(true);
-      setFileName(selectedFile.name);
-      
-      const detectedFileType = getFileTypeFromName(selectedFile.name);
-      setFileType(detectedFileType);
-      
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          const fileData = event.target.result as string;
-          setFile(fileData);
-          setIsUploading(false);
-          
-          // Trigger AI analysis for images, PDFs and documents
-          if (['image', 'pdf', 'document'].includes(detectedFileType)) {
-            setShowAnalysisModal(true);
-          }
-        }
-      };
-      reader.readAsDataURL(selectedFile);
+    setError(null);
+    
+    if (!selectedFile) return;
+    
+    // Add file size validation
+    if (selectedFile.size > 10 * 1024 * 1024) { // 10 MB limit
+      setError("File size exceeds 10MB limit");
+      toast({
+        title: "File too large",
+        description: "The selected file exceeds the 10MB limit.",
+        variant: "destructive"
+      });
+      return;
     }
+    
+    setIsUploading(true);
+    setFileName(selectedFile.name);
+    
+    const detectedFileType = getFileTypeFromName(selectedFile.name);
+    setFileType(detectedFileType);
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        const fileData = event.target.result as string;
+        setFile(fileData);
+        setIsUploading(false);
+        
+        // Trigger AI analysis for images, PDFs and documents
+        if (['image', 'pdf', 'document'].includes(detectedFileType)) {
+          setShowAnalysisModal(true);
+        }
+      }
+    };
+    
+    reader.onerror = () => {
+      setIsUploading(false);
+      setError("Failed to read file. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to read file. Please try again.",
+        variant: "destructive"
+      });
+    };
+    
+    reader.readAsDataURL(selectedFile);
   };
 
   const handleRemoveFile = () => {
     setFile(null);
     setFileName('');
     setFileType('');
+    setError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -242,6 +282,12 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   const dialogContent = (
     <>
       <div className={isMobile ? "pb-4 space-y-4" : "space-y-4"}>
+        {error && (
+          <div className="bg-destructive/10 text-destructive px-4 py-2 rounded-md text-sm">
+            {error}
+          </div>
+        )}
+        
         <div className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="title">Title*</Label>
@@ -281,7 +327,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Supported files: images, PDFs, documents, spreadsheets, and more
+                Supported files: images, PDFs, documents, spreadsheets, and more (max 10MB)
               </p>
             </div>
             
@@ -385,8 +431,8 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
               </Button>
               <Button 
                 onClick={handleSubmit}
-                className="w-full"
-                disabled={!title.trim() && !file}
+                className="w-full bg-todo-purple hover:bg-todo-purple/90"
+                disabled={isUploading || (!title.trim() && !file)}
               >
                 {isEditing ? "Save Changes" : "Add Document"}
               </Button>
@@ -424,7 +470,7 @@ const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
                     <Button 
                       type="submit" 
                       className="bg-todo-purple hover:bg-todo-purple/90"
-                      disabled={!title.trim() && !file}
+                      disabled={isUploading || (!title.trim() && !file)}
                     >
                       {isEditing ? (
                         <>

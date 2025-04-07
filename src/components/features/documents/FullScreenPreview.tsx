@@ -1,13 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { X, ExternalLink, Download, ArrowLeft } from 'lucide-react';
+import { X, ExternalLink, Download, ArrowLeft, Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import FilePreview from './FilePreview';
 import { DocumentItem, DocumentFile } from './types';
 import ShareButton from '@/components/features/shared/ShareButton';
+import { useToast } from '@/hooks/use-toast';
 
 interface FullScreenPreviewProps {
   item: DocumentItem | DocumentFile | null;
@@ -16,6 +17,8 @@ interface FullScreenPreviewProps {
 
 const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) => {
   const { isMobile } = useIsMobile();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   
   if (!item) return null;
 
@@ -30,17 +33,41 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) 
     : (item.fileType || '');
     
   const title = item.title || 'Document Preview';
+  
+  const handleDownload = async () => {
+    try {
+      setIsLoading(true);
+      
+      // For data URLs or blob URLs, create a download link
+      const a = document.createElement('a');
+      a.href = fileUrl;
+      a.download = title || 'download';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Download error:", error);
+      setIsLoading(false);
+      toast({
+        title: "Download Error",
+        description: "Failed to download the file. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const content = (
     <div className="flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">{title}</h2>
+        <h2 className="text-xl font-semibold truncate max-w-[70%]">{title}</h2>
         <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-500">
           <X className="h-5 w-5" />
         </Button>
       </div>
       
-      <div className="flex-1 overflow-hidden rounded-md border bg-background">
+      <div className="flex-1 overflow-hidden rounded-md border bg-background relative">
         <FilePreview 
           file={fileUrl} 
           fileName={isDocumentItem ? (item.fileName || title) : title} 
@@ -58,11 +85,18 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) 
                 Open
               </a>
             </Button>
-            <Button variant="outline" size="sm" asChild>
-              <a href={fileUrl} download>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleDownload}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
                 <Download className="h-4 w-4 mr-2" />
-                Download
-              </a>
+              )}
+              Download
             </Button>
           </>
         )}

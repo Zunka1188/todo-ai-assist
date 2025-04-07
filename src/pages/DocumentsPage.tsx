@@ -12,12 +12,14 @@ import DocumentList from '@/components/features/documents/DocumentList';
 import PageHeader from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { ChefHat, Dumbbell, FileArchive, Plane, Calendar, FileText, Shirt } from 'lucide-react';
-import AttachmentOptionsDialog from '@/components/features/shopping/AttachmentOptionsDialog';
 import { getCategoryIcon } from '@/components/features/documents/utils/iconHelpers';
+import { useToast } from '@/hooks/use-toast';
 
 const DocumentsPage = () => {
   const navigate = useNavigate();
   const { isMobile } = useIsMobile();
+  const { toast } = useToast();
+  
   const {
     categoryItems,
     files,
@@ -33,10 +35,10 @@ const DocumentsPage = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isOptionsDialogOpen, setIsOptionsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DocumentCategory>('style');
   const [editingItem, setEditingItem] = useState<DocumentItem | null>(null);
   const [fullScreenPreviewItem, setFullScreenPreviewItem] = useState<DocumentItem | DocumentFile | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const currentCategory = activeTab;
 
@@ -51,9 +53,43 @@ const DocumentsPage = () => {
   };
 
   const handleAddItem = (item: any) => {
-    handleAddOrUpdateItem(item, editingItem);
-    setIsAddDialogOpen(false);
-    setEditingItem(null);
+    try {
+      setIsLoading(true);
+      handleAddOrUpdateItem(item, editingItem);
+      setIsAddDialogOpen(false);
+      setEditingItem(null);
+      
+      toast({
+        title: editingItem ? "Document Updated" : "Document Added",
+        description: `${item.title} has been ${editingItem ? 'updated' : 'added'} successfully.`
+      });
+    } catch (error) {
+      console.error("Error handling document:", error);
+      toast({
+        title: "Error",
+        description: "Failed to process document. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteItemWithConfirmation = (id: string) => {
+    try {
+      handleDeleteItem(id);
+      toast({
+        title: "Document Deleted",
+        description: "The document has been removed successfully."
+      });
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete document. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleViewFullScreen = (item: DocumentItem | DocumentFile) => {
@@ -65,6 +101,10 @@ const DocumentsPage = () => {
 
   const handleDialogClose = (open: boolean) => {
     setIsAddDialogOpen(open);
+    if (!open) {
+      // Reset editing state if dialog is closed
+      setEditingItem(null);
+    }
   };
 
   const handleFullScreenClose = () => {
@@ -119,7 +159,7 @@ const DocumentsPage = () => {
             <DocumentItemsList 
               items={filteredItems}
               onEdit={handleOpenAddDialog}
-              onDelete={handleDeleteItem}
+              onDelete={handleDeleteItemWithConfirmation}
               onViewImage={handleViewFullScreen}
               formatDateRelative={formatDateRelative}
             />
