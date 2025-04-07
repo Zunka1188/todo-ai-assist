@@ -1,4 +1,3 @@
-
 // Enhanced AI analysis for various file types including images and documents
 // In a production app, this would connect to real AI services for OCR, document parsing, etc.
 
@@ -197,14 +196,14 @@ function mockDocumentAnalysis(hash: number, text: string, fileName?: string): An
   
   // For documents, analyze the file extension to determine more relevant category
   let category: DocumentCategory = 'other';
-  let tags: string[] = ['document', 'work'];
+  let tags: string[] = ['document', 'files'];
   
   if (fileName) {
     const extension = fileName.split('.').pop()?.toLowerCase();
     
     if (['xlsx', 'xls', 'csv'].includes(extension || '')) {
       category = 'other';
-      tags = ['spreadsheet', 'data', 'work', 'financial'];
+      tags = ['spreadsheet', 'data', 'files', 'financial'];
     } else if (['pptx', 'ppt'].includes(extension || '')) {
       category = 'events';
       tags = ['presentation', 'slides', 'meeting', 'event'];
@@ -220,7 +219,7 @@ function mockDocumentAnalysis(hash: number, text: string, fileName?: string): An
         case 'recipes': tags = ['recipe', 'cooking', 'document', 'instructions']; break;
         case 'travel': tags = ['travel', 'itinerary', 'document', 'destination']; break;
         case 'fitness': tags = ['fitness', 'workout', 'document', 'health']; break;
-        default: tags = ['document', 'notes', 'work', 'business'];
+        default: tags = ['document', 'notes', 'files', 'business'];
       }
     }
   }

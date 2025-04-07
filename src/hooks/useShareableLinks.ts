@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 interface ShareableLink {
   id: string;
   itemId: string;
-  itemType: 'document' | 'shopping' | 'todo' | 'note';
+  itemType: 'document' | 'shopping' | 'todo' | 'note' | 'calendar';
   created: string;
   expires: string;
   accessCount: number;
@@ -49,7 +49,7 @@ export const useShareableLinks = () => {
    */
   const createShareableLink = (
     itemId: string, 
-    itemType: 'document' | 'shopping' | 'todo' | 'note',
+    itemType: 'document' | 'shopping' | 'todo' | 'note' | 'calendar',
     expiresInDays: number = 7
   ): string => {
     const id = generateLinkId();
@@ -147,6 +147,13 @@ export const useShareableLinks = () => {
   };
 
   /**
+   * Get all links for a specific item, including revoked and expired ones
+   */
+  const getAllLinksForItem = (itemId: string): ShareableLink[] => {
+    return links.filter(link => link.itemId === itemId);
+  };
+
+  /**
    * Get link details from a link ID
    */
   const getLinkDetails = (linkId: string): ShareableLink | null => {
@@ -239,6 +246,7 @@ export const useShareableLinks = () => {
     extendLinkExpiration,
     getAllActiveLinks,
     getAllLinks,
+    getAllLinksForItem,
     links
   };
 };

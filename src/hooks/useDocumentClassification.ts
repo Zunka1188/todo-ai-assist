@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useDocumentClassification as useDetectionEngineDocClassification } from '@/utils/detectionEngine/hooks';
 import { DocumentResult } from '@/utils/detectionEngine/types';
@@ -86,8 +85,6 @@ export const useDocumentClassification = () => {
       'resume': 'other',
       'flyer': 'events',
       'letter': 'other',
-      'document': 'other',
-      // Add more mappings based on AI recognition logic
       'clothing': 'style',
       'outfit': 'style',
       'fashion': 'style',
@@ -97,6 +94,7 @@ export const useDocumentClassification = () => {
       'travel': 'travel',
       'vacation': 'travel',
       'landscape': 'travel',
+      'destination': 'travel',
       'workout': 'fitness',
       'exercise': 'fitness',
       'fitness': 'fitness',

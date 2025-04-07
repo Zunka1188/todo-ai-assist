@@ -8,14 +8,16 @@ import PageLayout from '@/components/layout/PageLayout';
 import PageHeader from '@/components/ui/page-header';
 import { useTheme } from '@/hooks/use-theme';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import InviteDialog from '@/components/features/calendar/dialogs/InviteDialog';
 
 const CalendarPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day' | 'agenda'>('day');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [showFileUploader, setShowFileUploader] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const { isMobile } = useIsMobile();
   const { theme } = useTheme();
   const { toast } = useToast();
@@ -44,6 +46,19 @@ const CalendarPage = () => {
     });
   };
 
+  // Handle sharing the calendar
+  const handleShareCalendar = () => {
+    setInviteDialogOpen(true);
+  };
+
+  // Handle invitation sent successfully
+  const handleInviteSent = (link: string) => {
+    toast({
+      title: "Invitation Link Generated",
+      description: "The link has been created and is ready to share"
+    });
+  };
+
   return (
     <PageLayout 
       maxWidth="full" 
@@ -59,14 +74,24 @@ const CalendarPage = () => {
           showBackButton={true}
           backTo="/"
           rightContent={
-            <Button 
-              onClick={handleAddItem} 
-              size={isMobile ? "sm" : "default"}
-              className="bg-todo-purple hover:bg-todo-purple/90 text-white"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              {isMobile ? "Add" : "Add Event"}
-            </Button>
+            <div className="flex space-x-2">
+              <Button 
+                onClick={handleShareCalendar} 
+                size={isMobile ? "sm" : "default"}
+                variant="outline"
+              >
+                <UserPlus className="h-4 w-4 mr-1" />
+                {isMobile ? "" : "Invite"}
+              </Button>
+              <Button 
+                onClick={handleAddItem} 
+                size={isMobile ? "sm" : "default"}
+                className="bg-todo-purple hover:bg-todo-purple/90 text-white"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                {isMobile ? "Add" : "Add Event"}
+              </Button>
+            </div>
           }
         />
 
@@ -102,6 +127,13 @@ const CalendarPage = () => {
           />
         </div>
       </div>
+
+      {/* Invite Dialog */}
+      <InviteDialog 
+        isOpen={inviteDialogOpen}
+        setIsOpen={setInviteDialogOpen}
+        onShareLink={handleInviteSent}
+      />
     </PageLayout>
   );
 };

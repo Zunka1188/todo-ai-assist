@@ -1,4 +1,3 @@
-
 /**
  * Core types for the detection engine
  */
@@ -27,8 +26,19 @@ export type DocumentType =
   | 'resume' 
   | 'flyer' 
   | 'letter' 
-  | 'document' 
-  | 'unknown';
+  | 'document'
+  | 'outfit'
+  | 'clothing'
+  | 'fashion'
+  | 'recipe'
+  | 'food'
+  | 'travel'
+  | 'destination'
+  | 'fitness'
+  | 'workout'
+  | 'exercise'
+  | 'event'
+  | 'party';
 
 // Context types from screenshots
 export type ContextType = 
@@ -148,4 +158,3 @@ export const mapDetectedObjectsFormats = (
     return { name: 'Unknown', confidence: 0 };
   });
 };
-

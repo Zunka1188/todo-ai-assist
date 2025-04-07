@@ -9,12 +9,16 @@ import MonthView from './views/MonthView';
 import WeekView from './views/WeekView';
 import DayView from './views/day-view';
 import AgendaView from './views/AgendaView';
-import EventViewDialog from './dialogs/EventViewDialog';
 import EventFormDialog from './dialogs/EventFormDialog';
 import { useCalendarEvents } from './hooks/useCalendarEvents';
+import { useCalendarSharing } from './hooks/useCalendarSharing';
 import FileUploader from '../scanning/FileUploader';
 import ShareButton from '../shared/ShareButton';
 import FullScreenPreview from '../documents/FullScreenPreview';
+import InviteDialog from './dialogs/InviteDialog';
+import RSVPDialog from './dialogs/RSVPDialog';
+import { Event } from './types/event';
+import EventViewDialogExtension from './dialogs/EventViewDialogExtension';
 
 interface CalendarViewProps {
   viewMode: 'month' | 'week' | 'day' | 'agenda';
@@ -40,6 +44,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const { isMobile } = useIsMobile();
   const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<any>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [rsvpDialogOpen, setRsvpDialogOpen] = useState(false);
+  const [eventToShare, setEventToShare] = useState<Event | null>(null);
   
   const {
     events,
@@ -57,6 +64,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     handleSaveEvent,
     filterEvents
   } = useCalendarEvents();
+  
+  const {
+    shareEvent,
+    recordRSVP
+  } = useCalendarSharing();
   
   const effectiveCreateDialogOpen = isCreateDialogOpen !== undefined ? isCreateDialogOpen : localCreateDialogOpen;
   const effectiveSetCreateDialogOpen = setIsCreateDialogOpen || setLocalCreateDialogOpen;
@@ -93,6 +105,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const handleOpenImagePreview = (event: any) => {
     if (event.image) {
       setPreviewItem({
+        id: event.id,
         title: event.title,
         type: 'image',
         content: event.image,
@@ -100,6 +113,30 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       });
       setIsImagePreviewOpen(true);
     }
+  };
+
+  // Handle sharing an event
+  const handleShareEvent = (event: Event) => {
+    setEventToShare(event);
+    setShareDialogOpen(true);
+  };
+
+  // Handle RSVP for an event
+  const handleRSVP = (event: Event) => {
+    setEventToShare(event);
+    setRsvpDialogOpen(true);
+  };
+
+  // Submit RSVP response
+  const submitRSVP = (status: 'yes' | 'no' | 'maybe', name: string) => {
+    if (!eventToShare) return;
+    recordRSVP(eventToShare.id, name, status);
+  };
+
+  // Handle share link generation
+  const handleShareLink = (link: string) => {
+    console.log("Share link generated:", link);
+    // Additional logic if needed
   };
 
   return (
@@ -126,13 +163,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         onDeleteEvent={handleDeleteEvent}
       />
       
-      <EventViewDialog
+      <EventViewDialogExtension
         isOpen={isViewDialogOpen && !isFileUploaderOpen}
         setIsOpen={setIsViewDialogOpen}
         selectedEvent={selectedEvent}
         onEdit={handleViewToEdit}
         onDelete={handleDeleteEvent}
         onViewImage={handleOpenImagePreview}
+        onShare={handleShareEvent}
+        onRSVP={handleRSVP}
       />
       
       <FullScreenPreview 
@@ -141,6 +180,23 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           setIsImagePreviewOpen(false);
           setPreviewItem(null);
         }}
+        readOnly={false}
+      />
+
+      {/* Share Dialog */}
+      <InviteDialog
+        isOpen={shareDialogOpen}
+        setIsOpen={setShareDialogOpen}
+        event={eventToShare}
+        onShareLink={handleShareLink}
+      />
+      
+      {/* RSVP Dialog */}
+      <RSVPDialog
+        isOpen={rsvpDialogOpen}
+        setIsOpen={setRsvpDialogOpen}
+        event={eventToShare}
+        onRSVP={submitRSVP}
       />
       
       {!isFileUploaderOpen && (
