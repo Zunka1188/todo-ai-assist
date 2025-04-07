@@ -1,3 +1,4 @@
+
 /**
  * Core types for the detection engine
  */

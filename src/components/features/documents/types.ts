@@ -1,5 +1,4 @@
-
-export type DocumentCategory = 'other' | 'style' | 'recipes' | 'travel' | 'fitness' | 'files' | 'events';
+export type DocumentCategory = 'style' | 'recipes' | 'travel' | 'fitness' | 'events' | 'other' | 'files';
 
 export interface DocumentItem {
   id: string;

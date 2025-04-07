@@ -1,358 +1,381 @@
-// Enhanced AI analysis for various file types including images and documents
-// In a production app, this would connect to real AI services for OCR, document parsing, etc.
 
+import { DocumentType } from './detectionEngine/types';
 import { DocumentCategory } from '@/components/features/documents/types';
 
-export interface AnalysisResult {
-  title?: string;
-  category?: DocumentCategory;
-  tags?: string[];
-  description?: string;
-  date?: string;
-  price?: string;
-  metadata?: Record<string, any>;
-  extractedText?: string;
-}
-
-// Get file type from content or extension
-export const getFileType = (fileData: string, fileName?: string): 'image' | 'pdf' | 'document' | 'unknown' => {
-  if (fileData.startsWith('data:image/')) {
-    return 'image';
-  } else if (fileData.startsWith('data:application/pdf')) {
-    return 'pdf';
-  } else if (fileName) {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(extension || '')) {
-      return 'image';
-    } else if (extension === 'pdf') {
-      return 'pdf';
-    } else if (['doc', 'docx', 'txt', 'rtf', 'xlsx', 'xls', 'pptx', 'ppt', 'csv'].includes(extension || '')) {
-      return 'document';
-    }
-  }
-  return 'unknown';
-};
-
-export const analyzeImage = async (fileData: string, fileName?: string): Promise<AnalysisResult> => {
-  console.log('Analyzing file...', fileName || 'unnamed file', fileData.slice(0, 50) + '...');
-  
-  // Identify file type
-  const fileType = getFileType(fileData, fileName);
-  
-  // Simulate analysis delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  // Generate a pseudo-random hash for consistent mock results based on file content
-  const hash = fileData.split('').reduce((a, b) => {
-    a = ((a << 5) - a) + b.charCodeAt(0);
-    return a & a;
-  }, 0);
-  
-  let extractedText: string | undefined = undefined;
-  
-  // Simulate file type specific analysis
-  if (fileType === 'pdf') {
-    extractedText = generateMockPdfText();
-    return mockPdfAnalysis(hash, extractedText, fileName);
-  } else if (fileType === 'document') {
-    extractedText = generateMockDocumentText();
-    return mockDocumentAnalysis(hash, extractedText, fileName);
-  } else {
-    // Default image analysis - improved to better match our categories
-    const categories: DocumentCategory[] = ['style', 'recipes', 'travel', 'fitness', 'events', 'other'];
-    const randomIndex = Math.abs(hash) % categories.length;
-    const randomCategory = categories[randomIndex];
-    return getMockResultForCategory(randomCategory, fileName);
-  }
-};
-
-function generateMockPdfText(): string {
-  return `QUARTERLY REPORT
-FISCAL YEAR 2025 - Q1
-
-Company: Example Corporation
-Date: March 31, 2025
-Prepared By: Financial Department
-
-EXECUTIVE SUMMARY
-The first quarter of fiscal year 2025 showed strong performance across all business units. Revenue increased by 12% compared to the same period last year, with particularly strong growth in our software services division.
-
-KEY FINANCIAL INDICATORS
-Revenue: $24.5M (+12% YoY)
-Operating Income: $5.2M (+8% YoY)
-Net Profit: $3.8M (+15% YoY)
-EPS: $0.42 (vs $0.37 Q1 FY2024)
-
-SEGMENT PERFORMANCE
-Software Services: $12.3M (+18%)
-Hardware Solutions: $8.1M (+6%)
-Consulting: $4.1M (+9%)`;
-}
-
-function generateMockDocumentText(): string {
-  return `Meeting Minutes
-Project: Website Redesign
-Date: April 15, 2025
-Attendees: John Smith, Sarah Johnson, Michael Wong
-
-Agenda Items:
-1. Review of current design mockups
-2. Timeline discussion
-3. Budget approval
-4. Assignment of tasks
-
-Decisions:
-- Approved new color scheme and typography
-- Extended timeline by two weeks
-- Budget increased by 15% to accommodate additional features
-- Next meeting scheduled for April 29, 2025
-
-Action Items:
-- John: Finalize wireframes (Due: April 22)
-- Sarah: Begin frontend implementation (Due: May 5)
-- Michael: Prepare content migration plan (Due: April 29)`;
-}
-
-function mockPdfAnalysis(hash: number, text: string, fileName?: string): AnalysisResult {
-  // Based on the hash, determine a category for the PDF
-  const categoryMap: DocumentCategory[] = ['other', 'events', 'work', 'other', 'travel', 'style', 'recipes'];
-  const categoryIndex = Math.abs(hash) % categoryMap.length;
-  const category = categoryMap[categoryIndex];
-  
-  const titles = fileName ? 
-    [fileName.replace(/\.[^/.]+$/, "")] : 
-    [
-      'Quarterly Financial Report',
-      'Q1 2025 Financial Results',
-      'First Quarter Report',
-      'Company Financial Statement'
-    ];
-  
-  const titleIndex = fileName ? 0 : (Math.abs(hash) % titles.length);
-  
-  let tags: string[];
-  let description: string;
-  
-  switch (category) {
-    case 'events':
-      tags = ['event', 'schedule', 'planning', 'calendar'];
-      description = 'Event planning document with schedule and details.';
-      break;
+// Helper function to map detected document types to document categories
+export const mapDocumentTypeToCategory = (docType: DocumentType): DocumentCategory => {
+  switch (docType) {
+    case 'outfit':
+    case 'clothing':
+    case 'fashion':
+      return 'style';
+    case 'recipe':
+    case 'food':
+      return 'recipes';
     case 'travel':
-      tags = ['itinerary', 'travel', 'destination', 'planning'];
-      description = 'Travel itinerary with destination details and schedule.';
-      break;
-    case 'style':
-      tags = ['fashion', 'catalog', 'lookbook', 'style'];
-      description = 'Fashion catalog with style inspirations and product details.';
-      break;
-    case 'recipes':
-      tags = ['recipes', 'cooking', 'food', 'ingredients'];
-      description = 'Collection of recipes and cooking instructions.';
-      break;
+    case 'destination':
+      return 'travel';
     case 'fitness':
-      tags = ['workout', 'fitness', 'exercise', 'health'];
-      description = 'Fitness plan with workout routines and health information.';
-      break;
+    case 'workout':
+    case 'exercise':
+      return 'fitness';
+    case 'event':
+    case 'party':
+    case 'invitation':
+      return 'events';
+    case 'document':
+    case 'resume':
+    case 'invoice':
+    case 'letter':
+    case 'flyer':
+      return 'other';
     default:
-      tags = ['financial', 'quarterly', 'report', 'business'];
-      description = 'Financial performance report for the first quarter of fiscal year 2025.';
+      return 'other';
   }
-  
-  // Add the category itself as a tag
-  if (!tags.includes(category)) {
-    tags.push(category);
-  }
-  
-  return {
-    title: titles[titleIndex],
-    category: category,
-    tags: tags,
-    description: description,
-    date: '2025-03-31',
-    price: '0.00',
-    extractedText: text,
-    metadata: {
-      pageCount: Math.floor(Math.random() * 10) + 5,
-      author: 'Finance Department',
-      company: 'Example Corporation',
-      fileType: 'pdf'
-    }
-  };
-}
+};
 
-function mockDocumentAnalysis(hash: number, text: string, fileName?: string): AnalysisResult {
-  // For documents, use filename if available
-  const titles = fileName ? 
-    [fileName.replace(/\.[^/.]+$/, "")] : 
-    [
-      'Meeting Minutes - Website Redesign',
-      'Website Project Meeting Notes',
-      'Team Meeting - Design Project',
-      'Project Discussion Notes'
-    ];
+// Helper function to generate tags based on document type
+export const generateTagsFromDocumentType = (docType: DocumentType): string[] => {
+  switch (docType) {
+    case 'outfit':
+    case 'clothing':
+    case 'fashion':
+      return ['style', 'outfit', 'fashion'];
+    case 'recipe':
+    case 'food':
+      return ['recipe', 'food', 'cooking'];
+    case 'travel':
+    case 'destination':
+      return ['travel', 'destination', 'vacation'];
+    case 'fitness':
+    case 'workout':
+    case 'exercise':
+      return ['fitness', 'workout', 'health'];
+    case 'event':
+    case 'party':
+    case 'invitation':
+      return ['event', 'invitation', 'calendar'];
+    case 'document':
+    case 'resume':
+    case 'invoice':
+    case 'letter':
+    case 'flyer':
+      return ['document', 'important'];
+    default:
+      return ['general'];
+  }
+};
+
+// Function to analyze extracted text and determine document type
+export const analyzeText = (text: string): DocumentType => {
+  text = text.toLowerCase();
   
-  const titleIndex = fileName ? 0 : (Math.abs(hash) % titles.length);
+  // Check for recipe indicators
+  if (text.includes('recipe') || 
+      text.includes('ingredients') || 
+      text.includes('instructions') ||
+      text.includes('cook') ||
+      text.includes('bake') ||
+      text.includes('minutes') && (text.includes('heat') || text.includes('oven'))) {
+    return 'recipe';
+  }
   
-  // For documents, analyze the file extension to determine more relevant category
-  let category: DocumentCategory = 'other';
-  let tags: string[] = ['document', 'files'];
+  // Check for clothing/style indicators
+  if (text.includes('outfit') || 
+      text.includes('wear') || 
+      text.includes('fashion') ||
+      text.includes('style') ||
+      text.includes('clothing')) {
+    return 'clothing';
+  }
   
-  if (fileName) {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    
-    if (['xlsx', 'xls', 'csv'].includes(extension || '')) {
-      category = 'other';
-      tags = ['spreadsheet', 'data', 'files', 'financial'];
-    } else if (['pptx', 'ppt'].includes(extension || '')) {
-      category = 'events';
-      tags = ['presentation', 'slides', 'meeting', 'event'];
-    } else if (['docx', 'doc'].includes(extension || '')) {
-      // For Word docs, pick a random category
-      const wordCategories: DocumentCategory[] = ['other', 'events', 'style', 'recipes', 'travel', 'fitness'];
-      category = wordCategories[Math.abs(hash) % wordCategories.length];
+  // Check for travel indicators
+  if (text.includes('travel') || 
+      text.includes('vacation') || 
+      text.includes('destination') ||
+      text.includes('flight') ||
+      text.includes('trip') ||
+      text.includes('hotel') ||
+      text.includes('booking')) {
+    return 'travel';
+  }
+  
+  // Check for fitness indicators
+  if (text.includes('workout') || 
+      text.includes('exercise') || 
+      text.includes('fitness') ||
+      text.includes('gym') ||
+      text.includes('training') ||
+      text.includes('cardio') ||
+      text.includes('reps') ||
+      text.includes('sets')) {
+    return 'fitness';
+  }
+  
+  // Check for event indicators
+  if (text.includes('event') || 
+      text.includes('invitation') || 
+      text.includes('party') ||
+      text.includes('wedding') ||
+      text.includes('celebrate') ||
+      text.includes('rsvp')) {
+    return 'event';
+  }
+  
+  // Check for professional document indicators
+  if (text.includes('resume') || 
+      text.includes('cv') || 
+      text.includes('invoice') ||
+      text.includes('contract') ||
+      text.includes('agreement') ||
+      text.includes('report')) {
+    return 'document';
+  }
+  
+  // Default to generic document type if no specific matches
+  return 'document';
+};
+
+// Function to suggest a title based on document content
+export const suggestTitle = (text: string, docType: DocumentType): string => {
+  // Split text into lines
+  const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  
+  // First line is often a good title candidate for many document types
+  if (lines.length > 0 && lines[0].length < 100 && lines[0].length > 3) {
+    return lines[0];
+  }
+  
+  // For recipes, look for a line containing "Recipe" or ending with common dish identifiers
+  if (docType === 'recipe' || docType === 'food') {
+    for (const line of lines) {
+      if (line.toLowerCase().includes('recipe') || 
+          /\b(salad|soup|pasta|dish|cake|pie|bread)\b/i.test(line)) {
+        return line.length < 100 ? line : line.substring(0, 97) + '...';
+      }
+    }
+    return 'Food Recipe';
+  }
+  
+  // For events, look for event type mentions
+  if (docType === 'event' || docType === 'party' || docType === 'invitation') {
+    for (const line of lines) {
+      if (/\b(party|celebration|wedding|birthday|anniversary|event)\b/i.test(line)) {
+        return line.length < 100 ? line : line.substring(0, 97) + '...';
+      }
+    }
+    return 'Event Invitation';
+  }
+  
+  // For fitness, look for workout related terms
+  if (docType === 'fitness' || docType === 'workout' || docType === 'exercise') {
+    for (const line of lines) {
+      if (/\b(workout|routine|training|program|plan|fitness)\b/i.test(line)) {
+        return line.length < 100 ? line : line.substring(0, 97) + '...';
+      }
+    }
+    return 'Workout Plan';
+  }
+  
+  // For travel, look for destination information
+  if (docType === 'travel' || docType === 'destination') {
+    for (const line of lines) {
+      if (/\b(trip|itinerary|travel|vacation|visit|tour)\b/i.test(line)) {
+        return line.length < 100 ? line : line.substring(0, 97) + '...';
+      }
+    }
+    return 'Travel Plan';
+  }
+  
+  // For style/outfit, look for descriptive text
+  if (docType === 'outfit' || docType === 'clothing' || docType === 'fashion') {
+    for (const line of lines) {
+      if (/\b(outfit|look|style|fashion|wear|dress)\b/i.test(line)) {
+        return line.length < 100 ? line : line.substring(0, 97) + '...';
+      }
+    }
+    return 'Outfit Idea';
+  }
+  
+  // Default titles based on document type if we couldn't find a good candidate
+  switch(docType) {
+    case 'document': return 'Important Document';
+    case 'invoice': return 'Invoice';
+    case 'resume': return 'Resume';
+    case 'letter': return 'Letter';
+    case 'flyer': return 'Flyer';
+    default: return 'Untitled Document';
+  }
+};
+
+// Function to extract potential event date from text
+export const extractEventDate = (text: string): Date | null => {
+  // Common date formats to check for
+  const datePatterns = [
+    // MM/DD/YYYY or DD/MM/YYYY
+    /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})\b/g,
+    // Month DD, YYYY
+    /\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\.|\s]?\s+(\d{1,2})(?:st|nd|rd|th)?[,|\s]?\s*(\d{2,4})\b/gi,
+    // DD Month YYYY
+    /\b(\d{1,2})(?:st|nd|rd|th)?[\s|\,]+(?:of\s+)?(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[,|\s]?\s*(\d{2,4})\b/gi
+  ];
+
+  let match;
+  let potentialDates = [];
+
+  // Check each date pattern
+  for (const pattern of datePatterns) {
+    while ((match = pattern.exec(text)) !== null) {
+      try {
+        // Try to construct a date from the matched pattern
+        let dateObj;
+        if (pattern.source.startsWith('\\b(\\d{1,2})')) {
+          // First pattern: MM/DD/YYYY or DD/MM/YYYY
+          // We'll try both interpretations
+          const part1 = parseInt(match[1]);
+          const part2 = parseInt(match[2]);
+          const year = match[3].length === 2 ? 2000 + parseInt(match[3]) : parseInt(match[3]);
+          
+          // Try as MM/DD/YYYY
+          if (part1 <= 12) {
+            dateObj = new Date(year, part1 - 1, part2);
+            if (!isNaN(dateObj.getTime())) {
+              potentialDates.push(dateObj);
+            }
+          }
+          
+          // Try as DD/MM/YYYY
+          if (part2 <= 12) {
+            dateObj = new Date(year, part2 - 1, part1);
+            if (!isNaN(dateObj.getTime())) {
+              potentialDates.push(dateObj);
+            }
+          }
+        } else if (pattern.source.includes('January|February|March')) {
+          // Month name patterns
+          const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december", "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+          
+          let month, day, year;
+          
+          if (pattern.source.startsWith('\\b(January|February')) {
+            // Month DD, YYYY pattern
+            const monthName = match[1].toLowerCase();
+            month = monthNames.indexOf(monthName) % 12;
+            day = parseInt(match[2]);
+            year = parseInt(match[3]);
+          } else {
+            // DD Month YYYY pattern
+            day = parseInt(match[1]);
+            const monthName = match[2].toLowerCase();
+            month = monthNames.indexOf(monthName) % 12;
+            year = parseInt(match[3]);
+          }
+          
+          // Handle short year format
+          if (year < 100) {
+            year += 2000;
+          }
+          
+          dateObj = new Date(year, month, day);
+          if (!isNaN(dateObj.getTime())) {
+            potentialDates.push(dateObj);
+          }
+        }
+      } catch (e) {
+        console.error("Date parsing error:", e);
+      }
+    }
+  }
+  
+  // Return the most likely date (usually the first future date)
+  const now = new Date();
+  
+  // First look for future dates
+  const futureDates = potentialDates.filter(date => date > now);
+  if (futureDates.length > 0) {
+    return futureDates[0];
+  }
+  
+  // If no future dates, return the most recent date
+  if (potentialDates.length > 0) {
+    potentialDates.sort((a, b) => b.getTime() - a.getTime());
+    return potentialDates[0];
+  }
+  
+  return null;
+};
+
+// Function to extract location information from text
+export const extractLocation = (text: string): string | null => {
+  // Look for location indicators followed by potential place names
+  const locationPatterns = [
+    /(?:location|place|venue|address|at)[\s\:]+([A-Za-z0-9\s\.,'\-]+(?:Road|Street|Avenue|Lane|Blvd|Boulevard|Drive|Place|Plaza|Square|Building|Center|Centre|Room|Hall|Park|Restaurant|Cafe|Hotel|Resort|Mall))/i,
+    /(?:held at|located at|taking place at)[\s\:]+([A-Za-z0-9\s\.,'\-]+)/i,
+    /(?:at the)[\s]+([A-Za-z0-9\s\.,'\-]+(?:Road|Street|Avenue|Lane|Blvd|Boulevard|Drive|Place|Plaza|Square|Building|Center|Centre|Room|Hall|Park|Restaurant|Cafe|Hotel|Resort|Mall))/i
+  ];
+  
+  for (const pattern of locationPatterns) {
+    const match = text.match(pattern);
+    if (match && match[1]) {
+      // Clean up the location string
+      let location = match[1].trim();
       
-      // Add tags based on the chosen category
-      switch (category) {
-        case 'events': tags = ['event', 'planning', 'document', 'meeting']; break;
-        case 'style': tags = ['style', 'fashion', 'document', 'design']; break;
-        case 'recipes': tags = ['recipe', 'cooking', 'document', 'instructions']; break;
-        case 'travel': tags = ['travel', 'itinerary', 'document', 'destination']; break;
-        case 'fitness': tags = ['fitness', 'workout', 'document', 'health']; break;
-        default: tags = ['document', 'notes', 'files', 'business'];
+      // Limit length and remove trailing punctuation
+      location = location.replace(/[.,;:]+$/, '');
+      
+      if (location.length > 100) {
+        location = location.substring(0, 97) + '...';
+      }
+      
+      return location;
+    }
+  }
+  
+  return null;
+};
+
+// Function to detect the most likely language of text
+export const detectLanguage = (text: string): string => {
+  // This is a simple implementation. In a production environment,
+  // you would want to use a more robust language detection library
+  
+  // Common words in different languages
+  const languageMarkers = {
+    english: ['the', 'and', 'to', 'of', 'a', 'in', 'that', 'is', 'for', 'on', 'with'],
+    spanish: ['el', 'la', 'de', 'que', 'y', 'a', 'en', 'un', 'ser', 'se', 'por', 'con'],
+    french: ['le', 'la', 'de', 'et', 'à', 'en', 'un', 'être', 'que', 'pour', 'dans'],
+    german: ['der', 'die', 'das', 'und', 'zu', 'in', 'den', 'von', 'für', 'nicht', 'mit']
+  };
+  
+  // Convert text to lowercase and split into words
+  const words = text.toLowerCase().match(/\b\w+\b/g) || [];
+  
+  // Count occurrences of marker words for each language
+  const scores = {
+    english: 0,
+    spanish: 0,
+    french: 0,
+    german: 0
+  };
+  
+  for (const word of words) {
+    for (const [language, markers] of Object.entries(languageMarkers)) {
+      if (markers.includes(word)) {
+        scores[language]++;
       }
     }
   }
   
-  return {
-    title: titles[titleIndex],
-    category: category,
-    tags: tags,
-    description: 'Document with extracted content and metadata.',
-    date: '2025-04-15',
-    price: '0.00',
-    extractedText: text,
-    metadata: {
-      participants: ['John Smith', 'Sarah Johnson', 'Michael Wong'],
-      project: 'Website Redesign',
-      fileType: fileName ? fileName.split('.').pop()?.toLowerCase() : 'document'
-    }
-  };
-}
-
-function getMockResultForCategory(category: DocumentCategory, fileName?: string): AnalysisResult {
-  // Use filename as title if available
-  const fileTitle = fileName ? fileName.replace(/\.[^/.]+$/, "") : undefined;
+  // Find the language with the highest score
+  let maxScore = 0;
+  let detectedLanguage = 'english'; // Default to English
   
-  const mockResults: Record<DocumentCategory, AnalysisResult> = {
-    'style': {
-      title: fileTitle || 'Fashion Design Sketch',
-      category: 'style',
-      tags: ['fashion', 'design', 'clothing', 'outfit', 'style'],
-      description: 'A modern fashion design sketch showing seasonal outfit concept.',
-      date: new Date().toISOString().split('T')[0],
-      price: '59.99',
-      metadata: {
-        styleType: 'Casual',
-        season: 'Summer',
-        colors: ['Blue', 'White', 'Beige'],
-        occasion: 'Everyday',
-        imageObjects: ['clothing', 'fashion', 'apparel']
-      }
-    },
-    'recipes': {
-      title: fileTitle || 'Homemade Pasta Recipe',
-      category: 'recipes',
-      tags: ['cooking', 'italian', 'dinner', 'pasta', 'recipe', 'food'],
-      description: 'Fresh pasta recipe with simple ingredients.',
-      date: new Date().toISOString().split('T')[0],
-      price: '12.50',
-      metadata: {
-        mealType: 'Dinner',
-        cuisine: 'Italian',
-        prepTime: '30 minutes',
-        cookTime: '10 minutes',
-        servings: 4,
-        ingredients: ['Flour', 'Eggs', 'Salt', 'Olive oil'],
-        imageObjects: ['food', 'pasta', 'cooking', 'meal']
-      }
-    },
-    'travel': {
-      title: fileTitle || 'Vacation Destination',
-      category: 'travel',
-      tags: ['vacation', 'sightseeing', 'landmarks', 'destination', 'travel'],
-      description: 'Beautiful travel destination for next vacation planning.',
-      date: new Date().toISOString().split('T')[0],
-      price: '899.00',
-      metadata: {
-        location: 'Coastal Resort',
-        region: 'Mediterranean',
-        bestSeason: 'Summer',
-        activities: ['Beach', 'Hiking', 'Water Sports', 'Cultural Tours'],
-        imageObjects: ['beach', 'ocean', 'resort', 'vacation']
-      }
-    },
-    'fitness': {
-      title: fileTitle || 'Weekly Workout Plan',
-      category: 'fitness',
-      tags: ['exercise', 'health', 'workout', 'fitness', 'routine'],
-      description: 'Weekly fitness routine focusing on core strength.',
-      date: new Date().toISOString().split('T')[0],
-      price: '29.99',
-      metadata: {
-        workoutType: 'Strength Training',
-        difficulty: 'Intermediate',
-        duration: '45 minutes',
-        equipment: ['Dumbbells', 'Resistance Bands', 'Mat'],
-        targetAreas: ['Core', 'Arms', 'Legs'],
-        imageObjects: ['gym', 'workout', 'fitness', 'exercise']
-      }
-    },
-    'events': {
-      title: fileTitle || 'Weekend Festival',
-      category: 'events',
-      tags: ['festival', 'concert', 'weekend', 'music', 'event'],
-      description: 'Weekend music and arts festival with multiple stages and food vendors.',
-      date: new Date().toISOString().split('T')[0],
-      price: '75.00',
-      metadata: {
-        eventType: 'Festival',
-        date: '2025-06-21',
-        location: 'City Park',
-        performers: ['Band A', 'Band B', 'Band C'],
-        activities: ['Live Music', 'Art Exhibits', 'Food Trucks'],
-        imageObjects: ['festival', 'concert', 'crowd', 'stage']
-      }
-    },
-    'other': {
-      title: fileTitle || 'General Document',
-      category: 'other',
-      tags: ['document', 'general', 'misc', 'information'],
-      description: 'General purpose document or image.',
-      date: new Date().toISOString().split('T')[0],
-      price: '0.00',
-      metadata: {
-        type: 'Miscellaneous',
-        fileFormat: fileName ? fileName.split('.').pop() : 'unknown',
-        createdWith: 'Unknown Application',
-        imageObjects: ['document', 'text', 'photo']
-      }
-    },
-    'files': {
-      title: fileTitle || 'Document File',
-      category: 'files',
-      tags: ['document', 'file', 'data'],
-      description: 'Document file with various content and formats.',
-      date: new Date().toISOString().split('T')[0],
-      price: '0.00',
-      metadata: {
-        fileType: fileName ? fileName.split('.').pop() : 'unknown',
-        fileSize: '2.4MB',
-        pages: Math.floor(Math.random() * 15) + 1,
-        imageObjects: ['file', 'document', 'data']
-      }
+  for (const [language, score] of Object.entries(scores)) {
+    if (score > maxScore) {
+      maxScore = score;
+      detectedLanguage = language;
     }
-  };
+  }
   
-  return mockResults[category];
-}
+  return detectedLanguage;
+};

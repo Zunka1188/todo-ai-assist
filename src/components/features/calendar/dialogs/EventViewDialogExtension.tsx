@@ -68,6 +68,8 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
         onEdit={onEdit}
         onDelete={onDelete}
         onViewImage={onViewImage}
+        onShare={onShare}
+        onRSVP={onRSVP}
       />
       {/* We'll inject our buttons via CSS and JavaScript on the client side */}
       {/* This is a workaround since we can't directly modify EventViewDialog */}
