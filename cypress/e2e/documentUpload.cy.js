@@ -22,7 +22,7 @@ describe('Document Upload User Journey', () => {
     cy.get('input#title').type('Test Document');
     
     // Upload a file
-    cy.get('button').contains('Upload File').click();
+    cy.contains('button', 'Upload File').click();
     cy.get('input[type="file"]').selectFile({
       contents: Cypress.Buffer.from('Test PDF content'),
       fileName: 'test-document.pdf',
@@ -54,6 +54,12 @@ describe('Document Upload User Journey', () => {
     // Verify full screen preview appears
     cy.get('[role="dialog"]').should('be.visible');
     cy.contains('h2', 'Test Document').should('be.visible');
+    
+    // Test the download button works
+    cy.contains('button', 'Download').should('be.visible');
+    
+    // Test the share button is visible
+    cy.get('button[aria-label="Share"]').should('exist');
     
     // Close the preview
     cy.get('button[aria-label="Close"]').click();

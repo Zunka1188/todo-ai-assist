@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X, Share2, Pencil, Trash2 } from 'lucide-react';
+import { X, Share2, Pencil, Trash2, Download } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import ShareButton from '@/components/features/shared/ShareButton';
@@ -13,10 +13,10 @@ interface ImagePreviewDialogProps {
   imageUrl: string | null;
   onClose: () => void;
   onSaveItem?: (itemData: any) => boolean;
-  item?: any; // The shopping item data
+  item?: any;
   onEdit?: () => void;
   onDelete?: () => void;
-  readOnly?: boolean; // Add the readOnly property to the interface
+  readOnly?: boolean;
 }
 
 const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({ 
@@ -26,7 +26,7 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
   item,
   onEdit,
   onDelete,
-  readOnly = false // Set a default value
+  readOnly = false
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -51,6 +51,17 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
       window.removeEventListener('popstate', handlePopState);
     };
   }, [imageUrl, onClose, navigate, location.pathname]);
+
+  const handleDownload = () => {
+    if (!imageUrl) return;
+    
+    const a = document.createElement('a');
+    a.href = imageUrl;
+    a.download = item?.name || 'image';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
   if (!imageUrl) return null;
   
@@ -97,6 +108,16 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
               <Share2 className="h-4 w-4" />
             </ShareButton>
             
+            {/* Download button */}
+            <Button
+              onClick={handleDownload}
+              variant="secondary" 
+              size="icon"
+              className="bg-background/80 hover:bg-background/90"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+            
             {/* Edit button */}
             {onEdit && !readOnly && (
               <Button
@@ -131,6 +152,7 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
             variant="ghost" 
             size="icon"
             className="absolute right-2 top-2 rounded-full h-8 w-8 p-0 bg-background/80 hover:bg-background/90"
+            aria-label="Close"
           >
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>

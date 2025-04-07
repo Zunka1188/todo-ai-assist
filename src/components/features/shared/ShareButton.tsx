@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
-import { Share2, Copy, Instagram, MessageSquare, Link as LinkIcon, ExternalLink } from 'lucide-react';
+import { Share2, Copy, Instagram, MessageSquare, Link as LinkIcon, ExternalLink, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useShareableLinks } from '@/hooks/useShareableLinks';
@@ -35,6 +35,7 @@ interface ShareButtonProps extends Omit<ButtonProps, 'onError'> {
   onError?: (error: Error) => void;
   className?: string;
   showOptions?: boolean;
+  onDownload?: () => void;
 }
 
 const ShareButton: React.FC<ShareButtonProps> = ({
@@ -51,6 +52,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
   onError,
   className,
   showOptions = false,
+  onDownload,
   ...buttonProps
 }) => {
   const { isMobile } = useIsMobile();
@@ -137,6 +139,25 @@ const ShareButton: React.FC<ShareButtonProps> = ({
     setIsOpen(false);
   };
 
+  const handleDownload = () => {
+    if (onDownload) {
+      onDownload();
+      return;
+    }
+
+    if (!fileUrl) return;
+    
+    const a = document.createElement('a');
+    a.href = fileUrl;
+    a.download = fileUrl.split('/').pop() || 'download';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    toast.success('Download started');
+    setIsOpen(false);
+  };
+
   const handleAppShare = (app: string) => {
     let shareAppUrl = '';
     const encodedTitle = encodeURIComponent(title);
@@ -204,7 +225,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Copy Link / Share to app</p>
+            <p>Share</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -232,7 +253,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
             </DropdownMenuTrigger>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Copy Link / Share to app</p>
+            <p>Share</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -242,6 +263,10 @@ const ShareButton: React.FC<ShareButtonProps> = ({
           <DropdownMenuItem onClick={handleCopyLink}>
             <Copy className="h-4 w-4 mr-2" />
             Copy link
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleDownload}>
+            <Download className="h-4 w-4 mr-2" />
+            Download
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleAppShare('whatsapp')}>
             <MessageSquare className="h-4 w-4 mr-2" />

@@ -92,6 +92,16 @@
       "assertion": "contains"
     },
     {
+      "type": "assertion",
+      "selector": "button:contains('Download')",
+      "assertion": "visible"
+    },
+    {
+      "type": "assertion",
+      "selector": "button[aria-label='Share']",
+      "assertion": "exists"
+    },
+    {
       "type": "click",
       "selector": "button[aria-label='Close']"
     },

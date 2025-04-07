@@ -2,20 +2,20 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { X, Download } from 'lucide-react';
 import { DocumentItem, DocumentFile } from './types';
 import FilePreview from './FilePreview';
 
 interface FullScreenPreviewProps {
   item: DocumentItem | DocumentFile | null;
   onClose: () => void;
-  readOnly?: boolean; // Add readOnly prop to match CalendarView usage
+  readOnly?: boolean;
 }
 
 const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ 
   item, 
   onClose,
-  readOnly = false // Default to false for backward compatibility
+  readOnly = false
 }) => {
   if (!item) return null;
 
@@ -36,6 +36,17 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
     fileType = item.fileType || '';
     title = item.title;
   }
+  
+  const handleDownload = () => {
+    if (!fileUrl) return;
+    
+    const a = document.createElement('a');
+    a.href = fileUrl;
+    a.download = `${title || 'document'}.${fileType || 'pdf'}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
   return (
     <Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
@@ -50,6 +61,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
             variant="ghost"
             size="icon"
             onClick={onClose}
+            aria-label="Close"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -57,7 +69,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
         
         <div className="py-4">
           <FilePreview
-            file={fileUrl} // Changed from fileUrl to file to match FilePreview props
+            file={fileUrl}
             fileType={fileType}
             fileName={
               isDocumentItem 
@@ -67,6 +79,17 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
             className="max-h-[70vh] w-full"
             fullScreen={true}
           />
+        </div>
+        
+        <div className="flex justify-end mt-2">
+          <Button
+            onClick={handleDownload}
+            className="flex items-center gap-2"
+            variant="outline"
+          >
+            <Download className="h-4 w-4" />
+            Download
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

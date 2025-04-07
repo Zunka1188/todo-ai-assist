@@ -107,6 +107,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
           <Button 
             onClick={() => handleOpenAddDialog()} 
             className="bg-todo-purple hover:bg-todo-purple/90 text-white"
+            aria-label="Add Document"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Item
