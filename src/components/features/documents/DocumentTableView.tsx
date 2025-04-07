@@ -10,13 +10,12 @@ import {
   TableCell 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Maximize2, FileText, Image, File, Archive, Download } from 'lucide-react';
+import { Pencil, Trash2, Maximize2, FileText, Image, File, Archive, Share2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Card } from '@/components/ui/card';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import ShareButton from '@/components/features/shared/ShareButton';
-import { toast } from 'sonner';
 
 interface DocumentTableViewProps {
   documents: DocumentFile[];
@@ -94,24 +93,6 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
         return `${Math.floor(Math.random() * 5) + 1} MB`;
     }
   };
-  
-  const handleDownload = (doc: DocumentFile, e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    if (!doc.fileUrl) {
-      toast.error("No file available to download");
-      return;
-    }
-    
-    const a = document.createElement('a');
-    a.href = doc.fileUrl;
-    a.download = doc.title || 'download';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    toast.success(`Downloading: ${doc.title}`);
-  };
 
   if (documents.length === 0) {
     return (
@@ -156,7 +137,6 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
                 >
                   <Maximize2 className="h-3.5 w-3.5" />
                 </Button>
-                
                 <ShareButton
                   size="icon"
                   variant="ghost"
@@ -164,20 +144,10 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
                   title={`Check out this file: ${doc.title}`}
                   fileUrl={doc.fileUrl}
                   onClick={(e) => e.stopPropagation()}
-                  itemId={doc.id}
                   aria-label="Share document"
-                />
-                
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-7 w-7" 
-                  onClick={(e) => handleDownload(doc, e)}
-                  aria-label="Download document"
                 >
-                  <Download className="h-3.5 w-3.5" />
-                </Button>
-                
+                  <Share2 className="h-3.5 w-3.5" />
+                </ShareButton>
                 <Button 
                   variant="ghost" 
                   size="icon" 
@@ -190,7 +160,6 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
                 >
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
-                
                 <Button 
                   variant="ghost" 
                   size="icon" 
@@ -253,7 +222,6 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
                   >
                     <Maximize2 className="h-3.5 w-3.5" />
                   </Button>
-                  
                   <ShareButton
                     size="icon"
                     variant="ghost"
@@ -261,20 +229,10 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
                     title={`Check out this file: ${doc.title}`}
                     fileUrl={doc.fileUrl}
                     onClick={(e) => e.stopPropagation()}
-                    itemId={doc.id}
                     aria-label="Share document"
-                  />
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-7 w-7" 
-                    onClick={(e) => handleDownload(doc, e)}
-                    aria-label="Download document"
                   >
-                    <Download className="h-3.5 w-3.5" />
-                  </Button>
-                  
+                    <Share2 className="h-3.5 w-3.5" />
+                  </ShareButton>
                   <Button 
                     variant="ghost" 
                     size="icon" 
@@ -287,7 +245,6 @@ const DocumentTableView: React.FC<DocumentTableViewProps> = ({
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
-                  
                   <Button 
                     variant="ghost" 
                     size="icon" 

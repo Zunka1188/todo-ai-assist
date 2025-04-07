@@ -38,7 +38,7 @@ interface ShareButtonProps extends Omit<ButtonProps, 'onError'> {
   onDownload?: () => void;
 }
 
-const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
+const ShareButton: React.FC<ShareButtonProps> = ({
   title = 'Check this out!',
   text,
   url,
@@ -53,9 +53,8 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
   className,
   showOptions = false,
   onDownload,
-  onClick,
   ...buttonProps
-}, ref) => {
+}) => {
   const { isMobile } = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const { createShareableLink, getLinksForItem } = useShareableLinks();
@@ -146,25 +145,17 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
       return;
     }
 
-    if (!fileUrl) {
-      toast.error("No file available to download");
-      return;
-    }
+    if (!fileUrl) return;
     
-    try {
-      const downloadLink = document.createElement('a');
-      downloadLink.href = fileUrl;
-      downloadLink.download = fileUrl.split('/').pop() || 'download';
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-      
-      toast.success('Download started');
-      setIsOpen(false);
-    } catch (error) {
-      console.error("Download error:", error);
-      toast.error("Failed to download file");
-    }
+    const a = document.createElement('a');
+    a.href = fileUrl;
+    a.download = fileUrl.split('/').pop() || 'download';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    toast.success('Download started');
+    setIsOpen(false);
   };
 
   const handleAppShare = (app: string) => {
@@ -199,13 +190,9 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
     setIsOpen(false);
   };
   
-  const handleShare = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    
-    if (onClick) {
-      onClick(e);
-    }
     
     if (navigator.share && isMobile) {
       handleNativeShare();
@@ -222,17 +209,6 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
     }
   };
 
-  // For dropdown menu version
-  const handleDropdownTriggerClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-    // No need to toggle isOpen here as it's handled by the DropdownMenu onOpenChange
-    
-    if (onClick) {
-      onClick(e);
-    }
-  };
-
   if (!showOptions) {
     return (
       <TooltipProvider>
@@ -243,7 +219,6 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
               size="icon" 
               variant="outline"
               className={className}
-              ref={ref}
               {...buttonProps}
             >
               {children || <Share2 className="h-4 w-4" />}
@@ -264,11 +239,13 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
               <Button 
-                onClick={handleDropdownTriggerClick}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                }}
                 size="icon" 
                 variant="outline"
                 className={className}
-                ref={ref}
                 {...buttonProps}
               >
                 {children || <Share2 className="h-4 w-4" />}
@@ -337,8 +314,6 @@ const ShareButton = React.forwardRef<HTMLButtonElement, ShareButtonProps>(({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-});
-
-ShareButton.displayName = "ShareButton";
+};
 
 export default ShareButton;

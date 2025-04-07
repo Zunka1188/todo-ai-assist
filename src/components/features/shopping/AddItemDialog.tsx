@@ -70,13 +70,11 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   const [repeatOption, setRepeatOption] = useState<'none' | 'weekly' | 'monthly'>('none');
   const [isSaving, setIsSaving] = useState(false);
   
-  const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Reset form when dialog opens with new data or closes
   useEffect(() => {
-    // Only initialize form data when dialog first opens
     if (open) {
       // If in edit mode, populate form with item data
       if (editItem) {
@@ -91,7 +89,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
         // Only reset if not editing an item and dialog is opening
         resetForm();
       }
-      setIsSaving(false);
     }
   }, [editItem, open]);
   
@@ -105,9 +102,9 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     setFileType('');
     setFullScreenPreview(false);
     setRepeatOption('none');
+    setIsSaving(false);
   };
 
-  // Modified handleFileChange to handle mobile touch events better
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
@@ -131,12 +128,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     reader.readAsDataURL(selectedFile);
   };
 
-  // Fix: Refactor save logic to handle the form submission properly
-  const handleSubmit = (e?: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-    }
-    
+  const handleSave = () => {
     if (name.trim() === '' && !file) {
       toast({
         title: "Input Required",
@@ -171,7 +163,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
       const saveResult = onSave(itemData);
       console.log("[DEBUG] AddItemDialog - Save result:", saveResult);
       
-      // Only close if saveResult isn't explicitly false
+      // FIXED: Only close if saveResult isn't explicitly false and ensure we're not closing before the save operation completes
       if (saveResult !== false) {
         // First reset form data to prevent state updates on unmounted components
         resetForm();
@@ -259,124 +251,124 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   }
 
   const dialogContent = (
-    <form onSubmit={handleSubmit} ref={formRef} className={cn("space-y-4", isMobile && "pb-4")}>
-      <div className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="name">Item Name *</Label>
-          <Input
-            id="name"
-            placeholder="Enter item name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-
-        <div className="grid gap-2">
-          <Label htmlFor="file">File</Label>
-          <div className="space-y-2">
-            <Button 
-              type="button"
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full flex items-center justify-center h-10"
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Upload className="mr-2 h-4 w-4" />
-              )}
-              Upload File
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              Supported files: images, PDFs, documents, spreadsheets, and more
-            </p>
-            
+    <>
+      <div className={cn("space-y-4", isMobile && "pb-4")}>
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">Item Name *</Label>
             <Input
-              id="file"
-              type="file"
-              accept="*/*"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
+              id="name"
+              placeholder="Enter item name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="file">File</Label>
+            <div className="space-y-2">
+              <Button 
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full flex items-center justify-center h-10"
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                Upload File
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Supported files: images, PDFs, documents, spreadsheets, and more
+              </p>
+              
+              <Input
+                id="file"
+                type="file"
+                accept="*/*"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </div>
+            
+            {file && (
+              <div className="relative mt-2">
+                <FilePreview 
+                  file={file}
+                  fileName={fileName}
+                  fileType={fileType}
+                  className="max-h-32 w-full"
+                />
+                <div className="absolute top-2 right-2 flex gap-1">
+                  {fileType === 'image' && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
+                      onClick={toggleFullScreenPreview}
+                    >
+                      <Maximize2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={clearFile}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="amount">Quantity</Label>
+            <Input
+              id="amount"
+              placeholder="e.g., 2 boxes"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
             />
           </div>
           
-          {file && (
-            <div className="relative mt-2">
-              <FilePreview 
-                file={file}
-                fileName={fileName}
-                fileType={fileType}
-                className="max-h-32 w-full"
-              />
-              <div className="absolute top-2 right-2 flex gap-1">
-                {fileType === 'image' && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
-                    onClick={toggleFullScreenPreview}
-                  >
-                    <Maximize2 className="h-4 w-4" />
-                  </Button>
-                )}
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={clearFile}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="grid gap-2">
-          <Label htmlFor="amount">Quantity</Label>
-          <Input
-            id="amount"
-            placeholder="e.g., 2 boxes"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-        </div>
-        
-        <div className="grid gap-2">
-          <Label htmlFor="repeat-option">Repeat</Label>
-          <Select 
-            value={repeatOption} 
-            onValueChange={(value) => setRepeatOption(value as 'none' | 'weekly' | 'monthly')}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select frequency" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">None (One-off)</SelectItem>
-              <SelectItem value="weekly">Weekly</SelectItem>
-              <SelectItem value="monthly">Monthly</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="grid gap-2">
-          <Label htmlFor="notes">Notes</Label>
-          <Textarea
-            id="notes"
-            placeholder="Add any additional notes here"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="min-h-[80px]"
-          />
+          <div className="grid gap-2">
+            <Label htmlFor="repeat-option">Repeat</Label>
+            <Select 
+              value={repeatOption} 
+              onValueChange={(value) => setRepeatOption(value as 'none' | 'weekly' | 'monthly')}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select frequency" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None (One-off)</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              placeholder="Add any additional notes here"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="min-h-[80px]"
+            />
+          </div>
         </div>
       </div>
-      {/* Hidden submit button for form submission */}
-      <button type="submit" className="hidden" aria-hidden="true" />
-    </form>
+    </>
   );
 
   // Use consistent rendering paths for mobile vs desktop
@@ -388,7 +380,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
           onOpenChange={(isOpen) => {
             console.log("[DEBUG] AddItemDialog - Drawer onOpenChange:", isOpen);
             if (!isOpen) {
-              // Reset form before closing dialog
+              // FIXED: Reset form before closing dialog
               resetForm();
             }
             onOpenChange(isOpen);
@@ -407,14 +399,13 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
             </ScrollArea>
             
             <DrawerFooter className="px-4 py-2 gap-2">
-              <Button variant="outline" className="w-full" onClick={handleCancel} type="button">
+              <Button variant="outline" className="w-full" onClick={handleCancel}>
                 Cancel
               </Button>
               <Button 
-                onClick={() => handleSubmit()}
+                onClick={handleSave}
                 className="w-full"
                 disabled={isSaving || (name.trim() === '' && !file)}
-                type="button"
               >
                 {isSaving ? (
                   <>
@@ -447,7 +438,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
         onOpenChange={(isOpen) => {
           console.log("[DEBUG] AddItemDialog - Dialog onOpenChange:", isOpen);
           if (!isOpen) {
-            // Reset form before closing dialog
+            // FIXED: Reset form before closing dialog
             resetForm();
           }
           onOpenChange(isOpen);
@@ -466,13 +457,12 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
           </ScrollArea>
 
           <DialogFooter className="mt-4 pt-2 border-t">
-            <Button variant="outline" onClick={handleCancel} type="button">
+            <Button variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
             <Button 
-              onClick={() => handleSubmit()}
+              onClick={handleSave}
               disabled={isSaving || (name.trim() === '' && !file)}
-              type="button"
             >
               {isSaving ? (
                 <>

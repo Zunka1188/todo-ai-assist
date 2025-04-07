@@ -1,13 +1,12 @@
 
 import React from 'react';
-import { Maximize2, Pencil, Trash2, Download } from 'lucide-react';
+import { Maximize2, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FilePreview from './FilePreview';
 import { DocumentFile } from './types';
 import { getCategoryIcon } from './utils/iconHelpers';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ShareButton from '@/components/features/shared/ShareButton';
-import { toast } from 'sonner';
 
 interface DocumentListItemProps {
   document: DocumentFile;
@@ -26,57 +25,20 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
   
   // Format ISO date string to European format (DD/MM/YYYY)
   const formatDateEuropean = (dateString: string): string => {
-    try {
-      const date = new Date(dateString);
-      // Ensure we don't display future dates
-      const today = new Date();
-      const dateToUse = date > today ? today : date;
-      
-      const day = dateToUse.getDate().toString().padStart(2, '0');
-      const month = (dateToUse.getMonth() + 1).toString().padStart(2, '0');
-      const year = dateToUse.getFullYear();
-      return `${day}/${month}/${year}`;
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "Invalid date";
-    }
+    const date = new Date(dateString);
+    // Ensure we don't display future dates
+    const today = new Date();
+    const dateToUse = date > today ? today : date;
+    
+    const day = dateToUse.getDate().toString().padStart(2, '0');
+    const month = (dateToUse.getMonth() + 1).toString().padStart(2, '0');
+    const year = dateToUse.getFullYear();
+    return `${day}/${month}/${year}`;
   };
   
   const handleItemClick = (e: React.MouseEvent) => {
     e.preventDefault();
     onFullScreen();
-  };
-  
-  const handleDownload = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    
-    if (!document.fileUrl) {
-      toast.error("No file available to download");
-      return;
-    }
-    
-    try {
-      // Use the global window.document object, not the document prop
-      const link = window.document.createElement('a');
-      link.href = document.fileUrl;
-      link.download = document.title || 'download';
-      
-      // We need to add the link to the DOM for Firefox
-      window.document.body.appendChild(link);
-      link.click();
-      
-      // Cleanup
-      setTimeout(() => {
-        window.document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-      }, 100);
-      
-      toast.success(`Downloading: ${document.title}`);
-    } catch (error) {
-      console.error("Download error:", error);
-      toast.error("Failed to download file");
-    }
   };
 
   return (
@@ -110,7 +72,6 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
                 className="h-8 w-8" 
                 onClick={(e) => {
                   e.stopPropagation();
-                  e.preventDefault();
                   onFullScreen();
                 }}
                 aria-label="View full screen"
@@ -125,49 +86,29 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
                 className="h-8 w-8"
                 title={`Check out this document: ${document.title}`}
                 fileUrl={document.fileUrl}
-                onClick={(e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                }}
+                onClick={(e) => e.stopPropagation()}
                 showOptions={true}
-                itemId={document.id}
                 aria-label="Share document"
               />
               
-              {/* Download button */}
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8" 
-                onClick={handleDownload}
-                aria-label="Download document"
-              >
-                <Download className="h-4 w-4" />
-              </Button>
-              
-              {/* Edit button */}
               <Button 
                 variant="outline" 
                 size="icon" 
                 className="h-8 w-8" 
                 onClick={(e) => {
                   e.stopPropagation();
-                  e.preventDefault();
                   onEdit();
                 }}
                 aria-label="Edit document"
               >
                 <Pencil className="h-4 w-4" />
               </Button>
-              
-              {/* Delete button */}
               <Button 
                 variant="outline" 
                 size="icon" 
                 className={`h-8 w-8 ${isMobile ? "text-destructive hover:bg-destructive/10" : ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  e.preventDefault();
                   onDelete();
                 }}
                 aria-label="Delete document"

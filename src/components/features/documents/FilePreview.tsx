@@ -2,7 +2,7 @@ import React from 'react';
 import { File, FileText, Archive, Image, File as FileIcon, FileSpreadsheet, FileCode, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 
 interface FilePreviewProps {
   file: string | null;
@@ -76,6 +76,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   fileType: explicitFileType,
   fullScreen = false
 }) => {
+  const { toast } = useToast();
   const fileType = explicitFileType || 
     (fileName ? getFileTypeFromName(fileName) : 
     file ? getFileTypeFromContent(file) : 'unknown');
@@ -91,19 +92,26 @@ const FilePreview: React.FC<FilePreviewProps> = ({
 
   const handleDownload = () => {
     try {
-      const link = window.document.createElement('a');
+      const link = document.createElement('a');
       link.href = file;
       link.download = fileName || `download.${fileType}`;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
-      window.document.body.appendChild(link);
+      document.body.appendChild(link);
       link.click();
-      window.document.body.removeChild(link);
+      document.body.removeChild(link);
       
-      toast.success(`Downloading ${fileName || "file"}`);
+      toast({
+        title: "Download started",
+        description: `Downloading ${fileName || "file"}`,
+      });
     } catch (error) {
       console.error("Download error:", error);
-      toast.error("There was a problem downloading your file. Please try again.");
+      toast({
+        title: "Download failed",
+        description: "There was a problem downloading your file. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

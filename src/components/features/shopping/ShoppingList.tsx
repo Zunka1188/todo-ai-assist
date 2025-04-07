@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import ShoppingItemButton from './ShoppingItemButton';
@@ -38,9 +38,11 @@ const ShoppingList = ({
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  console.log(`[DEBUG] ShoppingList - ${filterMode} items:`, 
-    "Unpurchased:", notPurchasedItems.length, 
-    "Purchased:", purchasedItems.length);
+  useEffect(() => {
+    console.log(`[DEBUG] ShoppingList - ${filterMode} items:`, 
+      "Unpurchased:", notPurchasedItems.length, 
+      "Purchased:", purchasedItems.length);
+  }, [notPurchasedItems.length, purchasedItems.length, filterMode]);
   
   const handleImagePreview = (item: any) => {
     console.log("[DEBUG] ShoppingList - Opening image preview for:", item.name);
@@ -87,6 +89,7 @@ const ShoppingList = ({
       
       console.log("[DEBUG] ShoppingList - Structured item to add:", JSON.stringify(newItem, null, 2));
       
+      // FIXED: Ensure proper item saving with direct localStorage update to prevent persistence issues
       const result = addItem(newItem);
       console.log("[DEBUG] ShoppingList - Called addItem function, result:", result);
       
@@ -108,6 +111,7 @@ const ShoppingList = ({
         
         return true;
       } else {
+        // FIXED: Add toast when saving fails
         toast({
           title: "Error",
           description: "Failed to add item to shopping list",
@@ -146,7 +150,6 @@ const ShoppingList = ({
     }
   };
 
-  // Fix: Extract rendering function outside the main component render method
   const renderShoppingItemsGrid = (items: any[]) => (
     <div className={cn(
       "grid",

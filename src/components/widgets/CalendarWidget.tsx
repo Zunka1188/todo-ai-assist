@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Calendar as CalendarIcon, ChevronRight, Bell, Clock, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
@@ -29,60 +29,60 @@ const CalendarWidget = () => {
   const { toast } = useToast();
 
   // Filter events for the current date
-  const eventsForToday = React.useMemo(() => {
-    return date ? initialEvents.filter(event => isSameDay(event.startDate, date)) : [];
-  }, [date]);
+  const eventsForToday = initialEvents.filter((event) => {
+    return date ? isSameDay(event.startDate, date) : false;
+  });
 
   // Get events for the selected date
-  const eventsForSelectedDate = React.useMemo(() => {
-    return initialEvents.filter(event => isSameDay(event.startDate, selectedDate));
-  }, [selectedDate]);
+  const eventsForSelectedDate = initialEvents.filter((event) => {
+    return isSameDay(event.startDate, selectedDate);
+  });
 
   // Get events for the upcoming days
-  const getUpcomingEvents = useCallback(() => {
+  const getUpcomingEvents = () => {
     const today = new Date();
     const nextWeek = addDays(today, 7);
     
     return initialEvents
       .filter(event => event.startDate >= today && event.startDate <= nextWeek)
       .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
-  }, []);
+  };
   
-  const upcomingEvents = React.useMemo(() => getUpcomingEvents(), [getUpcomingEvents]);
+  const upcomingEvents = getUpcomingEvents();
 
   // Handle date selection in calendar
-  const handleSelect = useCallback((newDate: Date | undefined) => {
-    setDate(newDate);
-    if (newDate) {
-      setSelectedDate(newDate);
+  const handleSelect = (date: Date | undefined) => {
+    setDate(date);
+    if (date) {
+      setSelectedDate(date);
     }
     setOpen(false);
-  }, []);
+  };
 
   // Handle event click to show details
-  const handleEventClick = useCallback((event: Event) => {
+  const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
     setIsViewDialogOpen(true);
-  }, []);
+  };
 
   // Handle edit button click
-  const handleViewToEdit = useCallback(() => {
+  const handleViewToEdit = () => {
     setIsViewDialogOpen(false);
     setIsEditMode(true);
-  }, []);
+  };
 
   // Handle saving event after edit
-  const handleSaveEvent = useCallback((updatedEvent: Event) => {
+  const handleSaveEvent = (updatedEvent: Event) => {
     console.log("Event saved:", updatedEvent);
     setIsEditMode(false);
     toast({
       title: "Event Updated",
       description: `"${updatedEvent.title}" has been updated.`
     });
-  }, [toast]);
+  };
 
   // Handle delete event
-  const handleDeleteEvent = useCallback(() => {
+  const handleDeleteEvent = () => {
     const eventTitle = selectedEvent?.title || 'Event';
     console.log("Event deleted:", selectedEvent?.id);
     setIsEditMode(false);
@@ -92,7 +92,7 @@ const CalendarWidget = () => {
       title: "Event Deleted",
       description: `"${eventTitle}" has been removed from your calendar.`
     });
-  }, [selectedEvent, toast]);
+  };
 
   return (
     <WidgetWrapper className="h-full">

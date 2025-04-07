@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { DocumentItem, DocumentFile, DocumentCategory } from '@/components/features/documents/types';
+import { DocumentItem, DocumentFile, DocumentCategory, CATEGORIES } from '@/components/features/documents/types';
 import { getFileTypeFromName } from '@/components/features/documents/FilePreview';
-import { toast } from 'sonner';
 
 // Get today's date to ensure no future dates
 const today = new Date();
@@ -85,7 +84,7 @@ const initialFiles: DocumentFile[] = [
     category: 'travel', 
     date: yesterday.toISOString(), 
     fileType: 'image', 
-    fileUrl: 'https://images.unsplash.com/photo-1469474968028-163732cd1544'
+    fileUrl: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e'
   },
   { 
     id: '3', 
@@ -221,95 +220,13 @@ PROTEIN POWER SMOOTHIE
   },
 ];
 
-// Helper function to save data to localStorage
-const saveToLocalStorage = (key: string, data: any) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(data));
-    console.log(`[DEBUG] useDocuments - Saved ${key} to localStorage`);
-  } catch (error) {
-    console.error(`Error saving ${key} to localStorage:`, error);
-    toast.error(`Failed to save ${key}`, { 
-      description: "Could not save your data. Please try again."
-    });
-  }
-};
-
-// Helper function to load data from localStorage
-const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
-  try {
-    const storedValue = localStorage.getItem(key);
-    if (!storedValue) return defaultValue;
-    
-    const parsedValue = JSON.parse(storedValue);
-    
-    if (key === 'documentCategoryItems') {
-      // Convert date strings back to Date objects
-      return parsedValue.map((item: any) => ({
-        ...item,
-        date: new Date(item.date),
-        addedDate: new Date(item.addedDate)
-      })) as T;
-    }
-    
-    return parsedValue;
-  } catch (error) {
-    console.error(`Error loading ${key} from localStorage:`, error);
-    toast.error(`Failed to load ${key}`, {
-      description: "Could not retrieve your saved data."
-    });
-    return defaultValue;
-  }
-};
-
 export function useDocuments() {
-  console.log("useDocuments re-rendered"); // VERIFICATION LOG
-  
-  // Use state initialization with proper error handling
-  const [categoryItems, setCategoryItems] = useState<DocumentItem[]>(() => {
-    try {
-      return loadFromLocalStorage<DocumentItem[]>('documentCategoryItems', initialCategoryItems);
-    } catch (error) {
-      console.error("Failed to load document items:", error);
-      toast.error("Failed to load documents", {
-        description: "An error occurred while loading your documents. Using default data instead."
-      });
-      return initialCategoryItems;
-    }
-  });
-  
-  const [files, setFiles] = useState<DocumentFile[]>(() => {
-    try {
-      return loadFromLocalStorage<DocumentFile[]>('documentFiles', initialFiles);
-    } catch (error) {
-      console.error("Failed to load document files:", error);
-      toast.error("Failed to load files", {
-        description: "An error occurred while loading your files. Using default data instead."
-      });
-      return initialFiles;
-    }
-  });
-  
-  // Save to localStorage whenever data changes - using separate effects to avoid cross-dependencies
-  useEffect(() => {
-    try {
-      saveToLocalStorage('documentCategoryItems', categoryItems);
-      console.log('[DEBUG] useDocuments - Saved categoryItems to localStorage', categoryItems.length);
-    } catch (error) {
-      console.error("Error saving category items:", error);
-    }
-  }, [categoryItems]);
-  
-  useEffect(() => {
-    try {
-      saveToLocalStorage('documentFiles', files);
-      console.log('[DEBUG] useDocuments - Saved files to localStorage', files.length);
-    } catch (error) {
-      console.error("Error saving files:", error);
-    }
-  }, [files]);
+  const [categoryItems, setCategoryItems] = useState<DocumentItem[]>(initialCategoryItems);
+  const [files, setFiles] = useState<DocumentFile[]>(initialFiles);
+  const { toast } = useToast();
 
-  // Format date to be more readable - MEMOIZED
-  const formatDateRelative = useCallback((date: Date) => {
+  // Format date to be more readable with improved relative date recognition
+  const formatDateRelative = (date: Date) => {
     const now = new Date();
     
     // Ensure we're comparing only the date part (without time)
@@ -340,161 +257,117 @@ export function useDocuments() {
     
     const years = Math.floor(diffDays / 365);
     return `${years} ${years === 1 ? 'year' : 'years'} ago`;
-  }, []);
+  };
 
-  // Filter documents based on category and search term - PROPERLY MEMOIZED
-  const filterDocuments = useCallback((
+  // Filter documents based on category and search term
+  const filterDocuments = (
     items: DocumentItem[], 
     category: DocumentCategory, 
     searchTerm: string
   ): DocumentItem[] => {
-    try {
-      if (!items || !Array.isArray(items)) return [];
-      
-      return items.filter(item => 
-        item.category === category && 
-        (searchTerm === '' || 
-          item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (item.tags && Array.isArray(item.tags) && item.tags.some(tag => 
-            tag.toLowerCase().includes(searchTerm.toLowerCase())
-          ))
-        )
-      );
-    } catch (error) {
-      console.error("Error filtering documents:", error);
-      return [];
-    }
-  }, []);
+    return items.filter(item => 
+      item.category === category && 
+      (searchTerm === '' || 
+        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
+    );
+  };
 
-  // Filter files based on search term - PROPERLY MEMOIZED
-  const filterFiles = useCallback((
+  // Filter files based on search term and optional categories
+  const filterFiles = (
     files: DocumentFile[], 
     searchTerm: string,
     categories?: DocumentCategory[]
   ): DocumentFile[] => {
-    try {
-      if (!files || !Array.isArray(files)) return [];
-      
-      return searchTerm 
-        ? files.filter(doc => 
-            doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            doc.category.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-        : files;
-    } catch (error) {
-      console.error("Error filtering files:", error);
-      return [];
+    return searchTerm 
+      ? files.filter(doc => 
+          doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          doc.category.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : files;
+  };
+
+  // Add or update document item
+  const handleAddOrUpdateItem = (item: any, editingItem: DocumentItem | null = null) => {
+    const now = new Date();
+    
+    if (editingItem) {
+      // Update existing item
+      setCategoryItems(categoryItems.map(existingItem => existingItem.id === editingItem.id ? {
+        ...item,
+        category: item.category as DocumentCategory,
+        content: item.description || item.content || '',
+        file: item.file || null,
+        fileName: item.fileName || undefined,
+        fileType: item.fileType || undefined,
+        // For documents, ensure we never use future dates
+        date: new Date(Math.min(new Date(item.date || now).getTime(), now.getTime())),
+        addedDate: editingItem.addedDate
+      } : existingItem));
+      toast({
+        title: "Item Updated",
+        description: `"${item.title}" has been updated`
+      });
+    } else {
+      // Add new item
+      const newItem: DocumentItem = {
+        id: Date.now().toString(),
+        title: item.title,
+        category: item.category as DocumentCategory,
+        type: item.file && getFileTypeFromName(item.fileName || '') === 'image' ? 'image' : 'note',
+        content: item.description || '',
+        tags: item.tags || [],
+        // For documents, use current date (never future)
+        date: now,
+        addedDate: now,
+        file: item.file || null,
+        fileName: item.fileName || undefined,
+        fileType: item.fileType || undefined
+      };
+      setCategoryItems([...categoryItems, newItem]);
+      toast({
+        title: "Item Added",
+        description: `"${item.title}" has been added to your collection`
+      });
     }
-  }, []);
+  };
 
-  // Memoize CATEGORIES array to ensure it's stable
-  const CATEGORIES = useMemo(() => 
-    ['style', 'recipes', 'travel', 'fitness', 'events', 'other', 'files'] as DocumentCategory[],
-  []);
+  // Delete document item
+  const handleDeleteItem = (id: string) => {
+    setCategoryItems(categoryItems.filter(item => item.id !== id));
+    toast({
+      title: "Item Removed",
+      description: "The item has been deleted"
+    });
+  };
 
-  // Add or update document item - Using immutable state updates
-  const handleAddOrUpdateItem = useCallback((item: any, editingItem: DocumentItem | null = null) => {
-    try {
-      const now = new Date();
-      
-      if (editingItem) {
-        // Update existing item with immutable update
-        setCategoryItems(prevItems => {
-          try {
-            // Create a new array with the updated item
-            const updated = prevItems.map(existingItem => 
-              existingItem.id === editingItem.id 
-                ? {
-                    ...existingItem,
-                    title: item.title,
-                    category: item.category as DocumentCategory,
-                    content: item.description || item.content || '',
-                    tags: item.tags || [],
-                    file: item.file || null,
-                    fileName: item.fileName || undefined,
-                    fileType: item.fileType || undefined,
-                    // For documents, ensure we never use future dates
-                    date: new Date(Math.min(new Date(item.date || now).getTime(), now.getTime()))
-                  } 
-                : existingItem
-            );
-            return updated;
-          } catch (error) {
-            console.error("Error updating item:", error);
-            toast.error("Failed to update document", {
-              description: "An error occurred while updating the document."
-            });
-            return prevItems;
-          }
-        });
-      } else {
-        // Add new item with immutable update
-        try {
-          const newItem: DocumentItem = {
-            id: Date.now().toString(),
-            title: item.title,
-            category: item.category as DocumentCategory,
-            type: item.file && getFileTypeFromName(item.fileName || '') === 'image' ? 'image' : 'note',
-            content: item.description || '',
-            tags: item.tags || [],
-            // For documents, use current date (never future)
-            date: now,
-            addedDate: now,
-            file: item.file || null,
-            fileName: item.fileName || undefined,
-            fileType: item.fileType || undefined
-          };
-          
-          setCategoryItems(prevItems => [...prevItems, newItem]);
-        } catch (error) {
-          console.error("Error adding new item:", error);
-          toast.error("Failed to add document", {
-            description: "An error occurred while adding the new document."
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error in handleAddOrUpdateItem:", error);
-      throw error; // Let the calling component handle this error
+  // Add or update file
+  const handleAddOrUpdateFile = (file: DocumentFile, isEditing: boolean = false) => {
+    if (isEditing) {
+      setFiles(files.map(f => f.id === file.id ? file : f));
+      toast({
+        title: "File Updated",
+        description: `"${file.title}" has been updated`
+      });
+    } else {
+      setFiles([...files, { ...file, id: Date.now().toString() }]);
+      toast({
+        title: "File Added",
+        description: `"${file.title}" has been added to your files`
+      });
     }
-  }, []);
+  };
 
-  // Delete document item - Using immutable state updates
-  const handleDeleteItem = useCallback((id: string) => {
-    try {
-      setCategoryItems(prevItems => prevItems.filter(item => item.id !== id));
-    } catch (error) {
-      console.error("Error deleting item:", error);
-      throw error; // Let the calling component handle this error
-    }
-  }, []);
+  // Delete file
+  const handleDeleteFile = (id: string) => {
+    setFiles(files.filter(file => file.id !== id));
+    toast({
+      title: "File Removed",
+      description: "The file has been deleted"
+    });
+  };
 
-  // Add or update file - Using immutable state updates
-  const handleAddOrUpdateFile = useCallback((file: DocumentFile, isEditing: boolean = false) => {
-    try {
-      if (isEditing) {
-        setFiles(prevFiles => prevFiles.map(f => f.id === file.id ? file : f));
-      } else {
-        setFiles(prevFiles => [...prevFiles, { ...file, id: Date.now().toString() }]);
-      }
-    } catch (error) {
-      console.error("Error in handleAddOrUpdateFile:", error);
-      throw error; // Let the calling component handle this error
-    }
-  }, []);
-
-  // Delete file - Using immutable state updates
-  const handleDeleteFile = useCallback((id: string) => {
-    try {
-      setFiles(prevFiles => prevFiles.filter(file => file.id !== id));
-    } catch (error) {
-      console.error("Error deleting file:", error);
-      throw error; // Let the calling component handle this error
-    }
-  }, []);
-
-  // CRITICAL: Return all values wrapped in useMemo with ALL dependencies
-  return useMemo(() => ({
+  return {
     categoryItems,
     files,
     filterDocuments,
@@ -505,16 +378,5 @@ export function useDocuments() {
     handleDeleteFile,
     formatDateRelative,
     CATEGORIES
-  }), [
-    categoryItems, 
-    files, 
-    filterDocuments, 
-    filterFiles, 
-    handleAddOrUpdateItem, 
-    handleDeleteItem, 
-    handleAddOrUpdateFile, 
-    handleDeleteFile, 
-    formatDateRelative, 
-    CATEGORIES
-  ]);
+  };
 }

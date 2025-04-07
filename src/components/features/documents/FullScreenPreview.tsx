@@ -1,11 +1,10 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, Download } from 'lucide-react';
 import { DocumentItem, DocumentFile } from './types';
 import FilePreview from './FilePreview';
-import { toast } from 'sonner';
 
 interface FullScreenPreviewProps {
   item: DocumentItem | DocumentFile | null;
@@ -18,14 +17,6 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   onClose,
   readOnly = false
 }) => {
-  // Only set isOpen based on item prop, not directly manipulating it in render
-  const [isOpen, setIsOpen] = useState(false);
-  
-  // Update isOpen when item changes
-  React.useEffect(() => {
-    setIsOpen(Boolean(item));
-  }, [item]);
-  
   if (!item) return null;
 
   const isDocumentItem = 'content' in item;
@@ -47,34 +38,18 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   }
   
   const handleDownload = () => {
-    if (!fileUrl) {
-      toast.error("No file available to download");
-      return;
-    }
+    if (!fileUrl) return;
     
-    try {
-      // Create a new anchor element
-      const downloadLink = window.document.createElement('a');
-      downloadLink.href = fileUrl;
-      downloadLink.download = title || 'document';
-      window.document.body.appendChild(downloadLink);
-      downloadLink.click();
-      window.document.body.removeChild(downloadLink);
-      
-      toast.success(`Downloading: ${title}`);
-    } catch (error) {
-      console.error("Download error:", error);
-      toast.error("Failed to download file");
-    }
-  };
-
-  const handleDialogChange = (open: boolean) => {
-    setIsOpen(open);
-    if (!open) onClose();
+    const a = document.createElement('a');
+    a.href = fileUrl;
+    a.download = `${title || 'document'}.${fileType || 'pdf'}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleDialogChange}>
+    <Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl w-[90vw] max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -85,7 +60,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
             className="absolute right-4 top-4"
             variant="ghost"
             size="icon"
-            onClick={() => handleDialogChange(false)}
+            onClick={onClose}
             aria-label="Close"
           >
             <X className="h-4 w-4" />
