@@ -9,9 +9,14 @@ import FilePreview from './FilePreview';
 interface FullScreenPreviewProps {
   item: DocumentItem | DocumentFile | null;
   onClose: () => void;
+  readOnly?: boolean; // Add readOnly prop to match CalendarView usage
 }
 
-const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) => {
+const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ 
+  item, 
+  onClose,
+  readOnly = false // Default to false for backward compatibility
+}) => {
   if (!item) return null;
 
   const isDocumentItem = 'content' in item;
@@ -52,7 +57,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) 
         
         <div className="py-4">
           <FilePreview
-            fileUrl={fileUrl}
+            file={fileUrl} // Changed from fileUrl to file to match FilePreview props
             fileType={fileType}
             fileName={
               isDocumentItem 
@@ -60,6 +65,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose }) 
                 : (isDocumentFile ? item.title : '')
             }
             className="max-h-[70vh] w-full"
+            fullScreen={true}
           />
         </div>
       </DialogContent>
