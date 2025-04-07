@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import AddDocumentDialog from '@/components/features/documents/AddDocumentDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 
 const DocumentsPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isMobile } = useIsMobile();
   
   // Fetch documents data
@@ -34,13 +35,32 @@ const DocumentsPage = () => {
   // Local state
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<DocumentCategory>('style');
+  
+  // Extract tab from URL or use default
+  const getInitialTab = (): DocumentCategory => {
+    // Check if the path is like /documents/style or similar
+    const pathParts = location.pathname.split('/');
+    const lastPart = pathParts[pathParts.length - 1];
+    
+    if (CATEGORIES.includes(lastPart as DocumentCategory)) {
+      return lastPart as DocumentCategory;
+    }
+    return 'style'; // Default tab
+  };
+  
+  const [activeTab, setActiveTab] = useState<DocumentCategory>(getInitialTab);
   const [editingItem, setEditingItem] = useState<DocumentItem | null>(null);
   const [fullScreenPreviewItem, setFullScreenPreviewItem] = useState<DocumentItem | DocumentFile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Use this variable without recalculating it on every render
   const currentCategory = activeTab;
+
+  // Update URL when tab changes
+  const handleTabChange = useCallback((value: string) => {
+    setActiveTab(value as DocumentCategory);
+    navigate(`/documents/${value}`, { replace: true });
+  }, [navigate]);
 
   // Open add dialog with optional item to edit
   const handleOpenAddDialog = (editing: DocumentItem | null = null) => {
@@ -163,7 +183,11 @@ const DocumentsPage = () => {
         addItemLabel="+ Add Item"
       />
 
-      <Tabs defaultValue="style" value={activeTab} onValueChange={(value) => setActiveTab(value as DocumentCategory)} className="w-full">
+      <Tabs 
+        value={activeTab} 
+        onValueChange={handleTabChange} 
+        className="w-full"
+      >
         <TabsList className="grid grid-cols-7 w-full mb-4">
           <TabsTrigger value="style" className="flex items-center gap-2">
             <Shirt className="h-4 w-4" />

@@ -57,17 +57,18 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
     }
     
     try {
-      const link = document.createElement('a');
+      // Use the global window.document object, not the document prop
+      const link = window.document.createElement('a');
       link.href = document.fileUrl;
       link.download = document.title || 'download';
       
       // We need to add the link to the DOM for Firefox
-      document.body.appendChild(link);
+      window.document.body.appendChild(link);
       link.click();
       
       // Cleanup
       setTimeout(() => {
-        document.body.removeChild(link);
+        window.document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
       }, 100);
       
