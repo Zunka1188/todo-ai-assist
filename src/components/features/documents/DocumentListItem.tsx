@@ -52,8 +52,8 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
     }
     
     try {
-      // Create a new anchor element
-      const downloadLink = document.createElement('a');
+      // Create a new anchor element - properly referencing window.document
+      const downloadLink = window.document.createElement('a');
       downloadLink.href = document.fileUrl;
       downloadLink.download = document.title || 'download';
       window.document.body.appendChild(downloadLink);
@@ -113,7 +113,7 @@ const DocumentListItem: React.FC<DocumentListItemProps> = ({
                 className="h-8 w-8"
                 title={`Check out this document: ${document.title}`}
                 fileUrl={document.fileUrl}
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   e.preventDefault();
                 }}

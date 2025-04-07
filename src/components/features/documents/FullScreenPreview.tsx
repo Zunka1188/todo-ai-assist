@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, Download } from 'lucide-react';
@@ -18,6 +18,9 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   onClose,
   readOnly = false
 }) => {
+  // Use local state to control the dialog
+  const [isOpen, setIsOpen] = useState(Boolean(item));
+  
   if (!item) return null;
 
   const isDocumentItem = 'content' in item;
@@ -61,6 +64,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   };
 
   const handleDialogChange = (open: boolean) => {
+    setIsOpen(open);
     if (!open) onClose();
   };
 
@@ -76,7 +80,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
             className="absolute right-4 top-4"
             variant="ghost"
             size="icon"
-            onClick={onClose}
+            onClick={() => handleDialogChange(false)}
             aria-label="Close"
           >
             <X className="h-4 w-4" />
