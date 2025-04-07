@@ -15,13 +15,15 @@ type ShoppingListProps = {
   filterMode?: 'all' | 'one-off' | 'weekly' | 'monthly';
   className?: string;
   onEditItem?: (id: string, name?: string, item?: any) => void;
+  readOnly?: boolean;
 };
 
 const ShoppingList = ({
   searchTerm = '',
   filterMode = 'all',
   className,
-  onEditItem
+  onEditItem,
+  readOnly = false
 }: ShoppingListProps) => {
   const { 
     notPurchasedItems, 
@@ -53,6 +55,15 @@ const ShoppingList = ({
 
   const handleSaveItemFromCapture = (itemData: any) => {
     try {
+      if (readOnly) {
+        toast({
+          title: "Read-only Mode",
+          description: "You don't have permission to add items in this shared list.",
+          variant: "destructive"
+        });
+        return false;
+      }
+      
       console.log("[DEBUG] ShoppingList - Handling save from capture:", JSON.stringify(itemData, null, 2));
       
       if (!itemData.name) {
@@ -110,6 +121,15 @@ const ShoppingList = ({
   };
 
   const handleToggleItemCompletion = (itemId: string) => {
+    if (readOnly) {
+      toast({
+        title: "Read-only Mode",
+        description: "You don't have permission to mark items as completed.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     console.log("[DEBUG] ShoppingList - Toggling completion for item ID:", itemId);
     const result = toggleItemCompletion(itemId);
     
@@ -137,9 +157,20 @@ const ShoppingList = ({
             imageUrl={item.imageUrl}
             notes={item.notes}
             onClick={() => handleToggleItemCompletion(item.id)}
-            onDelete={() => deleteItem(item.id)}
+            onDelete={() => {
+              if (readOnly) {
+                toast({
+                  title: "Read-only Mode",
+                  description: "You don't have permission to delete items in this shared list.",
+                  variant: "destructive"
+                });
+                return;
+              }
+              deleteItem(item.id);
+            }}
             onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
             onImagePreview={() => handleImagePreview(item)}
+            readOnly={readOnly}
           />
         </div>
       ))}
@@ -188,11 +219,20 @@ const ShoppingList = ({
           }
         }}
         onDelete={() => {
+          if (readOnly) {
+            toast({
+              title: "Read-only Mode",
+              description: "You don't have permission to delete items in this shared list.",
+              variant: "destructive"
+            });
+            return;
+          }
           if (selectedItem) {
             deleteItem(selectedItem.id);
           }
           handleCloseImageDialog();
         }}
+        readOnly={readOnly}
       />
     </div>
   );

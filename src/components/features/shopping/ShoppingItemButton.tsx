@@ -17,6 +17,7 @@ interface ShoppingItemButtonProps {
   onDelete: () => void;
   onEdit: () => void;
   onImagePreview?: () => void;
+  readOnly?: boolean;
 }
 
 const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
@@ -30,6 +31,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
   onDelete,
   onEdit,
   onImagePreview,
+  readOnly = false
 }) => {
   const { isMobile } = useIsMobile();
   
@@ -124,6 +126,14 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
               </Button>
             </div>
           )}
+
+          {readOnly && (
+            <div className="absolute top-1 right-1">
+              <Badge variant="secondary" className="text-[10px] px-1 py-0 bg-gray-500 text-white">
+                Read-only
+              </Badge>
+            </div>
+          )}
         </div>
         
         <div className="p-1 flex-grow overflow-hidden">
@@ -173,7 +183,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
       )}
       
-      {!isMobile && (
+      {!isMobile && !readOnly && (
         <>
           <div className="absolute top-1.5 right-1.5">
             <Button

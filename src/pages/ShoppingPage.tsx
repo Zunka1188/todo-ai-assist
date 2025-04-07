@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShoppingList from '@/components/features/shopping/ShoppingList';
@@ -21,6 +20,7 @@ const ShoppingPage: React.FC = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [editItem, setEditItem] = useState<{ id: string, name?: string, item?: any } | null>(null);
+  const [isReadOnlyMode, setIsReadOnlyMode] = useState(false);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -44,19 +44,58 @@ const ShoppingPage: React.FC = () => {
     setActiveTab(newTab);
   }, [location.search, tabFromUrl]);
 
-  // Check for invitation parameter
+  // Check for invitation parameter and read-only mode
   useEffect(() => {
     const inviteParam = searchParams.get('invite');
+    const modeParam = searchParams.get('mode');
+    
     if (inviteParam) {
-      toast({
-        title: "Invitation Accepted",
-        description: "You've joined a shared shopping list"
-      });
-      // Remove the invitation parameter from the URL without navigation
+      // Verify if the invite link is still valid
+      try {
+        const storedLinks = localStorage.getItem('shoppingInviteLinks');
+        if (storedLinks) {
+          const links = JSON.parse(storedLinks);
+          const matchingLink = links.find((link: any) => 
+            link.id === inviteParam && link.isActive
+          );
+          
+          if (matchingLink) {
+            // Check if the link has expired
+            if (matchingLink.expiresAt && new Date(matchingLink.expiresAt) < new Date()) {
+              toast({
+                title: "Invitation Expired",
+                description: "This shopping list invitation has expired.",
+                variant: "destructive"
+              });
+              return;
+            }
+            
+            // Set read-only mode if specified
+            setIsReadOnlyMode(modeParam === 'readonly');
+            
+            toast({
+              title: isReadOnlyMode ? "View-only Access" : "Invitation Accepted",
+              description: isReadOnlyMode 
+                ? "You can view but not modify this shopping list" 
+                : "You've joined a shared shopping list"
+            });
+          } else {
+            toast({
+              title: "Invalid Invitation",
+              description: "This shopping list invitation is invalid or has been revoked.",
+              variant: "destructive"
+            });
+          }
+        }
+      } catch (error) {
+        console.error("[ERROR] Error processing invitation:", error);
+      }
+      
+      // Keep the tab parameter but remove the invitation parameters
       const newUrl = `${window.location.pathname}?tab=${activeTab}`;
       window.history.replaceState({}, '', newUrl);
     }
-  }, [location.search]);
+  }, [location.search, toast, activeTab]);
 
   const handleTabChange = (value: string) => {
     console.log(`[DEBUG] ShoppingPage - Tab changed to: ${value}`);
@@ -65,6 +104,16 @@ const ShoppingPage: React.FC = () => {
   };
 
   const handleEditItem = (id: string, name?: string, item?: any) => {
+    // Prevent editing in read-only mode
+    if (isReadOnlyMode) {
+      toast({
+        title: "Read-only Mode",
+        description: "You don't have permission to edit items in this shared list.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     console.log("[DEBUG] ShoppingPage - Editing item:", id, name, item);
     setEditItem({ id, name, item });
   }
@@ -74,6 +123,16 @@ const ShoppingPage: React.FC = () => {
   }
 
   const handleSaveItem = (item: any) => {
+    // Prevent adding items in read-only mode
+    if (isReadOnlyMode) {
+      toast({
+        title: "Read-only Mode",
+        description: "You don't have permission to add items to this shared list.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
     try {
       console.log('[DEBUG] ShoppingPage - Adding item with data:', JSON.stringify(item, null, 2));
       
@@ -128,6 +187,16 @@ const ShoppingPage: React.FC = () => {
   }
 
   const handleUpdateItem = (updatedItem: any, imageFile: File | null) => {
+    // Prevent updating in read-only mode
+    if (isReadOnlyMode) {
+      toast({
+        title: "Read-only Mode",
+        description: "You don't have permission to update items in this shared list.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
     try {
       if (!editItem || !editItem.id) return false;
       
@@ -175,13 +244,32 @@ const ShoppingPage: React.FC = () => {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onAddItem={() => {
+          if (isReadOnlyMode) {
+            toast({
+              title: "Read-only Mode",
+              description: "You don't have permission to add items to this shared list.",
+              variant: "destructive"
+            });
+            return;
+          }
           console.log("[DEBUG] ShoppingPage - Add button clicked, setting showAddDialog to true");
           setShowAddDialog(true);
         }}
         addItemLabel="Add Item"
+        showAddButton={!isReadOnlyMode}
         rightContent={
           <Button
-            onClick={() => setShowInviteDialog(true)}
+            onClick={() => {
+              if (isReadOnlyMode) {
+                toast({
+                  title: "Read-only Mode",
+                  description: "You don't have permission to share this list further.",
+                  variant: "destructive"
+                });
+                return;
+              }
+              setShowInviteDialog(true);
+            }}
             size={isMobile ? "sm" : "default"}
             variant="secondary"
             className="flex items-center gap-1"
@@ -191,6 +279,12 @@ const ShoppingPage: React.FC = () => {
           </Button>
         }
       />
+
+      {isReadOnlyMode && (
+        <div className="mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800 text-xs">
+          You are viewing this shopping list in read-only mode. You cannot add, edit, or mark items as completed.
+        </div>
+      )}
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full grid grid-cols-4 mb-6">
@@ -206,6 +300,7 @@ const ShoppingPage: React.FC = () => {
               searchTerm={searchTerm}
               filterMode="all"
               onEditItem={handleEditItem}
+              readOnly={isReadOnlyMode}
             />
           </TabsContent>
           <TabsContent value="one-off">
@@ -213,6 +308,7 @@ const ShoppingPage: React.FC = () => {
               searchTerm={searchTerm}
               filterMode="one-off"
               onEditItem={handleEditItem}
+              readOnly={isReadOnlyMode}
             />
           </TabsContent>
           <TabsContent value="weekly">
@@ -220,6 +316,7 @@ const ShoppingPage: React.FC = () => {
               searchTerm={searchTerm}
               filterMode="weekly"
               onEditItem={handleEditItem}
+              readOnly={isReadOnlyMode}
             />
           </TabsContent>
           <TabsContent value="monthly">
@@ -227,6 +324,7 @@ const ShoppingPage: React.FC = () => {
               searchTerm={searchTerm}
               filterMode="monthly"
               onEditItem={handleEditItem}
+              readOnly={isReadOnlyMode}
             />
           </TabsContent>
         </div>
@@ -236,6 +334,7 @@ const ShoppingPage: React.FC = () => {
         <div className="fixed top-0 left-0 right-0 bg-yellow-200 text-black p-1 text-xs z-50 opacity-80">
           <div>Tab from URL: "{tabFromUrl}", Active Tab: "{activeTab}"</div>
           <div>Current URL: {location.pathname}{location.search}</div>
+          <div>Read-only: {isReadOnlyMode ? "Yes" : "No"}</div>
         </div>
       )}
 
@@ -249,7 +348,7 @@ const ShoppingPage: React.FC = () => {
         onSave={handleSaveItem}
       />
 
-      {/* New Invite Dialog */}
+      {/* Invite Dialog */}
       <InviteDialog
         open={showInviteDialog}
         onOpenChange={setShowInviteDialog}
