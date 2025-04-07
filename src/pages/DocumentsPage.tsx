@@ -37,7 +37,7 @@ const DocumentsPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   
   // Extract tab from URL or use default
-  const getInitialTab = (): DocumentCategory => {
+  const getInitialTab = useCallback((): DocumentCategory => {
     // Check if the path is like /documents/style or similar
     const pathParts = location.pathname.split('/');
     const lastPart = pathParts[pathParts.length - 1];
@@ -46,36 +46,41 @@ const DocumentsPage = () => {
       return lastPart as DocumentCategory;
     }
     return 'style'; // Default tab
-  };
+  }, [location.pathname, CATEGORIES]);
   
-  const [activeTab, setActiveTab] = useState<DocumentCategory>(getInitialTab);
+  const [activeTab, setActiveTab] = useState<DocumentCategory>(() => getInitialTab());
   const [editingItem, setEditingItem] = useState<DocumentItem | null>(null);
   const [fullScreenPreviewItem, setFullScreenPreviewItem] = useState<DocumentItem | DocumentFile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Update activeTab when location changes
+  useEffect(() => {
+    setActiveTab(getInitialTab());
+  }, [getInitialTab]);
+
   // Use this variable without recalculating it on every render
   const currentCategory = activeTab;
 
-  // Update URL when tab changes
+  // Update URL when tab changes - this is a callback to prevent recreating on every render
   const handleTabChange = useCallback((value: string) => {
     setActiveTab(value as DocumentCategory);
     navigate(`/documents/${value}`, { replace: true });
   }, [navigate]);
 
   // Open add dialog with optional item to edit
-  const handleOpenAddDialog = (editing: DocumentItem | null = null) => {
+  const handleOpenAddDialog = useCallback((editing: DocumentItem | null = null) => {
     setEditingItem(editing);
     setIsAddDialogOpen(true);
-  };
+  }, []);
 
   // Open file uploader
-  const handleOpenFileUploader = () => {
+  const handleOpenFileUploader = useCallback(() => {
     setEditingItem(null);
     setIsAddDialogOpen(true);
-  };
+  }, []);
 
   // Handle adding or updating an item
-  const handleAddItem = (item: any) => {
+  const handleAddItem = useCallback((item: any) => {
     try {
       setIsLoading(true);
       handleAddOrUpdateItem(item, editingItem);
@@ -99,10 +104,10 @@ const DocumentsPage = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [handleAddOrUpdateItem, editingItem]);
 
   // Handle deleting an item with confirmation toast
-  const handleDeleteItemWithConfirmation = (id: string) => {
+  const handleDeleteItemWithConfirmation = useCallback((id: string) => {
     try {
       handleDeleteItem(id);
       toast.success(
@@ -120,30 +125,30 @@ const DocumentsPage = () => {
         }
       );
     }
-  };
+  }, [handleDeleteItem]);
 
   // Open full screen preview for an item
-  const handleViewFullScreen = (item: DocumentItem | DocumentFile) => {
+  const handleViewFullScreen = useCallback((item: DocumentItem | DocumentFile) => {
     setFullScreenPreviewItem(item);
-  };
+  }, []);
 
   // Filter items based on current tab and search term
   const filteredItems = filterDocuments(categoryItems, activeTab, searchTerm);
   const filteredFiles = filterFiles(files, searchTerm);
 
   // Handle dialog close
-  const handleDialogClose = (open: boolean) => {
+  const handleDialogClose = useCallback((open: boolean) => {
     setIsAddDialogOpen(open);
     if (!open) {
       // Reset editing state if dialog is closed
       setEditingItem(null);
     }
-  };
+  }, []);
 
   // Handle full screen preview close
-  const handleFullScreenClose = () => {
+  const handleFullScreenClose = useCallback(() => {
     setFullScreenPreviewItem(null);
-  };
+  }, []);
 
   // If we have no documents at all, render a fallback UI
   if (!categoryItems?.length && !files?.length) {
