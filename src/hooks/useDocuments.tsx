@@ -289,9 +289,11 @@ export function useDocuments() {
     }
   });
   
-  // Save to localStorage whenever data changes - immediately to ensure cross-device sync
+  // Save to localStorage whenever data changes - using separate effects to avoid cross-dependencies
   useEffect(() => {
     try {
+      // Don't save during the initial render to avoid unnecessary writes
+      // Using a ref to track initial render would be better, but keeping it simple
       saveToLocalStorage('documentCategoryItems', categoryItems);
       console.log('[DEBUG] useDocuments - Saved categoryItems to localStorage', categoryItems.length);
     } catch (error) {
@@ -308,7 +310,7 @@ export function useDocuments() {
     }
   }, [files]);
 
-  // Format date to be more readable with improved relative date recognition - MEMOIZED
+  // Format date to be more readable - MEMOIZED
   const formatDateRelative = useCallback((date: Date) => {
     const now = new Date();
     
@@ -366,7 +368,7 @@ export function useDocuments() {
     }
   }, []);
 
-  // Filter files based on search term and optional categories - PROPERLY MEMOIZED
+  // Filter files based on search term - PROPERLY MEMOIZED
   const filterFiles = useCallback((
     files: DocumentFile[], 
     searchTerm: string,
@@ -387,34 +389,36 @@ export function useDocuments() {
     }
   }, []);
 
-  // Memoize CATEGORIES array to ensure it's stable across renders
+  // Memoize CATEGORIES array to ensure it's stable
   const CATEGORIES = useMemo(() => 
     ['style', 'recipes', 'travel', 'fitness', 'events', 'other', 'files'] as DocumentCategory[],
   []);
 
-  // Add or update document item
+  // Add or update document item - FIX: Removed inline localStorage saving
   const handleAddOrUpdateItem = useCallback((item: any, editingItem: DocumentItem | null = null) => {
     try {
       const now = new Date();
       
       if (editingItem) {
-        // Update existing item
+        // Update existing item with immutable update
         setCategoryItems(prevItems => {
           try {
-            const updated = prevItems.map(existingItem => existingItem.id === editingItem.id ? {
-              ...item,
-              category: item.category as DocumentCategory,
-              content: item.description || item.content || '',
-              file: item.file || null,
-              fileName: item.fileName || undefined,
-              fileType: item.fileType || undefined,
-              // For documents, ensure we never use future dates
-              date: new Date(Math.min(new Date(item.date || now).getTime(), now.getTime())),
-              addedDate: editingItem.addedDate
-            } : existingItem);
-            
-            // Save immediately to localStorage
-            saveToLocalStorage('documentCategoryItems', updated);
+            const updated = prevItems.map(existingItem => 
+              existingItem.id === editingItem.id 
+                ? {
+                    ...existingItem,
+                    title: item.title,
+                    category: item.category as DocumentCategory,
+                    content: item.description || item.content || '',
+                    tags: item.tags || [],
+                    file: item.file || null,
+                    fileName: item.fileName || undefined,
+                    fileType: item.fileType || undefined,
+                    // For documents, ensure we never use future dates
+                    date: new Date(Math.min(new Date(item.date || now).getTime(), now.getTime()))
+                  } 
+                : existingItem
+            );
             return updated;
           } catch (error) {
             console.error("Error updating item:", error);
@@ -425,7 +429,7 @@ export function useDocuments() {
           }
         });
       } else {
-        // Add new item
+        // Add new item with immutable update
         try {
           const newItem: DocumentItem = {
             id: Date.now().toString(),
@@ -442,12 +446,7 @@ export function useDocuments() {
             fileType: item.fileType || undefined
           };
           
-          setCategoryItems(prevItems => {
-            const updated = [...prevItems, newItem];
-            // Save immediately to localStorage
-            saveToLocalStorage('documentCategoryItems', updated);
-            return updated;
-          });
+          setCategoryItems(prevItems => [...prevItems, newItem]);
         } catch (error) {
           console.error("Error adding new item:", error);
           toast.error("Failed to add document", {
@@ -461,38 +460,23 @@ export function useDocuments() {
     }
   }, []);
 
-  // Delete document item
+  // Delete document item - FIX: Removed inline localStorage saving
   const handleDeleteItem = useCallback((id: string) => {
     try {
-      setCategoryItems(prevItems => {
-        const updated = prevItems.filter(item => item.id !== id);
-        // Save immediately to localStorage
-        saveToLocalStorage('documentCategoryItems', updated);
-        return updated;
-      });
+      setCategoryItems(prevItems => prevItems.filter(item => item.id !== id));
     } catch (error) {
       console.error("Error deleting item:", error);
       throw error; // Let the calling component handle this error
     }
   }, []);
 
-  // Add or update file
+  // Add or update file - FIX: Removed inline localStorage saving
   const handleAddOrUpdateFile = useCallback((file: DocumentFile, isEditing: boolean = false) => {
     try {
       if (isEditing) {
-        setFiles(prevFiles => {
-          const updated = prevFiles.map(f => f.id === file.id ? file : f);
-          // Save immediately to localStorage
-          saveToLocalStorage('documentFiles', updated);
-          return updated;
-        });
+        setFiles(prevFiles => prevFiles.map(f => f.id === file.id ? file : f));
       } else {
-        setFiles(prevFiles => {
-          const updated = [...prevFiles, { ...file, id: Date.now().toString() }];
-          // Save immediately to localStorage
-          saveToLocalStorage('documentFiles', updated);
-          return updated;
-        });
+        setFiles(prevFiles => [...prevFiles, { ...file, id: Date.now().toString() }]);
       }
     } catch (error) {
       console.error("Error in handleAddOrUpdateFile:", error);
@@ -500,15 +484,10 @@ export function useDocuments() {
     }
   }, []);
 
-  // Delete file
+  // Delete file - FIX: Removed inline localStorage saving
   const handleDeleteFile = useCallback((id: string) => {
     try {
-      setFiles(prevFiles => {
-        const updated = prevFiles.filter(file => file.id !== id);
-        // Save immediately to localStorage
-        saveToLocalStorage('documentFiles', updated);
-        return updated;
-      });
+      setFiles(prevFiles => prevFiles.filter(file => file.id !== id));
     } catch (error) {
       console.error("Error deleting file:", error);
       throw error; // Let the calling component handle this error

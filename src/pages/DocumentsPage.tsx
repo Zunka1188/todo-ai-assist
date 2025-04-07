@@ -111,17 +111,17 @@ const DocumentsPage = () => {
     setFullScreenPreviewItem(item);
   }, []);
 
-  // Filter items based on current tab and search term - memoized to prevent recalculation
-  // VERIFICATION: Add console log to track re-renders of filtered items
+  // Filter items based on current tab and search term - VERIFICATION: Add console log
   const filteredItems = useMemo(() => {
     console.log("filteredItems re-rendered");
     return filterDocuments(categoryItems, activeTab, searchTerm);
   }, [filterDocuments, categoryItems, activeTab, searchTerm]);
   
-  const filteredFiles = useMemo(() => 
-    filterFiles(files, searchTerm),
-    [filterFiles, files, searchTerm]
-  );
+  // Filter files based on search term
+  const filteredFiles = useMemo(() => {
+    console.log("filteredFiles re-rendered");
+    return filterFiles(files, searchTerm);
+  }, [filterFiles, files, searchTerm]);
 
   // Handle dialog close
   const handleDialogClose = useCallback((open: boolean) => {
@@ -137,8 +137,9 @@ const DocumentsPage = () => {
     setFullScreenPreviewItem(null);
   }, []);
 
-  // Memoize editItem object with proper dependencies to prevent unnecessary re-renders
+  // Memoize editItem object with proper dependencies
   const memoizedEditItem = useMemo(() => {
+    console.log("memoizedEditItem recalculating");
     if (!editingItem) return null;
     
     return {
