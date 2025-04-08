@@ -25,85 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-// Function to compress images before upload
-const compressImage = async (imageFile: File) => {
-  try {
-    // Basic compression technique - you may want to use a library like browser-image-compression
-    const MAX_SIZE = 1024 * 1024; // 1 MB
-    
-    if (imageFile.size <= MAX_SIZE) {
-      return imageFile; // Already small enough
-    }
-    
-    // Create a new canvas to resize the image
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Create an image element
-    const img = document.createElement('img');
-    
-    // Create a promise to handle the async operation
-    return new Promise<File>((resolve, reject) => {
-      img.onload = () => {
-        try {
-          // Calculate new dimensions while maintaining aspect ratio
-          let width = img.width;
-          let height = img.height;
-          
-          // Max dimensions for compressed image
-          const MAX_WIDTH = 1200;
-          const MAX_HEIGHT = 1200;
-          
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height = Math.round(height * (MAX_WIDTH / width));
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width = Math.round(width * (MAX_HEIGHT / height));
-              height = MAX_HEIGHT;
-            }
-          }
-          
-          // Set canvas dimensions to new size
-          canvas.width = width;
-          canvas.height = height;
-          
-          // Draw the resized image on the canvas
-          ctx?.drawImage(img, 0, 0, width, height);
-          
-          // Convert canvas to blob and then to File
-          canvas.toBlob(blob => {
-            if (blob) {
-              const newFile = new File([blob], imageFile.name, {
-                type: imageFile.type,
-                lastModified: Date.now()
-              });
-              resolve(newFile);
-            } else {
-              reject(new Error('Failed to compress image'));
-            }
-          }, imageFile.type, 0.7); // Quality set to 0.7
-        } catch (error) {
-          reject(error);
-        }
-      };
-      
-      img.onerror = () => reject(new Error('Failed to load image for compression'));
-      
-      // Load the image from the file
-      const reader = new FileReader();
-      reader.onload = (e) => img.src = e.target?.result as string;
-      reader.onerror = () => reject(new Error('Failed to read image file'));
-      reader.readAsDataURL(imageFile);
-    });
-  } catch (error) {
-    console.error('Image compression error:', error);
-    return imageFile; // Return original file if compression fails
-  }
-};
+import { compressImage } from '@/utils/imageProcessing';
 
 // Function to upload images to the server
 const uploadImage = async (imageFile: File) => {
@@ -258,7 +180,8 @@ const ShoppingPageContent: React.FC = () => {
     setEditItem(null);
   }
 
-  const handleSaveItem = async (item: any) => {
+  // Fixed handleSaveItem to return void or boolean directly instead of Promise<boolean>
+  const handleSaveItem = (item: any) => {
     if (isReadOnlyMode) {
       memoizedToast({
         title: "Read-only Mode",
@@ -268,81 +191,82 @@ const ShoppingPageContent: React.FC = () => {
       return false;
     }
     
-    try {
-      setIsProcessing(true);
-      console.log('[DEBUG] ShoppingPage - Adding item with data:', JSON.stringify(item, null, 2));
-      
-      let imageUrl = null;
-      if (item.file && item.file instanceof File) {
-        try {
-          imageUrl = await uploadImage(item.file);
-        } catch (error) {
+    setIsProcessing(true);
+    
+    (async () => {
+      try {
+        console.log('[DEBUG] ShoppingPage - Adding item with data:', JSON.stringify(item, null, 2));
+        
+        let imageUrl = null;
+        if (item.file && item.file instanceof File) {
+          try {
+            imageUrl = await uploadImage(item.file);
+          } catch (error) {
+            memoizedToast({
+              title: "Image Upload Failed",
+              description: "Failed to upload image, but we'll continue adding the item.",
+              variant: "destructive"
+            });
+          }
+        } else if (item.imageUrl) {
+          imageUrl = item.imageUrl;
+        }
+        
+        const itemToAdd = {
+          name: item.name || 'Unnamed Item',
+          amount: item.amount || '',
+          price: item.price || '',
+          imageUrl: imageUrl,
+          notes: item.notes || '',
+          repeatOption: item.repeatOption || 'none',
+          category: item.category || '',
+          dateToPurchase: item.dateToPurchase || '',
+          completed: false
+        };
+        
+        console.log('[DEBUG] ShoppingPage - Properly structured item to add:', JSON.stringify(itemToAdd, null, 2));
+        
+        const result = addItem(itemToAdd);
+        console.log('[DEBUG] ShoppingPage - Add item result:', result);
+        
+        if (result) {
+          const targetTab = itemToAdd.repeatOption === 'weekly' 
+            ? 'weekly' 
+            : itemToAdd.repeatOption === 'monthly' 
+              ? 'monthly' 
+              : 'one-off';
+              
+          if (activeTab !== targetTab && activeTab !== 'all') {
+            navigate(`/shopping?tab=${targetTab}`, { replace: true });
+          }
+          
           memoizedToast({
-            title: "Image Upload Failed",
-            description: "Failed to upload image, but we'll continue adding the item.",
+            title: "Item Added",
+            description: `${item.name} has been added to your shopping list.`
+          });
+        } else {
+          memoizedToast({
+            title: "Failed to Add Item",
+            description: "The item could not be added to your shopping list.",
             variant: "destructive"
           });
         }
-      } else if (item.imageUrl) {
-        imageUrl = item.imageUrl;
-      }
-      
-      const itemToAdd = {
-        name: item.name || 'Unnamed Item',
-        amount: item.amount || '',
-        price: item.price || '',
-        imageUrl: imageUrl,
-        notes: item.notes || '',
-        repeatOption: item.repeatOption || 'none',
-        category: item.category || '',
-        dateToPurchase: item.dateToPurchase || '',
-        completed: false
-      };
-      
-      console.log('[DEBUG] ShoppingPage - Properly structured item to add:', JSON.stringify(itemToAdd, null, 2));
-      
-      const result = addItem(itemToAdd);
-      console.log('[DEBUG] ShoppingPage - Add item result:', result);
-      
-      if (result) {
-        const targetTab = itemToAdd.repeatOption === 'weekly' 
-          ? 'weekly' 
-          : itemToAdd.repeatOption === 'monthly' 
-            ? 'monthly' 
-            : 'one-off';
-            
-        if (activeTab !== targetTab && activeTab !== 'all') {
-          navigate(`/shopping?tab=${targetTab}`, { replace: true });
-        }
-        
+      } catch (error) {
+        console.error("[ERROR] ShoppingPage - Error adding item:", error);
         memoizedToast({
-          title: "Item Added",
-          description: `${item.name} has been added to your shopping list.`
-        });
-        
-        setIsProcessing(false);
-        return true;
-      } else {
-        memoizedToast({
-          title: "Failed to Add Item",
-          description: "The item could not be added to your shopping list.",
+          title: "Error",
+          description: "Failed to add item to list",
           variant: "destructive"
         });
+      } finally {
+        setIsProcessing(false);
       }
-    } catch (error) {
-      console.error("[ERROR] ShoppingPage - Error adding item:", error);
-      memoizedToast({
-        title: "Error",
-        description: "Failed to add item to list",
-        variant: "destructive"
-      });
-    }
+    })();
     
-    setIsProcessing(false);
-    return false;
+    return true; // Return synchronously to satisfy the type requirements
   }
 
-  const handleUpdateItem = async (updatedItem: any) => {
+  const handleUpdateItem = (updatedItem: any) => {
     if (isReadOnlyMode) {
       memoizedToast({
         title: "Read-only Mode",
@@ -352,57 +276,59 @@ const ShoppingPageContent: React.FC = () => {
       return false;
     }
     
-    try {
-      setIsProcessing(true);
-      if (!editItem || !editItem.id) return false;
-      
-      console.log("[DEBUG] ShoppingPage - Updating item:", JSON.stringify(updatedItem, null, 2));
-      
-      let imageUrl = null;
-      if (updatedItem.file && updatedItem.file instanceof File) {
-        try {
-          imageUrl = await uploadImage(updatedItem.file);
-        } catch (error) {
+    if (!editItem || !editItem.id) return false;
+    
+    setIsProcessing(true);
+    
+    (async () => {
+      try {
+        console.log("[DEBUG] ShoppingPage - Updating item:", JSON.stringify(updatedItem, null, 2));
+        
+        let imageUrl = null;
+        if (updatedItem.file && updatedItem.file instanceof File) {
+          try {
+            imageUrl = await uploadImage(updatedItem.file);
+          } catch (error) {
+            memoizedToast({
+              title: "Image Upload Failed",
+              description: "Failed to upload image, but we'll continue updating the item.",
+              variant: "destructive"
+            });
+          }
+        } else if (updatedItem.imageUrl) {
+          imageUrl = updatedItem.imageUrl;
+        }
+        
+        const itemData = {
+          name: updatedItem.name,
+          amount: updatedItem.amount,
+          imageUrl: imageUrl,
+          notes: updatedItem.notes,
+          repeatOption: updatedItem.repeatOption || 'none',
+          completed: editItem.item?.completed
+        };
+        
+        const result = updateItem(editItem.id, itemData);
+        
+        if (result) {
           memoizedToast({
-            title: "Image Upload Failed",
-            description: "Failed to upload image, but we'll continue updating the item.",
-            variant: "destructive"
+            title: "Item Updated",
+            description: `${updatedItem.name} has been updated.`
           });
         }
-      } else if (updatedItem.imageUrl) {
-        imageUrl = updatedItem.imageUrl;
-      }
-      
-      const itemData = {
-        name: updatedItem.name,
-        amount: updatedItem.amount,
-        imageUrl: imageUrl,
-        notes: updatedItem.notes,
-        repeatOption: updatedItem.repeatOption || 'none',
-        completed: editItem.item?.completed
-      };
-      
-      const result = updateItem(editItem.id, itemData);
-      
-      if (result) {
+      } catch (error) {
+        console.error("[ERROR] ShoppingPage - Error updating item:", error);
         memoizedToast({
-          title: "Item Updated",
-          description: `${updatedItem.name} has been updated.`
+          title: "Error",
+          description: "Failed to update item",
+          variant: "destructive"
         });
+      } finally {
         setIsProcessing(false);
-        return true;
       }
-    } catch (error) {
-      console.error("[ERROR] ShoppingPage - Error updating item:", error);
-      memoizedToast({
-        title: "Error",
-        description: "Failed to update item",
-        variant: "destructive"
-      });
-    }
+    })();
     
-    setIsProcessing(false);
-    return false;
+    return true; // Return synchronously to satisfy the type requirements
   }
 
   const handleDeleteItem = (id: string) => {
