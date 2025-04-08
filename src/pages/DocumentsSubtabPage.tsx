@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -142,7 +141,6 @@ const DocumentsSubtabPage = () => {
         return;
       }
       
-      // Fix: Convert File object to string URL before passing to classifyDocument
       const fileDataUrl = URL.createObjectURL(file);
       const type = await classifyDocument(fileDataUrl, file.name);
       const fileUrl = URL.createObjectURL(file);
@@ -185,6 +183,10 @@ const DocumentsSubtabPage = () => {
     navigate('/documents');
   }, [navigate]);
   
+  const handleAddDocumentWrapper = useCallback((item: DocumentItem) => {
+    console.log("Document item received:", item);
+  }, []);
+
   if (isLoading) {
     return (
       <PageLayout maxWidth="full">
@@ -302,9 +304,7 @@ const DocumentsSubtabPage = () => {
       <AddDocumentDialog
         open={addDialogOpen}
         onOpenChange={(open) => setAddDialogOpen(open)}
-        onAdd={(file: File, item: any) => {
-          handleAddDocumentSubmit(file, item);
-        }}
+        onAdd={handleAddDocumentWrapper}
         categories={CATEGORIES as string[]}
         currentCategory={activeTab as DocumentCategory}
         isEditing={false}
