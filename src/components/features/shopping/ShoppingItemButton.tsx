@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from '@/lib/utils';
@@ -8,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 type ShoppingItemButtonProps = {
   name: string;
   completed: boolean;
-  onClick?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent> | any) => void;
   onEdit?: () => void;
   onDelete?: () => void;
   onImagePreview?: () => void;
@@ -17,6 +18,7 @@ type ShoppingItemButtonProps = {
   imageUrl?: string | null;
   notes?: string;
   readOnly?: boolean;
+  [key: string]: any; // Allow for additional props like ARIA attributes
 }
 
 const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
@@ -30,7 +32,8 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
   repeatOption,
   imageUrl,
   notes,
-  readOnly = false
+  readOnly = false,
+  ...rest
 }) => {
   return (
     <div className="group relative">
@@ -41,12 +44,13 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         )}
         onClick={onClick}
         disabled={readOnly}
+        {...rest}
       >
         <div className="flex items-center">
           <Checkbox
             id={`item-${name}`}
             checked={completed}
-            onCheckedChange={onClick}
+            onCheckedChange={() => onClick && onClick({} as any)}
             disabled={readOnly}
             aria-label={name}
           />

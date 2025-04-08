@@ -1,5 +1,5 @@
 
-import React, { forwardRef } from 'react';
+import React, { forwardRef, KeyboardEvent } from 'react';
 import ShoppingItemButton from './ShoppingItemButton';
 
 type EnhancedShoppingItemButtonProps = React.ComponentProps<typeof ShoppingItemButton>;
@@ -29,7 +29,7 @@ const EnhancedShoppingItemButton = forwardRef<HTMLButtonElement, EnhancedShoppin
     const imageLabel = `View image for ${name}`;
 
     // Handle keyboard navigation
-    const handleKeyDown = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter' || e.key === ' ') {
         onClick?.(e as any);
         e.preventDefault();
@@ -38,10 +38,9 @@ const EnhancedShoppingItemButton = forwardRef<HTMLButtonElement, EnhancedShoppin
 
     return (
       <ShoppingItemButton
-        ref={ref}
         name={name}
         completed={completed}
-        onClick={onClick}
+        onClick={onClick as any} // Type casting to handle event type mismatch
         onEdit={onEdit}
         onDelete={onDelete}
         onImagePreview={onImagePreview}

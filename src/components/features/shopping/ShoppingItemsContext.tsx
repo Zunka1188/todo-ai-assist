@@ -25,6 +25,7 @@ interface ShoppingItemsContextValue {
   updateSearchTerm: (term: string) => void;
   isLoading: boolean;
   error: Error | null;
+  setItems: (items: ShoppingItem[]) => void;
 }
 
 const ShoppingItemsContext = createContext<ShoppingItemsContextValue | undefined>(undefined);
