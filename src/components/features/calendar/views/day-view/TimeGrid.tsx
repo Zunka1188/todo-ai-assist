@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Event } from '../../types/event';
 import { useIsMobile } from '@/hooks/use-mobile';
 import TimeGridEvent from './TimeGridEvent';
+import { useDebugMode } from '@/hooks/useDebugMode';
 
 interface TimeGridProps {
   events: Event[];
@@ -27,10 +28,22 @@ const TimeGrid: React.FC<TimeGridProps> = ({
   processedEvents 
 }) => {
   const { isMobile } = useIsMobile();
+  const { enabled: debugEnabled } = useDebugMode();
 
-  console.log("TimeGrid - Events:", events);
-  console.log("TimeGrid - ProcessedEvents:", processedEvents);
-  console.log("TimeGrid - StartHour/NumHours:", startHour, numHours);
+  // Enhanced debugging
+  useEffect(() => {
+    if (debugEnabled) {
+      console.group('TimeGrid - Debug Info');
+      console.log('Date:', date);
+      console.log('Start Hour:', startHour);
+      console.log('Num Hours:', numHours);
+      console.log('Events Count:', events?.length);
+      console.log('Processed Events Groups:', processedEvents?.length);
+      console.log('Events:', events);
+      console.log('Processed Events:', processedEvents);
+      console.groupEnd();
+    }
+  }, [date, startHour, numHours, events, processedEvents, debugEnabled]);
 
   // Generate hour markers
   const hourMarkers = Array.from({ length: numHours + 1 }).map((_, index) => {
@@ -76,18 +89,38 @@ const TimeGrid: React.FC<TimeGridProps> = ({
       </div>
       
       {/* Events */}
-      {processedEvents && processedEvents.map((eventGroup, groupIndex) => {
-        return eventGroup.events.map((event, eventIndex) => (
-          <TimeGridEvent
-            key={`event-${event.id}`}
-            event={event}
-            totalOverlapping={eventGroup.maxOverlap}
-            index={eventIndex}
-            handleViewEvent={handleViewEvent}
-            startHour={startHour}
-          />
-        ));
-      })}
+      {processedEvents && processedEvents.length > 0 ? (
+        processedEvents.map((eventGroup, groupIndex) => {
+          if (debugEnabled) {
+            console.log(`Rendering event group ${groupIndex} with ${eventGroup.events.length} events`);
+          }
+          
+          return eventGroup.events.map((event, eventIndex) => {
+            if (debugEnabled) {
+              console.log(`Event: ${event.title}`, 
+                `Start: ${event.startDate.toLocaleTimeString()}`, 
+                `End: ${event.endDate.toLocaleTimeString()}`);
+            }
+            
+            return (
+              <TimeGridEvent
+                key={`event-${event.id}`}
+                event={event}
+                totalOverlapping={eventGroup.maxOverlap}
+                index={eventIndex}
+                handleViewEvent={handleViewEvent}
+                startHour={startHour}
+              />
+            );
+          });
+        })
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+          {events && events.length > 0 ? 
+            "No events visible in current time range" : 
+            "No events for this day"}
+        </div>
+      )}
     </div>
   );
 };

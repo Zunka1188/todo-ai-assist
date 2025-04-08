@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Event } from '../../types/event';
 import { useToast } from '@/hooks/use-toast';
+import { useDebugMode } from '@/hooks/useDebugMode';
 
 interface ProcessedEventGroup {
   maxOverlap: number;
@@ -19,15 +20,22 @@ export const useEventManagement = (
   const [startInputValue, setStartInputValue] = useState("0");
   const [endInputValue, setEndInputValue] = useState("23");
   const { toast } = useToast();
+  const { enabled: debugEnabled } = useDebugMode();
 
   const getEventsForDay = () => {
     if (!events) return [];
     
-    return events.filter(event => 
+    const filteredEvents = events.filter(event => 
       isSameDay(event.startDate, date) || 
       isSameDay(event.endDate, date) ||
       (event.startDate <= date && event.endDate >= date)
     );
+    
+    if (debugEnabled) {
+      console.log(`[useEventManagement] Found ${filteredEvents.length} events for ${date.toDateString()}`);
+    }
+    
+    return filteredEvents;
   };
 
   const isSameDay = (date1: Date, date2: Date) => {
@@ -41,6 +49,19 @@ export const useEventManagement = (
   const dayEvents = getEventsForDay();
   const allDayEvents = dayEvents.filter(event => event.allDay);
   const timeEvents = dayEvents.filter(event => !event.allDay);
+
+  useEffect(() => {
+    if (debugEnabled) {
+      console.group('useEventManagement - Events Analysis');
+      console.log('Date:', date);
+      console.log('All Events:', events);
+      console.log('Events for Day:', dayEvents);
+      console.log('All-Day Events:', allDayEvents);
+      console.log('Time Events:', timeEvents);
+      console.log('Time Range:', `${startHour}:00 - ${endHour}:00`);
+      console.groupEnd();
+    }
+  }, [events, date, dayEvents, allDayEvents, timeEvents, startHour, endHour, debugEnabled]);
 
   const hours = showAllHours 
     ? Array.from({ length: 24 }, (_, i) => i) 
@@ -57,7 +78,14 @@ export const useEventManagement = (
     const eventStart = eventStartHour + (eventStartMinute / 60);
     const eventEnd = eventEndHour + (eventEndMinute / 60);
     
-    return eventStart < endHour && eventEnd > startHour;
+    const isVisible = eventStart < endHour + 1 && eventEnd > startHour;
+    
+    if (debugEnabled) {
+      console.log(`Event ${event.title} visibility check:`, isVisible);
+      console.log(`Event time: ${eventStart}-${eventEnd}, View time: ${startHour}-${endHour + 1}`);
+    }
+    
+    return isVisible;
   };
 
   const getMultiHourEvents = (): Event[] => {
@@ -67,18 +95,26 @@ export const useEventManagement = (
       const startDay = new Date(event.startDate).setHours(0, 0, 0, 0);
       const endDay = new Date(event.endDate).setHours(0, 0, 0, 0);
       
-      return (endDay > startDay) || (endHour > startHour);
+      return (endDay > startDay) || (endHour > startHour) || 
+             (endHour === startHour && event.endDate.getMinutes() > event.startDate.getMinutes());
     });
   };
 
   const getVisibleMultiHourEvents = (): Event[] => {
     const multiHourEvents = getMultiHourEvents();
-    return multiHourEvents.filter(event => isEventVisible(event));
+    const visibleEvents = multiHourEvents.filter(event => isEventVisible(event));
+    
+    if (debugEnabled) {
+      console.log(`Found ${multiHourEvents.length} multi-hour events, ${visibleEvents.length} visible`);
+    }
+    
+    return visibleEvents;
   };
 
   const groupOverlappingEvents = (events: Event[]): ProcessedEventGroup[] => {
-    if (events.length === 0) return [];
+    if (!events || events.length === 0) return [];
     
+    // Sort events by start time
     const sortedEvents = [...events].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
     
     const groups: ProcessedEventGroup[] = [];
@@ -106,6 +142,14 @@ export const useEventManagement = (
       });
     }
     
+    if (debugEnabled) {
+      console.log(`Grouped ${events.length} events into ${groups.length} overlap groups`);
+      groups.forEach((group, i) => {
+        console.log(`Group ${i}: ${group.maxOverlap} overlapping events`);
+        group.events.forEach(e => console.log(`- ${e.title}: ${e.startDate.toLocaleTimeString()} - ${e.endDate.toLocaleTimeString()}`));
+      });
+    }
+    
     return groups;
   };
 
@@ -119,7 +163,7 @@ export const useEventManagement = (
       const eventStart = eventStartHour + (eventStartMinute / 60);
       const eventEnd = eventEndHour + (eventEndMinute / 60);
       
-      return eventEnd <= start || eventStart >= end;
+      return eventEnd <= start || eventStart >= end + 1;
     });
 
     setHiddenEvents(hidden);
@@ -136,6 +180,10 @@ export const useEventManagement = (
   };
 
   const handleTimeRangeToggle = (preset: string) => {
+    if (debugEnabled) {
+      console.log(`Toggling time range preset: ${preset}`);
+    }
+    
     switch (preset) {
       case 'full':
         setStartHour(0);
@@ -204,6 +252,10 @@ export const useEventManagement = (
     else setEndHour(newEnd);
     
     setShowAllHours(newStart === 0 && newEnd === 23);
+    
+    if (debugEnabled) {
+      console.log(`Time range changed: ${type === 'start' ? newStart : startHour}:00 - ${type === 'end' ? newEnd : endHour}:00`);
+    }
   };
 
   const handleInputBlur = (type: 'start' | 'end') => {
@@ -243,9 +295,8 @@ export const useEventManagement = (
     
     setShowAllHours(startHour === 0 && endHour === 23);
   };
-
-  const eventGroups = groupOverlappingEvents(getVisibleMultiHourEvents());
   
+  // Process and group events
   const processedEvents = groupOverlappingEvents(getVisibleMultiHourEvents());
 
   return {
@@ -258,7 +309,6 @@ export const useEventManagement = (
     hours,
     allDayEvents,
     timeEvents,
-    eventGroups,
     processedEvents,
     handleTimeRangeToggle,
     handleTimeRangeChange,

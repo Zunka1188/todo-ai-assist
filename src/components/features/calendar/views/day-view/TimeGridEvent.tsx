@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Clock, MapPin } from 'lucide-react';
 import { Event } from '../../types/event';
 import { getFormattedTime } from '../../utils/dateUtils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDebugMode } from '@/hooks/useDebugMode';
 
 interface TimeGridEventProps {
   event: Event;
@@ -21,11 +22,44 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
   startHour
 }) => {
   const { isMobile } = useIsMobile();
+  const { enabled: debugEnabled } = useDebugMode();
   
   // Constants for calculations
   const HOUR_HEIGHT = isMobile ? 60 : 80;
   const MINUTES_PER_HOUR = 60;
   const MINUTE_HEIGHT = HOUR_HEIGHT / MINUTES_PER_HOUR;
+
+  // Debug logging of positioning calculations
+  useEffect(() => {
+    if (debugEnabled) {
+      const eventStartDate = new Date(event.startDate);
+      const eventEndDate = new Date(event.endDate);
+      
+      console.group(`TimeGridEvent - ${event.title}`);
+      console.log('Event:', event);
+      console.log('Start Hour:', startHour);
+      console.log('Total Overlapping:', totalOverlapping);
+      console.log('Index:', index);
+      console.log('Start Time:', eventStartDate.toLocaleTimeString());
+      console.log('End Time:', eventEndDate.toLocaleTimeString());
+      
+      // Calculate values for debugging
+      const startHourDecimal = eventStartDate.getHours() + (eventStartDate.getMinutes() / MINUTES_PER_HOUR);
+      const endHourDecimal = eventEndDate.getHours() + (eventEndDate.getMinutes() / MINUTES_PER_HOUR);
+      const visibleStartHourDecimal = Math.max(startHourDecimal, startHour);
+      const visibleEndHourDecimal = Math.min(endHourDecimal, startHour + 24);
+      const topPosition = (visibleStartHourDecimal - startHour) * HOUR_HEIGHT;
+      const heightValue = Math.max((visibleEndHourDecimal - visibleStartHourDecimal) * HOUR_HEIGHT, 20);
+      
+      console.log('Calculated Start (decimal hours):', startHourDecimal);
+      console.log('Calculated End (decimal hours):', endHourDecimal);
+      console.log('Visible Start (decimal hours):', visibleStartHourDecimal);
+      console.log('Visible End (decimal hours):', visibleEndHourDecimal);
+      console.log('Top Position (px):', topPosition);
+      console.log('Height (px):', heightValue);
+      console.groupEnd();
+    }
+  }, [event, startHour, totalOverlapping, index, HOUR_HEIGHT, MINUTES_PER_HOUR, debugEnabled]);
 
   // Calculate the style for the event with precise minute-level positioning
   const getMultiHourEventStyle = (): React.CSSProperties => {

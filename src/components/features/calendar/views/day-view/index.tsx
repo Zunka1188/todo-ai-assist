@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { addDays, subDays } from 'date-fns';
 import { Event } from '../../types/event';
 import DayHeader from './DayHeader';
@@ -8,6 +8,7 @@ import AllDayEvents from './AllDayEvents';
 import TimeGrid from './TimeGrid';
 import { useEventManagement } from './useEventManagement';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDebugMode } from '@/hooks/useDebugMode';
 
 interface DayViewProps {
   date: Date;
@@ -26,6 +27,21 @@ const DayView: React.FC<DayViewProps> = ({
 }) => {
   const { isMobile } = useIsMobile();
   const gridRef = useRef<HTMLDivElement>(null);
+  const { enabled: debugEnabled, logProps } = useDebugMode();
+  
+  // Debug component props
+  useEffect(() => {
+    logProps('DayView', { date, events: events?.length });
+    
+    if (debugEnabled) {
+      console.group('DayView - Component Mount/Update');
+      console.log('Date:', date);
+      console.log('Events Count:', events?.length);
+      console.log('Theme:', theme);
+      console.log('Mobile:', isMobile);
+      console.groupEnd();
+    }
+  }, [date, events, theme, isMobile, debugEnabled, logProps]);
   
   // Use custom hook for event management
   const {
@@ -43,8 +59,18 @@ const DayView: React.FC<DayViewProps> = ({
     processedEvents,
   } = useEventManagement(events, date);
 
-  console.log("DayView - Events:", events);
-  console.log("DayView - ProcessedEvents:", processedEvents);
+  // Debug data flow
+  useEffect(() => {
+    if (debugEnabled) {
+      console.group('DayView - Processed Data');
+      console.log('Events:', events);
+      console.log('All Day Events:', allDayEvents?.length);
+      console.log('Processed Events:', processedEvents);
+      console.log('Time Range:', `${startHour}:00-${endHour}:00`);
+      console.log('Hidden Events:', hiddenEvents?.length);
+      console.groupEnd();
+    }
+  }, [events, allDayEvents, processedEvents, startHour, endHour, hiddenEvents, debugEnabled]);
 
   const prevDay = () => {
     setDate(subDays(date, 1));
