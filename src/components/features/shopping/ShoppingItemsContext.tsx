@@ -1,6 +1,7 @@
 
-import React, { createContext, useContext, ReactNode, useState, useCallback } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useCallback, useMemo } from 'react';
 import { useShoppingItems, ShoppingItem, SortOption } from './useShoppingItems';
+import { loadItems, saveItems } from '@/services/shoppingService';
 
 type FilterMode = 'one-off' | 'weekly' | 'monthly' | 'all';
 
@@ -22,6 +23,8 @@ interface ShoppingItemsContextValue {
   searchTerm: string;
   updateFilterMode: (mode: FilterMode) => void;
   updateSearchTerm: (term: string) => void;
+  isLoading: boolean;
+  error: Error | null;
 }
 
 const ShoppingItemsContext = createContext<ShoppingItemsContextValue | undefined>(undefined);
@@ -47,6 +50,8 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
 }) => {
   const [filterMode, setFilterMode] = useState<FilterMode>(defaultFilterMode);
   const [searchTerm, setSearchTerm] = useState<string>(defaultSearchTerm);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   
   // Create a single instance of useShoppingItems
   const shoppingItemsData = useShoppingItems(filterMode, searchTerm);
@@ -62,14 +67,48 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     setSearchTerm(term);
   }, []);
   
-  // Enhanced context value with the additional methods
-  const contextValue: ShoppingItemsContextValue = {
+  // Load items from localStorage on initial render
+  React.useEffect(() => {
+    try {
+      setIsLoading(true);
+      const storedItems = loadItems();
+      if (storedItems.length > 0) {
+        // Only update if we have items to prevent unnecessary re-renders
+        shoppingItemsData.setItems(storedItems);
+      }
+      setIsLoading(false);
+    } catch (err) {
+      console.error("[ERROR] ShoppingItemsContext - Failed to load items:", err);
+      setError(err instanceof Error ? err : new Error("Failed to load shopping items"));
+      setIsLoading(false);
+    }
+  }, [shoppingItemsData.setItems]);
+  
+  // Save items to localStorage whenever they change
+  React.useEffect(() => {
+    if (!isLoading && shoppingItemsData.items.length > 0) {
+      saveItems(shoppingItemsData.items);
+    }
+  }, [shoppingItemsData.items, isLoading]);
+  
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
     ...shoppingItemsData,
     filterMode,
     searchTerm,
     updateFilterMode,
-    updateSearchTerm
-  };
+    updateSearchTerm,
+    isLoading,
+    error
+  }), [
+    shoppingItemsData, 
+    filterMode, 
+    searchTerm, 
+    updateFilterMode, 
+    updateSearchTerm,
+    isLoading,
+    error
+  ]);
   
   return (
     <ShoppingItemsContext.Provider value={contextValue}>

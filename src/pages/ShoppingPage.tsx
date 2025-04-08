@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShoppingList from '@/components/features/shopping/ShoppingList';
 import AddItemDialog from '@/components/features/shopping/AddItemDialog';
@@ -26,6 +26,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { compressImage } from '@/utils/imageProcessing';
+import ErrorBoundary from '@/components/ui/error-boundary';
+import { useDebounce } from '@/hooks/useDebounce';
 
 // Function to upload images to the server
 const uploadImage = async (imageFile: File) => {
@@ -57,7 +59,9 @@ const uploadImage = async (imageFile: File) => {
 };
 
 const ShoppingPageContent: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [rawSearchTerm, setRawSearchTerm] = useState<string>('');
+  const searchTerm = useDebounce(rawSearchTerm, 300); // Debounce search input by 300ms
+  
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [editItem, setEditItem] = useState<{ id: string, name?: string, item?: any } | null>(null);
@@ -136,18 +140,23 @@ const ShoppingPageContent: React.FC = () => {
               title: isReadOnly ? "View-only Access" : "Invitation Accepted",
               description: isReadOnly 
                 ? "You can view but not modify this shopping list" 
-                : "You've joined a shared shopping list"
+                : "You've joined a shared shopping list",
+              // Add ARIA live region for screen readers
+              role: "status",
+              "aria-live": "polite"
             });
           } else {
             memoizedToast({
               title: "Invalid Invitation",
               description: "This shopping list invitation is invalid or has been revoked.",
-              variant: "destructive"
+              variant: "destructive",
+              role: "alert",
+              "aria-live": "assertive"
             });
           }
         }
       } catch (error) {
-        console.error("[ERROR] Error processing invitation:", error);
+        console.error("[ERROR] ShoppingPage - Error processing invitation:", error);
       }
       
       const newUrl = `${window.location.pathname}?tab=${activeTab}`;
@@ -167,7 +176,9 @@ const ShoppingPageContent: React.FC = () => {
       memoizedToast({
         title: "Read-only Mode",
         description: "You don't have permission to edit items in this shared list.",
-        variant: "destructive"
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
       });
       return;
     }
@@ -186,7 +197,9 @@ const ShoppingPageContent: React.FC = () => {
       memoizedToast({
         title: "Read-only Mode",
         description: "You don't have permission to add items to this shared list.",
-        variant: "destructive"
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
       });
       return false;
     }
@@ -205,7 +218,9 @@ const ShoppingPageContent: React.FC = () => {
             memoizedToast({
               title: "Image Upload Failed",
               description: "Failed to upload image, but we'll continue adding the item.",
-              variant: "destructive"
+              variant: "destructive",
+              role: "alert",
+              "aria-live": "assertive"
             });
           }
         } else if (item.imageUrl) {
@@ -242,13 +257,17 @@ const ShoppingPageContent: React.FC = () => {
           
           memoizedToast({
             title: "Item Added",
-            description: `${item.name} has been added to your shopping list.`
+            description: `${item.name} has been added to your shopping list.`,
+            role: "status",
+            "aria-live": "polite"
           });
         } else {
           memoizedToast({
             title: "Failed to Add Item",
             description: "The item could not be added to your shopping list.",
-            variant: "destructive"
+            variant: "destructive",
+            role: "alert",
+            "aria-live": "assertive"
           });
         }
       } catch (error) {
@@ -256,7 +275,9 @@ const ShoppingPageContent: React.FC = () => {
         memoizedToast({
           title: "Error",
           description: "Failed to add item to list",
-          variant: "destructive"
+          variant: "destructive",
+          role: "alert",
+          "aria-live": "assertive"
         });
       } finally {
         setIsProcessing(false);
@@ -271,7 +292,9 @@ const ShoppingPageContent: React.FC = () => {
       memoizedToast({
         title: "Read-only Mode",
         description: "You don't have permission to update items in this shared list.",
-        variant: "destructive"
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
       });
       return false;
     }
@@ -292,7 +315,9 @@ const ShoppingPageContent: React.FC = () => {
             memoizedToast({
               title: "Image Upload Failed",
               description: "Failed to upload image, but we'll continue updating the item.",
-              variant: "destructive"
+              variant: "destructive",
+              role: "alert",
+              "aria-live": "assertive"
             });
           }
         } else if (updatedItem.imageUrl) {
@@ -313,7 +338,9 @@ const ShoppingPageContent: React.FC = () => {
         if (result) {
           memoizedToast({
             title: "Item Updated",
-            description: `${updatedItem.name} has been updated.`
+            description: `${updatedItem.name} has been updated.`,
+            role: "status",
+            "aria-live": "polite"
           });
         }
       } catch (error) {
@@ -321,7 +348,9 @@ const ShoppingPageContent: React.FC = () => {
         memoizedToast({
           title: "Error",
           description: "Failed to update item",
-          variant: "destructive"
+          variant: "destructive",
+          role: "alert",
+          "aria-live": "assertive"
         });
       } finally {
         setIsProcessing(false);
@@ -336,49 +365,95 @@ const ShoppingPageContent: React.FC = () => {
       memoizedToast({
         title: "Read-only Mode",
         description: "You don't have permission to delete items in this shared list.",
-        variant: "destructive"
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
       });
       return;
     }
     
+    console.log("[DEBUG] ShoppingPage - Preparing to delete item ID:", id);
     setItemToDeleteId(id);
     setShowConfirmDialog(true);
   };
 
   const confirmDeleteItem = () => {
-    if (!itemToDeleteId) return;
+    // Prevent double execution
+    if (isProcessing || !itemToDeleteId) {
+      console.log("[DEBUG] ShoppingPage - Prevented duplicate delete execution or missing itemToDeleteId");
+      return;
+    }
     
-    const result = removeItem(itemToDeleteId);
-    setShowConfirmDialog(false);
+    console.log("[DEBUG] ShoppingPage - Confirming deletion of item ID:", itemToDeleteId);
+    setIsProcessing(true);
     
-    if (result) {
-      memoizedToast({
-        title: "Item Deleted",
-        description: "The item has been removed from your shopping list."
-      });
-    } else {
+    try {
+      const result = removeItem(itemToDeleteId);
+      
+      if (result) {
+        memoizedToast({
+          title: "Item Deleted",
+          description: "The item has been removed from your shopping list.",
+          role: "status",
+          "aria-live": "polite"
+        });
+      } else {
+        memoizedToast({
+          title: "Error",
+          description: "Failed to delete the item.",
+          variant: "destructive",
+          role: "alert",
+          "aria-live": "assertive"
+        });
+      }
+    } catch (error) {
+      console.error("[ERROR] ShoppingPage - Error deleting item:", error);
       memoizedToast({
         title: "Error",
         description: "Failed to delete the item.",
-        variant: "destructive"
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive" 
       });
+    } finally {
+      // Clean up state variables
+      setShowConfirmDialog(false);
+      setItemToDeleteId(null);
+      setIsProcessing(false);
     }
-    
+  };
+
+  // Cancel delete operation
+  const cancelDeleteItem = () => {
+    console.log("[DEBUG] ShoppingPage - Delete operation canceled");
+    setShowConfirmDialog(false);
     setItemToDeleteId(null);
   };
+
+  // Memoize ShoppingList to prevent unnecessary re-renders
+  const MemoizedShoppingList = useMemo(() => (
+    <ShoppingList 
+      searchTerm={searchTerm}
+      filterMode={activeTab as any}
+      onEditItem={handleEditItem}
+      readOnly={isReadOnlyMode}
+    />
+  ), [searchTerm, activeTab, handleEditItem, isReadOnlyMode]);
 
   return (
     <div className="flex flex-col h-full">
       <PageHeader 
         title="Shopping List"
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        searchTerm={rawSearchTerm}
+        onSearchChange={setRawSearchTerm}
         onAddItem={() => {
           if (isReadOnlyMode) {
             memoizedToast({
               title: "Read-only Mode",
               description: "You don't have permission to add items to this shared list.",
-              variant: "destructive"
+              variant: "destructive",
+              role: "alert",
+              "aria-live": "assertive"
             });
             return;
           }
@@ -394,7 +469,9 @@ const ShoppingPageContent: React.FC = () => {
                 memoizedToast({
                   title: "Read-only Mode",
                   description: "You don't have permission to share this list further.",
-                  variant: "destructive"
+                  variant: "destructive",
+                  role: "alert",
+                  "aria-live": "assertive"
                 });
                 return;
               }
@@ -403,61 +480,64 @@ const ShoppingPageContent: React.FC = () => {
             size={isMobile ? "sm" : "default"}
             variant="secondary"
             className="flex items-center gap-1"
+            aria-label="Invite others to your shopping list"
           >
-            <Users className="h-4 w-4" />
+            <Users className="h-4 w-4" aria-hidden="true" />
             {isMobile ? "" : "Invite"}
           </Button>
         }
       />
 
       {isReadOnlyMode && (
-        <div className="mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800 text-xs">
+        <div className="mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800 text-xs" role="status">
           You are viewing this shopping list in read-only mode. You cannot add, edit, or mark items as completed.
         </div>
       )}
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="w-full grid grid-cols-4 mb-6">
-          <TabsTrigger value="one-off" className="text-sm whitespace-nowrap overflow-hidden overflow-ellipsis">
+        <TabsList className="w-full grid grid-cols-4 mb-6" role="tablist" aria-label="Shopping list categories">
+          <TabsTrigger 
+            value="one-off" 
+            className="text-sm whitespace-nowrap overflow-hidden overflow-ellipsis"
+            aria-controls={`tabpanel-one-off`}
+          >
             {isMobile ? "One-off" : "One-off Items"}
           </TabsTrigger>
-          <TabsTrigger value="weekly" className="text-sm">Weekly</TabsTrigger>
-          <TabsTrigger value="monthly" className="text-sm">Monthly</TabsTrigger>
-          <TabsTrigger value="all" className="text-sm">{isMobile ? "All" : "All Items"}</TabsTrigger>
+          <TabsTrigger 
+            value="weekly" 
+            className="text-sm"
+            aria-controls={`tabpanel-weekly`}
+          >
+            Weekly
+          </TabsTrigger>
+          <TabsTrigger 
+            value="monthly" 
+            className="text-sm"
+            aria-controls={`tabpanel-monthly`}
+          >
+            Monthly
+          </TabsTrigger>
+          <TabsTrigger 
+            value="all" 
+            className="text-sm"
+            aria-controls={`tabpanel-all`}
+          >
+            {isMobile ? "All" : "All Items"}
+          </TabsTrigger>
         </TabsList>
         
         <div className={cn("pb-16", isMobile ? "pb-20" : "")}>
-          <TabsContent value="all">
-            <ShoppingList 
-              searchTerm={searchTerm}
-              filterMode="all"
-              onEditItem={handleEditItem}
-              readOnly={isReadOnlyMode}
-            />
+          <TabsContent value="all" id="tabpanel-all" role="tabpanel" aria-labelledby="tab-all">
+            {MemoizedShoppingList}
           </TabsContent>
-          <TabsContent value="one-off">
-            <ShoppingList 
-              searchTerm={searchTerm}
-              filterMode="one-off"
-              onEditItem={handleEditItem}
-              readOnly={isReadOnlyMode}
-            />
+          <TabsContent value="one-off" id="tabpanel-one-off" role="tabpanel" aria-labelledby="tab-one-off">
+            {MemoizedShoppingList}
           </TabsContent>
-          <TabsContent value="weekly">
-            <ShoppingList 
-              searchTerm={searchTerm}
-              filterMode="weekly"
-              onEditItem={handleEditItem}
-              readOnly={isReadOnlyMode}
-            />
+          <TabsContent value="weekly" id="tabpanel-weekly" role="tabpanel" aria-labelledby="tab-weekly">
+            {MemoizedShoppingList}
           </TabsContent>
-          <TabsContent value="monthly">
-            <ShoppingList 
-              searchTerm={searchTerm}
-              filterMode="monthly"
-              onEditItem={handleEditItem}
-              readOnly={isReadOnlyMode}
-            />
+          <TabsContent value="monthly" id="tabpanel-monthly" role="tabpanel" aria-labelledby="tab-monthly">
+            {MemoizedShoppingList}
           </TabsContent>
         </div>
       </Tabs>
@@ -495,20 +575,43 @@ const ShoppingPageContent: React.FC = () => {
 
       {debugEnabled && <DirectAddItem />}
 
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
+      <AlertDialog 
+        open={showConfirmDialog} 
+        onOpenChange={(open) => {
+          if (!open) {
+            cancelDeleteItem();
+          }
+          setShowConfirmDialog(open);
+        }}
+      >
+        <AlertDialogContent aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle id="alert-dialog-title">Confirm Delete</AlertDialogTitle>
+            <AlertDialogDescription id="alert-dialog-description">
               Are you sure you want to delete this item? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setItemToDeleteId(null)}>
+            <AlertDialogCancel 
+              onClick={cancelDeleteItem}
+              disabled={isProcessing}
+              aria-label="Cancel deletion"
+            >
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteItem}>
-              Delete
+            <AlertDialogAction 
+              onClick={confirmDeleteItem}
+              disabled={isProcessing}
+              aria-label="Confirm deletion"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span>Deleting...</span>
+                </>
+              ) : (
+                "Delete"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -517,11 +620,14 @@ const ShoppingPageContent: React.FC = () => {
   );
 };
 
+// Wrap ShoppingPageContent with ErrorBoundary
 const ShoppingPage: React.FC = () => {
   return (
-    <ShoppingItemsProvider>
-      <ShoppingPageContent />
-    </ShoppingItemsProvider>
+    <ErrorBoundary>
+      <ShoppingItemsProvider>
+        <ShoppingPageContent />
+      </ShoppingItemsProvider>
+    </ErrorBoundary>
   );
 };
 

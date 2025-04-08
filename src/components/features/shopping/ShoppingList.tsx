@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import ShoppingItemButton from './ShoppingItemButton';
@@ -9,6 +9,8 @@ import ImagePreviewDialog from './ImagePreviewDialog';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
+import { FixedSizeGrid } from 'react-window';
+import EnhancedShoppingItemButton from './EnhancedShoppingItemButton';
 
 type ShoppingListProps = {
   searchTerm?: string;
@@ -17,6 +19,9 @@ type ShoppingListProps = {
   onEditItem?: (id: string, name?: string, item?: any) => void;
   readOnly?: boolean;
 };
+
+// Create a ShoppingItemButton component that's memoized
+const MemoizedShoppingItemButton = memo(EnhancedShoppingItemButton);
 
 const ShoppingList = ({
   searchTerm = '',
@@ -68,7 +73,9 @@ const ShoppingList = ({
         toast({
           title: "Read-only Mode",
           description: "You don't have permission to add items in this shared list.",
-          variant: "destructive"
+          variant: "destructive",
+          role: "alert",
+          "aria-live": "assertive"
         });
         return false;
       }
@@ -106,6 +113,8 @@ const ShoppingList = ({
         toast({
           title: "Item Added",
           description: `${itemData.name} has been added to your shopping list.`,
+          role: "status",
+          "aria-live": "polite"
         });
         
         const targetTab = newItem.repeatOption === 'weekly' 
@@ -124,6 +133,8 @@ const ShoppingList = ({
           title: "Error",
           description: "Failed to add item to shopping list",
           variant: "destructive",
+          role: "alert",
+          "aria-live": "assertive"
         });
       }
     } catch (error) {
@@ -132,6 +143,8 @@ const ShoppingList = ({
         title: "Error",
         description: "Error adding item to shopping list: " + (error instanceof Error ? error.message : String(error)),
         variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
       });
     }
     
@@ -143,7 +156,9 @@ const ShoppingList = ({
       toast({
         title: "Read-only Mode",
         description: "You don't have permission to mark items as completed.",
-        variant: "destructive"
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
       });
       return;
     }
@@ -163,7 +178,9 @@ const ShoppingList = ({
       toast({
         title: "Read-only Mode",
         description: "You don't have permission to delete items in this shared list.",
-        variant: "destructive"
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
       });
       return;
     }
@@ -173,6 +190,8 @@ const ShoppingList = ({
       toast({
         title: "Item Deleted",
         description: `${result.name} has been removed from your list.`,
+        role: "status",
+        "aria-live": "polite"
       });
     } else {
       console.error("[ERROR] ShoppingList - Failed to delete item");
@@ -180,20 +199,68 @@ const ShoppingList = ({
         title: "Error",
         description: "Failed to delete item",
         variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
       });
     }
   };
 
-  const renderShoppingItemsGrid = (items: any[]) => (
-    <div className={cn(
-      "grid",
-      isMobile 
-        ? "grid-cols-2 gap-2 px-1" // Using 2 columns on mobile for better sizing
-        : "grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-2"
-    )}>
-      {items.map((item) => (
-        <div key={item.id} className="w-full">
-          <ShoppingItemButton
+  // Function to render shopping items using grid
+  const renderShoppingItemsGrid = (items: any[]) => {
+    // For small lists, don't bother with virtualization
+    if (items.length <= 50) {
+      return (
+        <div className={cn(
+          "grid",
+          isMobile 
+            ? "grid-cols-2 gap-2 px-1" // Using 2 columns on mobile for better sizing
+            : "grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-2"
+        )}
+        role="list"
+        aria-label={items[0]?.completed ? "Purchased items" : "Shopping items"}
+        >
+          {items.map((item) => (
+            <div key={item.id} className="w-full">
+              <MemoizedShoppingItemButton
+                name={item.name}
+                completed={item.completed}
+                quantity={item.amount}
+                repeatOption={item.repeatOption}
+                imageUrl={item.imageUrl}
+                notes={item.notes}
+                onClick={() => handleToggleItemCompletion(item.id)}
+                onDelete={() => onEditItem && onEditItem(item.id, item.name, item)}
+                onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
+                onImagePreview={() => handleImagePreview(item)}
+                readOnly={readOnly}
+              />
+            </div>
+          ))}
+        </div>
+      );
+    }
+    
+    // For larger lists, use react-window for virtualization
+    const columnCount = isMobile ? 2 : 4;
+    const itemWidth = isMobile ? 150 : 200;
+    const itemHeight = 100;
+    
+    const gridWidth = isMobile 
+      ? window.innerWidth - 20 
+      : Math.min(window.innerWidth - 40, 1200);
+      
+    const rowCount = Math.ceil(items.length / columnCount);
+    
+    // Cell renderer for react-window
+    const Cell = ({ columnIndex, rowIndex, style }: any) => {
+      const index = rowIndex * columnCount + columnIndex;
+      if (index >= items.length) return null;
+      
+      const item = items[index];
+      
+      return (
+        <div style={style} className="p-1">
+          <MemoizedShoppingItemButton
             name={item.name}
             completed={item.completed}
             quantity={item.amount}
@@ -201,20 +268,35 @@ const ShoppingList = ({
             imageUrl={item.imageUrl}
             notes={item.notes}
             onClick={() => handleToggleItemCompletion(item.id)}
-            onDelete={() => handleDeleteItem(item.id)}
+            onDelete={() => onEditItem && onEditItem(item.id, item.name, item)}
             onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
             onImagePreview={() => handleImagePreview(item)}
             readOnly={readOnly}
           />
         </div>
-      ))}
-    </div>
-  );
+      );
+    };
+    
+    return (
+      <div role="list" aria-label={items[0]?.completed ? "Purchased items" : "Shopping items"}>
+        <FixedSizeGrid
+          columnCount={columnCount}
+          columnWidth={itemWidth}
+          height={400} // Fixed height, adjust as needed
+          rowCount={rowCount}
+          rowHeight={itemHeight}
+          width={gridWidth}
+        >
+          {Cell}
+        </FixedSizeGrid>
+      </div>
+    );
+  };
 
   return (
     <div className={cn('w-full', className)}>
       {notPurchasedItems.length === 0 && purchasedItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-4 text-center">
+        <div className="flex flex-col items-center justify-center p-4 text-center" role="status">
           <p className="text-muted-foreground mb-2">No items found</p>
           <p className="text-sm text-muted-foreground">
             {searchTerm ? "Try a different search term" : "Add an item to get started"}
@@ -223,7 +305,11 @@ const ShoppingList = ({
       ) : (
         <ScrollArea className="h-[calc(100vh-280px)] overflow-y-auto touch-auto" style={{
           WebkitOverflowScrolling: 'touch'
-        }}>
+        }}
+        tabIndex={0}
+        role="region"
+        aria-label="Shopping list items"
+        >
           <div className={cn(
             "pb-16",
             isMobile ? "mb-8" : ""
@@ -233,7 +319,9 @@ const ShoppingList = ({
             {purchasedItems.length > 0 && (
               <div className="mt-6 mb-8">
                 <Separator className="mb-4" />
-                <h3 className="text-lg font-medium mb-4 px-1">{isMobile ? 'Purchased' : 'Purchased Items'}</h3>
+                <h3 className="text-lg font-medium mb-4 px-1" id="purchased-heading">
+                  {isMobile ? 'Purchased' : 'Purchased Items'}
+                </h3>
                 {renderShoppingItemsGrid(purchasedItems)}
               </div>
             )}
@@ -257,7 +345,9 @@ const ShoppingList = ({
             toast({
               title: "Read-only Mode",
               description: "You don't have permission to delete items in this shared list.",
-              variant: "destructive"
+              variant: "destructive",
+              role: "alert",
+              "aria-live": "assertive"
             });
             return;
           }
@@ -272,4 +362,5 @@ const ShoppingList = ({
   );
 };
 
-export default ShoppingList;
+// Export the component wrapped in memo for better performance
+export default memo(ShoppingList);

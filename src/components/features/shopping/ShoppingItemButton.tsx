@@ -1,261 +1,117 @@
-
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Maximize2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { MoreHorizontal, Image as ImageIcon, Edit, Trash } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-interface ShoppingItemButtonProps {
+type ShoppingItemButtonProps = {
   name: string;
-  quantity?: string;
-  completed?: boolean;
-  repeatOption?: string;
-  imageUrl?: string;
-  notes?: string;
-  onClick: () => void;
-  onDelete: () => void;
-  onEdit: () => void;
+  completed: boolean;
+  onClick?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
   onImagePreview?: () => void;
+  quantity?: string;
+  repeatOption?: 'none' | 'weekly' | 'monthly';
+  imageUrl?: string | null;
+  notes?: string;
   readOnly?: boolean;
 }
 
 const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
   name,
-  quantity = '',
-  completed = false,
-  repeatOption = 'none',
+  completed,
+  onClick,
+  onEdit,
+  onDelete,
+  onImagePreview,
+  quantity,
+  repeatOption,
   imageUrl,
   notes,
-  onClick,
-  onDelete,
-  onEdit,
-  onImagePreview,
   readOnly = false
 }) => {
-  const { isMobile } = useIsMobile();
-  
-  const getBadgeColorClass = () => {
-    switch (repeatOption) {
-      case 'weekly':
-        return 'bg-blue-500 hover:bg-blue-600';
-      case 'monthly':
-        return 'bg-purple-500 hover:bg-purple-600';
-      default:
-        return 'bg-gray-500 hover:bg-gray-600';
-    }
-  };
-  
-  const getInitial = () => {
-    return name.charAt(0).toUpperCase();
-  };
-
-  const handleItemClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log("[DEBUG] ShoppingItemButton - Item clicked:", name, "Completed:", completed);
-    onClick();
-  };
-
-  const itemHeight = isMobile ? "h-24" : "h-36";
-  const imageHeight = isMobile ? "h-16" : "h-24";
-  
   return (
-    <div className="relative w-full">
-      <div 
+    <div className="group relative">
+      <button
         className={cn(
-          "flex flex-col rounded-md overflow-hidden border cursor-pointer",
-          itemHeight,
-          completed ? 'bg-gray-100 border-gray-300' : 'bg-card border-border hover:bg-accent transition-colors'
+          "w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-between",
+          completed ? "opacity-70 line-through" : "opacity-100",
         )}
-        onClick={handleItemClick}
-        role="button"
-        aria-pressed={completed}
-        style={{ width: '100%' }}
+        onClick={onClick}
+        disabled={readOnly}
       >
-        <div className={cn(
-          "relative w-full overflow-hidden bg-gray-100",
-          imageHeight
-        )}>
-          {imageUrl ? (
-            <>
-              <img
-                src={imageUrl}
-                alt={name}
-                className={cn(
-                  "w-full h-full object-cover",
-                  completed ? 'opacity-50' : ''
-                )}
-              />
-            </>
-          ) : (
-            <div className={cn(
-              "w-full h-full flex items-center justify-center",
-              completed ? 'bg-gray-200' : 'bg-gray-200',
-              "font-bold"
-            )}>
-              <span className="text-xl">{getInitial()}</span>
-            </div>
-          )}
-          
-          {repeatOption !== 'none' && (
-            <div className="absolute bottom-1 left-1">
-              <Badge className={cn(
-                getBadgeColorClass(),
-                isMobile ? "text-[10px] px-1 py-0" : "text-xs py-0"
-              )}>
-                {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
-              </Badge>
-            </div>
-          )}
-          
-          {imageUrl && !isMobile && onImagePreview && (
-            <div className="absolute bottom-1 right-1">
-              <Button
-                size="sm"
-                variant="secondary"
-                className="h-5 w-5 p-0 opacity-90 rounded-full"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onImagePreview) onImagePreview();
-                }}
-                type="button"
-                aria-label="Expand image"
-              >
-                <Maximize2 className="h-3 w-3" />
-              </Button>
-            </div>
-          )}
-
-          {readOnly && (
-            <div className="absolute top-1 right-1">
-              <Badge variant="secondary" className="text-[10px] px-1 py-0 bg-gray-500 text-white">
-                Read-only
-              </Badge>
-            </div>
-          )}
-        </div>
-        
-        <div className="p-1 flex-grow overflow-hidden">
-          <h3 className={cn(
-            "font-medium truncate", 
-            isMobile ? "text-[11px]" : "text-xs",
-            completed ? 'line-through text-gray-500' : ''
-          )}>
+        <div className="flex items-center">
+          <Checkbox
+            id={`item-${name}`}
+            checked={completed}
+            onCheckedChange={onClick}
+            disabled={readOnly}
+            aria-label={name}
+          />
+          <label
+            htmlFor={`item-${name}`}
+            className="ml-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
             {name}
-          </h3>
-          {quantity && (
-            <p className={cn(
-              "truncate mt-0.5",
-              isMobile ? "text-[10px]" : "text-xs",
-              completed ? 'text-gray-400' : 'text-gray-500'
-            )}>
-              {quantity}
-            </p>
-          )}
-          {notes && !isMobile && (
-            <p className={cn(
-              "truncate mt-0.5",
-              "text-xs",
-              completed ? 'text-gray-400' : 'text-gray-500'
-            )}>
-              {notes}
-            </p>
-          )}
+          </label>
         </div>
+        {quantity && (
+          <div className="text-xs text-muted-foreground">{quantity}</div>
+        )}
+      </button>
+
+      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="outline-none focus:outline-none rounded-full p-1 hover:bg-secondary">
+              <MoreHorizontal className="h-4 w-4" aria-label="Options" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            {imageUrl && (
+              <DropdownMenuItem onClick={onImagePreview} aria-label="View Image">
+                <ImageIcon className="mr-2 h-4 w-4" />
+                <span>View Image</span>
+              </DropdownMenuItem>
+            )}
+            {imageUrl && <DropdownMenuSeparator />}
+            {!readOnly && (
+              <>
+                <DropdownMenuItem onClick={onEdit} aria-label="Edit">
+                  <Edit className="mr-2 h-4 w-4" />
+                  <span>Edit</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onDelete} className="text-red-500 focus:text-red-500" aria-label="Delete">
+                  <Trash className="mr-2 h-4 w-4" />
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              </>
+            )}
+            {readOnly && (
+              <DropdownMenuItem className="cursor-not-allowed" disabled>
+                <Edit className="mr-2 h-4 w-4" />
+                <span className="opacity-50">Edit (Read Only)</span>
+              </DropdownMenuItem>
+            )}
+            {readOnly && (
+              <DropdownMenuItem className="cursor-not-allowed" disabled>
+                <Trash className="mr-2 h-4 w-4" />
+                <span className="opacity-50">Delete (Read Only)</span>
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      {/* Mobile edit button - always visible for all items when not in read-only mode */}
-      {isMobile && !readOnly && (
-        <div className="absolute top-1 left-1">
-          <Button
-            size="sm"
-            variant="secondary"
-            className="h-5 w-5 p-0 bg-gray-600 hover:bg-gray-700 text-white opacity-85 rounded-full shadow-sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
-            type="button"
-            aria-label="Edit item"
-          >
-            <Pencil className="h-3 w-3" />
-          </Button>
-        </div>
-      )}
-
-      {/* Mobile delete button - always visible for all items when not in read-only mode */}
-      {isMobile && !readOnly && (
-        <div className="absolute top-1 right-1">
-          <Button
-            size="sm"
-            variant="secondary"
-            className="h-5 w-5 p-0 bg-red-600 hover:bg-red-700 text-white opacity-85 rounded-full shadow-sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            type="button"
-            aria-label="Delete item"
-          >
-            <Trash2 className="h-3 w-3" />
-          </Button>
-        </div>
-      )}
-
-      {/* Image preview button - only for items with images on mobile */}
-      {isMobile && imageUrl && onImagePreview && (
-        <div className="absolute bottom-1 right-1">
-          <Button
-            size="sm"
-            variant="secondary"
-            className="h-5 w-5 p-0 bg-gray-600 hover:bg-gray-700 text-white opacity-85 rounded-full shadow-sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (onImagePreview) onImagePreview();
-            }}
-            type="button"
-            aria-label="Expand item"
-          >
-            <Maximize2 className="h-3 w-3" />
-          </Button>
-        </div>
-      )}
-      
-      {!isMobile && !readOnly && (
-        <>
-          <div className="absolute top-1.5 right-1.5">
-            <Button
-              size="icon"
-              variant="destructive"
-              className="h-6 w-6 p-0 opacity-90"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-              type="button"
-              aria-label="Delete item"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-          
-          <div className="absolute top-1.5 left-1.5">
-            <Button
-              size="icon" 
-              variant="secondary"
-              className="h-6 w-6 p-0 opacity-90"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit();
-              }}
-              type="button"
-              aria-label="Edit item"
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        </>
+      {repeatOption && repeatOption !== 'none' && (
+        <Badge
+          variant="secondary"
+          className="absolute bottom-1 left-1 pointer-events-none"
+        >
+          {repeatOption}
+        </Badge>
       )}
     </div>
   );
