@@ -51,6 +51,14 @@ const ShoppingItemCard = ({
   // Card dimensions
   const cardHeight = isMobile ? '140px' : '180px';
   
+  // Handle card click for image preview, but prevent it from triggering when buttons are clicked
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only trigger image preview if clicking on the card itself, not on buttons
+    if (onImagePreview && e.currentTarget === e.target) {
+      onImagePreview();
+    }
+  };
+
   return (
     <Card 
       className={cn(
@@ -61,19 +69,19 @@ const ShoppingItemCard = ({
         ...cardStyle,
         height: cardHeight
       }}
-      onClick={onImagePreview}
+      onClick={handleCardClick}
       role="button"
       aria-pressed={completed}
       tabIndex={0}
     >
       {/* Action buttons at corners */}
-      <div className="absolute top-2 left-2">
+      <div className="absolute top-2 left-2 z-10">
         <Button
           size="icon"
           variant="secondary"
           className="h-8 w-8 rounded-full bg-white/70 hover:bg-white shadow-md"
           onClick={(e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Prevent card click
             onEdit();
           }}
           disabled={readOnly}
@@ -83,13 +91,13 @@ const ShoppingItemCard = ({
         </Button>
       </div>
       
-      <div className="absolute top-2 right-2">
+      <div className="absolute top-2 right-2 z-10">
         <Button
           size="icon"
           variant="secondary"
           className="h-8 w-8 rounded-full bg-white/70 hover:bg-white shadow-md"
           onClick={(e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Prevent card click
             onDelete();
           }}
           disabled={readOnly}
@@ -103,7 +111,7 @@ const ShoppingItemCard = ({
       <div 
         className="absolute inset-0 flex items-center justify-center cursor-pointer"
         onClick={(e) => {
-          e.stopPropagation();
+          e.stopPropagation(); // Prevent image preview
           onClick();
         }}
       >

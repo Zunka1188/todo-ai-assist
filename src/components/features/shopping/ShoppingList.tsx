@@ -9,6 +9,16 @@ import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
 import ShoppingItemCard from './ShoppingItemCard';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type ShoppingListProps = {
   searchTerm?: string;
@@ -37,6 +47,8 @@ const ShoppingList = ({
   } = useShoppingItemsContext();
   
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -168,7 +180,7 @@ const ShoppingList = ({
     }
   };
 
-  const handleDeleteItem = (itemId: string) => {
+  const handleDeleteItem = (itemId: string, itemName: string) => {
     if (readOnly) {
       toast({
         title: "Read-only Mode",
@@ -180,26 +192,39 @@ const ShoppingList = ({
       return;
     }
     
-    if (confirm("Are you sure you want to delete this item?")) {
-      const result = removeItem(itemId);
-      if (result) {
-        toast({
-          title: "Item Deleted",
-          description: `${result.name} has been removed from your list.`,
-          role: "status",
-          "aria-live": "polite"
-        });
-      } else {
-        console.error("[ERROR] ShoppingList - Failed to delete item");
-        toast({
-          title: "Error",
-          description: "Failed to delete item",
-          variant: "destructive",
-          role: "alert",
-          "aria-live": "assertive"
-        });
-      }
+    setItemToDelete({id: itemId, name: itemName});
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteItem = () => {
+    if (!itemToDelete) return;
+    
+    const result = removeItem(itemToDelete.id);
+    if (result) {
+      toast({
+        title: "Item Deleted",
+        description: `${itemToDelete.name} has been removed from your list.`,
+        role: "status",
+        "aria-live": "polite"
+      });
+    } else {
+      console.error("[ERROR] ShoppingList - Failed to delete item");
+      toast({
+        title: "Error",
+        description: "Failed to delete item",
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
+      });
     }
+    
+    setShowDeleteDialog(false);
+    setItemToDelete(null);
+  };
+  
+  const cancelDeleteItem = () => {
+    setShowDeleteDialog(false);
+    setItemToDelete(null);
   };
 
   // Helper function to render a grid of shopping items
@@ -226,7 +251,7 @@ const ShoppingList = ({
               imageUrl={item.imageUrl}
               notes={item.notes}
               onClick={() => handleToggleItemCompletion(item.id)}
-              onDelete={() => handleDeleteItem(item.id)}
+              onDelete={() => handleDeleteItem(item.id, item.name)}
               onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
               onImagePreview={() => handleImagePreview(item)}
               readOnly={readOnly}
@@ -296,12 +321,34 @@ const ShoppingList = ({
             return;
           }
           if (selectedItem) {
-            handleDeleteItem(selectedItem.id);
+            handleDeleteItem(selectedItem.id, selectedItem.name);
           }
           handleCloseImageDialog();
         }}
         readOnly={readOnly}
       />
+      
+      <AlertDialog
+        open={showDeleteDialog}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            cancelDeleteItem();
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Item</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {itemToDelete?.name}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDeleteItem}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteItem}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
