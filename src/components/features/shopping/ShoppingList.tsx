@@ -229,7 +229,7 @@ const ShoppingList = ({
                 imageUrl={item.imageUrl}
                 notes={item.notes}
                 onClick={() => handleToggleItemCompletion(item.id)}
-                onDelete={() => onEditItem && onEditItem(item.id, item.name, item)}
+                onDelete={() => handleDeleteItem(item.id)}
                 onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
                 onImagePreview={() => handleImagePreview(item)}
                 readOnly={readOnly}
@@ -274,7 +274,7 @@ const ShoppingList = ({
             imageUrl={item.imageUrl}
             notes={item.notes}
             onClick={() => handleToggleItemCompletion(item.id)}
-            onDelete={() => onEditItem && onEditItem(item.id, item.name, item)}
+            onDelete={() => handleDeleteItem(item.id)}
             onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
             onImagePreview={() => handleImagePreview(item)}
             readOnly={readOnly}
