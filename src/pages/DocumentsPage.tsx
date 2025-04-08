@@ -14,11 +14,15 @@ import { Button } from '@/components/ui/button';
 import { ChefHat, Dumbbell, FileArchive, Plane, Calendar, FileText, Shirt } from 'lucide-react';
 import { getCategoryIcon } from '@/components/features/documents/utils/iconHelpers';
 import { useToast } from '@/hooks/use-toast';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useDebugMode } from '@/hooks/useDebugMode';
+import ErrorBoundary from '@/components/ui/error-boundary';
 
-const DocumentsPage = () => {
+const DocumentsPageContent = () => {
   const navigate = useNavigate();
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
+  const { enabled: debugEnabled, logProps, logEvent, logApiRequest, logApiResponse } = useDebugMode();
   
   const {
     categoryItems,
@@ -33,27 +37,43 @@ const DocumentsPage = () => {
     CATEGORIES
   } = useDocuments();
   
-  const [searchTerm, setSearchTerm] = useState('');
+  const [rawSearchTerm, setRawSearchTerm] = useState('');
+  const searchTerm = useDebounce(rawSearchTerm, 300); // Debounce search input by 300ms
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DocumentCategory>('style');
   const [editingItem, setEditingItem] = useState<DocumentItem | null>(null);
   const [fullScreenPreviewItem, setFullScreenPreviewItem] = useState<DocumentItem | DocumentFile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Log component props when debug mode is enabled
+  if (debugEnabled) {
+    logProps('DocumentsPage', { 
+      activeTab, 
+      searchTerm, 
+      isAddDialogOpen, 
+      editingItem, 
+      categoryItemsCount: categoryItems.length, 
+      filesCount: files.length 
+    });
+  }
+
   const currentCategory = activeTab;
 
   const handleOpenAddDialog = (editing: DocumentItem | null = null) => {
+    if (debugEnabled) logEvent('openAddDialog', { editing });
     setEditingItem(editing);
     setIsAddDialogOpen(true);
   };
 
   const handleOpenFileUploader = () => {
+    if (debugEnabled) logEvent('openFileUploader');
     setEditingItem(null);
     setIsAddDialogOpen(true);
   };
 
   const handleAddItem = (item: any) => {
     try {
+      if (debugEnabled) logApiRequest('/api/documents', 'POST', item);
       setIsLoading(true);
       handleAddOrUpdateItem(item, editingItem);
       setIsAddDialogOpen(false);
@@ -61,14 +81,22 @@ const DocumentsPage = () => {
       
       toast({
         title: editingItem ? "Document Updated" : "Document Added",
-        description: `${item.title} has been ${editingItem ? 'updated' : 'added'} successfully.`
+        description: `${item.title} has been ${editingItem ? 'updated' : 'added'} successfully.`,
+        role: "status",
+        "aria-live": "polite"
       });
+      
+      if (debugEnabled) logApiResponse('/api/documents', 200, { success: true, item });
     } catch (error) {
       console.error("Error handling document:", error);
+      if (debugEnabled) logApiResponse('/api/documents', 500, { error });
+      
       toast({
         title: "Error",
         description: "Failed to process document. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
       });
     } finally {
       setIsLoading(false);
@@ -77,22 +105,34 @@ const DocumentsPage = () => {
 
   const handleDeleteItemWithConfirmation = (id: string) => {
     try {
+      if (debugEnabled) logApiRequest('/api/documents/' + id, 'DELETE');
+      
       handleDeleteItem(id);
+      
       toast({
         title: "Document Deleted",
-        description: "The document has been removed successfully."
+        description: "The document has been removed successfully.",
+        role: "status",
+        "aria-live": "polite"
       });
+      
+      if (debugEnabled) logApiResponse('/api/documents/' + id, 200, { success: true });
     } catch (error) {
       console.error("Error deleting document:", error);
+      if (debugEnabled) logApiResponse('/api/documents/' + id, 500, { error });
+      
       toast({
         title: "Error",
         description: "Failed to delete document. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
       });
     }
   };
 
   const handleViewFullScreen = (item: DocumentItem | DocumentFile) => {
+    if (debugEnabled) logEvent('viewFullScreen', { item });
     setFullScreenPreviewItem(item);
   };
 
@@ -115,8 +155,8 @@ const DocumentsPage = () => {
     <div className="flex flex-col h-full">
       <PageHeader
         title="Documents"
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        searchTerm={rawSearchTerm}
+        onSearchChange={setRawSearchTerm}
         showAddButton={true}
         onAddItem={handleOpenFileUploader}
         addItemLabel="+ Add Item"
@@ -207,7 +247,24 @@ const DocumentsPage = () => {
         item={fullScreenPreviewItem}
         onClose={handleFullScreenClose}
       />
+
+      {debugEnabled && (
+        <div className="fixed bottom-0 left-0 right-0 bg-yellow-200 text-black p-1 text-xs z-50 opacity-80">
+          <div>Active Tab: "{activeTab}", Items: {filteredItems.length}, Files: {filteredFiles.length}</div>
+          <div>Search Term: "{searchTerm}", Editing Item: {editingItem ? editingItem.id : 'none'}</div>
+          <div>Debug Mode: Enabled (Shift+Ctrl+D to disable)</div>
+        </div>
+      )}
     </div>
+  );
+};
+
+// Wrap DocumentsPageContent with ErrorBoundary for robust error handling
+const DocumentsPage: React.FC = () => {
+  return (
+    <ErrorBoundary>
+      <DocumentsPageContent />
+    </ErrorBoundary>
   );
 };
 
