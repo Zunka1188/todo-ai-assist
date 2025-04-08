@@ -162,7 +162,7 @@ const CalendarPage = () => {
       className="flex flex-col h-[calc(100vh-4rem)]"
       noPadding
     >
-      <div className="px-4 pt-4 sm:px-6 md:px-8">
+      <div className="px-2 pt-2 sm:px-2">
         <PageHeader 
           title="Calendar"
           searchTerm={searchTerm}
@@ -170,6 +170,7 @@ const CalendarPage = () => {
           showAddButton={false}
           showBackButton={true}
           backTo="/"
+          className="mb-2"
           rightContent={
             <div className="flex space-x-2">
               <Button 
@@ -235,11 +236,11 @@ const CalendarPage = () => {
           </Tabs>
         </div>
 
-        <Separator className="my-2" />
+        <Separator className="my-1" />
       </div>
       
       <div className={`flex-1 overflow-hidden w-full ${theme === 'dark' ? 'text-white' : ''}`}>
-        <div className="px-4 sm:px-6 md:px-8">
+        <div className="px-0 sm:px-0">
           <ErrorBoundary>
             <CalendarView 
               viewMode={viewMode} 

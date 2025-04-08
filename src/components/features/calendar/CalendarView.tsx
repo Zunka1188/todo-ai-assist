@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
@@ -205,7 +204,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
   return (
     <div className={cn(
-      "space-y-4 w-full mx-auto max-w-[100%]",
+      "space-y-2 w-full mx-auto max-w-full",
       isMobile ? "pb-2" : ""
     )}
     role="region"

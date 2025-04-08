@@ -63,7 +63,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
   return (
     <div
       ref={gridRef}
-      className="relative border rounded-md bg-background h-full overflow-y-auto"
+      className="relative border rounded-md bg-background h-full overflow-y-auto w-full"
       style={{
         height: '100%',
         minHeight: `${(numHours) * (isMobile ? 60 : 80)}px`,

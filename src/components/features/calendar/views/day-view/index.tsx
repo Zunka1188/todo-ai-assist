@@ -84,7 +84,7 @@ const DayView: React.FC<DayViewProps> = ({
   const numHours = showAllHours ? 24 : (endHour - startHour + 1);
 
   return (
-    <div className="space-y-3 mx-auto w-full">
+    <div className="space-y-2 mx-auto w-full">
       <DayHeader 
         date={date}
         theme={theme}

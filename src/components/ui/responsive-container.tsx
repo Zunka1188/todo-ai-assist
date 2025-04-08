@@ -12,6 +12,7 @@ interface ResponsiveContainerProps {
   fluid?: boolean;
   gap?: "none" | "sm" | "md" | "lg";
   direction?: "row" | "column";
+  fullWidth?: boolean;
 }
 
 const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
@@ -23,6 +24,7 @@ const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   fluid = false,
   gap = "none",
   direction = "column",
+  fullWidth = false,
 }) => {
   const { isMobile } = useIsMobile();
   
@@ -40,7 +42,8 @@ const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   return (
     <Component
       className={cn(
-        fluid ? "w-full" : "",
+        (fluid || fullWidth) ? "w-full" : "",
+        fullWidth ? "max-w-full" : "",
         gap !== "none" ? "flex" : "",
         gap !== "none" ? directionClass : "",
         gap !== "none" ? gapClass() : "",
