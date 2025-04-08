@@ -53,8 +53,8 @@ const ShoppingItemCard = ({
   
   // Handle card click for image preview, but prevent it from triggering when buttons are clicked
   const handleCardClick = (e: React.MouseEvent) => {
-    // Only trigger image preview if clicking on the card itself, not on buttons
-    if (onImagePreview && e.currentTarget === e.target) {
+    // Only trigger image preview if clicking on the card itself, not on buttons or badges
+    if (onImagePreview && e.target === e.currentTarget) {
       onImagePreview();
     }
   };
@@ -142,7 +142,11 @@ const ShoppingItemCard = ({
       {repeatOption && repeatOption !== 'none' && (
         <Badge 
           variant="secondary" 
-          className="absolute bottom-2 right-2 bg-white/80 text-black text-xs"
+          className="absolute bottom-2 right-2 bg-white/80 text-black text-xs cursor-default"
+          onClick={(e) => {
+            // Prevent event bubbling to parent card
+            e.stopPropagation();
+          }}
         >
           {repeatOption}
         </Badge>

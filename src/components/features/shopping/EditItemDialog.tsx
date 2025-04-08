@@ -126,22 +126,34 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
     if (isSaving) return;
     setIsSaving(true);
     
-    const updatedItem: ShoppingItem = {
-      ...item,
-      name: name.trim() || (fileName ? fileName : 'Untitled Item'),
-      notes,
-      amount,
-      imageUrl: file,
-      repeatOption
-    };
-    
-    onSave(updatedItem, editItemImage);
-    onClose();
-    
-    toast({
-      title: "Item Updated",
-      description: `${updatedItem.name} has been updated.`,
-    });
+    try {
+      console.log("[DEBUG] EditItemDialog - Saving with option:", repeatOption);
+      
+      const updatedItem: ShoppingItem = {
+        ...item,
+        name: name.trim() || (fileName ? fileName : 'Untitled Item'),
+        notes,
+        amount,
+        imageUrl: file,
+        repeatOption
+      };
+      
+      onSave(updatedItem, editItemImage);
+      onClose();
+      
+      toast({
+        title: "Item Updated",
+        description: `${updatedItem.name} has been updated.`,
+      });
+    } catch (error) {
+      console.error("[ERROR] EditItemDialog - Error saving item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save changes",
+        variant: "destructive"
+      });
+      setIsSaving(false);
+    }
   };
 
   const clearFile = () => {
@@ -263,12 +275,24 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
             <Label htmlFor="repeat-option">Repeat</Label>
             <Select 
               value={repeatOption} 
-              onValueChange={(value) => setRepeatOption(value as 'none' | 'weekly' | 'monthly')}
+              onValueChange={(value) => {
+                console.log("[DEBUG] EditItemDialog - Repeat option selected:", value);
+                setRepeatOption(value as 'none' | 'weekly' | 'monthly');
+              }}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select frequency" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent 
+                position={isMobile ? "popper" : "item-aligned"}
+                className={isMobile ? "w-[calc(100vw-2rem)]" : ""}
+                onCloseAutoFocus={(e) => {
+                  if (isMobile) {
+                    // Prevent the drawer from closing when selecting an option
+                    e.preventDefault();
+                  }
+                }}
+              >
                 <SelectItem value="none">None (One-off)</SelectItem>
                 <SelectItem value="weekly">Weekly</SelectItem>
                 <SelectItem value="monthly">Monthly</SelectItem>
@@ -340,7 +364,6 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
               style={{ WebkitOverflowScrolling: 'touch', paddingBottom: '100px' }}
             >
               {dialogContent}
-              {/* Add extra padding at the bottom to ensure content is scrollable */}
               <div className="h-16"></div>
             </ScrollArea>
             
