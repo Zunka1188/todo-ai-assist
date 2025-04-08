@@ -182,7 +182,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       // Check if this is an update (item with existing ID)
       const isUpdate = newItem.id && items.some(item => item.id === newItem.id);
       
-      // FIXED: Handle both imageUrl and file fields for backward compatibility
+      // Handle both imageUrl and file fields for backward compatibility
       const imageUrl = newItem.imageUrl || newItem.file || '';
       
       const item: ShoppingItem = {
@@ -211,7 +211,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
             existingItem.id === item.id ? item : existingItem
           );
           
-          // FIXED: Immediately save to localStorage to ensure persistence
+          // Immediately save to localStorage to ensure persistence
           saveToLocalStorage('shoppingItems', updatedItems);
           return updatedItems;
         }
@@ -220,7 +220,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
         console.log(`[DEBUG] useShoppingItems - Adding new item with ID: ${item.id}`);
         const newItems = [...prevItems, item];
         
-        // FIXED: Immediately save to localStorage to ensure persistence
+        // Immediately save to localStorage to ensure persistence
         saveToLocalStorage('shoppingItems', newItems);
         return newItems;
       });
@@ -249,7 +249,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       } : i);
       setItems(updatedItems);
       
-      // FIXED: Immediately save to localStorage to ensure persistence
+      // Immediately save to localStorage to ensure persistence
       saveToLocalStorage('shoppingItems', updatedItems);
       return { completed: true, item };
     } else {
@@ -260,7 +260,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       } : i);
       setItems(updatedItems);
       
-      // FIXED: Immediately save to localStorage to ensure persistence
+      // Immediately save to localStorage to ensure persistence
       saveToLocalStorage('shoppingItems', updatedItems);
       return { completed: false, item };
     }
@@ -277,7 +277,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     const updatedItems = items.filter(item => item.id !== id);
     setItems(updatedItems);
     
-    // FIXED: Immediately save to localStorage to ensure persistence
+    // Immediately save to localStorage to ensure persistence
     saveToLocalStorage('shoppingItems', updatedItems);
     return itemToRemove;
   };
@@ -296,7 +296,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     );
     setItems(updatedItems);
     
-    // FIXED: Immediately save to localStorage to ensure persistence
+    // Immediately save to localStorage to ensure persistence
     saveToLocalStorage('shoppingItems', updatedItems);
     
     const updated = updatedItems.find(item => item.id === id);
@@ -317,7 +317,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     const updatedItems = items.filter(item => !selectedItems.includes(item.id));
     setItems(updatedItems);
     
-    // FIXED: Immediately save to localStorage to ensure persistence
+    // Immediately save to localStorage to ensure persistence
     saveToLocalStorage('shoppingItems', updatedItems);
     
     setSelectedItems([]);

@@ -7,7 +7,7 @@ import EditItemDialog from '@/components/features/shopping/EditItemDialog';
 import InviteDialog from '@/components/features/shopping/InviteDialog';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDebugMode } from '@/hooks/useDebugMode';
-import { useShoppingItems } from '@/components/features/shopping/useShoppingItems';
+import { ShoppingItemsProvider, useShoppingItemsContext } from '@/components/features/shopping/ShoppingItemsContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import PageHeader from '@/components/ui/page-header';
@@ -16,7 +16,8 @@ import DirectAddItem from '@/components/features/shopping/DirectAddItem';
 import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const ShoppingPage: React.FC = () => {
+// Inner component that has access to the ShoppingItemsContext
+const ShoppingPageContent: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
@@ -29,8 +30,8 @@ const ShoppingPage: React.FC = () => {
   const { toast } = useToast();
   const { isMobile } = useIsMobile();
   
-  // Create a separate instance of useShoppingItems to avoid state conflicts
-  const { addItem } = useShoppingItems('all', '');
+  // Use the context to access shared state and methods
+  const { addItem, updateFilterMode } = useShoppingItemsContext();
   
   const searchParams = new URLSearchParams(location.search);
   const tabFromUrl = searchParams.get('tab');
@@ -39,11 +40,28 @@ const ShoppingPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState(defaultTab);
 
+  // Store invitation status in localStorage
+  const storeInvitationStatus = (isReadOnly: boolean) => {
+    localStorage.setItem('shoppingInviteAccepted', 'true');
+    localStorage.setItem('shoppingReadOnlyMode', isReadOnly ? 'true' : 'false');
+  };
+
+  // Check for stored invitation status on initial load
+  useEffect(() => {
+    const storedInviteAccepted = localStorage.getItem('shoppingInviteAccepted');
+    const storedReadOnlyMode = localStorage.getItem('shoppingReadOnlyMode');
+    
+    if (storedInviteAccepted === 'true') {
+      setIsReadOnlyMode(storedReadOnlyMode === 'true');
+    }
+  }, []);
+
   useEffect(() => {
     const newTab = validTabs.includes(tabFromUrl || '') ? tabFromUrl : 'one-off';
     console.log(`[DEBUG] ShoppingPage - URL tab param changed to: ${tabFromUrl}, setting active tab to: ${newTab}`);
     setActiveTab(newTab);
-  }, [location.search, tabFromUrl]);
+    updateFilterMode(newTab as any);
+  }, [location.search, tabFromUrl, updateFilterMode]);
 
   // Check for invitation parameter and read-only mode
   useEffect(() => {
@@ -72,11 +90,15 @@ const ShoppingPage: React.FC = () => {
             }
             
             // Set read-only mode if specified
-            setIsReadOnlyMode(modeParam === 'readonly');
+            const isReadOnly = modeParam === 'readonly';
+            setIsReadOnlyMode(isReadOnly);
+            
+            // Store invitation status in localStorage
+            storeInvitationStatus(isReadOnly);
             
             toast({
-              title: isReadOnlyMode ? "View-only Access" : "Invitation Accepted",
-              description: isReadOnlyMode 
+              title: isReadOnly ? "View-only Access" : "Invitation Accepted",
+              description: isReadOnly 
                 ? "You can view but not modify this shopping list" 
                 : "You've joined a shared shopping list"
             });
@@ -101,6 +123,7 @@ const ShoppingPage: React.FC = () => {
   const handleTabChange = (value: string) => {
     console.log(`[DEBUG] ShoppingPage - Tab changed to: ${value}`);
     setActiveTab(value);
+    updateFilterMode(value as any);
     navigate(`/shopping?tab=${value}`, { replace: true });
   };
 
@@ -142,7 +165,6 @@ const ShoppingPage: React.FC = () => {
         name: item.name || 'Unnamed Item',
         amount: item.amount || '',
         price: item.price || '',
-        // FIXED: Use imageUrl from the item, falling back to file if needed
         imageUrl: item.imageUrl || item.file || null,
         notes: item.notes || '',
         repeatOption: item.repeatOption || 'none',
@@ -153,7 +175,7 @@ const ShoppingPage: React.FC = () => {
       
       console.log('[DEBUG] ShoppingPage - Properly structured item to add:', JSON.stringify(itemToAdd, null, 2));
       
-      // Call addItem with the structured data
+      // Call addItem from context with the structured data
       const result = addItem(itemToAdd);
       console.log('[DEBUG] ShoppingPage - Add item result:', result);
       
@@ -176,7 +198,6 @@ const ShoppingPage: React.FC = () => {
         
         return true;
       } else {
-        // FIXED: Add toast notification when item couldn't be added
         toast({
           title: "Failed to Add Item",
           description: "The item could not be added to your shopping list.",
@@ -194,7 +215,7 @@ const ShoppingPage: React.FC = () => {
     return false;
   }
 
-  const handleUpdateItem = (updatedItem: any, imageFile: File | null) => {
+  const handleUpdateItem = (updatedItem: any) => {
     // Prevent updating in read-only mode
     if (isReadOnlyMode) {
       toast({
@@ -213,7 +234,6 @@ const ShoppingPage: React.FC = () => {
       const itemData = {
         name: updatedItem.name,
         amount: updatedItem.amount,
-        // FIXED: Use imageUrl for consistency
         imageUrl: updatedItem.imageUrl || updatedItem.file || null,
         notes: updatedItem.notes,
         repeatOption: updatedItem.repeatOption || 'none',
@@ -221,7 +241,7 @@ const ShoppingPage: React.FC = () => {
         completed: editItem.item?.completed
       };
       
-      // Update the existing item
+      // Use addItem with ID to update existing item
       const result = addItem({
         ...itemData,
         id: editItem.id // Pass the ID to ensure it updates rather than creates new
@@ -348,7 +368,6 @@ const ShoppingPage: React.FC = () => {
         </div>
       )}
 
-      {/* FIXED: Ensure proper dialog opening and closing on mobile */}
       <AddItemDialog 
         open={showAddDialog}
         onOpenChange={(open) => {
@@ -358,7 +377,6 @@ const ShoppingPage: React.FC = () => {
         onSave={handleSaveItem}
       />
 
-      {/* Invite Dialog */}
       <InviteDialog
         open={showInviteDialog}
         onOpenChange={setShowInviteDialog}
@@ -375,6 +393,15 @@ const ShoppingPage: React.FC = () => {
 
       {debugEnabled && <DirectAddItem />}
     </div>
+  );
+};
+
+// Wrapper component that provides the context
+const ShoppingPage: React.FC = () => {
+  return (
+    <ShoppingItemsProvider>
+      <ShoppingPageContent />
+    </ShoppingItemsProvider>
   );
 };
 

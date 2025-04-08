@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Index from '@/pages/Index';
 import ScanPage from '@/pages/ScanPage';
@@ -13,6 +12,7 @@ import NotFound from '@/pages/NotFound';
 import TroubleshootPage from '@/pages/TroubleshootPage';
 import AIModelsPage from '@/pages/AIModelsPage';
 import WeatherPage from '@/pages/WeatherPage';
+import { ShoppingItemsProvider } from '@/components/features/shopping/ShoppingItemsContext';
 
 const Router = () => {
   return (
@@ -21,7 +21,11 @@ const Router = () => {
       <Route path="/scan" element={<ScanPage />} />
       <Route path="/upload" element={<UploadPage />} />
       <Route path="/calendar" element={<CalendarPage />} />
-      <Route path="/shopping" element={<ShoppingPage />} />
+      <Route path="/shopping" element={
+        <ShoppingItemsProvider>
+          <ShoppingPage />
+        </ShoppingItemsProvider>
+      } />
       <Route path="/tasks" element={<TasksPage />} />
       <Route path="/documents" element={<DocumentsPage />} />
       <Route path="/documents/:subtab" element={<DocumentsSubtabPage />} />

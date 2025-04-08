@@ -120,6 +120,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
                   if (onImagePreview) onImagePreview();
                 }}
                 type="button"
+                aria-label="Expand image"
               >
                 <Maximize2 className="h-3 w-3" />
               </Button>
@@ -233,6 +234,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
                 onDelete();
               }}
               type="button"
+              aria-label="Delete item"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
@@ -248,6 +250,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
                 onEdit();
               }}
               type="button"
+              aria-label="Edit item"
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>

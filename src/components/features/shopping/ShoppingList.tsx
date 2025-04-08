@@ -3,12 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import ShoppingItemButton from './ShoppingItemButton';
-import { useShoppingItems } from './useShoppingItems';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ImagePreviewDialog from './ImagePreviewDialog';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useShoppingItemsContext } from './ShoppingItemsContext';
 
 type ShoppingListProps = {
   searchTerm?: string;
@@ -25,18 +25,27 @@ const ShoppingList = ({
   onEditItem,
   readOnly = false
 }: ShoppingListProps) => {
+  // Use context instead of direct hook
   const { 
     notPurchasedItems, 
     purchasedItems, 
-    removeItem: deleteItem, 
-    toggleItem: toggleItemCompletion, 
-    addItem 
-  } = useShoppingItems(filterMode, searchTerm);
+    removeItem, 
+    toggleItem, 
+    addItem,
+    updateSearchTerm,
+    updateFilterMode 
+  } = useShoppingItemsContext();
   
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  // Update context with props
+  useEffect(() => {
+    updateSearchTerm(searchTerm);
+    updateFilterMode(filterMode);
+  }, [searchTerm, filterMode, updateSearchTerm, updateFilterMode]);
   
   useEffect(() => {
     console.log(`[DEBUG] ShoppingList - ${filterMode} items:`, 
@@ -89,7 +98,7 @@ const ShoppingList = ({
       
       console.log("[DEBUG] ShoppingList - Structured item to add:", JSON.stringify(newItem, null, 2));
       
-      // FIXED: Ensure proper item saving with direct localStorage update to prevent persistence issues
+      // Call addItem from context
       const result = addItem(newItem);
       console.log("[DEBUG] ShoppingList - Called addItem function, result:", result);
       
@@ -111,7 +120,6 @@ const ShoppingList = ({
         
         return true;
       } else {
-        // FIXED: Add toast when saving fails
         toast({
           title: "Error",
           description: "Failed to add item to shopping list",
@@ -141,7 +149,7 @@ const ShoppingList = ({
     }
     
     console.log("[DEBUG] ShoppingList - Toggling completion for item ID:", itemId);
-    const result = toggleItemCompletion(itemId);
+    const result = toggleItem(itemId);
     
     if (result) {
       console.log("[DEBUG] ShoppingList - Toggle result:", result.completed ? "Completed" : "Uncompleted", result.item);
@@ -176,7 +184,7 @@ const ShoppingList = ({
                 });
                 return;
               }
-              deleteItem(item.id);
+              removeItem(item.id);
             }}
             onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
             onImagePreview={() => handleImagePreview(item)}
@@ -238,7 +246,7 @@ const ShoppingList = ({
             return;
           }
           if (selectedItem) {
-            deleteItem(selectedItem.id);
+            removeItem(selectedItem.id);
           }
           handleCloseImageDialog();
         }}
