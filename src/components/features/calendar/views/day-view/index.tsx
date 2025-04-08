@@ -116,7 +116,7 @@ const DayView: React.FC<DayViewProps> = ({
           <div className="text-xs font-medium">Events</div>
         </div>
         
-        <div className="h-[calc(100vh-350px)]">
+        <div className={`h-[calc(100vh-350px)] ${isMobile ? 'overflow-auto' : ''}`}>
           <TimeGrid
             events={events}
             date={date}

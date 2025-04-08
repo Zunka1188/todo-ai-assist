@@ -406,7 +406,12 @@ const WeekView: React.FC<WeekViewProps> = ({
       
       <div className="border rounded-lg overflow-hidden">
         <div className="grid grid-cols-8 divide-x border-b">
-          <div className={cn("p-2 text-sm font-medium bg-muted/30", isMobile ? "text-[0.8rem]" : "")}>All Day</div>
+          <div className={cn("p-2 text-sm font-medium bg-muted/30 text-center", 
+            isMobile ? "text-[0.8rem]" : "")}
+            style={{minWidth: "5rem"}}
+          >
+            All Day
+          </div>
           {daysInWeek.map((day, index) => {
             const allDayEvents = getEventsForDay(day).filter(event => event.allDay);
             const isCurrentDate = isToday(day);
@@ -434,7 +439,12 @@ const WeekView: React.FC<WeekViewProps> = ({
         </div>
         
         <div className="grid grid-cols-8 divide-x border-b">
-          <div className={cn("py-2 px-1 text-sm font-medium bg-muted/30 text-center", isMobile ? "text-[0.8rem]" : "")}>Time / Day</div>
+          <div className={cn("py-2 px-1 text-sm font-medium bg-muted/30 text-center", 
+            isMobile ? "text-[0.8rem]" : "")}
+            style={{minWidth: "5rem"}}
+          >
+            Time / Day
+          </div>
           {daysInWeek.map((day, index) => {
             const isCurrentDate = isToday(day);
             return (
@@ -461,10 +471,23 @@ const WeekView: React.FC<WeekViewProps> = ({
           "overflow-y-auto relative",
           isMobile ? "max-h-[calc(100vh-320px)]" : "max-h-[600px]"
         )}>
-          {daysInWeek.map((day, dayIndex) => {
-            const eventGroups = getVisibleMultiHourEventGroups(day);
-            return (
-              <React.Fragment key={`multi-${dayIndex}`}>
+          <div className="grid grid-cols-8 divide-x">
+            <div className="bg-muted/10" style={{minWidth: "5rem"}}>
+              {hours.map((hour, i) => (
+                <div key={`hour-${i}`} className="border-b h-[60px] px-2 py-1 text-right text-sm text-muted-foreground">
+                  {hour}:00
+                </div>
+              ))}
+            </div>
+            
+            {daysInWeek.map((day, dayIndex) => (
+              <div key={`day-${dayIndex}`} className="relative">
+                {hours.map((_, hourIndex) => (
+                  <div 
+                    key={`${dayIndex}-${hourIndex}`} 
+                    className="border-b h-[60px]"
+                  />
+                ))}
                 {eventGroups.map((group, groupIndex) => (
                   <React.Fragment key={`group-${dayIndex}-${groupIndex}`}>
                     {group.map((event, eventIndex) => (
@@ -494,9 +517,9 @@ const WeekView: React.FC<WeekViewProps> = ({
                     ))}
                   </React.Fragment>
                 ))}
-              </React.Fragment>
-            );
-          })}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </ResponsiveContainer>

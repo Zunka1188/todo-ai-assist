@@ -15,7 +15,9 @@ interface ResponsiveContainerProps {
   fullWidth?: boolean;
   center?: boolean;
   justifyContent?: "start" | "end" | "center" | "between" | "around" | "evenly";
-  noGutters?: boolean; // Added property to remove horizontal padding
+  noGutters?: boolean; // Removes horizontal padding
+  contentAlign?: "left" | "center" | "right"; // New prop for horizontal text alignment
+  fitContent?: boolean; // New prop to make container only as wide as its content
 }
 
 const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
@@ -31,6 +33,8 @@ const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   center = false,
   justifyContent = "start",
   noGutters = false,
+  contentAlign = "left",
+  fitContent = false,
 }) => {
   const { isMobile } = useIsMobile();
   
@@ -57,17 +61,27 @@ const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
     }
   };
   
+  const contentAlignClass = () => {
+    switch (contentAlign) {
+      case "center": return "text-center";
+      case "right": return "text-right";
+      default: return "text-left";
+    }
+  };
+  
   return (
     <Component
       className={cn(
         (fluid || fullWidth) ? "w-full" : "",
         fullWidth ? "max-w-full" : "",
+        fitContent ? "w-fit" : "",
         gap !== "none" || center ? "flex" : "",
         gap !== "none" ? directionClass : "",
         gap !== "none" ? gapClass() : "",
         center ? "items-center" : "",
         center && direction === "row" ? justifyContentClass() : "",
-        noGutters ? "px-0" : "", // Remove horizontal padding when noGutters is true
+        noGutters ? "px-0" : "",
+        contentAlignClass(),
         className,
         isMobile ? mobileClassName : desktopClassName
       )}

@@ -159,10 +159,10 @@ const CalendarPage = () => {
   return (
     <PageLayout 
       maxWidth="full" 
-      className="flex flex-col h-[calc(100vh-4rem)]"
+      className="flex flex-col h-[calc(100vh-4rem)] pb-0"
       noPadding
     >
-      <div className="px-2 pt-2 sm:px-2">
+      <div className="px-3 pt-3 pb-2">
         <PageHeader 
           title="Calendar"
           searchTerm={searchTerm}
@@ -240,7 +240,7 @@ const CalendarPage = () => {
       </div>
       
       <div className={`flex-1 overflow-hidden w-full ${theme === 'dark' ? 'text-white' : ''}`}>
-        <div className="px-2 py-1">
+        <div className="px-3 py-2 h-full overflow-y-auto">
           <ErrorBoundary>
             <CalendarView 
               viewMode={viewMode} 

@@ -4,6 +4,7 @@ import { Event } from '../../types/event';
 import { useIsMobile } from '@/hooks/use-mobile';
 import TimeGridEvent from './TimeGridEvent';
 import { useDebugMode } from '@/hooks/useDebugMode';
+import { format } from 'date-fns';
 
 interface TimeGridProps {
   events: Event[];
@@ -29,6 +30,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
 }) => {
   const { isMobile } = useIsMobile();
   const { enabled: debugEnabled } = useDebugMode();
+  const hourHeight = isMobile ? 60 : 80;
 
   // Enhanced debugging
   useEffect(() => {
@@ -45,19 +47,10 @@ const TimeGrid: React.FC<TimeGridProps> = ({
     }
   }, [date, startHour, numHours, events, processedEvents, debugEnabled]);
 
-  // Generate hour markers
-  const hourMarkers = Array.from({ length: numHours + 1 }).map((_, index) => {
+  // Generate hours for grid
+  const hours = Array.from({ length: numHours }).map((_, index) => {
     const hour = startHour + index;
-    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-    const amPm = hour < 12 || hour === 24 ? 'am' : 'pm';
-    
-    return (
-      <div key={`hour-${index}`} className="relative">
-        <div className="absolute -top-2.5 text-xs text-muted-foreground select-none">
-          {displayHour} {amPm}
-        </div>
-      </div>
-    );
+    return hour;
   });
 
   return (
@@ -65,61 +58,91 @@ const TimeGrid: React.FC<TimeGridProps> = ({
       ref={gridRef}
       className="relative border rounded-md bg-background h-full overflow-y-auto w-full"
       style={{
-        minHeight: `${(numHours) * (isMobile ? 60 : 80)}px`,
+        minHeight: `${numHours * hourHeight}px`,
       }}
     >
       {/* Hour grid lines */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        {Array.from({ length: numHours }).map((_, index) => (
+        {hours.map((hour, index) => (
           <div
             key={`grid-${index}`}
             className="border-t border-muted absolute w-full"
             style={{
-              top: `${index * (isMobile ? 60 : 80)}px`,
-              height: `${isMobile ? 60 : 80}px`,
+              top: `${index * hourHeight}px`,
+              height: `${hourHeight}px`,
             }}
           />
         ))}
       </div>
       
       {/* Time markers */}
-      <div className="absolute top-0 left-3.5 h-full flex flex-col justify-start">
-        {hourMarkers}
+      <div className="absolute top-0 left-0 h-full">
+        {hours.map((hour, index) => {
+          const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+          const amPm = hour < 12 || hour === 24 ? 'am' : 'pm';
+          
+          return (
+            <div 
+              key={`hour-${index}`} 
+              className="absolute flex items-start justify-end pr-2 text-xs text-muted-foreground w-14"
+              style={{
+                top: `${index * hourHeight}px`,
+                height: `${hourHeight}px`,
+                borderRight: '1px solid var(--border)',
+              }}
+            >
+              <div className="pt-1">{displayHour} {amPm}</div>
+            </div>
+          );
+        })}
       </div>
       
       {/* Events */}
-      {processedEvents && processedEvents.length > 0 ? (
-        processedEvents.map((eventGroup, groupIndex) => {
-          if (debugEnabled) {
-            console.log(`Rendering event group ${groupIndex} with ${eventGroup.events.length} events`);
-          }
-          
-          return eventGroup.events.map((event, eventIndex) => {
+      <div className="absolute top-0 left-14 right-0">
+        {processedEvents && processedEvents.length > 0 ? (
+          processedEvents.map((eventGroup, groupIndex) => {
             if (debugEnabled) {
-              console.log(`Event: ${event.title}`, 
-                `Start: ${event.startDate.toLocaleTimeString()}`, 
-                `End: ${event.endDate.toLocaleTimeString()}`);
+              console.log(`Rendering event group ${groupIndex} with ${eventGroup.events.length} events`);
             }
             
-            return (
-              <TimeGridEvent
-                key={`event-${event.id}`}
-                event={event}
-                totalOverlapping={eventGroup.maxOverlap}
-                index={eventIndex}
-                handleViewEvent={handleViewEvent}
-                startHour={startHour}
-              />
-            );
-          });
-        })
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-          {events && events.length > 0 ? 
-            "No events visible in current time range" : 
-            "No events for this day"}
-        </div>
-      )}
+            return eventGroup.events.map((event, eventIndex) => {
+              if (debugEnabled) {
+                console.log(`Event: ${event.title}`, 
+                  `Start: ${event.startDate.toLocaleTimeString()}`, 
+                  `End: ${event.endDate.toLocaleTimeString()}`);
+              }
+              
+              return (
+                <TimeGridEvent
+                  key={`event-${event.id}`}
+                  event={event}
+                  totalOverlapping={eventGroup.maxOverlap}
+                  index={eventIndex}
+                  handleViewEvent={handleViewEvent}
+                  startHour={startHour}
+                />
+              );
+            });
+          })
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+            {events && events.length > 0 ? 
+              "No events visible in current time range" : 
+              "No events for this day"}
+          </div>
+        )}
+      </div>
+      
+      {/* Empty hour cells for layout */}
+      <div className="ml-14">
+        {hours.map((hour, index) => (
+          <div 
+            key={`hour-cell-${index}`} 
+            className="min-h-[80px]"
+            style={{ height: `${hourHeight}px` }}
+          />
+        ))}
+      </div>
     </div>
   );
 };
