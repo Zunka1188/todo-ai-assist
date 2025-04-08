@@ -19,7 +19,6 @@ export const useEventManagement = (
   const [endInputValue, setEndInputValue] = useState("23");
   const { toast } = useToast();
 
-  // Get events for the current day
   const getEventsForDay = () => {
     if (!events) return [];
     
@@ -29,8 +28,7 @@ export const useEventManagement = (
       (event.startDate <= date && event.endDate >= date)
     );
   };
-  
-  // Helper function to check if two dates are the same day
+
   const isSameDay = (date1: Date, date2: Date) => {
     return (
       date1.getFullYear() === date2.getFullYear() &&
@@ -38,18 +36,15 @@ export const useEventManagement = (
       date1.getDate() === date2.getDate()
     );
   };
-  
-  // Get day events and separate all-day events from timed events
+
   const dayEvents = getEventsForDay();
   const allDayEvents = dayEvents.filter(event => event.allDay);
   const timeEvents = dayEvents.filter(event => !event.allDay);
-  
-  // Calculate hours to display based on filters
+
   const hours = showAllHours 
     ? Array.from({ length: 24 }, (_, i) => i) 
     : Array.from({ length: (endHour - startHour) + 1 }, (_, i) => i + startHour);
 
-  // Check if an event should be visible in the current time range
   const isEventVisible = (event: Event): boolean => {
     if (event.allDay) return true;
     
@@ -64,7 +59,6 @@ export const useEventManagement = (
     return eventStart < endHour && eventEnd > startHour;
   };
 
-  // Get multi-hour events that span across multiple hour blocks
   const getMultiHourEvents = (): Event[] => {
     return timeEvents.filter(event => {
       const startHour = event.startDate.getHours();
@@ -76,13 +70,11 @@ export const useEventManagement = (
     });
   };
 
-  // Get multi-hour events that are visible in the current time range
   const getVisibleMultiHourEvents = (): Event[] => {
     const multiHourEvents = getMultiHourEvents();
     return multiHourEvents.filter(event => isEventVisible(event));
   };
 
-  // Group events that overlap in time
   const groupOverlappingEvents = (events: Event[]): ProcessedEventGroup[] => {
     if (events.length === 0) return [];
     
@@ -116,7 +108,6 @@ export const useEventManagement = (
     return groups;
   };
 
-  // Check for events that would be hidden with the current time range
   const checkForHiddenEvents = (start: number, end: number) => {
     const hidden = timeEvents.filter(event => {
       const eventStartHour = event.startDate.getHours();
@@ -143,7 +134,6 @@ export const useEventManagement = (
     return hidden;
   };
 
-  // Handle time range toggle for preset time periods
   const handleTimeRangeToggle = (preset: string) => {
     switch (preset) {
       case 'full':
@@ -181,7 +171,6 @@ export const useEventManagement = (
     }
   };
 
-  // Handle manual time range input changes
   const handleTimeRangeChange = (type: 'start' | 'end', value: string) => {
     if (type === 'start') {
       setStartInputValue(value);
@@ -216,7 +205,6 @@ export const useEventManagement = (
     setShowAllHours(newStart === 0 && newEnd === 23);
   };
 
-  // Handle input blur for time range inputs
   const handleInputBlur = (type: 'start' | 'end') => {
     if (type === 'start') {
       const value = startInputValue.trim();
@@ -255,10 +243,8 @@ export const useEventManagement = (
     setShowAllHours(startHour === 0 && endHour === 23);
   };
 
-  // Group events by overlapping time to handle layout
   const eventGroups = groupOverlappingEvents(getVisibleMultiHourEvents());
   
-  // Create processed events with proper structure for TimeGrid
   const processedEvents = groupOverlappingEvents(getVisibleMultiHourEvents());
 
   return {
