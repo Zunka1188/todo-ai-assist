@@ -1,7 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Event } from '../../types/event';
 import { useToast } from '@/hooks/use-toast';
+
+interface ProcessedEventGroup {
+  maxOverlap: number;
+  events: Event[];
+}
 
 export const useEventManagement = (
   events: Event[], 
@@ -17,6 +22,8 @@ export const useEventManagement = (
 
   // Get events for the current day
   const getEventsForDay = () => {
+    if (!events) return [];
+    
     return events.filter(event => 
       isSameDay(event.startDate, date) || 
       isSameDay(event.endDate, date) ||
@@ -77,12 +84,12 @@ export const useEventManagement = (
   };
 
   // Group events that overlap in time
-  const groupOverlappingEvents = (events: Event[]): Event[][] => {
+  const groupOverlappingEvents = (events: Event[]): ProcessedEventGroup[] => {
     if (events.length === 0) return [];
     
     const sortedEvents = [...events].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
     
-    const groups: Event[][] = [];
+    const groups: ProcessedEventGroup[] = [];
     let currentGroup: Event[] = [sortedEvents[0]];
     
     for (let i = 1; i < sortedEvents.length; i++) {
@@ -92,13 +99,19 @@ export const useEventManagement = (
       if (event.startDate < previousEvent.endDate) {
         currentGroup.push(event);
       } else {
-        groups.push([...currentGroup]);
+        groups.push({
+          maxOverlap: currentGroup.length,
+          events: [...currentGroup]
+        });
         currentGroup = [event];
       }
     }
     
     if (currentGroup.length > 0) {
-      groups.push(currentGroup);
+      groups.push({
+        maxOverlap: currentGroup.length,
+        events: [...currentGroup]
+      });
     }
     
     return groups;
@@ -245,6 +258,9 @@ export const useEventManagement = (
 
   // Group events by overlapping time to handle layout
   const eventGroups = groupOverlappingEvents(getVisibleMultiHourEvents());
+  
+  // Create processed events with proper structure for TimeGrid
+  const processedEvents = groupOverlappingEvents(getVisibleMultiHourEvents());
 
   return {
     startHour,
@@ -257,9 +273,11 @@ export const useEventManagement = (
     allDayEvents,
     timeEvents,
     eventGroups,
+    processedEvents,
     handleTimeRangeToggle,
     handleTimeRangeChange,
     handleInputBlur,
     checkForHiddenEvents,
   };
 };
+

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { addDays, subDays } from 'date-fns';
 import { Event } from '../../types/event';
 import DayHeader from './DayHeader';
@@ -25,6 +25,7 @@ const DayView: React.FC<DayViewProps> = ({
   theme
 }) => {
   const { isMobile } = useIsMobile();
+  const gridRef = useRef<HTMLDivElement>(null);
   
   // Use custom hook for event management
   const {
@@ -36,7 +37,6 @@ const DayView: React.FC<DayViewProps> = ({
     hiddenEvents,
     hours,
     allDayEvents,
-    eventGroups,
     handleTimeRangeToggle,
     handleTimeRangeChange,
     handleInputBlur,
@@ -49,6 +49,9 @@ const DayView: React.FC<DayViewProps> = ({
   const nextDay = () => {
     setDate(addDays(date, 1));
   };
+
+  // Calculate the number of hours to display
+  const numHours = showAllHours ? 24 : (endHour - startHour + 1);
 
   return (
     <div className="space-y-3 mx-auto w-full">
@@ -83,11 +86,12 @@ const DayView: React.FC<DayViewProps> = ({
         </div>
         
         <TimeGrid
-          hours={hours}
+          events={events}
           date={date}
-          eventGroups={eventGroups}
-          startHour={startHour}
           handleViewEvent={handleViewEvent}
+          startHour={startHour}
+          numHours={numHours}
+          gridRef={gridRef}
         />
       </div>
     </div>
