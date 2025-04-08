@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from './use-toast';
 
@@ -75,7 +74,7 @@ export const useDebugMode = () => {
           description: newValue 
             ? "Debug logs will now appear in the console (Shift+Ctrl+D to turn off)" 
             : "Debug logs have been disabled",
-          variant: newValue ? "default" : "secondary",
+          variant: newValue ? "default" : "default",
         });
         
         console.log(`Debug mode ${newValue ? 'enabled' : 'disabled'}`);
