@@ -259,7 +259,13 @@ const ShoppingList = ({
       const item = items[index];
       
       return (
-        <div style={style} className="p-1">
+        <div style={{
+          ...style,
+          padding: '4px',
+          boxSizing: 'border-box',
+          width: '100%',
+          height: '100%',
+        }}>
           <MemoizedShoppingItemButton
             name={item.name}
             completed={item.completed}
@@ -286,6 +292,7 @@ const ShoppingList = ({
           rowCount={rowCount}
           rowHeight={itemHeight}
           width={gridWidth}
+          itemData={items}
         >
           {Cell}
         </FixedSizeGrid>

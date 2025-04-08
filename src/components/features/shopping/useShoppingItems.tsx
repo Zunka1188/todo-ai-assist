@@ -1,20 +1,26 @@
+import { useState, useEffect, useCallback } from 'react';
+import DOMPurify from 'isomorphic-dompurify';
+import { z } from 'zod';
 
-import { useState, useEffect } from 'react';
+const ShoppingItemSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, "Name is required").max(100, "Name is too long"),
+  completed: z.boolean(),
+  category: z.string().optional(),
+  amount: z.string().optional(),
+  dateToPurchase: z.string().optional(),
+  price: z.string().optional()
+    .refine(val => !val || !isNaN(parseFloat(val)), {
+      message: "Price must be a valid number"
+    }),
+  dateAdded: z.instanceof(Date),
+  imageUrl: z.string().nullable().optional(),
+  notes: z.string().optional(),
+  repeatOption: z.enum(['none', 'weekly', 'monthly']).optional(),
+  lastPurchased: z.instanceof(Date).optional(),
+});
 
-export interface ShoppingItem {
-  id: string;
-  name: string;
-  completed: boolean;
-  category?: string;
-  amount?: string;
-  dateToPurchase?: string;
-  price?: string;
-  dateAdded: Date;
-  imageUrl?: string;
-  notes?: string;
-  repeatOption?: 'none' | 'weekly' | 'monthly';
-  lastPurchased?: Date;
-}
+export type ShoppingItem = z.infer<typeof ShoppingItemSchema>;
 
 const initialItems: ShoppingItem[] = [
   {
@@ -83,6 +89,15 @@ const saveToLocalStorage = (key: string, value: any): void => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
     console.log(`[DEBUG] useShoppingItems - Saved ${key} to localStorage`, value.length ? `(${value.length} items)` : '');
+    
+    if (typeof window !== 'undefined') {
+      const storageEvent = new StorageEvent('storage', {
+        key,
+        newValue: JSON.stringify(value),
+        url: window.location.href
+      });
+      window.dispatchEvent(storageEvent);
+    }
   } catch (error) {
     console.error("Error saving to localStorage:", error);
   }
@@ -96,8 +111,28 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   });
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('newest');
+  const [lastStorageUpdate, setLastStorageUpdate] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'shoppingItems' && e.newValue) {
+        if (e.newValue !== lastStorageUpdate) {
+          try {
+            const newItems = parseStoredItems(JSON.parse(e.newValue));
+            setItems(newItems);
+            setLastStorageUpdate(e.newValue);
+            console.log('[DEBUG] Storage event received - updating items from another tab');
+          } catch (error) {
+            console.error('[ERROR] Failed to parse items from storage event:', error);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [lastStorageUpdate]);
   
-  // Save to localStorage whenever items change
   useEffect(() => {
     saveToLocalStorage('shoppingItems', items);
     console.log("[DEBUG] useShoppingItems - Items updated, total count:", items.length);
@@ -162,7 +197,27 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     });
   };
 
-  const addItem = (newItem: Omit<ShoppingItem, 'id' | 'dateAdded'> & {dateAdded?: Date, id?: string, file?: string | null}) => {
+  const sanitizeInput = (input: string): string => {
+    return DOMPurify.sanitize(input);
+  };
+
+  const validateItemData = (data: Partial<ShoppingItem>): { valid: boolean; errors?: string[] } => {
+    try {
+      const partialSchema = ShoppingItemSchema.partial();
+      partialSchema.parse(data);
+      return { valid: true };
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return {
+          valid: false,
+          errors: error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        };
+      }
+      return { valid: false, errors: ['Unknown validation error'] };
+    }
+  };
+
+  const addItem = useCallback((newItem: Omit<ShoppingItem, 'id' | 'dateAdded'> & {dateAdded?: Date, id?: string, file?: string | null}) => {
     try {
       console.log("[DEBUG] useShoppingItems - Adding new item:", JSON.stringify(newItem, null, 2));
       
@@ -176,53 +231,52 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
         return null;
       }
       
-      // Ensure completed is explicitly set to false if not provided
+      const sanitizedItem = {
+        ...newItem,
+        name: sanitizeInput(newItem.name),
+        notes: newItem.notes ? sanitizeInput(newItem.notes) : '',
+        category: newItem.category ? sanitizeInput(newItem.category) : '',
+      };
+      
       const completed = newItem.completed === undefined ? false : Boolean(newItem.completed);
       
-      // Check if this is an update (item with existing ID)
       const isUpdate = newItem.id && items.some(item => item.id === newItem.id);
       
-      // Handle both imageUrl and file fields for backward compatibility
       const imageUrl = newItem.imageUrl || newItem.file || '';
       
       const item: ShoppingItem = {
         id: newItem.id || Date.now().toString(),
         completed: completed,
         dateAdded: newItem.dateAdded || new Date(),
-        name: newItem.name,
-        category: newItem.category || '',
-        amount: newItem.amount || '',
-        dateToPurchase: newItem.dateToPurchase || '',
-        price: newItem.price || '',
+        name: sanitizedItem.name,
+        category: sanitizedItem.category || '',
+        amount: sanitizedItem.amount || '',
+        dateToPurchase: sanitizedItem.dateToPurchase || '',
+        price: sanitizedItem.price || '',
         imageUrl: imageUrl,
-        notes: newItem.notes || '',
-        repeatOption: newItem.repeatOption || 'none',
+        notes: sanitizedItem.notes || '',
+        repeatOption: sanitizedItem.repeatOption || 'none',
         lastPurchased: undefined
       };
       
+      const validation = validateItemData(item);
+      if (!validation.valid) {
+        console.error("[ERROR] useShoppingItems - Invalid item data:", validation.errors);
+        return null;
+      }
+      
       console.log("[DEBUG] useShoppingItems - Structured item to add/update:", JSON.stringify(item, null, 2));
       
-      // Use functional update to ensure we have the latest state
       setItems(prevItems => {
-        // If this is an update, replace the existing item
         if (isUpdate) {
           console.log(`[DEBUG] useShoppingItems - Updating existing item with ID: ${item.id}`);
-          const updatedItems = prevItems.map(existingItem => 
+          return prevItems.map(existingItem => 
             existingItem.id === item.id ? item : existingItem
           );
-          
-          // Immediately save to localStorage to ensure persistence
-          saveToLocalStorage('shoppingItems', updatedItems);
-          return updatedItems;
         }
         
-        // Otherwise, add as a new item
         console.log(`[DEBUG] useShoppingItems - Adding new item with ID: ${item.id}`);
-        const newItems = [...prevItems, item];
-        
-        // Immediately save to localStorage to ensure persistence
-        saveToLocalStorage('shoppingItems', newItems);
-        return newItems;
+        return [...prevItems, item];
       });
       
       console.log("[DEBUG] useShoppingItems - Item successfully added/updated");
@@ -231,9 +285,9 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       console.error("[ERROR] useShoppingItems - Error in addItem:", error);
       return null;
     }
-  };
+  }, [items]);
 
-  const toggleItem = (id: string) => {
+  const toggleItem = useCallback((id: string) => {
     const item = items.find(item => item.id === id);
     if (!item) {
       console.error("[ERROR] useShoppingItems - Item not found for toggle:", id);
@@ -242,31 +296,25 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     
     if (!item.completed) {
       console.log("[DEBUG] useShoppingItems - Marking item as completed:", id);
-      const updatedItems = items.map(i => i.id === id ? {
+      setItems(prevItems => prevItems.map(i => i.id === id ? {
         ...i,
         completed: true,
         lastPurchased: new Date()
-      } : i);
-      setItems(updatedItems);
+      } : i));
       
-      // Immediately save to localStorage to ensure persistence
-      saveToLocalStorage('shoppingItems', updatedItems);
       return { completed: true, item };
     } else {
       console.log("[DEBUG] useShoppingItems - Marking item as not completed:", id);
-      const updatedItems = items.map(i => i.id === id ? {
+      setItems(prevItems => prevItems.map(i => i.id === id ? {
         ...i,
         completed: false
-      } : i);
-      setItems(updatedItems);
+      } : i));
       
-      // Immediately save to localStorage to ensure persistence
-      saveToLocalStorage('shoppingItems', updatedItems);
       return { completed: false, item };
     }
-  };
+  }, [items]);
 
-  const removeItem = (id: string) => {
+  const removeItem = useCallback((id: string) => {
     console.log("[DEBUG] useShoppingItems - Removing item:", id);
     const itemToRemove = items.find(item => item.id === id);
     if (!itemToRemove) {
@@ -274,15 +322,11 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       return null;
     }
     
-    const updatedItems = items.filter(item => item.id !== id);
-    setItems(updatedItems);
-    
-    // Immediately save to localStorage to ensure persistence
-    saveToLocalStorage('shoppingItems', updatedItems);
+    setItems(prevItems => prevItems.filter(item => item.id !== id));
     return itemToRemove;
-  };
+  }, [items]);
 
-  const updateItem = (id: string, updatedData: Partial<ShoppingItem>) => {
+  const updateItem = useCallback((id: string, updatedData: Partial<ShoppingItem>) => {
     console.log("[DEBUG] useShoppingItems - Updating item:", id, updatedData);
     const itemExists = items.some(item => item.id === id);
     
@@ -291,45 +335,50 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       return null;
     }
     
-    const updatedItems = items.map(item => 
-      item.id === id ? { ...item, ...updatedData } : item
-    );
-    setItems(updatedItems);
+    const sanitizedData = { ...updatedData };
+    if (updatedData.name) sanitizedData.name = sanitizeInput(updatedData.name);
+    if (updatedData.notes) sanitizedData.notes = sanitizeInput(updatedData.notes);
+    if (updatedData.category) sanitizedData.category = sanitizeInput(updatedData.category);
     
-    // Immediately save to localStorage to ensure persistence
-    saveToLocalStorage('shoppingItems', updatedItems);
-    
-    const updated = updatedItems.find(item => item.id === id);
-    console.log("[DEBUG] useShoppingItems - Updated item result:", updated);
-    return updated;
-  };
-
-  const handleItemSelect = (id: string) => {
-    if (selectedItems.includes(id)) {
-      setSelectedItems(selectedItems.filter(itemId => itemId !== id));
-    } else {
-      setSelectedItems([...selectedItems, id]);
+    const validation = validateItemData(sanitizedData);
+    if (!validation.valid) {
+      console.error("[ERROR] useShoppingItems - Invalid update data:", validation.errors);
+      return null;
     }
-  };
+    
+    setItems(prevItems => prevItems.map(item => 
+      item.id === id ? { ...item, ...sanitizedData } : item
+    ));
+    
+    const updated = items.find(item => item.id === id);
+    console.log("[DEBUG] useShoppingItems - Updated item result:", updated);
+    return updated ? { ...updated, ...sanitizedData } : null;
+  }, [items]);
 
-  const deleteSelectedItems = () => {
+  const handleItemSelect = useCallback((id: string) => {
+    setSelectedItems(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(itemId => itemId !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  }, []);
+
+  const deleteSelectedItems = useCallback(() => {
     const count = selectedItems.length;
-    const updatedItems = items.filter(item => !selectedItems.includes(item.id));
-    setItems(updatedItems);
-    
-    // Immediately save to localStorage to ensure persistence
-    saveToLocalStorage('shoppingItems', updatedItems);
-    
+    setItems(prevItems => prevItems.filter(item => !selectedItems.includes(item.id)));
     setSelectedItems([]);
     return count;
-  };
+  }, [selectedItems]);
 
   const filteredItems = getFilteredItems();
   const notPurchasedItems = getSortedItems(filteredItems.filter(item => !item.completed));
   const purchasedItems = getSortedItems(filteredItems.filter(item => item.completed));
   
   return {
-    items: filteredItems,
+    items,
+    setItems,
     selectedItems,
     sortOption,
     notPurchasedItems,

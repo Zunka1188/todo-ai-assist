@@ -100,7 +100,8 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     updateFilterMode,
     updateSearchTerm,
     isLoading,
-    error
+    error,
+    setItems: shoppingItemsData.setItems
   }), [
     shoppingItemsData, 
     filterMode, 

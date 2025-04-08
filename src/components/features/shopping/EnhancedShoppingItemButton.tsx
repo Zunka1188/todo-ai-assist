@@ -57,6 +57,7 @@ const EnhancedShoppingItemButton = forwardRef<HTMLButtonElement, EnhancedShoppin
         data-image-label={imageLabel}
         onKeyDown={handleKeyDown}
         {...rest}
+        ref={ref}
       />
     );
   }
