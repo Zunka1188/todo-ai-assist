@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { format, isSameDay, isToday, compareAsc } from 'date-fns';
-import { Clock, MapPin, Calendar as CalendarIcon, Paperclip, FileText, Image, Loader2 } from 'lucide-react';
+import { format, isSameDay, isToday, compareAsc, isBefore } from 'date-fns';
+import { Clock, MapPin, Calendar as CalendarIcon, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Event } from '../types/event';
 import { useToast } from '@/hooks/use-toast';
@@ -37,8 +36,21 @@ const EnhancedAgendaView: React.FC<AgendaViewProps> = ({
         setIsLoading(true);
         setError(null);
         
+        const now = new Date();
+        
+        // Filter out past events for the upcoming view
+        const filteredEvents = events.filter(event => {
+          // Keep all-day events for today
+          if (event.allDay && isSameDay(event.startDate, now)) {
+            return true;
+          }
+          
+          // Filter out events in the past
+          return !isBefore(event.endDate, now);
+        });
+        
         // Sort events by start date
-        const sortedEvents = [...events].sort((a, b) => compareAsc(a.startDate, b.endDate));
+        const sortedEvents = [...filteredEvents].sort((a, b) => compareAsc(a.startDate, b.endDate));
         
         // Group events by date
         const groupedByDate = sortedEvents.reduce<Record<string, Event[]>>((acc, event) => {
@@ -127,7 +139,7 @@ const EnhancedAgendaView: React.FC<AgendaViewProps> = ({
             aria-live="polite"
           >
             <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-40" aria-hidden="true" />
-            <p>No events scheduled</p>
+            <p>No upcoming events scheduled</p>
           </div>
         ) : (
           datesWithEvents.map(dateKey => {
@@ -211,8 +223,6 @@ const EnhancedAgendaView: React.FC<AgendaViewProps> = ({
                                 <span className="line-clamp-1">{event.location}</span>
                               </p>
                             )}
-                            
-                            {/* Remove attachments-related code since it's not in the Event type */}
                           </div>
                           
                           {event.description && (

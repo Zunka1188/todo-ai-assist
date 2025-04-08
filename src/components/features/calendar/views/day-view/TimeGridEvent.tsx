@@ -50,7 +50,7 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
     const topPosition = (visibleStartHourDecimal - startHour) * HOUR_HEIGHT;
     const heightValue = Math.max((visibleEndHourDecimal - visibleStartHourDecimal) * HOUR_HEIGHT, 20);
     
-    // Calculate horizontal positioning for all events
+    // Calculate horizontal positioning for overlapping events
     const leftOffset = 5;
     
     // If there are overlapping events, adjust the width and position
@@ -81,6 +81,14 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
         ...getMultiHourEventStyle()
       }}
       onClick={() => handleViewEvent(event)}
+      role="button"
+      aria-label={`Event: ${event.title} from ${getFormattedTime(event.startDate)} to ${getFormattedTime(event.endDate)}`}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          handleViewEvent(event);
+        }
+      }}
     >
       <div className={`font-medium text-white truncate ${isMobile ? "text-xs" : ""}`}>
         {event.title}

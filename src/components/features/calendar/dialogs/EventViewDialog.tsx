@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { CalendarIcon, Clock, MapPin, ImagePlus, X, Share2, MessageSquare } from 'lucide-react';
+import { CalendarIcon, Clock, MapPin, ImagePlus, Share2, MessageSquare } from 'lucide-react';
 import { Event } from '../types/event';
 
 interface EventViewDialogProps {
@@ -54,15 +55,19 @@ const EventViewDialog: React.FC<EventViewDialogProps> = ({
         <DialogHeader>
           <DialogTitle>{selectedEvent.title}</DialogTitle>
           <DialogDescription>
-            {format(selectedEvent.startDate, 'EEEE, MMMM d, yyyy')}
-            <br />
-            {formatEventTime()}
+            <div className="flex items-center text-sm mb-1">
+              <CalendarIcon className="inline-block h-3.5 w-3.5 mr-1.5" />
+              {format(selectedEvent.startDate, 'EEEE, MMMM d, yyyy')}
+            </div>
+            <div className="flex items-center text-sm mb-1">
+              <Clock className="inline-block h-3.5 w-3.5 mr-1.5" />
+              {formatEventTime()}
+            </div>
             {selectedEvent.location && (
-              <>
-                <br />
-                <MapPin className="inline-block h-3 w-3 mr-1" />
+              <div className="flex items-center text-sm">
+                <MapPin className="inline-block h-3.5 w-3.5 mr-1.5" />
                 {selectedEvent.location}
-              </>
+              </div>
             )}
           </DialogDescription>
         </DialogHeader>
@@ -83,26 +88,32 @@ const EventViewDialog: React.FC<EventViewDialogProps> = ({
               </Button>
             </div>
           )}
+          
+          <div className="flex flex-col gap-2">
+            <Button variant="outline" onClick={handleRSVP} className="w-full flex items-center justify-center">
+              <MessageSquare className="mr-2 h-4 w-4" />
+              RSVP to this event
+            </Button>
+            
+            <Button variant="outline" onClick={handleShare} className="w-full flex items-center justify-center">
+              <Share2 className="mr-2 h-4 w-4" />
+              Share event
+            </Button>
+          </div>
         </div>
 
-        <div className="flex justify-end space-x-2">
-          <Button variant="ghost" onClick={() => setIsOpen(false)}>
-            Cancel
-          </Button>
-          <Button variant="outline" onClick={onEdit}>
-            Edit
-          </Button>
+        <div className="flex justify-between">
           <Button variant="destructive" onClick={onDelete}>
             Delete
           </Button>
-          <Button variant="outline" onClick={handleShare}>
-            <Share2 className="mr-2 h-4 w-4" />
-            Share
-          </Button>
-          <Button variant="outline" onClick={handleRSVP}>
-            <MessageSquare className="mr-2 h-4 w-4" />
-            RSVP
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => setIsOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="default" onClick={onEdit}>
+              Edit
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

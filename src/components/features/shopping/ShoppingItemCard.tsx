@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -46,7 +47,8 @@ const ShoppingItemCard = ({
       } 
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
-  const cardHeight = isMobile ? '70px' : '180px';
+  // Reduce card height on mobile for tighter spacing
+  const cardHeight = isMobile ? '60px' : '180px';
 
   const handleCardClick = (e: React.MouseEvent) => {
     if (onImagePreview && e.target === e.currentTarget) {
@@ -62,12 +64,12 @@ const ShoppingItemCard = ({
     <Card 
       className={cn(
         "relative w-full overflow-hidden transition-all duration-200 group",
-        completed ? "opacity-70" : "opacity-100"
+        completed ? "opacity-70" : "opacity-100",
+        isMobile && "mb-1" // Reduce bottom margin on mobile
       )}
       style={{
         ...cardStyle,
-        height: cardHeight,
-        marginBottom: isMobile ? '1px' : undefined
+        height: cardHeight
       }}
       onClick={handleCardClick}
       role="button"
@@ -80,7 +82,7 @@ const ShoppingItemCard = ({
           variant="secondary"
           className={cn(
             "rounded-full bg-white/70 hover:bg-white shadow-md",
-            isMobile ? "h-5 w-5" : "h-8 w-8"
+            isMobile ? "h-4 w-4" : "h-8 w-8" // Smaller buttons on mobile
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -89,7 +91,7 @@ const ShoppingItemCard = ({
           disabled={readOnly}
           aria-label={`Edit ${name}`}
         >
-          <Pencil className={cn(isMobile ? "h-2.5 w-2.5" : "h-4 w-4", "text-gray-700")} />
+          <Pencil className={cn(isMobile ? "h-2 w-2" : "h-4 w-4", "text-gray-700")} />
         </Button>
       </div>
       
@@ -99,7 +101,7 @@ const ShoppingItemCard = ({
           variant="secondary"
           className={cn(
             "rounded-full bg-white/70 hover:bg-white shadow-md",
-            isMobile ? "h-5 w-5" : "h-8 w-8"
+            isMobile ? "h-4 w-4" : "h-8 w-8" // Smaller buttons on mobile
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -108,7 +110,7 @@ const ShoppingItemCard = ({
           disabled={readOnly}
           aria-label={`Delete ${name}`}
         >
-          <Trash2 className={cn(isMobile ? "h-2.5 w-2.5" : "h-4 w-4", "text-gray-700")} />
+          <Trash2 className={cn(isMobile ? "h-2 w-2" : "h-4 w-4", "text-gray-700")} />
         </Button>
       </div>
 
@@ -122,12 +124,12 @@ const ShoppingItemCard = ({
         {completed && (
           <div className={cn(
             "rounded-full bg-green-500/80 flex items-center justify-center",
-            isMobile ? "h-8 w-8" : "h-16 w-16"
+            isMobile ? "h-6 w-6" : "h-16 w-16" // Smaller checkmark on mobile
           )}>
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              width={isMobile ? "16" : "32"} 
-              height={isMobile ? "16" : "32"} 
+              width={isMobile ? "12" : "32"} 
+              height={isMobile ? "12" : "32"} 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
@@ -167,7 +169,7 @@ const ShoppingItemCard = ({
           variant="secondary" 
           className={cn(
             "absolute bottom-1 right-1 bg-white/80 text-black cursor-default",
-            isMobile ? "text-[8px] px-1 py-0" : "text-xs"
+            isMobile ? "text-[7px] px-1 py-0" : "text-xs" // Even smaller badge on mobile
           )}
           onClick={handleRepeatBadgeClick}
         >
