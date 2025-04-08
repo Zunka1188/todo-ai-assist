@@ -9,6 +9,7 @@ import TimeGrid from './TimeGrid';
 import { useEventManagement } from './useEventManagement';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDebugMode } from '@/hooks/useDebugMode';
+import ResponsiveContainer from '@/components/ui/responsive-container';
 
 interface DayViewProps {
   date: Date;
@@ -84,7 +85,7 @@ const DayView: React.FC<DayViewProps> = ({
   const numHours = showAllHours ? 24 : (endHour - startHour + 1);
 
   return (
-    <div className="space-y-2 mx-auto w-full">
+    <ResponsiveContainer fullWidth className="space-y-2">
       <DayHeader 
         date={date}
         theme={theme}
@@ -125,7 +126,7 @@ const DayView: React.FC<DayViewProps> = ({
           processedEvents={processedEvents}
         />
       </div>
-    </div>
+    </ResponsiveContainer>
   );
 };
 

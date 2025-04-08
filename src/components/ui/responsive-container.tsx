@@ -13,6 +13,8 @@ interface ResponsiveContainerProps {
   gap?: "none" | "sm" | "md" | "lg";
   direction?: "row" | "column";
   fullWidth?: boolean;
+  center?: boolean;
+  justifyContent?: "start" | "end" | "center" | "between" | "around" | "evenly";
 }
 
 const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
@@ -25,6 +27,8 @@ const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   gap = "none",
   direction = "column",
   fullWidth = false,
+  center = false,
+  justifyContent = "start",
 }) => {
   const { isMobile } = useIsMobile();
   
@@ -39,14 +43,28 @@ const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   
   const directionClass = direction === "row" ? "flex-row" : "flex-col";
   
+  const justifyContentClass = () => {
+    switch (justifyContent) {
+      case "start": return "justify-start";
+      case "end": return "justify-end";
+      case "center": return "justify-center";
+      case "between": return "justify-between";
+      case "around": return "justify-around";
+      case "evenly": return "justify-evenly";
+      default: return "";
+    }
+  };
+  
   return (
     <Component
       className={cn(
         (fluid || fullWidth) ? "w-full" : "",
         fullWidth ? "max-w-full" : "",
-        gap !== "none" ? "flex" : "",
+        gap !== "none" || center ? "flex" : "",
         gap !== "none" ? directionClass : "",
         gap !== "none" ? gapClass() : "",
+        center ? "items-center" : "",
+        center && direction === "row" ? justifyContentClass() : "",
         className,
         isMobile ? mobileClassName : desktopClassName
       )}

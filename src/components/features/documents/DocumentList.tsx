@@ -16,7 +16,7 @@ interface DocumentListProps {
   onAddDocument: (document: any) => void;
   onEditDocument: (document: DocumentFile) => void;
   onDeleteDocument: (id: string) => void;
-  onDownload?: (fileUrl?: string, fileName?: string) => void; // Added onDownload prop
+  onDownload?: (fileUrl?: string, fileName?: string) => void;
   searchTerm?: string;
   categories?: DocumentCategory[];
   viewMode?: 'grid' | 'table';
@@ -45,7 +45,8 @@ const DocumentList: React.FC<DocumentListProps> = ({
     setEditingItem(null);
   };
 
-  const handleOpenAddDialog = (doc: DocumentFile | null = null) => {
+  const handleOpenAddDialog = (e: React.MouseEvent, doc: DocumentFile | null = null) => {
+    e.preventDefault();
     setEditingItem(doc);
     setIsAddDialogOpen(true);
   };
@@ -64,7 +65,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
 
   // Directly handle the edit action by opening the dialog with the document
   const handleEditDocument = (doc: DocumentFile) => {
-    handleOpenAddDialog(doc);
+    handleOpenAddDialog(new MouseEvent('click') as unknown as React.MouseEvent, doc);
   };
 
   const handleDownload = (fileUrl?: string, fileName?: string) => {
@@ -73,16 +74,21 @@ const DocumentList: React.FC<DocumentListProps> = ({
     }
   };
 
+  const handleViewFullScreen = (doc: DocumentFile) => {
+    console.log("Opening full screen preview for:", doc);
+    setFullScreenItem(doc);
+  };
+
   if (documents.length === 0 && !searchTerm) {
     return (
       <div className="flex flex-col">
         {showAddButton && (
           <div className="flex justify-end mb-4">
             <Button 
-              onClick={() => handleOpenAddDialog()} 
+              onClick={(e) => handleOpenAddDialog(e)} 
               className="bg-todo-purple hover:bg-todo-purple/90 text-white"
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
               Add Item
             </Button>
           </div>
@@ -113,11 +119,11 @@ const DocumentList: React.FC<DocumentListProps> = ({
       {showAddButton && (
         <div className="flex justify-end mb-4">
           <Button 
-            onClick={() => handleOpenAddDialog()} 
+            onClick={(e) => handleOpenAddDialog(e)} 
             className="bg-todo-purple hover:bg-todo-purple/90 text-white"
             aria-label="Add Document"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
             Add Item
           </Button>
         </div>
@@ -128,7 +134,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
           documents={documents}
           onEdit={handleEditDocument}
           onDelete={onDeleteDocument}
-          onFullScreen={(doc) => setFullScreenItem(doc)}
+          onFullScreen={handleViewFullScreen}
         />
       ) : (
         <div className="space-y-3">
@@ -138,7 +144,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
               document={doc}
               onEdit={() => handleEditDocument(doc)}
               onDelete={() => onDeleteDocument(doc.id)}
-              onFullScreen={() => setFullScreenItem(doc)}
+              onFullScreen={() => handleViewFullScreen(doc)}
             />
           ))}
         </div>
@@ -170,6 +176,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
           item={fullScreenItem}
           onClose={handleFullScreenClose}
           onDownload={handleDownload}
+          readOnly={false}
         />
       )}
     </div>

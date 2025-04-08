@@ -7,7 +7,7 @@ import { WidgetWrapper } from '@/components/widgets/WidgetsIndex';
 
 interface ResponsiveButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   onIconClick?: (e: React.MouseEvent) => void;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   iconSize?: number;
@@ -55,9 +55,17 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     const adjustedIconSize = isMobile ? iconSize * 0.7 : iconSize;
     
     const handleIconClick = (e: React.MouseEvent) => {
+      e.preventDefault(); // Prevent default behavior
       e.stopPropagation(); // Prevent button click when clicking the icon
       if (onIconClick) {
         onIconClick(e);
+      }
+    };
+
+    const handleButtonClick = (e: React.MouseEvent) => {
+      e.preventDefault(); // Prevent default behavior
+      if (onClick) {
+        onClick(e);
       }
     };
 
@@ -66,18 +74,23 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
     
     // Using the exact grocery item widget style per specifications
     return (
-      <div style={{
-        width: containerWidth,
-        height: containerHeight,
-        border: '2px solid var(--border-color, #e2e8f0)',
-        borderRadius: '6px',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        backgroundColor: 'var(--bg-color, white)'
-      }} className={cn("bg-card", className)}>
+      <div 
+        style={{
+          width: containerWidth,
+          height: containerHeight,
+          border: '2px solid var(--border-color, #e2e8f0)',
+          borderRadius: '6px',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          backgroundColor: 'var(--bg-color, white)'
+        }} 
+        className={cn("bg-card", className)}
+        role="group"
+        aria-label={`${text} item`}
+      >
         {/* Top Section: Product Image & Details */}
         <div style={{
           display: 'flex',
@@ -151,7 +164,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
               </span>
               
               {!hideIcon && (
-                <div 
+                <button 
                   onClick={handleIconClick}
                   style={{
                     display: 'flex',
@@ -161,17 +174,19 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
                     borderRadius: '50%',
                     padding: '2px',
                     cursor: 'pointer',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    background: 'transparent',
+                    border: 'none'
                   }}
                   aria-label="More options"
-                  role="button"
-                  tabIndex={0}
+                  type="button"
                 >
                   <EllipsisVertical 
                     size={adjustedIconSize} 
                     style={{ color: 'currentColor' }} 
+                    aria-hidden="true"
                   />
-                </div>
+                </button>
               )}
             </div>
 
@@ -193,7 +208,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
                 )}
                 {repeatOption && repeatOption !== 'none' && (
                   <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                    <Repeat size={isMobile ? 8 : 10} style={{ marginRight: '4px' }} />
+                    <Repeat size={isMobile ? 8 : 10} style={{ marginRight: '4px' }} aria-hidden="true" />
                     {repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}
                   </span>
                 )}
@@ -205,7 +220,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         {/* Bottom Section: Button */}
         <button
           ref={ref}
-          onClick={onClick}
+          onClick={handleButtonClick}
           style={{
             position: 'absolute',
             bottom: 0,
@@ -222,7 +237,16 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
             fontSize: isMobile ? '12px' : '14px',
             width: '100%',
             border: 'none',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            transition: 'background-color 0.2s ease-in-out',
+            outline: 'none'
+          }}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              if (onClick) onClick(e as unknown as React.MouseEvent);
+            }
           }}
           {...props}
         >

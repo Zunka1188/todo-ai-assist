@@ -10,25 +10,25 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98]",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:scale-[0.98]",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground active:scale-[0.98]",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 active:scale-[0.98]",
+        ghost: "hover:bg-accent hover:text-accent-foreground active:bg-accent/80",
         link: "text-primary underline-offset-4 hover:underline",
         
         // Semantic variants for better naming consistency
-        active: "bg-green-500 text-white hover:bg-green-600",    // Active state (was green)
-        completed: "bg-gray-400 text-white hover:bg-gray-500",   // Completed state (was gray)
-        purple: "bg-purple-600 text-white hover:bg-purple-700",  // Add Item button
-        purchase: "bg-[#28a745] text-white !hover:bg-[#28a745]",  // Purchase button with no hover effect
+        active: "bg-green-500 text-white hover:bg-green-600 active:bg-green-700 active:scale-[0.98]",
+        completed: "bg-gray-400 text-white hover:bg-gray-500 active:bg-gray-600 active:scale-[0.98]",
+        purple: "bg-purple-600 text-white hover:bg-purple-700 active:bg-purple-800 active:scale-[0.98]",
+        purchase: "bg-[#28a745] text-white hover:bg-[#218838] active:bg-[#1e7e34] active:scale-[0.98]",
         
         // Legacy variants - kept for backward compatibility
-        green: "bg-green-500 text-white hover:bg-green-600",  
-        gray: "bg-gray-400 text-white hover:bg-gray-500",
+        green: "bg-green-500 text-white hover:bg-green-600 active:bg-green-700 active:scale-[0.98]",
+        gray: "bg-gray-400 text-white hover:bg-gray-500 active:bg-gray-600 active:scale-[0.98]",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -59,6 +59,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
+        aria-disabled={props.disabled}
       />
     )
   }

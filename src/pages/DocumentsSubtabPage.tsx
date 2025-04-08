@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Search, Plus, FileText, Image, Tag, ChefHat, Plane, Dumbbell, Shirt, X, Maximize2, Minimize2, Camera, FileArchive, Share2 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -8,12 +9,13 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import FullScreenPreview from '@/components/features/documents/FullScreenPreview';
 import DocumentList from '@/components/features/documents/DocumentList';
-import DocumentTabs from '@/components/features/documents/DocumentTabs';
+import { DocumentTabs } from '@/components/features/documents/DocumentTabs';
 import DocumentsPageContent from '@/components/features/documents/DocumentsPageContent';
 import { useDocuments } from '@/hooks/useDocuments';
 import ImageAnalysisModal from '@/components/features/documents/ImageAnalysisModal';
 import { AnalysisResult } from '@/utils/imageAnalysis';
 import ShareButton from '@/components/features/shared/ShareButton';
+import ResponsiveContainer from '@/components/ui/responsive-container';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { DocumentItem, DocumentFile, DocumentCategory } from '@/components/features/documents/types';
 
 // Define document categories
 const documentCategories = [
@@ -57,7 +60,7 @@ const DocumentsSubtabPage = () => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
   const [isImageAnalysisModalOpen, setIsImageAnalysisModalOpen] = useState(false);
-	const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [sharedLink, setSharedLink] = useState('');
@@ -87,7 +90,8 @@ const DocumentsSubtabPage = () => {
     setSearchTerm(term);
   };
 
-  const handleAddItem = () => {
+  const handleAddItem = (e: React.MouseEvent) => {
+    e.preventDefault();
     // Open file input dialog
     fileInputRef.current?.click();
   };
@@ -101,7 +105,8 @@ const DocumentsSubtabPage = () => {
     }
   };
 
-  const handleConfirmUpload = async () => {
+  const handleConfirmUpload = async (e: React.MouseEvent) => {
+    e.preventDefault();
     if (!uploadedFile) return;
 
     setIsUploading(true);
@@ -135,12 +140,14 @@ const DocumentsSubtabPage = () => {
     }
   };
 
-  const handleCancelUpload = () => {
+  const handleCancelUpload = (e: React.MouseEvent) => {
+    e.preventDefault();
     setIsDialogOpen(false);
     setUploadedFile(null);
   };
 
   const handleDocumentClick = (document: any) => {
+    console.log("Document clicked:", document);
     setSelectedDocument(document);
     if (document.type === 'image') {
       setFullScreenImage(document.url);
@@ -161,11 +168,32 @@ const DocumentsSubtabPage = () => {
   };
 
   const handleAnalyzeImage = async (imageUrl: string) => {
+    console.log("Analyzing image:", imageUrl);
     setIsImageAnalysisModalOpen(true);
   };
 
   const handleShare = async (documentId: string) => {
-    // Simulate generating a shareable link
+    console.log("Sharing document:", documentId);
+    // Attempt to use Web Share API if available
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Shared Document',
+          text: 'Check out this document!',
+          url: window.location.href
+        });
+        toast({
+          title: "Shared Successfully",
+          description: "Document shared via your device's share feature."
+        });
+        return;
+      } catch (error) {
+        console.log("Share failed:", error);
+        // Fall back to modal if share is rejected or fails
+      }
+    }
+    
+    // Fallback: simulate generating a shareable link
     const link = `https://example.com/shared/${documentId}`;
     setSharedLink(link);
     setIsShareModalOpen(true);
@@ -176,6 +204,39 @@ const DocumentsSubtabPage = () => {
     setSharedLink('');
   };
 
+  const handleDownload = (fileUrl?: string, fileName?: string) => {
+    if (!fileUrl) {
+      toast({
+        title: "Download Failed",
+        description: "No file URL provided for download",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Create an anchor element and use it to download the file
+      const a = document.createElement('a');
+      a.href = fileUrl;
+      a.download = fileName || 'document';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Download Started",
+        description: `${fileName || 'Document'} is being downloaded`
+      });
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      toast({
+        title: "Download Failed",
+        description: "Failed to download the file. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen">
       {/* File input for handling uploads */}
@@ -184,13 +245,25 @@ const DocumentsSubtabPage = () => {
         style={{ display: 'none' }}
         ref={fileInputRef}
         onChange={handleFileSelect}
+        aria-label="Upload file"
       />
 
       {/* App Header */}
-      <AppHeader title="Documents" onBack={handleBackClick} />
+      <AppHeader 
+        title="Documents" 
+        showBackButton={true}
+        onBackClick={handleBackClick} 
+      />
 
       {/* Search and Add Section */}
-      <div className="px-4 py-2 flex items-center justify-between">
+      <ResponsiveContainer 
+        fluid 
+        direction="row" 
+        gap="md" 
+        center 
+        justifyContent="between"
+        className="px-4 py-2"
+      >
         <div className="relative flex-grow">
           <Input
             type="search"
@@ -199,48 +272,45 @@ const DocumentsSubtabPage = () => {
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10 pr-4 rounded-full"
           />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" aria-hidden="true" />
         </div>
-        <Button onClick={handleAddItem} className="ml-4 rounded-full">
-          <Plus className="h-4 w-4 mr-2" />
+        <Button 
+          onClick={handleAddItem} 
+          className="ml-4 rounded-full"
+          aria-label="Add new document"
+        >
+          <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
           Add
         </Button>
-      </div>
+      </ResponsiveContainer>
 
       {/* Document Tabs */}
       <DocumentTabs
         categories={documentCategories}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={(tab) => setActiveTab(tab as DocumentTab)}
       />
 
       {/* Main Content */}
-      <DocumentsPageContent
-        documents={mockDocuments}
-        activeTab={activeTab}
-        searchTerm={searchTerm}
-        isGridView={isGridView}
-        isFullScreen={isFullScreen}
-        selectedDocument={selectedDocument}
-        onDocumentClick={handleDocumentClick}
-        onToggleGridView={handleToggleGridView}
-        onToggleFullScreen={handleToggleFullScreen}
-        onAnalyzeImage={handleAnalyzeImage}
-        onShare={handleShare}
-      />
+      <DocumentsPageContent />
 
       {/* Full Screen Preview */}
-      {fullScreenImage && (
+      {fullScreenImage && selectedDocument && (
         <FullScreenPreview
           item={{
             id: selectedDocument?.id,
             title: selectedDocument?.title,
             type: selectedDocument?.type,
             content: fullScreenImage,
-            fileName: selectedDocument?.title
+            fileName: selectedDocument?.title,
+            category: selectedDocument?.category || 'files',
+            date: new Date(),
+            addedDate: new Date(),
+            tags: []
           }}
           onClose={handleClosePreview}
           readOnly={false}
+          onDownload={handleDownload}
         />
       )}
 
@@ -248,8 +318,7 @@ const DocumentsSubtabPage = () => {
       <ImageAnalysisModal
         isOpen={isImageAnalysisModalOpen}
         onClose={() => setIsImageAnalysisModalOpen(false)}
-        imageUrl={fullScreenImage || ''}
-        setAnalysisResult={setAnalysisResult}
+        onAnalysisComplete={(result) => setAnalysisResult(result)}
       />
 
       {/* Share Modal */}
@@ -272,11 +341,16 @@ const DocumentsSubtabPage = () => {
                 value={sharedLink}
                 readOnly
                 className="col-span-3"
+                aria-label="Shareable link"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" onClick={handleCloseShareModal}>
+            <Button 
+              type="button" 
+              onClick={handleCloseShareModal}
+              aria-label="Close share dialog"
+            >
               Close
             </Button>
           </DialogFooter>
@@ -293,10 +367,20 @@ const DocumentsSubtabPage = () => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button type="button" variant="secondary" onClick={handleCancelUpload}>
+            <Button 
+              type="button" 
+              variant="secondary" 
+              onClick={handleCancelUpload}
+              aria-label="Cancel upload"
+            >
               Cancel
             </Button>
-            <Button type="submit" onClick={handleConfirmUpload} disabled={isUploading}>
+            <Button 
+              type="submit" 
+              onClick={handleConfirmUpload} 
+              disabled={isUploading}
+              aria-label={isUploading ? "Uploading in progress" : "Confirm upload"}
+            >
               {isUploading ? 'Uploading...' : 'Upload'}
             </Button>
           </DialogFooter>
