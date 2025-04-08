@@ -16,6 +16,7 @@ interface DocumentListProps {
   onAddDocument: (document: any) => void;
   onEditDocument: (document: DocumentFile) => void;
   onDeleteDocument: (id: string) => void;
+  onDownload?: (fileUrl?: string, fileName?: string) => void; // Added onDownload prop
   searchTerm?: string;
   categories?: DocumentCategory[];
   viewMode?: 'grid' | 'table';
@@ -27,6 +28,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
   onAddDocument,
   onEditDocument,
   onDeleteDocument,
+  onDownload,
   searchTerm = '', 
   categories = [],
   viewMode = 'table',
@@ -63,6 +65,12 @@ const DocumentList: React.FC<DocumentListProps> = ({
   // Directly handle the edit action by opening the dialog with the document
   const handleEditDocument = (doc: DocumentFile) => {
     handleOpenAddDialog(doc);
+  };
+
+  const handleDownload = (fileUrl?: string, fileName?: string) => {
+    if (onDownload) {
+      onDownload(fileUrl, fileName);
+    }
   };
 
   if (documents.length === 0 && !searchTerm) {
@@ -161,6 +169,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
         <FullScreenPreview
           item={fullScreenItem}
           onClose={handleFullScreenClose}
+          onDownload={handleDownload}
         />
       )}
     </div>

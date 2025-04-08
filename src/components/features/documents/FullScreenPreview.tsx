@@ -3,7 +3,7 @@ import React from 'react';
 import { X, Download, Share2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DocumentItem, DocumentFile } from './types';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import FilePreview from './FilePreview';
 import ShareButton from '@/components/features/shared/ShareButton';
 
@@ -11,9 +11,10 @@ interface FullScreenPreviewProps {
   item: DocumentItem | DocumentFile | null;
   onClose: () => void;
   onDownload?: (fileUrl?: string, fileName?: string) => void;
+  readOnly?: boolean; // Added readOnly prop
 }
 
-const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose, onDownload }) => {
+const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose, onDownload, readOnly = false }) => {
   if (!item) return null;
 
   const isDocumentItem = 'type' in item;
@@ -42,6 +43,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose, on
   return (
     <Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-5xl w-[90vw] max-h-[90vh] p-0 overflow-hidden bg-black text-white">
+        <DialogTitle className="sr-only">Preview: {fileName}</DialogTitle>
         <div className="absolute top-2 right-2 flex gap-2 z-10">
           <ShareButton
             variant="secondary"
@@ -56,7 +58,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose, on
             <Share2 className="h-4 w-4" />
           </ShareButton>
           
-          {contentUrl && (
+          {contentUrl && !readOnly && (
             <Button 
               variant="secondary" 
               size="sm" 
