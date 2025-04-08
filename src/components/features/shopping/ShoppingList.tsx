@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useMemo } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -231,14 +231,20 @@ const ShoppingList = ({
         className={cn(
           "grid",
           isMobile 
-            ? "grid-cols-2 gap-0"
-            : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2"
+            ? "grid-template-columns: repeat(4, 1fr); gap-8px;"
+            : "grid-template-columns: repeat(6, 1fr); gap-12px;"
         )}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? 'repeat(4, 1fr)' : 'repeat(6, 1fr)',
+          gap: isMobile ? '8px' : '12px',
+          padding: '16px'
+        }}
         role="list"
         aria-label={items[0]?.completed ? "Purchased items" : "Shopping items"}
       >
         {items.map(item => (
-          <div key={item.id} className={isMobile ? "pb-0" : "aspect-square"}>
+          <div key={item.id} className="flex justify-center">
             <ShoppingItemCard
               id={item.id}
               name={item.name}
@@ -276,16 +282,13 @@ const ShoppingList = ({
           role="region"
           aria-label="Shopping list items"
         >
-          <div className={cn(
-            "pb-16",
-            isMobile ? "mb-1 px-0" : "px-4"
-          )}>
+          <div className="pb-16">
             {notPurchasedItems.length > 0 && renderItemGrid(notPurchasedItems)}
             
             {purchasedItems.length > 0 && (
-              <div className={cn("mt-1", isMobile ? "mb-1" : "mb-6")}>
-                <Separator className={isMobile ? "mb-1" : "mb-3"} />
-                <h3 className={cn("text-lg font-medium", isMobile ? "mb-0.5" : "mb-3")} id="purchased-heading">
+              <div className="mt-4">
+                <Separator className="mb-4" />
+                <h3 className="text-lg font-medium mb-4 px-4" id="purchased-heading">
                   {isMobile ? 'Purchased' : 'Purchased Items'}
                 </h3>
                 {renderItemGrid(purchasedItems)}

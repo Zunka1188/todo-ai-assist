@@ -39,6 +39,7 @@ const ShoppingItemCard = ({
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
   
+  // Base card style with background image if available
   const cardStyle = imageUrl 
     ? { 
         backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0) 60%, rgba(0,0,0,0.7) 100%), url(${imageUrl})`,
@@ -47,8 +48,8 @@ const ShoppingItemCard = ({
       } 
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
-  // Reduce card height on mobile for tighter spacing
-  const cardHeight = isMobile ? '60px' : '180px';
+  // Item size based on device - follows the Bring! style specification
+  const cardSize = isMobile ? '80px' : '100px';
 
   const handleCardClick = (e: React.MouseEvent) => {
     if (onImagePreview && e.target === e.currentTarget) {
@@ -63,26 +64,28 @@ const ShoppingItemCard = ({
   return (
     <Card 
       className={cn(
-        "relative w-full overflow-hidden transition-all duration-200 group",
+        "relative overflow-hidden transition-all duration-200 group",
         completed ? "opacity-70" : "opacity-100",
-        isMobile && "mb-1" // Reduce bottom margin on mobile
       )}
       style={{
         ...cardStyle,
-        height: cardHeight
+        width: cardSize,
+        height: cardSize,
+        margin: isMobile ? '4px' : '6px' // Half of grid gap for even spacing
       }}
       onClick={handleCardClick}
       role="button"
       aria-pressed={completed}
       tabIndex={0}
     >
-      <div className="absolute top-1 left-1 z-10">
+      {/* Edit Button - positioned at top-left */}
+      <div className="absolute top-2 left-2 z-10">
         <Button
           size="icon"
           variant="secondary"
           className={cn(
             "rounded-full bg-white/70 hover:bg-white shadow-md",
-            isMobile ? "h-4 w-4" : "h-8 w-8" // Smaller buttons on mobile
+            "h-6 w-6" // Smaller consistent button size
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -91,17 +94,18 @@ const ShoppingItemCard = ({
           disabled={readOnly}
           aria-label={`Edit ${name}`}
         >
-          <Pencil className={cn(isMobile ? "h-2 w-2" : "h-4 w-4", "text-gray-700")} />
+          <Pencil className="h-3 w-3 text-gray-700" />
         </Button>
       </div>
       
-      <div className="absolute top-1 right-1 z-10">
+      {/* Delete Button - positioned at top-right */}
+      <div className="absolute top-2 right-2 z-10">
         <Button
           size="icon"
           variant="secondary"
           className={cn(
             "rounded-full bg-white/70 hover:bg-white shadow-md",
-            isMobile ? "h-4 w-4" : "h-8 w-8" // Smaller buttons on mobile
+            "h-6 w-6" // Smaller consistent button size
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -110,10 +114,11 @@ const ShoppingItemCard = ({
           disabled={readOnly}
           aria-label={`Delete ${name}`}
         >
-          <Trash2 className={cn(isMobile ? "h-2 w-2" : "h-4 w-4", "text-gray-700")} />
+          <Trash2 className="h-3 w-3 text-gray-700" />
         </Button>
       </div>
 
+      {/* Completion Status - centered checkmark */}
       <div 
         className="absolute inset-0 flex items-center justify-center cursor-pointer"
         onClick={(e) => {
@@ -122,14 +127,11 @@ const ShoppingItemCard = ({
         }}
       >
         {completed && (
-          <div className={cn(
-            "rounded-full bg-green-500/80 flex items-center justify-center",
-            isMobile ? "h-6 w-6" : "h-16 w-16" // Smaller checkmark on mobile
-          )}>
+          <div className="rounded-full bg-green-500/80 flex items-center justify-center h-10 w-10">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              width={isMobile ? "12" : "32"} 
-              height={isMobile ? "12" : "32"} 
+              width="20" 
+              height="20" 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
@@ -145,31 +147,35 @@ const ShoppingItemCard = ({
         )}
       </div>
       
-      <div className="absolute bottom-0 left-0 right-0 p-1 bg-gradient-to-t from-black/70 to-transparent">
-        <h3 className={cn(
-          "text-white font-medium text-shadow truncate",
-          isMobile ? "text-xs" : ""
-        )} style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
+      {/* Item Name - positioned at bottom with gradient background */}
+      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
+        <h3 className="text-white font-medium text-shadow truncate text-xs" 
+            style={{ 
+              textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              lineHeight: 1.2
+            }}>
           {name}
         </h3>
-        <div className="flex items-center gap-1">
-          {quantity && (
-            <span className={cn(
-              "text-white/90 text-shadow",
-              isMobile ? "text-[8px]" : "text-xs"
-            )} style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
+        {quantity && (
+          <div className="flex items-center gap-1">
+            <span className="text-white/90 text-shadow text-[10px]" 
+                  style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
               {quantity}
             </span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
       
+      {/* Repeat Option Badge - positioned at bottom-right */}
       {repeatOption && repeatOption !== 'none' && (
         <Badge 
           variant="secondary" 
           className={cn(
-            "absolute bottom-1 right-1 bg-white/80 text-black cursor-default",
-            isMobile ? "text-[7px] px-1 py-0" : "text-xs" // Even smaller badge on mobile
+            "absolute bottom-2 right-2 bg-white/80 text-black cursor-default text-[7px] px-1 py-0"
           )}
           onClick={handleRepeatBadgeClick}
         >
