@@ -85,7 +85,7 @@ const DayView: React.FC<DayViewProps> = ({
   const numHours = showAllHours ? 24 : (endHour - startHour + 1);
 
   return (
-    <ResponsiveContainer fullWidth className="space-y-2">
+    <ResponsiveContainer fullWidth noGutters className="space-y-2">
       <DayHeader 
         date={date}
         theme={theme}
@@ -116,15 +116,17 @@ const DayView: React.FC<DayViewProps> = ({
           <div className="text-xs font-medium">Events</div>
         </div>
         
-        <TimeGrid
-          events={events}
-          date={date}
-          handleViewEvent={handleViewEvent}
-          startHour={startHour}
-          numHours={numHours}
-          gridRef={gridRef}
-          processedEvents={processedEvents}
-        />
+        <div className="h-[calc(100vh-350px)]">
+          <TimeGrid
+            events={events}
+            date={date}
+            handleViewEvent={handleViewEvent}
+            startHour={startHour}
+            numHours={numHours}
+            gridRef={gridRef}
+            processedEvents={processedEvents}
+          />
+        </div>
       </div>
     </ResponsiveContainer>
   );

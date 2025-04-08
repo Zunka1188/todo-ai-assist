@@ -15,6 +15,7 @@ interface ResponsiveContainerProps {
   fullWidth?: boolean;
   center?: boolean;
   justifyContent?: "start" | "end" | "center" | "between" | "around" | "evenly";
+  noGutters?: boolean; // Added property to remove horizontal padding
 }
 
 const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
@@ -29,6 +30,7 @@ const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   fullWidth = false,
   center = false,
   justifyContent = "start",
+  noGutters = false,
 }) => {
   const { isMobile } = useIsMobile();
   
@@ -65,6 +67,7 @@ const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
         gap !== "none" ? gapClass() : "",
         center ? "items-center" : "",
         center && direction === "row" ? justifyContentClass() : "",
+        noGutters ? "px-0" : "", // Remove horizontal padding when noGutters is true
         className,
         isMobile ? mobileClassName : desktopClassName
       )}

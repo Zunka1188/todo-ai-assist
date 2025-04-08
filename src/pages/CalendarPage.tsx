@@ -240,7 +240,7 @@ const CalendarPage = () => {
       </div>
       
       <div className={`flex-1 overflow-hidden w-full ${theme === 'dark' ? 'text-white' : ''}`}>
-        <div className="px-0 sm:px-0">
+        <div className="px-2 py-1">
           <ErrorBoundary>
             <CalendarView 
               viewMode={viewMode} 

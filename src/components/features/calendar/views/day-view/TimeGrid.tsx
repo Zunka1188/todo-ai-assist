@@ -65,7 +65,6 @@ const TimeGrid: React.FC<TimeGridProps> = ({
       ref={gridRef}
       className="relative border rounded-md bg-background h-full overflow-y-auto w-full"
       style={{
-        height: '100%',
         minHeight: `${(numHours) * (isMobile ? 60 : 80)}px`,
       }}
     >
@@ -84,7 +83,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
       </div>
       
       {/* Time markers */}
-      <div className="absolute top-0 left-2 h-full flex flex-col">
+      <div className="absolute top-0 left-3.5 h-full flex flex-col justify-start">
         {hourMarkers}
       </div>
       

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday } from 'date-fns';
@@ -12,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getFormattedTime } from '../utils/dateUtils';
 import { Event } from '../types/event';
+import ResponsiveContainer from '@/components/ui/responsive-container';
 
 interface WeekViewProps {
   date: Date;
@@ -142,19 +142,15 @@ const WeekView: React.FC<WeekViewProps> = ({
     const dayEnd = new Date(day);
     dayEnd.setHours(23, 59, 59, 999);
     
-    // Use the event time if it falls within this day, otherwise use the day boundary
     const effectiveStartDate = eventStart < dayStart ? dayStart : eventStart;
     const effectiveEndDate = eventEnd > dayEnd ? dayEnd : eventEnd;
     
-    // Calculate the exact decimal hour values with minute-level precision
     const startHourDecimal = effectiveStartDate.getHours() + (effectiveStartDate.getMinutes() / MINUTES_PER_HOUR);
     const endHourDecimal = effectiveEndDate.getHours() + (effectiveEndDate.getMinutes() / MINUTES_PER_HOUR);
     
-    // Calculate visible portions of the event within the current view
     const visibleStartHourDecimal = Math.max(startHourDecimal, startHour);
     const visibleEndHourDecimal = Math.min(endHourDecimal, endHour + 1);
     
-    // Calculate exact pixel positions based on hour and minute
     const topPosition = (visibleStartHourDecimal - startHour) * HOUR_HEIGHT;
     const heightValue = Math.max((visibleEndHourDecimal - visibleStartHourDecimal) * HOUR_HEIGHT, 20);
     
@@ -305,7 +301,7 @@ const WeekView: React.FC<WeekViewProps> = ({
   };
   
   return (
-    <div className="space-y-4">
+    <ResponsiveContainer fullWidth noGutters className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className={cn(
           "text-xl font-semibold",
@@ -423,8 +419,11 @@ const WeekView: React.FC<WeekViewProps> = ({
                   <div 
                     key={event.id} 
                     className="text-xs p-1 mb-1 rounded truncate cursor-pointer hover:opacity-80 touch-manipulation" 
-                    style={{backgroundColor: event.color || '#4285F4'}}
-                    onClick={() => handleViewEvent(event)}
+                    style={{ backgroundColor: event.color || '#4285F4' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewEvent(event);
+                    }}
                   >
                     <span className="text-white truncate">{event.title}</span>
                   </div>
@@ -435,7 +434,7 @@ const WeekView: React.FC<WeekViewProps> = ({
         </div>
         
         <div className="grid grid-cols-8 divide-x border-b">
-          <div className={cn("p-2 text-sm font-medium bg-muted/30", isMobile ? "text-[0.8rem]" : "")}>Time / Day</div>
+          <div className={cn("py-2 px-1 text-sm font-medium bg-muted/30 text-center", isMobile ? "text-[0.8rem]" : "")}>Time / Day</div>
           {daysInWeek.map((day, index) => {
             const isCurrentDate = isToday(day);
             return (
@@ -462,80 +461,45 @@ const WeekView: React.FC<WeekViewProps> = ({
           "overflow-y-auto relative",
           isMobile ? "max-h-[calc(100vh-320px)]" : "max-h-[600px]"
         )}>
-          <div className="absolute w-full h-full z-10 pointer-events-none">
-            {daysInWeek.map((day, dayIndex) => {
-              const eventGroups = getVisibleMultiHourEventGroups(day);
-              return (
-                <React.Fragment key={`multi-${dayIndex}`}>
-                  {eventGroups.map((group, groupIndex) => (
-                    <React.Fragment key={`group-${dayIndex}-${groupIndex}`}>
-                      {group.map((event, eventIndex) => (
-                        <div 
-                          key={`multi-${event.id}-${dayIndex}`} 
-                          className="absolute text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto" 
-                          style={{
-                            backgroundColor: event.color || '#4285F4',
-                            ...getMultiHourEventStyle(event, day, group.length, eventIndex)
-                          }}
-                          onClick={() => handleViewEvent(event)}
-                        >
-                          <div className="flex items-center">
-                            <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
-                            <span className="text-white truncate">{event.title}</span>
-                          </div>
-                          <div className="text-white/90 text-[10px] truncate">
-                            {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
-                          </div>
-                          {event.location && (
-                            <div className="text-white/90 text-[10px] flex items-center truncate">
-                              <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80 flex-shrink-0" />
-                              <span className="truncate">{event.location}</span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </React.Fragment>
-                  ))}
-                </React.Fragment>
-              );
-            })}
-          </div>
-          
-          {hours.map(hour => {
-            const hourDate = new Date();
-            hourDate.setHours(hour, 0, 0, 0);
+          {daysInWeek.map((day, dayIndex) => {
+            const eventGroups = getVisibleMultiHourEventGroups(day);
             return (
-              <div key={hour} className="grid grid-cols-8 divide-x border-b min-h-[60px]">
-                <div className={cn(
-                  "p-2 text-xs text-right text-muted-foreground bg-muted/30",
-                  isMobile ? "text-[0.7rem]" : ""
-                )}>
-                  {format(hourDate, 'h a')}
-                </div>
-                
-                {daysInWeek.map((day, dayIndex) => {
-                  const isCurrentDate = isToday(day);
-                  const now = new Date();
-                  const isCurrentHour = isToday(day) && now.getHours() === hour;
-                  
-                  return (
-                    <div 
-                      key={dayIndex} 
-                      className={cn(
-                        "p-1 relative min-h-[60px]", 
-                        isCurrentDate && "bg-accent/20", 
-                        isCurrentHour && "bg-accent/40"
-                      )}
-                    >
-                    </div>
-                  );
-                })}
-              </div>
+              <React.Fragment key={`multi-${dayIndex}`}>
+                {eventGroups.map((group, groupIndex) => (
+                  <React.Fragment key={`group-${dayIndex}-${groupIndex}`}>
+                    {group.map((event, eventIndex) => (
+                      <div 
+                        key={`multi-${event.id}-${dayIndex}`} 
+                        className="absolute text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto" 
+                        style={{
+                          backgroundColor: event.color || '#4285F4',
+                          ...getMultiHourEventStyle(event, day, group.length, eventIndex)
+                        }}
+                        onClick={() => handleViewEvent(event)}
+                      >
+                        <div className="flex items-center">
+                          <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
+                          <span className="text-white truncate">{event.title}</span>
+                        </div>
+                        <div className="text-white/90 text-[10px] truncate">
+                          {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
+                        </div>
+                        {event.location && (
+                          <div className="text-white/90 text-[10px] flex items-center truncate">
+                            <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80 flex-shrink-0" />
+                            <span className="truncate">{event.location}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </React.Fragment>
             );
           })}
         </div>
       </div>
-    </div>
+    </ResponsiveContainer>
   );
 };
 
