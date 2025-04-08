@@ -48,8 +48,8 @@ const ShoppingItemCard = ({
       } 
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
-  // Card dimensions
-  const cardHeight = isMobile ? '140px' : '180px';
+  // Card dimensions - reduced height for mobile
+  const cardHeight = isMobile ? '120px' : '180px'; // Changed from 140px to 120px for mobile
   
   // Handle card click for image preview, but prevent it from triggering when buttons are clicked
   const handleCardClick = (e: React.MouseEvent) => {

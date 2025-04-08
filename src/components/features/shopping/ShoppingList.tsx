@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, memo, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -35,7 +34,6 @@ const ShoppingList = ({
   onEditItem,
   readOnly = false
 }: ShoppingListProps) => {
-  // Use context instead of direct hook
   const { 
     notPurchasedItems, 
     purchasedItems, 
@@ -53,7 +51,6 @@ const ShoppingList = ({
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  // Update context with props
   useEffect(() => {
     updateSearchTerm(searchTerm);
     updateFilterMode(filterMode);
@@ -102,17 +99,16 @@ const ShoppingList = ({
         name: itemData.name,
         amount: itemData.amount || '1', 
         price: itemData.price || '',
-        imageUrl: itemData.imageUrl || null, // Use imageUrl instead of file
+        imageUrl: itemData.imageUrl || null,
         notes: itemData.notes || '',
         repeatOption: itemData.repeatOption || 'none',
         category: itemData.category || '',
         dateToPurchase: '',
-        completed: false // Always explicitly set completed to false
+        completed: false
       };
       
       console.log("[DEBUG] ShoppingList - Structured item to add:", JSON.stringify(newItem, null, 2));
       
-      // Call addItem from context
       const result = addItem(newItem);
       console.log("[DEBUG] ShoppingList - Called addItem function, result:", result);
       
@@ -227,14 +223,13 @@ const ShoppingList = ({
     setItemToDelete(null);
   };
 
-  // Helper function to render a grid of shopping items
   const renderItemGrid = (items: any[]) => {
     if (items.length === 0) return null;
     
     return (
       <div 
         className={cn(
-          "grid gap-4",
+          "grid gap-2",
           isMobile ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
         )}
         role="list"
@@ -286,9 +281,9 @@ const ShoppingList = ({
             {notPurchasedItems.length > 0 && renderItemGrid(notPurchasedItems)}
             
             {purchasedItems.length > 0 && (
-              <div className="mt-6 mb-8">
-                <Separator className="mb-4" />
-                <h3 className="text-lg font-medium mb-4" id="purchased-heading">
+              <div className="mt-4 mb-6">
+                <Separator className="mb-3" />
+                <h3 className="text-lg font-medium mb-3" id="purchased-heading">
                   {isMobile ? 'Purchased' : 'Purchased Items'}
                 </h3>
                 {renderItemGrid(purchasedItems)}
@@ -353,5 +348,4 @@ const ShoppingList = ({
   );
 };
 
-// Export the component wrapped in memo for better performance
 export default memo(ShoppingList);
