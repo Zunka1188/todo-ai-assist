@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Maximize2 } from 'lucide-react';
@@ -57,7 +56,6 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
     onClick();
   };
 
-  // Fixed dimensions for items
   const itemHeight = isMobile ? "h-24" : "h-36";
   const imageHeight = isMobile ? "h-16" : "h-24";
   
@@ -72,7 +70,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         onClick={handleItemClick}
         role="button"
         aria-pressed={completed}
-        style={{ width: '100%' }} // Ensure full width
+        style={{ width: '100%' }}
       >
         <div className={cn(
           "relative w-full overflow-hidden bg-gray-100",
@@ -164,6 +162,24 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           )}
         </div>
       </div>
+
+      {isMobile && !readOnly && (
+        <div className="absolute top-1 left-1">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-5 w-5 p-0 bg-gray-600 hover:bg-gray-700 text-white opacity-85 rounded-full shadow-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            type="button"
+            aria-label="Edit item"
+          >
+            <Pencil className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
 
       {isMobile && imageUrl && (
         <div className="absolute top-1 right-1">
