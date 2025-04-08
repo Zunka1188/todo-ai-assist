@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Maximize2 } from 'lucide-react';
@@ -163,6 +164,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
       </div>
 
+      {/* Mobile edit button - always visible for all items when not in read-only mode */}
       {isMobile && !readOnly && (
         <div className="absolute top-1 left-1">
           <Button
@@ -181,8 +183,28 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
         </div>
       )}
 
-      {isMobile && imageUrl && (
+      {/* Mobile delete button - always visible for all items when not in read-only mode */}
+      {isMobile && !readOnly && (
         <div className="absolute top-1 right-1">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-5 w-5 p-0 bg-red-600 hover:bg-red-700 text-white opacity-85 rounded-full shadow-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            type="button"
+            aria-label="Delete item"
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
+
+      {/* Image preview button - only for items with images on mobile */}
+      {isMobile && imageUrl && onImagePreview && (
+        <div className="absolute bottom-1 right-1">
           <Button
             size="sm"
             variant="secondary"
