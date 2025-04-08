@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -116,7 +115,19 @@
     opacity: 1 !important;
   }
   
-  /* ... keep existing code (the rest of the component and utility classes) */
+  /* Text shadow utility for better text readability on images */
+  .text-shadow {
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+  }
+  
+  .text-shadow-sm {
+    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
+  }
+  
+  .text-shadow-lg {
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.8);
+  }
+  
   @layer utilities {
     .hide-scrollbar::-webkit-scrollbar {
       display: none;

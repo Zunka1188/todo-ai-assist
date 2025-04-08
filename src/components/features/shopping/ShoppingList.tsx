@@ -2,15 +2,13 @@
 import React, { useState, useEffect, memo, useMemo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import ShoppingItemButton from './ShoppingItemButton';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ImagePreviewDialog from './ImagePreviewDialog';
 import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
-import { FixedSizeGrid } from 'react-window';
-import EnhancedShoppingItemButton from './EnhancedShoppingItemButton';
+import ShoppingItemCard from './ShoppingItemCard';
 
 type ShoppingListProps = {
   searchTerm?: string;
@@ -19,9 +17,6 @@ type ShoppingListProps = {
   onEditItem?: (id: string, name?: string, item?: any) => void;
   readOnly?: boolean;
 };
-
-// Create a ShoppingItemButton component that's memoized
-const MemoizedShoppingItemButton = memo(EnhancedShoppingItemButton);
 
 const ShoppingList = ({
   searchTerm = '',
@@ -185,117 +180,59 @@ const ShoppingList = ({
       return;
     }
     
-    const result = removeItem(itemId);
-    if (result) {
-      toast({
-        title: "Item Deleted",
-        description: `${result.name} has been removed from your list.`,
-        role: "status",
-        "aria-live": "polite"
-      });
-    } else {
-      console.error("[ERROR] ShoppingList - Failed to delete item");
-      toast({
-        title: "Error",
-        description: "Failed to delete item",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
+    if (confirm("Are you sure you want to delete this item?")) {
+      const result = removeItem(itemId);
+      if (result) {
+        toast({
+          title: "Item Deleted",
+          description: `${result.name} has been removed from your list.`,
+          role: "status",
+          "aria-live": "polite"
+        });
+      } else {
+        console.error("[ERROR] ShoppingList - Failed to delete item");
+        toast({
+          title: "Error",
+          description: "Failed to delete item",
+          variant: "destructive",
+          role: "alert",
+          "aria-live": "assertive"
+        });
+      }
     }
   };
 
-  // Function to render shopping items using grid
-  const renderShoppingItemsGrid = (items: any[]) => {
-    // For small lists, don't bother with virtualization
-    if (items.length <= 50) {
-      return (
-        <div className={cn(
-          "grid",
-          isMobile 
-            ? "grid-cols-2 gap-2 px-1" // Using 2 columns on mobile for better sizing
-            : "grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 px-2"
+  // Helper function to render a grid of shopping items
+  const renderItemGrid = (items: any[]) => {
+    if (items.length === 0) return null;
+    
+    return (
+      <div 
+        className={cn(
+          "grid gap-4",
+          isMobile ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
         )}
         role="list"
         aria-label={items[0]?.completed ? "Purchased items" : "Shopping items"}
-        >
-          {items.map((item) => (
-            <div key={item.id} className="w-full">
-              <MemoizedShoppingItemButton
-                name={item.name}
-                completed={item.completed}
-                quantity={item.amount}
-                repeatOption={item.repeatOption}
-                imageUrl={item.imageUrl}
-                notes={item.notes}
-                onClick={() => handleToggleItemCompletion(item.id)}
-                onDelete={() => handleDeleteItem(item.id)}
-                onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
-                onImagePreview={() => handleImagePreview(item)}
-                readOnly={readOnly}
-              />
-            </div>
-          ))}
-        </div>
-      );
-    }
-    
-    // For larger lists, use react-window for virtualization
-    const columnCount = isMobile ? 2 : 4;
-    const itemWidth = isMobile ? 150 : 200;
-    const itemHeight = 100;
-    
-    const gridWidth = isMobile 
-      ? window.innerWidth - 20 
-      : Math.min(window.innerWidth - 40, 1200);
-      
-    const rowCount = Math.ceil(items.length / columnCount);
-    
-    // Cell renderer for react-window
-    const Cell = ({ columnIndex, rowIndex, style }: any) => {
-      const index = rowIndex * columnCount + columnIndex;
-      if (index >= items.length) return null;
-      
-      const item = items[index];
-      
-      return (
-        <div style={{
-          ...style,
-          padding: '4px',
-          boxSizing: 'border-box',
-          width: '100%',
-          height: '100%',
-        }}>
-          <MemoizedShoppingItemButton
-            name={item.name}
-            completed={item.completed}
-            quantity={item.amount}
-            repeatOption={item.repeatOption}
-            imageUrl={item.imageUrl}
-            notes={item.notes}
-            onClick={() => handleToggleItemCompletion(item.id)}
-            onDelete={() => handleDeleteItem(item.id)}
-            onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
-            onImagePreview={() => handleImagePreview(item)}
-            readOnly={readOnly}
-          />
-        </div>
-      );
-    };
-    
-    return (
-      <div role="list" aria-label={items[0]?.completed ? "Purchased items" : "Shopping items"}>
-        <FixedSizeGrid
-          columnCount={columnCount}
-          columnWidth={itemWidth}
-          height={400} // Fixed height, adjust as needed
-          rowCount={rowCount}
-          rowHeight={itemHeight}
-          width={gridWidth}
-          itemData={items}
-        >
-          {Cell}
-        </FixedSizeGrid>
+      >
+        {items.map(item => (
+          <div key={item.id} className="aspect-square">
+            <ShoppingItemCard
+              id={item.id}
+              name={item.name}
+              completed={item.completed}
+              quantity={item.amount}
+              repeatOption={item.repeatOption}
+              imageUrl={item.imageUrl}
+              notes={item.notes}
+              onClick={() => handleToggleItemCompletion(item.id)}
+              onDelete={() => handleDeleteItem(item.id)}
+              onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
+              onImagePreview={() => handleImagePreview(item)}
+              readOnly={readOnly}
+            />
+          </div>
+        ))}
       </div>
     );
   };
@@ -319,17 +256,17 @@ const ShoppingList = ({
         >
           <div className={cn(
             "pb-16",
-            isMobile ? "mb-8" : ""
+            isMobile ? "mb-8 px-2" : "px-4"
           )}>
-            {notPurchasedItems.length > 0 && renderShoppingItemsGrid(notPurchasedItems)}
+            {notPurchasedItems.length > 0 && renderItemGrid(notPurchasedItems)}
             
             {purchasedItems.length > 0 && (
               <div className="mt-6 mb-8">
                 <Separator className="mb-4" />
-                <h3 className="text-lg font-medium mb-4 px-1" id="purchased-heading">
+                <h3 className="text-lg font-medium mb-4" id="purchased-heading">
                   {isMobile ? 'Purchased' : 'Purchased Items'}
                 </h3>
-                {renderShoppingItemsGrid(purchasedItems)}
+                {renderItemGrid(purchasedItems)}
               </div>
             )}
           </div>
