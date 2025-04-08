@@ -16,8 +16,9 @@ interface ResponsiveContainerProps {
   center?: boolean;
   justifyContent?: "start" | "end" | "center" | "between" | "around" | "evenly";
   noGutters?: boolean; // Removes horizontal padding
-  contentAlign?: "left" | "center" | "right"; // New prop for horizontal text alignment
-  fitContent?: boolean; // New prop to make container only as wide as its content
+  contentAlign?: "left" | "center" | "right"; // For horizontal text alignment
+  fitContent?: boolean; // Makes container only as wide as its content
+  mobileFullWidth?: boolean; // Force full width on mobile
 }
 
 const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
@@ -35,6 +36,7 @@ const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   noGutters = false,
   contentAlign = "left",
   fitContent = false,
+  mobileFullWidth = true, // Default to true to match shopping page behavior
 }) => {
   const { isMobile } = useIsMobile();
   
@@ -72,16 +74,23 @@ const ResponsiveContainer: React.FC<ResponsiveContainerProps> = ({
   return (
     <Component
       className={cn(
-        (fluid || fullWidth) ? "w-full" : "",
+        // Width handling
+        (fluid || fullWidth || (isMobile && mobileFullWidth)) ? "w-full" : "",
         fullWidth ? "max-w-full" : "",
-        fitContent ? "w-fit" : "",
+        fitContent && !isMobile && !mobileFullWidth ? "w-fit" : "",
+        
+        // Layout and spacing
         gap !== "none" || center ? "flex" : "",
         gap !== "none" ? directionClass : "",
         gap !== "none" ? gapClass() : "",
         center ? "items-center" : "",
         center && direction === "row" ? justifyContentClass() : "",
-        noGutters ? "px-0" : "",
+        noGutters ? "px-0" : isMobile ? "px-3" : "", // Add default padding on mobile
+        
+        // Alignment
         contentAlignClass(),
+        
+        // Custom classes
         className,
         isMobile ? mobileClassName : desktopClassName
       )}

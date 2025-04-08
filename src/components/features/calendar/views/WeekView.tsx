@@ -175,6 +175,11 @@ const WeekView: React.FC<WeekViewProps> = ({
     return groupOverlappingEvents(dayEvents);
   };
 
+  // Process event groups for each day
+  const daysEventGroups = daysInWeek.map(day => {
+    return getVisibleMultiHourEventGroups(day);
+  });
+
   const handleTimeRangeToggle = (preset: string) => {
     switch (preset) {
       case 'full':
@@ -488,32 +493,37 @@ const WeekView: React.FC<WeekViewProps> = ({
                     className="border-b h-[60px]"
                   />
                 ))}
-                {eventGroups.map((group, groupIndex) => (
-                  <React.Fragment key={`group-${dayIndex}-${groupIndex}`}>
-                    {group.map((event, eventIndex) => (
-                      <div 
-                        key={`multi-${event.id}-${dayIndex}`} 
-                        className="absolute text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto" 
-                        style={{
-                          backgroundColor: event.color || '#4285F4',
-                          ...getMultiHourEventStyle(event, day, group.length, eventIndex)
-                        }}
-                        onClick={() => handleViewEvent(event)}
-                      >
-                        <div className="flex items-center">
-                          <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
-                          <span className="text-white truncate">{event.title}</span>
-                        </div>
-                        <div className="text-white/90 text-[10px] truncate">
-                          {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
-                        </div>
-                        {event.location && (
-                          <div className="text-white/90 text-[10px] flex items-center truncate">
-                            <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80 flex-shrink-0" />
-                            <span className="truncate">{event.location}</span>
+                {/* Events */}
+                {daysEventGroups.map((eventGroups, dayIndex) => (
+                  <React.Fragment key={`day-events-${dayIndex}`}>
+                    {eventGroups.map((group, groupIndex) => (
+                      <React.Fragment key={`group-${dayIndex}-${groupIndex}`}>
+                        {group.map((event, eventIndex) => (
+                          <div 
+                            key={`multi-${event.id}-${dayIndex}`} 
+                            className="absolute text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto" 
+                            style={{
+                              backgroundColor: event.color || '#4285F4',
+                              ...getMultiHourEventStyle(event, daysInWeek[dayIndex], group.length, eventIndex)
+                            }}
+                            onClick={() => handleViewEvent(event)}
+                          >
+                            <div className="flex items-center">
+                              <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
+                              <span className="text-white truncate">{event.title}</span>
+                            </div>
+                            <div className="text-white/90 text-[10px] truncate">
+                              {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
+                            </div>
+                            {event.location && (
+                              <div className="text-white/90 text-[10px] flex items-center truncate">
+                                <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80 flex-shrink-0" />
+                                <span className="truncate">{event.location}</span>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
+                        ))}
+                      </React.Fragment>
                     ))}
                   </React.Fragment>
                 ))}

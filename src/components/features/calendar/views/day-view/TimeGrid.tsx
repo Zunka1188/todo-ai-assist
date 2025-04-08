@@ -76,7 +76,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
       </div>
       
       {/* Time markers */}
-      <div className="absolute top-0 left-0 h-full">
+      <div className="absolute top-0 left-0 h-full border-r border-muted">
         {hours.map((hour, index) => {
           const displayHour = hour % 12 === 0 ? 12 : hour % 12;
           const amPm = hour < 12 || hour === 24 ? 'am' : 'pm';
