@@ -329,10 +329,9 @@ const DocumentsSubtabPage = () => {
       <AddDocumentDialog
         open={addDialogOpen}
         onOpenChange={(open) => setAddDialogOpen(open)}
-        onAdd={(item: DocumentItem) => {
-          // This adapter function converts between the different parameter expectations
-          // The AddDocumentDialog wants to pass a DocumentItem
-          // But our handleAddDocumentSubmit expects a File and metadata
+        onAdd={(item) => {
+          // This adapter function handles the mismatch between what AddDocumentDialog expects
+          // and what our handleAddDocumentSubmit expects
           if (currentFile) {
             handleAddDocumentSubmit(currentFile, item);
           }
