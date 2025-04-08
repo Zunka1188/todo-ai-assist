@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { format, isToday, addDays, subDays } from 'date-fns';
+import { format, isToday } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -24,7 +24,7 @@ const DayHeader: React.FC<DayHeaderProps> = ({
 
   return (
     <div className={cn(
-      "flex items-center justify-between"
+      "flex items-center justify-between sticky top-0 z-10"
     )}>
       <h2 className={cn(
         "font-semibold flex items-center",
@@ -44,7 +44,7 @@ const DayHeader: React.FC<DayHeaderProps> = ({
           size="icon" 
           onClick={prevDay}
           aria-label="Previous day"
-          className="h-9 w-9 min-w-[36px]"
+          className="h-9 w-9 min-w-[36px] touch-manipulation"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -53,7 +53,7 @@ const DayHeader: React.FC<DayHeaderProps> = ({
           size="icon" 
           onClick={nextDay}
           aria-label="Next day"
-          className="h-9 w-9 min-w-[36px]"
+          className="h-9 w-9 min-w-[36px] touch-manipulation"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>

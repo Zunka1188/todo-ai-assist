@@ -37,15 +37,17 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
     const topPosition = Math.max(0, (startMinutesSinceMidnight - startHourInMinutes) * minuteHeight);
     const height = Math.max(30, (endMinutesSinceMidnight - startMinutesSinceMidnight) * minuteHeight);
     
-    // Calculate position based on overlapping events
-    const width = 100 / (totalOverlapping || 1);
+    // Improved width calculation for better visibility
+    // Use more space for events (95% of available width)
+    // and reduce the gap between events
+    const width = 95 / (totalOverlapping || 1);
     const leftPosition = width * index;
     
     return {
       top: `${topPosition}px`,
       height: `${height}px`,
       left: `${leftPosition}%`,
-      width: `${width - 1}%`, // 1% gap between events
+      width: `${width - 0.5}%`, // smaller gap between events (0.5%)
     };
   };
   
@@ -53,11 +55,12 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
   
   return (
     <div 
-      className="absolute rounded text-xs p-1.5 cursor-pointer overflow-hidden hover:opacity-90 transition-opacity"
+      className="absolute rounded text-xs p-1.5 cursor-pointer overflow-hidden hover:opacity-90 transition-opacity touch-manipulation"
       style={{
         backgroundColor: event.color || '#4285F4',
         ...eventStyle,
         zIndex: 10,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
       }}
       onClick={() => handleViewEvent(event)}
     >

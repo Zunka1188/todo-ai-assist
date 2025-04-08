@@ -56,12 +56,12 @@ const TimeGrid: React.FC<TimeGridProps> = ({
   return (
     <div
       ref={gridRef}
-      className="relative border rounded-md bg-background h-full overflow-y-auto w-full"
+      className="relative border-t border-muted bg-background h-full overflow-y-auto w-full"
       style={{
         minHeight: `${numHours * hourHeight}px`,
       }}
     >
-      {/* Hour grid lines */}
+      {/* Hour grid lines - improved visibility */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
         {hours.map((hour, index) => (
           <div
@@ -75,8 +75,8 @@ const TimeGrid: React.FC<TimeGridProps> = ({
         ))}
       </div>
       
-      {/* Time markers */}
-      <div className="absolute top-0 left-0 h-full border-r border-muted">
+      {/* Time markers - improved styling */}
+      <div className="absolute top-0 left-0 h-full border-r border-muted bg-muted/5">
         {hours.map((hour, index) => {
           const displayHour = hour % 12 === 0 ? 12 : hour % 12;
           const amPm = hour < 12 || hour === 24 ? 'am' : 'pm';
@@ -97,8 +97,8 @@ const TimeGrid: React.FC<TimeGridProps> = ({
         })}
       </div>
       
-      {/* Events */}
-      <div className="absolute top-0 left-14 right-0">
+      {/* Events container - wider layout */}
+      <div className="absolute top-0 left-14 right-0 w-[calc(100%-3.5rem)]">
         {processedEvents && processedEvents.length > 0 ? (
           processedEvents.map((eventGroup, groupIndex) => {
             if (debugEnabled) {
@@ -138,7 +138,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
         {hours.map((hour, index) => (
           <div 
             key={`hour-cell-${index}`} 
-            className="min-h-[80px]"
+            className="min-h-[80px] border-b border-muted/30"
             style={{ height: `${hourHeight}px` }}
           />
         ))}

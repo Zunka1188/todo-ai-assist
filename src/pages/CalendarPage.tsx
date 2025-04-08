@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
@@ -13,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import InviteDialog from '@/components/features/calendar/dialogs/InviteDialog';
 import ErrorBoundary from '@/components/features/calendar/ErrorBoundary';
 import { useDebounce } from '@/hooks/useDebounce';
+import { cn } from '@/lib/utils';
 
 const CalendarPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,13 +28,10 @@ const CalendarPage = () => {
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // Simulate initial data loading
   useEffect(() => {
     const loadCalendarData = async () => {
       try {
-        // Simulate API call
         setIsLoading(true);
-        // In a real app, this would be an API call to fetch calendar data
         await new Promise(resolve => setTimeout(resolve, 500));
         setIsLoading(false);
       } catch (error) {
@@ -70,17 +67,14 @@ const CalendarPage = () => {
     }
   }, [toast]);
 
-  // Handle dialog close without navigation
   const handleDialogClose = useCallback((open: boolean) => {
     setCreateDialogOpen(open);
   }, []);
 
-  // Handle file uploader state without navigation
   const handleFileUploaderChange = useCallback((open: boolean) => {
     setShowFileUploader(open);
   }, []);
   
-  // Notification on view mode change
   const handleViewModeChange = useCallback((value: string) => {
     try {
       setViewMode(value as 'month' | 'week' | 'day' | 'agenda');
@@ -102,7 +96,6 @@ const CalendarPage = () => {
     }
   }, [toast]);
 
-  // Handle sharing the calendar
   const handleShareCalendar = useCallback(() => {
     try {
       setInviteDialogOpen(true);
@@ -118,7 +111,6 @@ const CalendarPage = () => {
     }
   }, [toast]);
 
-  // Handle invitation sent successfully
   const handleInviteSent = useCallback((link: string) => {
     toast({
       title: "Invitation Link Generated",
@@ -128,7 +120,6 @@ const CalendarPage = () => {
     });
   }, [toast]);
 
-  // Render loading state
   if (isLoading) {
     return (
       <PageLayout maxWidth="full" className="flex flex-col h-[calc(100vh-4rem)]" noPadding>
@@ -140,7 +131,6 @@ const CalendarPage = () => {
     );
   }
 
-  // Render error state
   if (pageError) {
     return (
       <PageLayout maxWidth="full" className="flex flex-col h-[calc(100vh-4rem)]" noPadding>
@@ -162,7 +152,7 @@ const CalendarPage = () => {
       className="flex flex-col h-[calc(100vh-4rem)] pb-0"
       noPadding
     >
-      <div className="px-3 pt-3 pb-2">
+      <div className="px-4 pt-4 pb-2 sticky top-0 z-20 bg-background border-b">
         <PageHeader 
           title="Calendar"
           searchTerm={searchTerm}
@@ -170,14 +160,14 @@ const CalendarPage = () => {
           showAddButton={false}
           showBackButton={true}
           backTo="/"
-          className="mb-2"
+          className="mb-3"
           rightContent={
             <div className="flex space-x-2">
               <Button 
                 onClick={handleShareCalendar} 
                 size={isMobile ? "sm" : "default"}
                 variant="outline"
-                className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+                className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring touch-manipulation"
                 aria-label="Share calendar"
               >
                 <UserPlus className="h-4 w-4 mr-1" />
@@ -186,7 +176,7 @@ const CalendarPage = () => {
               <Button 
                 onClick={handleAddItem} 
                 size={isMobile ? "sm" : "default"}
-                className="bg-todo-purple hover:bg-todo-purple/90 text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+                className="bg-todo-purple hover:bg-todo-purple/90 text-white focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring touch-manipulation"
                 aria-label="Add new event"
               >
                 <Plus className="h-4 w-4 mr-1" />
@@ -203,31 +193,43 @@ const CalendarPage = () => {
             onValueChange={handleViewModeChange} 
             className="w-full"
           >
-            <TabsList className="grid grid-cols-4 w-full">
+            <TabsList className="grid grid-cols-4 w-full shadow-sm">
               <TabsTrigger 
                 value="month" 
-                className={isMobile ? "text-xs py-1.5" : ""}
+                className={cn(
+                  isMobile ? "text-xs py-1.5" : "",
+                  "touch-manipulation"
+                )}
                 aria-label="Month view"
               >
                 Month
               </TabsTrigger>
               <TabsTrigger 
                 value="week" 
-                className={isMobile ? "text-xs py-1.5" : ""}
+                className={cn(
+                  isMobile ? "text-xs py-1.5" : "",
+                  "touch-manipulation"
+                )}
                 aria-label="Week view"
               >
                 Week
               </TabsTrigger>
               <TabsTrigger 
                 value="day" 
-                className={isMobile ? "text-xs py-1.5" : ""}
+                className={cn(
+                  isMobile ? "text-xs py-1.5" : "",
+                  "touch-manipulation"
+                )}
                 aria-label="Day view"
               >
                 Day
               </TabsTrigger>
               <TabsTrigger 
                 value="agenda" 
-                className={isMobile ? "text-xs py-1.5" : ""}
+                className={cn(
+                  isMobile ? "text-xs py-1.5" : "",
+                  "touch-manipulation"
+                )}
                 aria-label="Agenda view"
               >
                 Upcoming
@@ -235,12 +237,14 @@ const CalendarPage = () => {
             </TabsList>
           </Tabs>
         </div>
-
-        <Separator className="my-1" />
       </div>
       
-      <div className={`flex-1 overflow-hidden w-full ${theme === 'dark' ? 'text-white' : ''}`}>
-        <div className="px-3 py-2 h-full overflow-y-auto">
+      <div className={cn(
+        "flex-1 overflow-hidden w-full",
+        "bg-muted/10",
+        theme === 'dark' ? 'text-white' : ''
+      )}>
+        <div className="px-4 py-3 h-full overflow-y-auto">
           <ErrorBoundary>
             <CalendarView 
               viewMode={viewMode} 
@@ -255,7 +259,6 @@ const CalendarPage = () => {
         </div>
       </div>
 
-      {/* Invite Dialog */}
       <InviteDialog 
         isOpen={inviteDialogOpen}
         setIsOpen={setInviteDialogOpen}

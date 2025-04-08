@@ -111,12 +111,14 @@ const DayView: React.FC<DayViewProps> = ({
       />
       
       <div className="border rounded-lg overflow-hidden w-full">
-        <div className="grid grid-cols-[3.5rem_1fr] bg-muted/30 p-2 border-b">
+        {/* Fixed headers with sticky positioning */}
+        <div className="grid grid-cols-[3.5rem_1fr] bg-muted/30 p-2 border-b sticky top-0 z-10">
           <div className="text-xs font-medium">Time</div>
           <div className="text-xs font-medium">Events</div>
         </div>
         
-        <div className={`h-[calc(100vh-350px)]`}>
+        {/* Scrollable time grid with proper height */}
+        <div className={`h-[calc(100vh-350px)] overflow-hidden`}>
           <TimeGrid
             events={events}
             date={date}

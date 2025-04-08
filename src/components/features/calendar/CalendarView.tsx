@@ -77,10 +77,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const effectiveCreateDialogOpen = isCreateDialogOpen !== undefined ? isCreateDialogOpen : localCreateDialogOpen;
   const effectiveSetCreateDialogOpen = setIsCreateDialogOpen || setLocalCreateDialogOpen;
   
-  // Apply search term filtering
   const filteredEvents = filterEvents(searchTerm);
 
-  // When view mode changes, clear any previous errors
   useEffect(() => {
     setViewLoadError(null);
   }, [viewMode]);
@@ -140,7 +138,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     }
   }, []);
 
-  // Handle sharing an event
   const handleShareEvent = useCallback((event: Event) => {
     try {
       setEventToShare(event);
@@ -151,7 +148,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     }
   }, []);
 
-  // Handle RSVP for an event
   const handleRSVP = useCallback((event: Event) => {
     try {
       setEventToShare(event);
@@ -162,7 +158,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     }
   }, []);
 
-  // Submit RSVP response
   const submitRSVP = useCallback((status: 'yes' | 'no' | 'maybe', name: string) => {
     try {
       if (!eventToShare) return;
@@ -173,12 +168,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     }
   }, [eventToShare, recordRSVP]);
 
-  // Handle share link generation
   const handleShareLink = useCallback((link: string) => {
     console.log("[DEBUG] Share link generated:", link);
   }, []);
 
-  // Show loading state
   if (isLoading) {
     return (
       <div className="flex justify-center items-center p-12">
@@ -190,7 +183,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     );
   }
 
-  // Show error state
   if (error || viewLoadError) {
     return (
       <div className="text-center py-12 px-4" role="alert" aria-live="assertive">
@@ -249,7 +241,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         readOnly={false}
       />
 
-      {/* Share Dialog */}
       <InviteDialog
         isOpen={shareDialogOpen}
         setIsOpen={setShareDialogOpen}
@@ -257,7 +248,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         onShareLink={handleShareLink}
       />
       
-      {/* RSVP Dialog */}
       <RSVPDialog
         isOpen={rsvpDialogOpen}
         setIsOpen={setRsvpDialogOpen}
@@ -267,47 +257,49 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       
       {!isFileUploaderOpen && (
         <ErrorBoundary>
-          {viewMode === 'month' && (
-            <MonthView
-              date={date}
-              setDate={setDate}
-              events={filteredEvents}
-              handleViewEvent={handleViewEvent}
-              theme={theme}
-              weekStartsOn={weekStartsOn}
-            />
-          )}
-          
-          {viewMode === 'week' && (
-            <WeekView
-              date={date}
-              setDate={setDate}
-              events={filteredEvents}
-              handleViewEvent={handleViewEvent}
-              theme={theme}
-              weekStartsOn={weekStartsOn}
-            />
-          )}
-          
-          {viewMode === 'day' && (
-            <DayView
-              date={date}
-              setDate={setDate}
-              events={filteredEvents}
-              handleViewEvent={handleViewEvent}
-              theme={theme}
-            />
-          )}
-          
-          {viewMode === 'agenda' && (
-            <EnhancedAgendaView
-              date={date}
-              setDate={setDate}
-              events={filteredEvents}
-              handleViewEvent={handleViewEvent}
-              theme={theme}
-            />
-          )}
+          <div className="border rounded-lg overflow-hidden shadow-sm">
+            {viewMode === 'month' && (
+              <MonthView
+                date={date}
+                setDate={setDate}
+                events={filteredEvents}
+                handleViewEvent={handleViewEvent}
+                theme={theme}
+                weekStartsOn={weekStartsOn}
+              />
+            )}
+            
+            {viewMode === 'week' && (
+              <WeekView
+                date={date}
+                setDate={setDate}
+                events={filteredEvents}
+                handleViewEvent={handleViewEvent}
+                theme={theme}
+                weekStartsOn={weekStartsOn}
+              />
+            )}
+            
+            {viewMode === 'day' && (
+              <DayView
+                date={date}
+                setDate={setDate}
+                events={filteredEvents}
+                handleViewEvent={handleViewEvent}
+                theme={theme}
+              />
+            )}
+            
+            {viewMode === 'agenda' && (
+              <EnhancedAgendaView
+                date={date}
+                setDate={setDate}
+                events={filteredEvents}
+                handleViewEvent={handleViewEvent}
+                theme={theme}
+              />
+            )}
+          </div>
         </ErrorBoundary>
       )}
     </div>
