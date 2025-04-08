@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FileText, Maximize2, Share2 } from 'lucide-react';
+import { FileText, Maximize2, Share2, Download } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DocumentItem } from './types';
@@ -13,6 +13,7 @@ interface DocumentItemsListProps {
   onEdit: (item: DocumentItem) => void;
   onDelete: (id: string) => void;
   onViewImage: (item: DocumentItem) => void;
+  onDownload?: (fileUrl?: string, fileName?: string) => void;
   formatDateRelative: (date: Date) => string;
 }
 
@@ -21,6 +22,7 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
   onEdit,
   onDelete,
   onViewImage,
+  onDownload,
   formatDateRelative
 }) => {
   const { isMobile } = useIsMobile();
@@ -99,6 +101,8 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                     text={item.title}
                     fileUrl={item.content}
                     onClick={(e) => e.stopPropagation()}
+                    showOptions={true}
+                    onDownload={() => onDownload && onDownload(item.content, item.title)}
                     aria-label="Share item"
                   >
                     <Share2 className="h-4 w-4 text-white" />
@@ -171,10 +175,25 @@ const DocumentItemsList: React.FC<DocumentItemsListProps> = ({
                       title={`Check out: ${item.title}`}
                       text={item.content}
                       onClick={(e) => e.stopPropagation()}
+                      showOptions={true}
                       aria-label="Share item"
                     >
                       <Share2 className="h-4 w-4" />
                     </ShareButton>
+                    {item.file && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDownload && onDownload(item.file || '', item.fileName);
+                        }}
+                        aria-label="Download file"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="outline"

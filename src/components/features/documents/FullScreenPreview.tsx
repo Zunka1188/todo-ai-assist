@@ -1,95 +1,107 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { X, Download, Share2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { X, Download } from 'lucide-react';
 import { DocumentItem, DocumentFile } from './types';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import FilePreview from './FilePreview';
+import ShareButton from '@/components/features/shared/ShareButton';
 
 interface FullScreenPreviewProps {
   item: DocumentItem | DocumentFile | null;
   onClose: () => void;
-  readOnly?: boolean;
+  onDownload?: (fileUrl?: string, fileName?: string) => void;
 }
 
-const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ 
-  item, 
-  onClose,
-  readOnly = false
-}) => {
+const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose, onDownload }) => {
   if (!item) return null;
 
-  const isDocumentItem = 'content' in item;
-  const isDocumentFile = 'fileUrl' in item;
+  const isDocumentItem = 'type' in item;
   
-  // Get the file URL based on item type
-  let fileUrl = '';
-  let fileType = '';
-  let title = '';
+  // Determine content URL based on item type
+  const contentUrl = isDocumentItem 
+    ? (item.type === 'image' ? item.content : item.file || '') 
+    : (item.fileUrl || '');
   
-  if (isDocumentItem) {
-    fileUrl = item.type === 'image' ? item.content : item.file || '';
-    fileType = item.fileType || (item.type === 'image' ? 'image' : 'note');
-    title = item.title;
-  } else if (isDocumentFile) {
-    fileUrl = item.fileUrl || '';
-    fileType = item.fileType || '';
-    title = item.title;
-  }
+  // Determine file name based on item type
+  const fileName = isDocumentItem
+    ? (item.fileName || item.title)
+    : (item.title || 'document');
   
+  // Determine if the item is viewable (image, pdf, etc.)
+  const isViewable = isDocumentItem 
+    ? (item.type === 'image' || (item.fileType && ['image', 'pdf'].includes(item.fileType)))
+    : (item.fileType && ['image', 'pdf'].includes(item.fileType));
+
   const handleDownload = () => {
-    if (!fileUrl) return;
-    
-    const a = document.createElement('a');
-    a.href = fileUrl;
-    a.download = `${title || 'document'}.${fileType || 'pdf'}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    if (onDownload) {
+      onDownload(contentUrl, fileName);
+    }
   };
 
   return (
     <Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl w-[90vw] max-h-[90vh] overflow-auto">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-            Preview of your document
-          </DialogDescription>
-          <Button
-            className="absolute right-4 top-4"
-            variant="ghost"
-            size="icon"
+      <DialogContent className="max-w-5xl w-[90vw] max-h-[90vh] p-0 overflow-hidden bg-black text-white">
+        <div className="absolute top-2 right-2 flex gap-2 z-10">
+          <ShareButton
+            variant="secondary"
+            size="sm"
+            className="bg-black/50 hover:bg-black/70 text-white"
+            title={`Check out: ${fileName}`}
+            text={fileName}
+            fileUrl={contentUrl}
+            showOptions={true}
+            onDownload={handleDownload}
+          >
+            <Share2 className="h-4 w-4" />
+          </ShareButton>
+          
+          {contentUrl && (
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="bg-black/50 hover:bg-black/70 text-white"
+              onClick={handleDownload}
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+          )}
+          
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="bg-black/50 hover:bg-black/70 text-white"
             onClick={onClose}
-            aria-label="Close"
           >
             <X className="h-4 w-4" />
           </Button>
-        </DialogHeader>
-        
-        <div className="py-4">
-          <FilePreview
-            file={fileUrl}
-            fileType={fileType}
-            fileName={
-              isDocumentItem 
-                ? (item.fileName || item.title) 
-                : (isDocumentFile ? item.title : '')
-            }
-            className="max-h-[70vh] w-full"
-            fullScreen={true}
-          />
         </div>
         
-        <div className="flex justify-end mt-2">
-          <Button
-            onClick={handleDownload}
-            className="flex items-center gap-2"
-            variant="outline"
-          >
-            <Download className="h-4 w-4" />
-            Download
-          </Button>
+        <div className="flex items-center justify-center w-full h-full min-h-[70vh] bg-black p-4">
+          {isViewable ? (
+            isDocumentItem && item.type === 'image' ? (
+              <img 
+                src={item.content} 
+                alt={item.title} 
+                className="max-w-full max-h-full object-contain"
+              />
+            ) : (
+              <FilePreview
+                file={contentUrl}
+                fileName={fileName}
+                fileType={isDocumentItem ? item.fileType : item.fileType}
+                className="w-full h-full max-h-[80vh]"
+              />
+            )
+          ) : (
+            <div className="text-center p-8">
+              <p className="mb-4">Preview not available for this file type</p>
+              <Button onClick={handleDownload} className="bg-white text-black hover:bg-gray-200">
+                <Download className="h-4 w-4 mr-2" />
+                Download to view
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

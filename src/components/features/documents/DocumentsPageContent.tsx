@@ -3,19 +3,29 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddDocumentDialog from '@/components/features/documents/AddDocumentDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import DocumentItemsList from '@/components/features/documents/DocumentItemsList';
 import FullScreenPreview from '@/components/features/documents/FullScreenPreview';
 import { DocumentCategory, DocumentItem, DocumentFile } from '@/components/features/documents/types';
 import { useDocuments } from '@/hooks/useDocuments';
 import DocumentList from '@/components/features/documents/DocumentList';
 import PageHeader from '@/components/ui/page-header';
-import { ChefHat, Dumbbell, FileArchive, Plane, Calendar, FileText, Shirt } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { useDocumentActions } from '@/hooks/useDocumentActions';
 import { DocumentTabs } from './DocumentTabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Trash2, Loader2 } from "lucide-react";
 
 const DocumentsPageContent: React.FC = () => {
   const navigate = useNavigate();
@@ -39,12 +49,17 @@ const DocumentsPageContent: React.FC = () => {
   const [editingItem, setEditingItem] = useState<DocumentItem | null>(null);
   const [fullScreenPreviewItem, setFullScreenPreviewItem] = useState<DocumentItem | DocumentFile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [fileToDelete, setFileToDelete] = useState<string | null>(null);
 
   const { 
     handleAddOrUpdateItem, 
     handleDeleteItem, 
     handleAddOrUpdateFile,
-    handleDeleteFile 
+    handleDeleteFile,
+    handleDownloadFile,
+    isProcessing
   } = useDocumentActions({ setIsLoading });
 
   // Log component props when debug mode is enabled
@@ -73,10 +88,9 @@ const DocumentsPageContent: React.FC = () => {
     setIsAddDialogOpen(true);
   };
 
-  const handleAddItem = (item: any) => {
+  const handleAddItem = async (item: any) => {
     try {
-      setIsLoading(true);
-      handleAddOrUpdateItem(item, editingItem);
+      await handleAddOrUpdateItem(item, editingItem);
       setIsAddDialogOpen(false);
       setEditingItem(null);
       
@@ -96,37 +110,98 @@ const DocumentsPageContent: React.FC = () => {
         role: "alert",
         "aria-live": "assertive"
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const handleDeleteItemWithConfirmation = (id: string) => {
+  const confirmDeleteItem = (id: string) => {
+    if (debugEnabled) logEvent('confirmDeleteItem', { id });
+    setItemToDelete(id);
+    setFileToDelete(null);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteFile = (id: string) => {
+    if (debugEnabled) logEvent('confirmDeleteFile', { id });
+    setFileToDelete(id);
+    setItemToDelete(null);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirmed = () => {
     try {
-      handleDeleteItem(id);
-      
-      toast({
-        title: "Document Deleted",
-        description: "The document has been removed successfully.",
-        role: "status",
-        "aria-live": "polite"
-      });
+      if (itemToDelete) {
+        handleDeleteItem(itemToDelete);
+        
+        toast({
+          title: "Document Deleted",
+          description: "The document has been removed successfully.",
+          role: "status",
+          "aria-live": "polite"
+        });
+      } else if (fileToDelete) {
+        handleDeleteFile(fileToDelete);
+        
+        toast({
+          title: "File Deleted",
+          description: "The file has been removed successfully.",
+          role: "status",
+          "aria-live": "polite"
+        });
+      }
     } catch (error) {
-      console.error("Error deleting document:", error);
+      console.error("Error deleting item:", error);
       
       toast({
         title: "Error",
-        description: "Failed to delete document. Please try again.",
+        description: "Failed to delete item. Please try again.",
         variant: "destructive",
         role: "alert",
         "aria-live": "assertive"
       });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setItemToDelete(null);
+      setFileToDelete(null);
     }
   };
 
   const handleViewFullScreen = (item: DocumentItem | DocumentFile) => {
     if (debugEnabled) logEvent('viewFullScreen', { item });
     setFullScreenPreviewItem(item);
+  };
+
+  const handleDownload = (fileUrl?: string, fileName?: string) => {
+    if (!fileUrl) {
+      toast({
+        title: "Download Failed",
+        description: "No file URL provided for download",
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
+      });
+      return;
+    }
+
+    try {
+      handleDownloadFile(fileUrl, fileName || 'document');
+      
+      toast({
+        title: "Download Started",
+        description: `${fileName || 'Document'} is being downloaded`,
+        role: "status",
+        "aria-live": "polite"
+      });
+    } catch (error) {
+      console.error("Error downloading:", error);
+      
+      toast({
+        title: "Download Failed",
+        description: "Failed to download the file. Please try again.",
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
+      });
+    }
   };
 
   const filteredItems = filterDocuments(categoryItems, activeTab, searchTerm);
@@ -166,8 +241,9 @@ const DocumentsPageContent: React.FC = () => {
           <DocumentItemsList 
             items={filteredItems}
             onEdit={handleOpenAddDialog}
-            onDelete={handleDeleteItemWithConfirmation}
+            onDelete={confirmDeleteItem}
             onViewImage={handleViewFullScreen}
+            onDownload={handleDownload}
             formatDateRelative={formatDateRelative}
           />
         </TabsContent>
@@ -179,7 +255,8 @@ const DocumentsPageContent: React.FC = () => {
             onEditDocument={(doc) => {
               handleViewFullScreen(doc);
             }}
-            onDeleteDocument={handleDeleteFile}
+            onDeleteDocument={confirmDeleteFile}
+            onDownload={handleDownload}
             searchTerm={searchTerm} 
             categories={CATEGORIES} 
             viewMode="table"
@@ -212,7 +289,39 @@ const DocumentsPageContent: React.FC = () => {
       <FullScreenPreview
         item={fullScreenPreviewItem}
         onClose={handleFullScreenClose}
+        onDownload={handleDownload}
       />
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this item.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirmed}
+              disabled={isProcessing}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {debugEnabled && (
         <div className="fixed bottom-0 left-0 right-0 bg-yellow-200 text-black p-1 text-xs z-50 opacity-80">
