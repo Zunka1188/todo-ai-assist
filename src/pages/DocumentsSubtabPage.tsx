@@ -1,8 +1,4 @@
 
-// Since this file is having build errors but is not directly related to the calendar 
-// functionality the user is asking about, I'm only fixing the type errors without
-// changing any functionality.
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,7 +26,7 @@ import { useDocumentActions } from '@/hooks/useDocumentActions';
 import { useDocumentClassification } from '@/hooks/useDocumentClassification';
 import ImageAnalysisModal from '@/components/features/documents/ImageAnalysisModal';
 import { AnalysisResult } from '@/utils/imageAnalysis';
-import { DocumentCategory, DocumentFile } from '@/components/features/documents/types';
+import { DocumentCategory, DocumentFile, DocumentItem } from '@/components/features/documents/types';
 
 export type DocumentTab = 'all' | 'receipts' | 'images' | 'forms' | 'other';
 
@@ -55,6 +51,8 @@ const DocumentsSubtabPage = () => {
   const [uploadInProgress, setUploadInProgress] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentFile, setCurrentFile] = useState<File | null>(null);
+  const [currentMetadata, setCurrentMetadata] = useState<any>(null);
   
   const { 
     categoryItems, 
@@ -106,17 +104,17 @@ const DocumentsSubtabPage = () => {
   }, []);
   
   // Action handlers for document interactions
-  const handleDocumentAction = useCallback((doc: any) => {
+  const handleDocumentAction = useCallback((doc: DocumentItem) => {
     console.log('Document action:', doc);
   }, []);
   
-  const handleShareDocument = useCallback((doc: any) => {
+  const handleShareDocument = useCallback((doc: DocumentItem) => {
     console.log('Share document:', doc);
   }, []);
   
-  const handleDownloadDocument = useCallback((doc: any) => {
-    if (doc.fileUrl) {
-      handleDownloadFile(doc.fileUrl, doc.title || 'document');
+  const handleDownloadDocument = useCallback((doc: DocumentItem) => {
+    if (doc.file) {
+      handleDownloadFile(doc.file, doc.title || 'document');
     }
   }, [handleDownloadFile]);
   
@@ -125,13 +123,13 @@ const DocumentsSubtabPage = () => {
   }, [handleDeleteItemAction]);
   
   // Add document with file
-  const addDocument = async (file: File, metadata: any) => {
+  const addDocument = async (fileUrl: string, metadata: any) => {
     try {
       await handleAddOrUpdateItemAction({
         ...metadata,
-        file: URL.createObjectURL(file),
-        fileName: file.name,
-        fileType: file.type
+        file: fileUrl,
+        fileName: metadata.fileName,
+        fileType: metadata.fileType
       });
     } catch (error) {
       console.error('Error adding document:', error);
@@ -141,6 +139,8 @@ const DocumentsSubtabPage = () => {
   const handleAddDocumentSubmit = useCallback(async (file: File, metadata: any) => {
     try {
       setUploadInProgress(true);
+      setCurrentFile(file);
+      setCurrentMetadata(metadata);
       
       // If it's an image, open analysis modal
       if (file.type.startsWith('image/')) {
@@ -150,7 +150,13 @@ const DocumentsSubtabPage = () => {
       
       // For non-images, classify and add directly
       const type = await classifyDocument(file);
-      await addDocument(file, { ...metadata, type });
+      const fileUrl = URL.createObjectURL(file);
+      await addDocument(fileUrl, { 
+        ...metadata, 
+        type,
+        fileName: file.name,
+        fileType: file.type 
+      });
       setAddDialogOpen(false);
     } catch (error) {
       console.error('Error adding document:', error);
@@ -161,19 +167,25 @@ const DocumentsSubtabPage = () => {
   
   const handleAnalysisComplete = useCallback(async (result: AnalysisResult) => {
     try {
-      // Use analysis results to enhance document metadata
-      // Implementation depends on what your analysis returns
-      console.log('Analysis complete:', result);
-      
-      // Here you would typically add the document with enhanced metadata
-      // addDocument(file, { ...metadata, ...result });
+      if (currentFile && currentMetadata) {
+        // Use analysis results to enhance document metadata
+        const fileUrl = URL.createObjectURL(currentFile);
+        await addDocument(fileUrl, { 
+          ...currentMetadata,
+          ...result,
+          fileName: currentFile.name,
+          fileType: currentFile.type 
+        });
+      }
       
       setAnalysisModalOpen(false);
       setAddDialogOpen(false);
+      setCurrentFile(null);
+      setCurrentMetadata(null);
     } catch (error) {
       console.error('Error processing analysis results:', error);
     }
-  }, []);
+  }, [currentFile, currentMetadata]);
   
   const handleBackClick = useCallback(() => {
     navigate('/documents');
@@ -214,13 +226,27 @@ const DocumentsSubtabPage = () => {
     );
   }
   
+  // Convert DocumentItem[] to DocumentFile[] for the DocumentList component
+  const convertToDocumentFiles = (items: DocumentItem[]): DocumentFile[] => {
+    return items.map(item => ({
+      id: item.id,
+      title: item.title,
+      category: item.category,
+      date: item.date.toISOString(),
+      fileType: item.fileType || item.type,
+      fileUrl: item.file || (item.type === 'image' ? item.content : undefined)
+    }));
+  };
+  
+  // Get converted documents for the DocumentList component
+  const documentFiles = convertToDocumentFiles(filteredDocuments);
+  
   return (
     <PageLayout maxWidth="full">
       {/* Header */}
       <AppHeader
         title={`Documents - ${documentCategories.find(cat => cat.id === activeTab)?.label || 'All'}`}
-        onBackClick={handleBackClick}
-        backTo="/documents"
+        className="mb-4"
         actions={
           <Button
             onClick={handleAddClick}
@@ -263,15 +289,15 @@ const DocumentsSubtabPage = () => {
           <>
             {viewMode === 'grid' ? (
               <DocumentList
-                documents={filteredDocuments}
+                documents={documentFiles}
                 onEditDocument={handleDocumentAction}
                 onDeleteDocument={handleDeleteDocument}
                 onAddDocument={() => {}}
-                onDownload={handleDownloadDocument}
+                onDownload={handleDownloadFile}
               />
             ) : (
               <DocumentTableView
-                documents={filteredDocuments}
+                documents={documentFiles}
                 onEdit={handleDocumentAction}
                 onDelete={handleDeleteDocument}
                 onFullScreen={() => {}}
@@ -296,7 +322,7 @@ const DocumentsSubtabPage = () => {
         isOpen={analysisModalOpen}
         onClose={() => setAnalysisModalOpen(false)}
         onAnalysisComplete={handleAnalysisComplete}
-        imageData={null} // This needs to be fixed to provide the required prop
+        imageData={currentFile ? URL.createObjectURL(currentFile) : null}
       />
     </PageLayout>
   );
