@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -46,12 +47,18 @@ const ShoppingItemCard = ({
       } 
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
-  const cardHeight = isMobile ? '110px' : '180px';
+  // Reduced height for mobile to make cards more compact
+  const cardHeight = isMobile ? '90px' : '180px';
 
   const handleCardClick = (e: React.MouseEvent) => {
     if (onImagePreview && e.target === e.currentTarget) {
       onImagePreview();
     }
+  };
+
+  const handleRepeatBadgeClick = (e: React.MouseEvent) => {
+    // Prevent the card click from triggering
+    e.stopPropagation();
   };
 
   return (
@@ -75,7 +82,7 @@ const ShoppingItemCard = ({
           variant="secondary"
           className={cn(
             "rounded-full bg-white/70 hover:bg-white shadow-md",
-            isMobile ? "h-7 w-7" : "h-8 w-8"
+            isMobile ? "h-6 w-6" : "h-8 w-8" // Smaller button for mobile
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -94,7 +101,7 @@ const ShoppingItemCard = ({
           variant="secondary"
           className={cn(
             "rounded-full bg-white/70 hover:bg-white shadow-md",
-            isMobile ? "h-7 w-7" : "h-8 w-8"
+            isMobile ? "h-6 w-6" : "h-8 w-8" // Smaller button for mobile
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -117,12 +124,12 @@ const ShoppingItemCard = ({
         {completed && (
           <div className={cn(
             "rounded-full bg-green-500/80 flex items-center justify-center",
-            isMobile ? "h-14 w-14" : "h-16 w-16"
+            isMobile ? "h-12 w-12" : "h-16 w-16" // Slightly smaller checkmark for mobile
           )}>
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              width={isMobile ? "28" : "32"} 
-              height={isMobile ? "28" : "32"} 
+              width={isMobile ? "24" : "32"} // Smaller icon for mobile
+              height={isMobile ? "24" : "32"} 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
@@ -130,6 +137,7 @@ const ShoppingItemCard = ({
               strokeLinecap="round" 
               strokeLinejoin="round" 
               className="text-white"
+              aria-hidden="true"
             >
               <path d="M20 6L9 17l-5-5" />
             </svg>
@@ -140,7 +148,7 @@ const ShoppingItemCard = ({
       <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
         <h3 className={cn(
           "text-white font-medium text-shadow truncate",
-          isMobile ? "text-sm" : ""
+          isMobile ? "text-xs" : "" // Smaller text for mobile
         )} style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
           {name}
         </h3>
@@ -163,9 +171,7 @@ const ShoppingItemCard = ({
             "absolute bottom-2 right-2 bg-white/80 text-black cursor-default",
             isMobile ? "text-[10px]" : "text-xs"
           )}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
+          onClick={handleRepeatBadgeClick}
         >
           {repeatOption}
         </Badge>

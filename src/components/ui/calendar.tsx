@@ -2,7 +2,6 @@
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
-
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -18,11 +17,17 @@ function Calendar({
 }: CalendarProps) {
   const { isMobile } = useIsMobile();
   
+  // Enhanced aria labels for better accessibility
+  const navButtonLabels = {
+    previousMonth: "Previous month",
+    nextMonth: "Next month"
+  };
+  
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn("p-3 mx-auto", className)}
-      weekStartsOn={weekStartsOn} // Pass the weekStartsOn prop to DayPicker
+      weekStartsOn={weekStartsOn}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4 w-full",
@@ -34,7 +39,8 @@ function Calendar({
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+          "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
@@ -49,7 +55,8 @@ function Calendar({
         day: cn(
           buttonVariants({ variant: "ghost" }),
           "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
-          "text-xs"
+          "text-xs",
+          "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
         ),
         day_range_end: "day-range-end",
         day_selected:
@@ -64,8 +71,22 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ ..._props }) => <ChevronLeft className="h-3.5 w-3.5" />,
-        IconRight: ({ ..._props }) => <ChevronRight className="h-3.5 w-3.5" />,
+        IconLeft: ({ ..._props }) => (
+          <ChevronLeft 
+            className="h-3.5 w-3.5" 
+            aria-hidden="true" 
+          />
+        ),
+        IconRight: ({ ..._props }) => (
+          <ChevronRight 
+            className="h-3.5 w-3.5" 
+            aria-hidden="true" 
+          />
+        ),
+      }}
+      labels={{
+        ...navButtonLabels,
+        ...props.labels
       }}
       {...props}
     />

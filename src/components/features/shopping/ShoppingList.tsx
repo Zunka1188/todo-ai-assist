@@ -231,13 +231,14 @@ const ShoppingList = ({
       <div 
         className={cn(
           "grid",
-          isMobile ? "grid-cols-2 gap-1" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2"
+          isMobile ? "grid-cols-2 gap-0.5 mb-0.5" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2"
+          // Reduced gap for mobile view
         )}
         role="list"
         aria-label={items[0]?.completed ? "Purchased items" : "Shopping items"}
       >
         {items.map(item => (
-          <div key={item.id} className={isMobile ? "aspect-square pb-1" : "aspect-square"}>
+          <div key={item.id} className={isMobile ? "aspect-square pb-0.5" : "aspect-square"}>
             <ShoppingItemCard
               id={item.id}
               name={item.name}
@@ -268,23 +269,23 @@ const ShoppingList = ({
           </p>
         </div>
       ) : (
-        <ScrollArea className="h-[calc(100vh-280px)] overflow-y-auto touch-auto" style={{
-          WebkitOverflowScrolling: 'touch'
-        }}
-        tabIndex={0}
-        role="region"
-        aria-label="Shopping list items"
+        <ScrollArea 
+          className="h-[calc(100vh-280px)] overflow-y-auto touch-auto" 
+          style={{ WebkitOverflowScrolling: 'touch' }}
+          tabIndex={0}
+          role="region"
+          aria-label="Shopping list items"
         >
           <div className={cn(
             "pb-16",
-            isMobile ? "mb-6 px-1" : "px-4"
+            isMobile ? "mb-4 px-0.5" : "px-4" // Reduced padding for mobile
           )}>
             {notPurchasedItems.length > 0 && renderItemGrid(notPurchasedItems)}
             
             {purchasedItems.length > 0 && (
-              <div className={cn("mt-4", isMobile ? "mb-4" : "mb-6")}>
-                <Separator className={isMobile ? "mb-2" : "mb-3"} />
-                <h3 className={cn("text-lg font-medium", isMobile ? "mb-2" : "mb-3")} id="purchased-heading">
+              <div className={cn("mt-2", isMobile ? "mb-2" : "mb-6")}>
+                <Separator className={isMobile ? "mb-1" : "mb-3"} />
+                <h3 className={cn("text-lg font-medium", isMobile ? "mb-1" : "mb-3")} id="purchased-heading">
                   {isMobile ? 'Purchased' : 'Purchased Items'}
                 </h3>
                 {renderItemGrid(purchasedItems)}
