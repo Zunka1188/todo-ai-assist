@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShoppingList from '@/components/features/shopping/ShoppingList';
@@ -13,16 +12,28 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import PageHeader from '@/components/ui/page-header';
 import { cn } from '@/lib/utils';
 import DirectAddItem from '@/components/features/shopping/DirectAddItem';
-import { Users } from 'lucide-react';
+import { Users, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-// Inner component that has access to the ShoppingItemsContext
 const ShoppingPageContent: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [editItem, setEditItem] = useState<{ id: string, name?: string, item?: any } | null>(null);
   const [isReadOnlyMode, setIsReadOnlyMode] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [itemToDeleteId, setItemToDeleteId] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,8 +41,7 @@ const ShoppingPageContent: React.FC = () => {
   const { toast } = useToast();
   const { isMobile } = useIsMobile();
   
-  // Use the context to access shared state and methods
-  const { addItem, updateFilterMode } = useShoppingItemsContext();
+  const { addItem, updateItem, removeItem, updateFilterMode } = useShoppingItemsContext();
   
   const searchParams = new URLSearchParams(location.search);
   const tabFromUrl = searchParams.get('tab');
@@ -40,13 +50,11 @@ const ShoppingPageContent: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState(defaultTab);
 
-  // Store invitation status in localStorage
   const storeInvitationStatus = (isReadOnly: boolean) => {
     localStorage.setItem('shoppingInviteAccepted', 'true');
     localStorage.setItem('shoppingReadOnlyMode', isReadOnly ? 'true' : 'false');
   };
 
-  // Check for stored invitation status on initial load
   useEffect(() => {
     const storedInviteAccepted = localStorage.getItem('shoppingInviteAccepted');
     const storedReadOnlyMode = localStorage.getItem('shoppingReadOnlyMode');
@@ -63,13 +71,11 @@ const ShoppingPageContent: React.FC = () => {
     updateFilterMode(newTab as any);
   }, [location.search, tabFromUrl, updateFilterMode]);
 
-  // Check for invitation parameter and read-only mode
   useEffect(() => {
     const inviteParam = searchParams.get('invite');
     const modeParam = searchParams.get('mode');
     
     if (inviteParam) {
-      // Verify if the invite link is still valid
       try {
         const storedLinks = localStorage.getItem('shoppingInviteLinks');
         if (storedLinks) {
@@ -79,7 +85,6 @@ const ShoppingPageContent: React.FC = () => {
           );
           
           if (matchingLink) {
-            // Check if the link has expired
             if (matchingLink.expiresAt && new Date(matchingLink.expiresAt) < new Date()) {
               toast({
                 title: "Invitation Expired",
@@ -89,11 +94,8 @@ const ShoppingPageContent: React.FC = () => {
               return;
             }
             
-            // Set read-only mode if specified
             const isReadOnly = modeParam === 'readonly';
             setIsReadOnlyMode(isReadOnly);
-            
-            // Store invitation status in localStorage
             storeInvitationStatus(isReadOnly);
             
             toast({
@@ -114,7 +116,6 @@ const ShoppingPageContent: React.FC = () => {
         console.error("[ERROR] Error processing invitation:", error);
       }
       
-      // Keep the tab parameter but remove the invitation parameters
       const newUrl = `${window.location.pathname}?tab=${activeTab}`;
       window.history.replaceState({}, '', newUrl);
     }
@@ -128,7 +129,6 @@ const ShoppingPageContent: React.FC = () => {
   };
 
   const handleEditItem = (id: string, name?: string, item?: any) => {
-    // Prevent editing in read-only mode
     if (isReadOnlyMode) {
       toast({
         title: "Read-only Mode",
@@ -146,8 +146,11 @@ const ShoppingPageContent: React.FC = () => {
     setEditItem(null);
   }
 
+  const processBase64ForUpload = (base64Image: string): string => {
+    return base64Image;
+  };
+
   const handleSaveItem = (item: any) => {
-    // Prevent adding items in read-only mode
     if (isReadOnlyMode) {
       toast({
         title: "Read-only Mode",
@@ -158,29 +161,34 @@ const ShoppingPageContent: React.FC = () => {
     }
     
     try {
+      setIsProcessing(true);
       console.log('[DEBUG] ShoppingPage - Adding item with data:', JSON.stringify(item, null, 2));
       
-      // Make sure all required fields are included
+      let imageUrl = null;
+      if (item.file && typeof item.file === 'string' && item.file.startsWith('data:')) {
+        imageUrl = processBase64ForUpload(item.file);
+      } else if (item.imageUrl) {
+        imageUrl = item.imageUrl;
+      }
+      
       const itemToAdd = {
         name: item.name || 'Unnamed Item',
         amount: item.amount || '',
         price: item.price || '',
-        imageUrl: item.imageUrl || item.file || null,
+        imageUrl: imageUrl,
         notes: item.notes || '',
         repeatOption: item.repeatOption || 'none',
         category: item.category || '',
         dateToPurchase: item.dateToPurchase || '',
-        completed: false // Always explicitly set completed to false
+        completed: false
       };
       
       console.log('[DEBUG] ShoppingPage - Properly structured item to add:', JSON.stringify(itemToAdd, null, 2));
       
-      // Call addItem from context with the structured data
       const result = addItem(itemToAdd);
       console.log('[DEBUG] ShoppingPage - Add item result:', result);
       
       if (result) {
-        // Navigate to the appropriate tab if needed
         const targetTab = itemToAdd.repeatOption === 'weekly' 
           ? 'weekly' 
           : itemToAdd.repeatOption === 'monthly' 
@@ -196,6 +204,7 @@ const ShoppingPageContent: React.FC = () => {
           description: `${item.name} has been added to your shopping list.`
         });
         
+        setIsProcessing(false);
         return true;
       } else {
         toast({
@@ -212,11 +221,12 @@ const ShoppingPageContent: React.FC = () => {
         variant: "destructive"
       });
     }
+    
+    setIsProcessing(false);
     return false;
   }
 
   const handleUpdateItem = (updatedItem: any) => {
-    // Prevent updating in read-only mode
     if (isReadOnlyMode) {
       toast({
         title: "Read-only Mode",
@@ -227,31 +237,35 @@ const ShoppingPageContent: React.FC = () => {
     }
     
     try {
+      setIsProcessing(true);
       if (!editItem || !editItem.id) return false;
       
       console.log("[DEBUG] ShoppingPage - Updating item:", JSON.stringify(updatedItem, null, 2));
       
+      let imageUrl = null;
+      if (updatedItem.file && typeof updatedItem.file === 'string' && updatedItem.file.startsWith('data:')) {
+        imageUrl = processBase64ForUpload(updatedItem.file);
+      } else if (updatedItem.imageUrl) {
+        imageUrl = updatedItem.imageUrl;
+      }
+      
       const itemData = {
         name: updatedItem.name,
         amount: updatedItem.amount,
-        imageUrl: updatedItem.imageUrl || updatedItem.file || null,
+        imageUrl: imageUrl,
         notes: updatedItem.notes,
         repeatOption: updatedItem.repeatOption || 'none',
-        // Always preserve the completed state, don't override it during edit
         completed: editItem.item?.completed
       };
       
-      // Use addItem with ID to update existing item
-      const result = addItem({
-        ...itemData,
-        id: editItem.id // Pass the ID to ensure it updates rather than creates new
-      });
+      const result = updateItem(editItem.id, itemData);
       
       if (result) {
         toast({
           title: "Item Updated",
           description: `${updatedItem.name} has been updated.`
         });
+        setIsProcessing(false);
         return true;
       }
     } catch (error) {
@@ -262,8 +276,48 @@ const ShoppingPageContent: React.FC = () => {
         variant: "destructive"
       });
     }
+    
+    setIsProcessing(false);
     return false;
   }
+
+  const handleDeleteItem = (id: string) => {
+    if (isReadOnlyMode) {
+      toast({
+        title: "Read-only Mode",
+        description: "You don't have permission to delete items in this shared list.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setItemToDeleteId(id);
+    setShowConfirmDialog(true);
+  };
+
+  const confirmDeleteItem = () => {
+    if (!itemToDeleteId) return;
+    
+    setIsProcessing(true);
+    const result = removeItem(itemToDeleteId);
+    setShowConfirmDialog(false);
+    
+    if (result) {
+      toast({
+        title: "Item Deleted",
+        description: "The item has been removed from your shopping list."
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to delete the item.",
+        variant: "destructive"
+      });
+    }
+    
+    setItemToDeleteId(null);
+    setIsProcessing(false);
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -392,11 +446,36 @@ const ShoppingPageContent: React.FC = () => {
       )}
 
       {debugEnabled && <DirectAddItem />}
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this item? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setItemToDeleteId(null)} disabled={isProcessing}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteItem} disabled={isProcessing}>
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
 
-// Wrapper component that provides the context
 const ShoppingPage: React.FC = () => {
   return (
     <ShoppingItemsProvider>

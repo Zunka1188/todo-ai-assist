@@ -158,6 +158,32 @@ const ShoppingList = ({
     }
   };
 
+  const handleDeleteItem = (itemId: string) => {
+    if (readOnly) {
+      toast({
+        title: "Read-only Mode",
+        description: "You don't have permission to delete items in this shared list.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const result = removeItem(itemId);
+    if (result) {
+      toast({
+        title: "Item Deleted",
+        description: `${result.name} has been removed from your list.`,
+      });
+    } else {
+      console.error("[ERROR] ShoppingList - Failed to delete item");
+      toast({
+        title: "Error",
+        description: "Failed to delete item",
+        variant: "destructive",
+      });
+    }
+  };
+
   const renderShoppingItemsGrid = (items: any[]) => (
     <div className={cn(
       "grid",
@@ -184,7 +210,7 @@ const ShoppingList = ({
                 });
                 return;
               }
-              removeItem(item.id);
+              handleDeleteItem(item.id);
             }}
             onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
             onImagePreview={() => handleImagePreview(item)}
@@ -246,7 +272,7 @@ const ShoppingList = ({
             return;
           }
           if (selectedItem) {
-            removeItem(selectedItem.id);
+            handleDeleteItem(selectedItem.id);
           }
           handleCloseImageDialog();
         }}
