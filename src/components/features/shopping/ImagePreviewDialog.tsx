@@ -2,10 +2,9 @@
 import React, { useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X, Share2, Pencil, Trash2, Download } from 'lucide-react';
+import { X, Pencil, Trash2 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import ShareButton from '@/components/features/shared/ShareButton';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogAction, AlertDialogCancel, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
 
@@ -52,28 +51,6 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
     };
   }, [imageUrl, onClose, navigate, location.pathname]);
 
-  const handleDownload = () => {
-    if (!imageUrl) return;
-    
-    // Create a more descriptive filename using item name if available
-    const filename = item?.name 
-      ? `shopping-item-${item.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`
-      : `shopping-item-${Date.now()}`;
-    
-    const a = document.createElement('a');
-    a.href = imageUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    // Provide feedback that download started
-    toast({
-      title: "Download Started",
-      description: "Your image is being downloaded",
-    });
-  };
-
   if (!imageUrl) return null;
   
   return (
@@ -104,32 +81,8 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
             />
           </div>
           
-          {/* Action buttons */}
+          {/* Action buttons - only edit and delete remain */}
           <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-            {/* Share button */}
-            <ShareButton
-              title="Check out this image"
-              text={item?.name || "Shopping item"}
-              fileUrl={imageUrl}
-              variant="secondary"
-              className="bg-background/80 hover:bg-background/90"
-              size="icon"
-              showOptions={true}
-            >
-              <Share2 className="h-4 w-4" />
-            </ShareButton>
-            
-            {/* Download button */}
-            <Button
-              onClick={handleDownload}
-              variant="secondary" 
-              size="icon"
-              className="bg-background/80 hover:bg-background/90"
-              title="Download image"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-            
             {/* Edit button */}
             {onEdit && !readOnly && (
               <Button
