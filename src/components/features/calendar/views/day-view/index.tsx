@@ -40,7 +40,11 @@ const DayView: React.FC<DayViewProps> = ({
     handleTimeRangeToggle,
     handleTimeRangeChange,
     handleInputBlur,
+    processedEvents,
   } = useEventManagement(events, date);
+
+  console.log("DayView - Events:", events);
+  console.log("DayView - ProcessedEvents:", processedEvents);
 
   const prevDay = () => {
     setDate(subDays(date, 1));
@@ -92,6 +96,7 @@ const DayView: React.FC<DayViewProps> = ({
           startHour={startHour}
           numHours={numHours}
           gridRef={gridRef}
+          processedEvents={processedEvents}
         />
       </div>
     </div>

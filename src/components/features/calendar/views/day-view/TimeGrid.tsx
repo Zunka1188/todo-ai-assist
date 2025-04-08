@@ -3,7 +3,6 @@ import React from 'react';
 import { Event } from '../../types/event';
 import { useIsMobile } from '@/hooks/use-mobile';
 import TimeGridEvent from './TimeGridEvent';
-import { useEventManagement } from './useEventManagement';
 
 interface TimeGridProps {
   events: Event[];
@@ -12,11 +11,26 @@ interface TimeGridProps {
   startHour: number;
   numHours: number;
   gridRef: React.RefObject<HTMLDivElement>;
+  processedEvents: Array<{
+    maxOverlap: number;
+    events: Event[];
+  }>;
 }
 
-const TimeGrid: React.FC<TimeGridProps> = ({ events, date, handleViewEvent, startHour, numHours, gridRef }) => {
+const TimeGrid: React.FC<TimeGridProps> = ({ 
+  events, 
+  date, 
+  handleViewEvent, 
+  startHour, 
+  numHours, 
+  gridRef,
+  processedEvents 
+}) => {
   const { isMobile } = useIsMobile();
-  const { processedEvents } = useEventManagement(events, date);
+
+  console.log("TimeGrid - Events:", events);
+  console.log("TimeGrid - ProcessedEvents:", processedEvents);
+  console.log("TimeGrid - StartHour/NumHours:", startHour, numHours);
 
   // Generate hour markers
   const hourMarkers = Array.from({ length: numHours + 1 }).map((_, index) => {
@@ -62,7 +76,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({ events, date, handleViewEvent, star
       </div>
       
       {/* Events */}
-      {processedEvents.map((eventGroup) => {
+      {processedEvents && processedEvents.map((eventGroup, groupIndex) => {
         return eventGroup.events.map((event, eventIndex) => (
           <TimeGridEvent
             key={`event-${event.id}`}

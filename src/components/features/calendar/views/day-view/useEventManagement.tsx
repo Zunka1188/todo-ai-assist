@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Event } from '../../types/event';
 import { useToast } from '@/hooks/use-toast';
