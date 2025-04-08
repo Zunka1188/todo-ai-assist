@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useCallback } from 'react';
 import { useShoppingItems, ShoppingItem, SortOption } from './useShoppingItems';
 
 type FilterMode = 'one-off' | 'weekly' | 'monthly' | 'all';
@@ -45,22 +45,22 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
   defaultFilterMode = 'all',
   defaultSearchTerm = '',
 }) => {
-  const [filterMode, setFilterMode] = React.useState<FilterMode>(defaultFilterMode);
-  const [searchTerm, setSearchTerm] = React.useState<string>(defaultSearchTerm);
+  const [filterMode, setFilterMode] = useState<FilterMode>(defaultFilterMode);
+  const [searchTerm, setSearchTerm] = useState<string>(defaultSearchTerm);
   
   // Create a single instance of useShoppingItems
   const shoppingItemsData = useShoppingItems(filterMode, searchTerm);
   
   // Expose methods to update filterMode and searchTerm
-  const updateFilterMode = (mode: FilterMode) => {
+  const updateFilterMode = useCallback((mode: FilterMode) => {
     console.log("[DEBUG] ShoppingItemsContext - Updating filter mode:", mode);
     setFilterMode(mode);
-  };
+  }, []);
   
-  const updateSearchTerm = (term: string) => {
+  const updateSearchTerm = useCallback((term: string) => {
     console.log("[DEBUG] ShoppingItemsContext - Updating search term:", term);
     setSearchTerm(term);
-  };
+  }, []);
   
   // Enhanced context value with the additional methods
   const contextValue: ShoppingItemsContextValue = {

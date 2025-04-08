@@ -88,7 +88,7 @@ const ShoppingList = ({
         name: itemData.name,
         amount: itemData.amount || '1', 
         price: itemData.price || '',
-        imageUrl: itemData.file || null,
+        imageUrl: itemData.imageUrl || null, // Use imageUrl instead of file
         notes: itemData.notes || '',
         repeatOption: itemData.repeatOption || 'none',
         category: itemData.category || '',
@@ -201,17 +201,7 @@ const ShoppingList = ({
             imageUrl={item.imageUrl}
             notes={item.notes}
             onClick={() => handleToggleItemCompletion(item.id)}
-            onDelete={() => {
-              if (readOnly) {
-                toast({
-                  title: "Read-only Mode",
-                  description: "You don't have permission to delete items in this shared list.",
-                  variant: "destructive"
-                });
-                return;
-              }
-              handleDeleteItem(item.id);
-            }}
+            onDelete={() => handleDeleteItem(item.id)}
             onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
             onImagePreview={() => handleImagePreview(item)}
             readOnly={readOnly}

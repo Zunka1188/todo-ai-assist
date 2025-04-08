@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShoppingList from '@/components/features/shopping/ShoppingList';
 import AddItemDialog from '@/components/features/shopping/AddItemDialog';
@@ -25,6 +26,114 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+// Function to compress images before upload
+const compressImage = async (imageFile: File) => {
+  try {
+    // Basic compression technique - you may want to use a library like browser-image-compression
+    const MAX_SIZE = 1024 * 1024; // 1 MB
+    
+    if (imageFile.size <= MAX_SIZE) {
+      return imageFile; // Already small enough
+    }
+    
+    // Create a new canvas to resize the image
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Create an image element
+    const img = document.createElement('img');
+    
+    // Create a promise to handle the async operation
+    return new Promise<File>((resolve, reject) => {
+      img.onload = () => {
+        try {
+          // Calculate new dimensions while maintaining aspect ratio
+          let width = img.width;
+          let height = img.height;
+          
+          // Max dimensions for compressed image
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round(height * (MAX_WIDTH / width));
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round(width * (MAX_HEIGHT / height));
+              height = MAX_HEIGHT;
+            }
+          }
+          
+          // Set canvas dimensions to new size
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Draw the resized image on the canvas
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // Convert canvas to blob and then to File
+          canvas.toBlob(blob => {
+            if (blob) {
+              const newFile = new File([blob], imageFile.name, {
+                type: imageFile.type,
+                lastModified: Date.now()
+              });
+              resolve(newFile);
+            } else {
+              reject(new Error('Failed to compress image'));
+            }
+          }, imageFile.type, 0.7); // Quality set to 0.7
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      img.onerror = () => reject(new Error('Failed to load image for compression'));
+      
+      // Load the image from the file
+      const reader = new FileReader();
+      reader.onload = (e) => img.src = e.target?.result as string;
+      reader.onerror = () => reject(new Error('Failed to read image file'));
+      reader.readAsDataURL(imageFile);
+    });
+  } catch (error) {
+    console.error('Image compression error:', error);
+    return imageFile; // Return original file if compression fails
+  }
+};
+
+// Function to upload images to the server
+const uploadImage = async (imageFile: File) => {
+  try {
+    // First compress the image
+    const compressedImage = await compressImage(imageFile);
+    
+    // Create form data for upload
+    const formData = new FormData();
+    formData.append('image', compressedImage);
+    
+    // Upload to the server
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Upload failed with status: ${response.status}`);
+    }
+    
+    // Parse the response to get the image URL
+    const data = await response.json();
+    return data.imageUrl;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw error; // Rethrow to handle in the calling function
+  }
+};
+
 const ShoppingPageContent: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -50,10 +159,13 @@ const ShoppingPageContent: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState(defaultTab);
 
-  const storeInvitationStatus = (isReadOnly: boolean) => {
+  // Memoized toast function to prevent unnecessary re-renders
+  const memoizedToast = useCallback(toast, [toast]);
+
+  const storeInvitationStatus = useCallback((isReadOnly: boolean) => {
     localStorage.setItem('shoppingInviteAccepted', 'true');
     localStorage.setItem('shoppingReadOnlyMode', isReadOnly ? 'true' : 'false');
-  };
+  }, []);
 
   useEffect(() => {
     const storedInviteAccepted = localStorage.getItem('shoppingInviteAccepted');
@@ -86,7 +198,7 @@ const ShoppingPageContent: React.FC = () => {
           
           if (matchingLink) {
             if (matchingLink.expiresAt && new Date(matchingLink.expiresAt) < new Date()) {
-              toast({
+              memoizedToast({
                 title: "Invitation Expired",
                 description: "This shopping list invitation has expired.",
                 variant: "destructive"
@@ -98,14 +210,14 @@ const ShoppingPageContent: React.FC = () => {
             setIsReadOnlyMode(isReadOnly);
             storeInvitationStatus(isReadOnly);
             
-            toast({
+            memoizedToast({
               title: isReadOnly ? "View-only Access" : "Invitation Accepted",
               description: isReadOnly 
                 ? "You can view but not modify this shopping list" 
                 : "You've joined a shared shopping list"
             });
           } else {
-            toast({
+            memoizedToast({
               title: "Invalid Invitation",
               description: "This shopping list invitation is invalid or has been revoked.",
               variant: "destructive"
@@ -119,7 +231,7 @@ const ShoppingPageContent: React.FC = () => {
       const newUrl = `${window.location.pathname}?tab=${activeTab}`;
       window.history.replaceState({}, '', newUrl);
     }
-  }, [location.search, toast, activeTab]);
+  }, [location.search, memoizedToast, activeTab, storeInvitationStatus]);
 
   const handleTabChange = (value: string) => {
     console.log(`[DEBUG] ShoppingPage - Tab changed to: ${value}`);
@@ -130,7 +242,7 @@ const ShoppingPageContent: React.FC = () => {
 
   const handleEditItem = (id: string, name?: string, item?: any) => {
     if (isReadOnlyMode) {
-      toast({
+      memoizedToast({
         title: "Read-only Mode",
         description: "You don't have permission to edit items in this shared list.",
         variant: "destructive"
@@ -146,13 +258,9 @@ const ShoppingPageContent: React.FC = () => {
     setEditItem(null);
   }
 
-  const processBase64ForUpload = (base64Image: string): string => {
-    return base64Image;
-  };
-
-  const handleSaveItem = (item: any) => {
+  const handleSaveItem = async (item: any) => {
     if (isReadOnlyMode) {
-      toast({
+      memoizedToast({
         title: "Read-only Mode",
         description: "You don't have permission to add items to this shared list.",
         variant: "destructive"
@@ -165,8 +273,16 @@ const ShoppingPageContent: React.FC = () => {
       console.log('[DEBUG] ShoppingPage - Adding item with data:', JSON.stringify(item, null, 2));
       
       let imageUrl = null;
-      if (item.file && typeof item.file === 'string' && item.file.startsWith('data:')) {
-        imageUrl = processBase64ForUpload(item.file);
+      if (item.file && item.file instanceof File) {
+        try {
+          imageUrl = await uploadImage(item.file);
+        } catch (error) {
+          memoizedToast({
+            title: "Image Upload Failed",
+            description: "Failed to upload image, but we'll continue adding the item.",
+            variant: "destructive"
+          });
+        }
       } else if (item.imageUrl) {
         imageUrl = item.imageUrl;
       }
@@ -199,7 +315,7 @@ const ShoppingPageContent: React.FC = () => {
           navigate(`/shopping?tab=${targetTab}`, { replace: true });
         }
         
-        toast({
+        memoizedToast({
           title: "Item Added",
           description: `${item.name} has been added to your shopping list.`
         });
@@ -207,7 +323,7 @@ const ShoppingPageContent: React.FC = () => {
         setIsProcessing(false);
         return true;
       } else {
-        toast({
+        memoizedToast({
           title: "Failed to Add Item",
           description: "The item could not be added to your shopping list.",
           variant: "destructive"
@@ -215,7 +331,7 @@ const ShoppingPageContent: React.FC = () => {
       }
     } catch (error) {
       console.error("[ERROR] ShoppingPage - Error adding item:", error);
-      toast({
+      memoizedToast({
         title: "Error",
         description: "Failed to add item to list",
         variant: "destructive"
@@ -226,9 +342,9 @@ const ShoppingPageContent: React.FC = () => {
     return false;
   }
 
-  const handleUpdateItem = (updatedItem: any) => {
+  const handleUpdateItem = async (updatedItem: any) => {
     if (isReadOnlyMode) {
-      toast({
+      memoizedToast({
         title: "Read-only Mode",
         description: "You don't have permission to update items in this shared list.",
         variant: "destructive"
@@ -243,8 +359,16 @@ const ShoppingPageContent: React.FC = () => {
       console.log("[DEBUG] ShoppingPage - Updating item:", JSON.stringify(updatedItem, null, 2));
       
       let imageUrl = null;
-      if (updatedItem.file && typeof updatedItem.file === 'string' && updatedItem.file.startsWith('data:')) {
-        imageUrl = processBase64ForUpload(updatedItem.file);
+      if (updatedItem.file && updatedItem.file instanceof File) {
+        try {
+          imageUrl = await uploadImage(updatedItem.file);
+        } catch (error) {
+          memoizedToast({
+            title: "Image Upload Failed",
+            description: "Failed to upload image, but we'll continue updating the item.",
+            variant: "destructive"
+          });
+        }
       } else if (updatedItem.imageUrl) {
         imageUrl = updatedItem.imageUrl;
       }
@@ -261,7 +385,7 @@ const ShoppingPageContent: React.FC = () => {
       const result = updateItem(editItem.id, itemData);
       
       if (result) {
-        toast({
+        memoizedToast({
           title: "Item Updated",
           description: `${updatedItem.name} has been updated.`
         });
@@ -270,7 +394,7 @@ const ShoppingPageContent: React.FC = () => {
       }
     } catch (error) {
       console.error("[ERROR] ShoppingPage - Error updating item:", error);
-      toast({
+      memoizedToast({
         title: "Error",
         description: "Failed to update item",
         variant: "destructive"
@@ -283,7 +407,7 @@ const ShoppingPageContent: React.FC = () => {
 
   const handleDeleteItem = (id: string) => {
     if (isReadOnlyMode) {
-      toast({
+      memoizedToast({
         title: "Read-only Mode",
         description: "You don't have permission to delete items in this shared list.",
         variant: "destructive"
@@ -298,17 +422,16 @@ const ShoppingPageContent: React.FC = () => {
   const confirmDeleteItem = () => {
     if (!itemToDeleteId) return;
     
-    setIsProcessing(true);
     const result = removeItem(itemToDeleteId);
     setShowConfirmDialog(false);
     
     if (result) {
-      toast({
+      memoizedToast({
         title: "Item Deleted",
         description: "The item has been removed from your shopping list."
       });
     } else {
-      toast({
+      memoizedToast({
         title: "Error",
         description: "Failed to delete the item.",
         variant: "destructive"
@@ -316,7 +439,6 @@ const ShoppingPageContent: React.FC = () => {
     }
     
     setItemToDeleteId(null);
-    setIsProcessing(false);
   };
 
   return (
@@ -327,7 +449,7 @@ const ShoppingPageContent: React.FC = () => {
         onSearchChange={setSearchTerm}
         onAddItem={() => {
           if (isReadOnlyMode) {
-            toast({
+            memoizedToast({
               title: "Read-only Mode",
               description: "You don't have permission to add items to this shared list.",
               variant: "destructive"
@@ -343,7 +465,7 @@ const ShoppingPageContent: React.FC = () => {
           <Button
             onClick={() => {
               if (isReadOnlyMode) {
-                toast({
+                memoizedToast({
                   title: "Read-only Mode",
                   description: "You don't have permission to share this list further.",
                   variant: "destructive"
@@ -456,18 +578,11 @@ const ShoppingPageContent: React.FC = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setItemToDeleteId(null)} disabled={isProcessing}>
+            <AlertDialogCancel onClick={() => setItemToDeleteId(null)}>
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteItem} disabled={isProcessing}>
-              {isProcessing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
+            <AlertDialogAction onClick={confirmDeleteItem}>
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
