@@ -39,6 +39,22 @@ const documentCategories = [
   { id: 'other', label: 'Other', icon: File },
 ];
 
+// Interface for the AddDocumentDialog's expected document item format
+interface AddDocDialogItem {
+  id: string;
+  title: string;
+  category: string;
+  tags: string[];
+  date: string;
+  addedDate: string;
+  description?: string;
+  file?: string | null;
+  fileName?: string;
+  fileType?: string;
+  type?: string;
+  content?: string;
+}
+
 const DocumentsSubtabPage = () => {
   const { subtab } = useParams<{ subtab: DocumentTab }>();
   const navigate = useNavigate();
@@ -183,9 +199,25 @@ const DocumentsSubtabPage = () => {
     navigate('/documents');
   }, [navigate]);
   
-  const handleAddDocumentWrapper = useCallback((item: DocumentItem) => {
+  const handleAddDocumentWrapper = useCallback((item: AddDocDialogItem) => {
     console.log("Document item received:", item);
-  }, []);
+    
+    const documentItem: Partial<DocumentItem> = {
+      id: item.id,
+      title: item.title,
+      category: item.category as DocumentCategory,
+      type: (item.type as 'image' | 'note') || 'note',
+      content: item.content || item.description || '',
+      tags: item.tags || [],
+      date: new Date(item.date),
+      addedDate: new Date(item.addedDate),
+      file: item.file,
+      fileName: item.fileName,
+      fileType: item.fileType
+    };
+    
+    handleAddOrUpdateItem(documentItem as DocumentItem);
+  }, [handleAddOrUpdateItem]);
 
   if (isLoading) {
     return (
