@@ -20,6 +20,8 @@ interface ShoppingItemsContextValue {
   setSelectedItems: (items: string[]) => void;
   filterMode: FilterMode;
   searchTerm: string;
+  updateFilterMode: (mode: FilterMode) => void;
+  updateSearchTerm: (term: string) => void;
 }
 
 const ShoppingItemsContext = createContext<ShoppingItemsContextValue | undefined>(undefined);
@@ -61,7 +63,7 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
   };
   
   // Enhanced context value with the additional methods
-  const contextValue = {
+  const contextValue: ShoppingItemsContextValue = {
     ...shoppingItemsData,
     filterMode,
     searchTerm,
