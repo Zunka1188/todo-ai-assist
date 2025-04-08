@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -72,24 +71,20 @@ const DocumentsSubtabPage = () => {
   
   const { classifyDocument } = useDocumentClassification();
   
-  // Update URL when tab changes
   useEffect(() => {
     if (subtab !== activeTab && activeTab) {
       navigate(`/documents/${activeTab}`);
     }
   }, [activeTab, subtab, navigate]);
   
-  // Set tab based on URL parameter
   useEffect(() => {
     if (subtab && documentCategories.some(cat => cat.id === subtab)) {
       setActiveTab(subtab as DocumentTab);
     } else {
-      // Default to 'all' if invalid subtab
       setActiveTab('all');
     }
   }, [subtab]);
   
-  // Get documents filtered by current tab
   const filteredDocuments = filterDocuments(categoryItems, activeTab as DocumentCategory, '');
   
   const handleTabChange = useCallback((tab: DocumentTab) => {
@@ -104,18 +99,17 @@ const DocumentsSubtabPage = () => {
     setAddDialogOpen(true);
   }, []);
   
-  // Action handlers for document interactions
-  const handleDocumentAction = useCallback((doc: DocumentItem) => {
+  const handleDocumentAction = useCallback((doc: DocumentFile) => {
     console.log('Document action:', doc);
   }, []);
   
-  const handleShareDocument = useCallback((doc: DocumentItem) => {
+  const handleShareDocument = useCallback((doc: DocumentFile) => {
     console.log('Share document:', doc);
   }, []);
   
-  const handleDownloadDocument = useCallback((doc: DocumentItem) => {
-    if (doc.file) {
-      handleDownloadFile(doc.file, doc.title || 'document');
+  const handleDownloadDocument = useCallback((doc: DocumentFile) => {
+    if (doc.fileUrl) {
+      handleDownloadFile(doc.fileUrl, doc.title || 'document');
     }
   }, [handleDownloadFile]);
   
@@ -123,7 +117,6 @@ const DocumentsSubtabPage = () => {
     handleDeleteItemAction(id);
   }, [handleDeleteItemAction]);
   
-  // Add document with file
   const addDocument = async (fileUrl: string, metadata: any) => {
     try {
       await handleAddOrUpdateItemAction({
@@ -143,13 +136,11 @@ const DocumentsSubtabPage = () => {
       setCurrentFile(file);
       setCurrentMetadata(metadata);
       
-      // If it's an image, open analysis modal
       if (file.type.startsWith('image/')) {
         setAnalysisModalOpen(true);
         return;
       }
       
-      // For non-images, classify and add directly
       const type = await classifyDocument(file);
       const fileUrl = URL.createObjectURL(file);
       await addDocument(fileUrl, { 
@@ -169,7 +160,6 @@ const DocumentsSubtabPage = () => {
   const handleAnalysisComplete = useCallback(async (result: AnalysisResult) => {
     try {
       if (currentFile && currentMetadata) {
-        // Use analysis results to enhance document metadata
         const fileUrl = URL.createObjectURL(currentFile);
         await addDocument(fileUrl, { 
           ...currentMetadata,
@@ -192,7 +182,6 @@ const DocumentsSubtabPage = () => {
     navigate('/documents');
   }, [navigate]);
   
-  // Show loading state
   if (isLoading) {
     return (
       <PageLayout maxWidth="full">
@@ -206,7 +195,6 @@ const DocumentsSubtabPage = () => {
     );
   }
   
-  // Show error state
   if (error) {
     return (
       <PageLayout maxWidth="full">
@@ -227,7 +215,6 @@ const DocumentsSubtabPage = () => {
     );
   }
   
-  // Convert DocumentItem[] to DocumentFile[] for the DocumentList component
   const convertToDocumentFiles = (items: DocumentItem[]): DocumentFile[] => {
     return items.map(item => ({
       id: item.id,
@@ -239,12 +226,10 @@ const DocumentsSubtabPage = () => {
     }));
   };
   
-  // Get converted documents for the DocumentList component
   const documentFiles = convertToDocumentFiles(filteredDocuments);
   
   return (
     <PageLayout maxWidth="full">
-      {/* Header */}
       <AppHeader
         title={`Documents - ${documentCategories.find(cat => cat.id === activeTab)?.label || 'All'}`}
         className="mb-4"
@@ -260,7 +245,6 @@ const DocumentsSubtabPage = () => {
         }
       />
 
-      {/* Tabs Navigation */}
       <div className="mb-6">
         <DocumentTabs
           activeTab={activeTab}
@@ -268,7 +252,6 @@ const DocumentsSubtabPage = () => {
         />
       </div>
       
-      {/* Content */}
       <TabsContent value={activeTab} className="m-0 p-0">
         {filteredDocuments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
@@ -296,27 +279,15 @@ const DocumentsSubtabPage = () => {
             {viewMode === 'grid' ? (
               <DocumentList
                 documents={documentFiles}
-                onEditDocument={(doc: DocumentFile) => {
-                  // Find the original document item
-                  const originalItem = categoryItems.find(item => item.id === doc.id);
-                  if (originalItem) {
-                    handleDocumentAction(originalItem);
-                  }
-                }}
+                onEditDocument={handleDocumentAction}
                 onDeleteDocument={handleDeleteDocument}
-                onAddDocument={() => {}}
+                onAddDocument={handleAddClick}
                 onDownload={handleDownloadFile}
               />
             ) : (
               <DocumentTableView
                 documents={documentFiles}
-                onEdit={(doc: DocumentFile) => {
-                  // Find the original document item
-                  const originalItem = categoryItems.find(item => item.id === doc.id);
-                  if (originalItem) {
-                    handleDocumentAction(originalItem);
-                  }
-                }}
+                onEdit={handleDocumentAction}
                 onDelete={handleDeleteDocument}
                 onFullScreen={() => {}}
               />
@@ -325,23 +296,20 @@ const DocumentsSubtabPage = () => {
         )}
       </TabsContent>
       
-      {/* Add Document Dialog */}
       <AddDocumentDialog
         open={addDialogOpen}
         onOpenChange={(open) => setAddDialogOpen(open)}
         onAdd={(item) => {
-          // This adapter function handles the mismatch between what AddDocumentDialog expects
-          // and what our handleAddDocumentSubmit expects
           if (currentFile) {
             handleAddDocumentSubmit(currentFile, item);
           }
         }}
-        isLoading={uploadInProgress}
         categories={CATEGORIES as string[]}
         currentCategory={activeTab as DocumentCategory}
+        isEditing={false}
+        editItem={null}
       />
       
-      {/* Analysis Modal for Images */}
       <ImageAnalysisModal
         isOpen={analysisModalOpen}
         onClose={() => setAnalysisModalOpen(false)}
@@ -352,7 +320,6 @@ const DocumentsSubtabPage = () => {
   );
 };
 
-// Define the DocumentTabs component
 interface DocumentTabsProps {
   activeTab: DocumentTab;
   onTabChange: (tab: DocumentTab) => void;
