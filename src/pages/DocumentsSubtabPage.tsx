@@ -27,6 +27,7 @@ import { useDocumentClassification } from '@/hooks/useDocumentClassification';
 import ImageAnalysisModal from '@/components/features/documents/ImageAnalysisModal';
 import { AnalysisResult } from '@/utils/imageAnalysis';
 import { DocumentCategory, DocumentFile, DocumentItem } from '@/components/features/documents/types';
+import ResponsiveContainer from '@/components/ui/responsive-container';
 
 export type DocumentTab = 'all' | 'receipts' | 'images' | 'forms' | 'other';
 
@@ -286,11 +287,22 @@ const DocumentsSubtabPage = () => {
             </Button>
           </div>
         ) : (
-          <>
+          <ResponsiveContainer
+            direction="column"
+            gap="md"
+            className="w-full"
+            mobileFullWidth={true}
+          >
             {viewMode === 'grid' ? (
               <DocumentList
                 documents={documentFiles}
-                onEditDocument={handleDocumentAction}
+                onEditDocument={(doc: DocumentFile) => {
+                  // Find the original document item
+                  const originalItem = categoryItems.find(item => item.id === doc.id);
+                  if (originalItem) {
+                    handleDocumentAction(originalItem);
+                  }
+                }}
                 onDeleteDocument={handleDeleteDocument}
                 onAddDocument={() => {}}
                 onDownload={handleDownloadFile}
@@ -298,12 +310,18 @@ const DocumentsSubtabPage = () => {
             ) : (
               <DocumentTableView
                 documents={documentFiles}
-                onEdit={handleDocumentAction}
+                onEdit={(doc: DocumentFile) => {
+                  // Find the original document item
+                  const originalItem = categoryItems.find(item => item.id === doc.id);
+                  if (originalItem) {
+                    handleDocumentAction(originalItem);
+                  }
+                }}
                 onDelete={handleDeleteDocument}
                 onFullScreen={() => {}}
               />
             )}
-          </>
+          </ResponsiveContainer>
         )}
       </TabsContent>
       
@@ -311,7 +329,14 @@ const DocumentsSubtabPage = () => {
       <AddDocumentDialog
         open={addDialogOpen}
         onOpenChange={(open) => setAddDialogOpen(open)}
-        onAdd={handleAddDocumentSubmit}
+        onAdd={(item: DocumentItem) => {
+          // This adapter function converts between the different parameter expectations
+          // The AddDocumentDialog wants to pass a DocumentItem
+          // But our handleAddDocumentSubmit expects a File and metadata
+          if (currentFile) {
+            handleAddDocumentSubmit(currentFile, item);
+          }
+        }}
         isLoading={uploadInProgress}
         categories={CATEGORIES as string[]}
         currentCategory={activeTab as DocumentCategory}
