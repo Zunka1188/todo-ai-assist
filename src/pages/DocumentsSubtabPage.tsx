@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Search, Plus, FileText, Image, Tag, ChefHat, Plane, Dumbbell, Shirt, X, Maximize2, Minimize2, Camera, FileArchive, Share2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppHeader from '@/components/layout/AppHeader';
@@ -14,6 +14,7 @@ import { ResponsiveButton } from '@/components/ui/responsive-button';
 import ImageAnalysisModal from '@/components/features/documents/ImageAnalysisModal';
 import { AnalysisResult } from '@/utils/imageAnalysis';
 import ShareButton from '@/components/features/shared/ShareButton';
+import { DocumentCategory } from '@/components/features/documents/types';
 import {
   Dialog,
   DialogContent,
@@ -115,6 +116,7 @@ const initialItems: DocumentItem[] = [
 
 const DocumentsSubtabPage = () => {
   const navigate = useNavigate();
+  const { subtab } = useParams<{ subtab: string }>();
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -135,6 +137,16 @@ const DocumentsSubtabPage = () => {
   const [imageToAnalyze, setImageToAnalyze] = useState<string | null>(null);
   
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Set active tab based on URL parameter if available
+    if (subtab) {
+      const validTab = ['other', 'style', 'recipes', 'travel', 'fitness', 'files'].includes(subtab) 
+        ? subtab as DocumentCategory 
+        : 'style';
+      setActiveTab(validTab);
+    }
+  }, [subtab]);
 
   const goBack = () => {
     navigate('/documents');
