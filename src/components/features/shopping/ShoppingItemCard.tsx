@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -47,8 +46,7 @@ const ShoppingItemCard = ({
       } 
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
-  // Reduced height for mobile to make cards more compact
-  const cardHeight = isMobile ? '90px' : '180px';
+  const cardHeight = isMobile ? '70px' : '180px';
 
   const handleCardClick = (e: React.MouseEvent) => {
     if (onImagePreview && e.target === e.currentTarget) {
@@ -57,32 +55,32 @@ const ShoppingItemCard = ({
   };
 
   const handleRepeatBadgeClick = (e: React.MouseEvent) => {
-    // Prevent the card click from triggering
     e.stopPropagation();
   };
 
   return (
     <Card 
       className={cn(
-        "relative w-full h-full overflow-hidden transition-all duration-200 group",
+        "relative w-full overflow-hidden transition-all duration-200 group",
         completed ? "opacity-70" : "opacity-100"
       )}
       style={{
         ...cardStyle,
-        height: cardHeight
+        height: cardHeight,
+        marginBottom: isMobile ? '1px' : undefined
       }}
       onClick={handleCardClick}
       role="button"
       aria-pressed={completed}
       tabIndex={0}
     >
-      <div className="absolute top-2 left-2 z-10">
+      <div className="absolute top-1 left-1 z-10">
         <Button
           size="icon"
           variant="secondary"
           className={cn(
             "rounded-full bg-white/70 hover:bg-white shadow-md",
-            isMobile ? "h-6 w-6" : "h-8 w-8" // Smaller button for mobile
+            isMobile ? "h-5 w-5" : "h-8 w-8"
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -91,17 +89,17 @@ const ShoppingItemCard = ({
           disabled={readOnly}
           aria-label={`Edit ${name}`}
         >
-          <Pencil className={cn(isMobile ? "h-3 w-3" : "h-4 w-4", "text-gray-700")} />
+          <Pencil className={cn(isMobile ? "h-2.5 w-2.5" : "h-4 w-4", "text-gray-700")} />
         </Button>
       </div>
       
-      <div className="absolute top-2 right-2 z-10">
+      <div className="absolute top-1 right-1 z-10">
         <Button
           size="icon"
           variant="secondary"
           className={cn(
             "rounded-full bg-white/70 hover:bg-white shadow-md",
-            isMobile ? "h-6 w-6" : "h-8 w-8" // Smaller button for mobile
+            isMobile ? "h-5 w-5" : "h-8 w-8"
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -110,7 +108,7 @@ const ShoppingItemCard = ({
           disabled={readOnly}
           aria-label={`Delete ${name}`}
         >
-          <Trash2 className={cn(isMobile ? "h-3 w-3" : "h-4 w-4", "text-gray-700")} />
+          <Trash2 className={cn(isMobile ? "h-2.5 w-2.5" : "h-4 w-4", "text-gray-700")} />
         </Button>
       </div>
 
@@ -124,12 +122,12 @@ const ShoppingItemCard = ({
         {completed && (
           <div className={cn(
             "rounded-full bg-green-500/80 flex items-center justify-center",
-            isMobile ? "h-12 w-12" : "h-16 w-16" // Slightly smaller checkmark for mobile
+            isMobile ? "h-8 w-8" : "h-16 w-16"
           )}>
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              width={isMobile ? "24" : "32"} // Smaller icon for mobile
-              height={isMobile ? "24" : "32"} 
+              width={isMobile ? "16" : "32"} 
+              height={isMobile ? "16" : "32"} 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
@@ -145,10 +143,10 @@ const ShoppingItemCard = ({
         )}
       </div>
       
-      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
+      <div className="absolute bottom-0 left-0 right-0 p-1 bg-gradient-to-t from-black/70 to-transparent">
         <h3 className={cn(
           "text-white font-medium text-shadow truncate",
-          isMobile ? "text-xs" : "" // Smaller text for mobile
+          isMobile ? "text-xs" : ""
         )} style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
           {name}
         </h3>
@@ -156,7 +154,7 @@ const ShoppingItemCard = ({
           {quantity && (
             <span className={cn(
               "text-white/90 text-shadow",
-              isMobile ? "text-[10px]" : "text-xs"
+              isMobile ? "text-[8px]" : "text-xs"
             )} style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
               {quantity}
             </span>
@@ -168,8 +166,8 @@ const ShoppingItemCard = ({
         <Badge 
           variant="secondary" 
           className={cn(
-            "absolute bottom-2 right-2 bg-white/80 text-black cursor-default",
-            isMobile ? "text-[10px]" : "text-xs"
+            "absolute bottom-1 right-1 bg-white/80 text-black cursor-default",
+            isMobile ? "text-[8px] px-1 py-0" : "text-xs"
           )}
           onClick={handleRepeatBadgeClick}
         >

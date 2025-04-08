@@ -212,32 +212,7 @@ const EnhancedAgendaView: React.FC<AgendaViewProps> = ({
                               </p>
                             )}
                             
-                            {event.attachments && event.attachments.length > 0 && (
-                              <p className={cn(
-                                "flex items-center text-muted-foreground",
-                                isMobile ? "text-xs" : "text-sm"
-                              )}>
-                                <Paperclip className={cn("mr-2", isMobile ? "h-3 w-3" : "h-3.5 w-3.5")} aria-hidden="true" />
-                                <span>
-                                  {event.attachments.length} attachment{event.attachments.length !== 1 ? 's' : ''}
-                                </span>
-                                
-                                <span className="flex ml-2">
-                                  {event.attachments.slice(0, 3).map((attachment) => (
-                                    <span key={attachment.id} className="mr-1" title={attachment.name}>
-                                      {attachment.type === 'image' ? (
-                                        <Image className={isMobile ? "h-3 w-3" : "h-3.5 w-3.5"} aria-hidden="true" />
-                                      ) : (
-                                        <FileText className={isMobile ? "h-3 w-3" : "h-3.5 w-3.5"} aria-hidden="true" />
-                                      )}
-                                    </span>
-                                  ))}
-                                  {event.attachments.length > 3 && (
-                                    <span className="text-xs">+{event.attachments.length - 3}</span>
-                                  )}
-                                </span>
-                              </p>
-                            )}
+                            {/* Remove attachments-related code since it's not in the Event type */}
                           </div>
                           
                           {event.description && (
