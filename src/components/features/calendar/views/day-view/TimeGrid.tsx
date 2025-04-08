@@ -1,83 +1,78 @@
 
 import React from 'react';
-import { cn } from '@/lib/utils';
-import { format, isToday } from 'date-fns';
 import { Event } from '../../types/event';
 import { useIsMobile } from '@/hooks/use-mobile';
 import TimeGridEvent from './TimeGridEvent';
+import { useEventManagement } from './useEventManagement';
 
 interface TimeGridProps {
-  hours: number[];
+  events: Event[];
   date: Date;
-  eventGroups: Event[][];
-  startHour: number;
   handleViewEvent: (event: Event) => void;
+  startHour: number;
+  numHours: number;
+  gridRef: React.RefObject<HTMLDivElement>;
 }
 
-const TimeGrid: React.FC<TimeGridProps> = ({
-  hours,
-  date,
-  eventGroups,
-  startHour,
-  handleViewEvent
-}) => {
+const TimeGrid: React.FC<TimeGridProps> = ({ events, date, handleViewEvent, startHour, numHours, gridRef }) => {
   const { isMobile } = useIsMobile();
-  const isCurrentDate = isToday(date);
-  const now = new Date();
-  
-  // Calculate hour height based on device
-  const hourHeight = isMobile ? 60 : 80;
+  const { processedEvents } = useEventManagement(events, date);
+
+  // Generate hour markers
+  const hourMarkers = Array.from({ length: numHours + 1 }).map((_, index) => {
+    const hour = startHour + index;
+    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+    const amPm = hour < 12 || hour === 24 ? 'am' : 'pm';
+    
+    return (
+      <div key={`hour-${index}`} className="relative">
+        <div className="absolute -top-2.5 text-xs text-muted-foreground select-none">
+          {displayHour} {amPm}
+        </div>
+      </div>
+    );
+  });
 
   return (
-    <div className={cn(
-      "overflow-y-auto relative",
-      isMobile ? "max-h-[calc(100vh-300px)]" : "max-h-[600px]"
-    )}>
-      {/* Event Overlay Layer */}
-      <div className="absolute w-full h-full z-10 pointer-events-none">
-        {eventGroups.map((group, groupIndex) => (
-          <React.Fragment key={`group-${groupIndex}`}>
-            {group.map((event, eventIndex) => (
-              <TimeGridEvent
-                key={`multi-${event.id}`}
-                event={event}
-                totalOverlapping={group.length}
-                index={eventIndex}
-                handleViewEvent={handleViewEvent}
-                startHour={startHour}
-              />
-            ))}
-          </React.Fragment>
+    <div
+      ref={gridRef}
+      className="relative border rounded-md bg-background h-full overflow-y-auto"
+      style={{
+        height: '100%',
+        minHeight: `${(numHours) * (isMobile ? 60 : 80)}px`,
+      }}
+    >
+      {/* Hour grid lines */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        {Array.from({ length: numHours }).map((_, index) => (
+          <div
+            key={`grid-${index}`}
+            className="border-t border-muted absolute w-full"
+            style={{
+              top: `${index * (isMobile ? 60 : 80)}px`,
+              height: `${isMobile ? 60 : 80}px`,
+            }}
+          />
         ))}
       </div>
       
-      {/* Time Grid Background */}
-      {hours.map(hour => {
-        const hourDate = new Date(date);
-        hourDate.setHours(hour, 0, 0, 0);
-        
-        const isCurrentHour = isCurrentDate && now.getHours() === hour;
-        
-        return (
-          <div 
-            key={hour} 
-            className={cn(
-              "grid grid-cols-[3.5rem_1fr] border-b",
-              "min-h-[" + hourHeight + "px]",
-              isCurrentHour && "bg-accent/20"
-            )}
-          >
-            <div className="p-2 text-right text-muted-foreground border-r text-xs">
-              {format(hourDate, 'h a')}
-            </div>
-            
-            <div className={cn(
-              "p-2 relative",
-              "min-h-[" + hourHeight + "px]"
-            )}>
-            </div>
-          </div>
-        );
+      {/* Time markers */}
+      <div className="absolute top-0 left-2 h-full flex flex-col">
+        {hourMarkers}
+      </div>
+      
+      {/* Events */}
+      {processedEvents.map((eventGroup) => {
+        return eventGroup.events.map((event, eventIndex) => (
+          <TimeGridEvent
+            key={`event-${event.id}`}
+            event={event}
+            totalOverlapping={eventGroup.maxOverlap}
+            index={eventIndex}
+            handleViewEvent={handleViewEvent}
+            startHour={startHour}
+          />
+        ));
       })}
     </div>
   );
