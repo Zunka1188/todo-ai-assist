@@ -296,10 +296,12 @@ const ShoppingPage: React.FC = () => {
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="w-full grid grid-cols-4 mb-6">
-          <TabsTrigger value="one-off">One-off</TabsTrigger>
-          <TabsTrigger value="weekly">Weekly</TabsTrigger>
-          <TabsTrigger value="monthly">Monthly</TabsTrigger>
-          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="one-off" className="text-sm whitespace-nowrap overflow-hidden overflow-ellipsis">
+            {isMobile ? "One-off" : "One-off Items"}
+          </TabsTrigger>
+          <TabsTrigger value="weekly" className="text-sm">Weekly</TabsTrigger>
+          <TabsTrigger value="monthly" className="text-sm">Monthly</TabsTrigger>
+          <TabsTrigger value="all" className="text-sm">{isMobile ? "All" : "All Items"}</TabsTrigger>
         </TabsList>
         
         <div className={cn("pb-16", isMobile ? "pb-20" : "")}>

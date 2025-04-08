@@ -55,12 +55,23 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
   const handleDownload = () => {
     if (!imageUrl) return;
     
+    // Create a more descriptive filename using item name if available
+    const filename = item?.name 
+      ? `shopping-item-${item.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`
+      : `shopping-item-${Date.now()}`;
+    
     const a = document.createElement('a');
     a.href = imageUrl;
-    a.download = item?.name || 'image';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    
+    // Provide feedback that download started
+    toast({
+      title: "Download Started",
+      description: "Your image is being downloaded",
+    });
   };
 
   if (!imageUrl) return null;
@@ -114,6 +125,7 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
               variant="secondary" 
               size="icon"
               className="bg-background/80 hover:bg-background/90"
+              title="Download image"
             >
               <Download className="h-4 w-4" />
             </Button>
@@ -128,6 +140,7 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
                 variant="secondary" 
                 size="icon"
                 className="bg-background/80 hover:bg-background/90"
+                title="Edit item"
               >
                 <Pencil className="h-4 w-4" />
               </Button>
@@ -140,6 +153,7 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
                 variant="destructive" 
                 size="icon"
                 className="bg-destructive/80 hover:bg-destructive/90"
+                title="Delete item"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
