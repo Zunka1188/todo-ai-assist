@@ -24,7 +24,8 @@ const DayHeader: React.FC<DayHeaderProps> = ({
 
   return (
     <div className={cn(
-      "flex items-center justify-between sticky top-0 z-10"
+      "flex items-center justify-between z-10 mb-2",
+      "bg-background/80 backdrop-blur-sm"
     )}>
       <h2 className={cn(
         "font-semibold flex items-center",

@@ -55,10 +55,10 @@ const TimeGrid: React.FC<TimeGridProps> = ({
 
   return (
     <div
-      ref={gridRef}
-      className="relative border-t border-muted bg-background h-full overflow-y-auto w-full"
+      className="relative border-t border-muted bg-background w-full"
       style={{
         minHeight: `${numHours * hourHeight}px`,
+        paddingBottom: "20px" // Add padding at the bottom for better scroll experience
       }}
     >
       {/* Hour grid lines - improved visibility */}
@@ -138,7 +138,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
         {hours.map((hour, index) => (
           <div 
             key={`hour-cell-${index}`} 
-            className="min-h-[80px] border-b border-muted/30"
+            className="border-b border-muted/30"
             style={{ height: `${hourHeight}px` }}
           />
         ))}

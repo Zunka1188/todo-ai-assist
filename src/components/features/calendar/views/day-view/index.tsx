@@ -10,6 +10,7 @@ import { useEventManagement } from './useEventManagement';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import ResponsiveContainer from '@/components/ui/responsive-container';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface DayViewProps {
   date: Date;
@@ -83,6 +84,11 @@ const DayView: React.FC<DayViewProps> = ({
 
   // Calculate the number of hours to display
   const numHours = showAllHours ? 24 : (endHour - startHour + 1);
+  
+  // Calculate the appropriate height for the scroll container
+  const scrollContainerHeight = isMobile 
+    ? 'calc(100vh - 300px)' 
+    : 'calc(100vh - 280px)';
 
   return (
     <ResponsiveContainer fullWidth noGutters mobileFullWidth className="space-y-2">
@@ -117,8 +123,12 @@ const DayView: React.FC<DayViewProps> = ({
           <div className="text-xs font-medium">Events</div>
         </div>
         
-        {/* Scrollable time grid with proper height */}
-        <div className={`h-[calc(100vh-350px)] overflow-hidden`}>
+        {/* Scrollable time grid with proper height and scroll behavior */}
+        <ScrollArea 
+          className="overflow-auto" 
+          style={{ height: scrollContainerHeight }}
+          scrollRef={gridRef}
+        >
           <TimeGrid
             events={events}
             date={date}
@@ -128,7 +138,7 @@ const DayView: React.FC<DayViewProps> = ({
             gridRef={gridRef}
             processedEvents={processedEvents}
           />
-        </div>
+        </ScrollArea>
       </div>
     </ResponsiveContainer>
   );

@@ -38,16 +38,16 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
     const height = Math.max(30, (endMinutesSinceMidnight - startMinutesSinceMidnight) * minuteHeight);
     
     // Improved width calculation for better visibility
-    // Use more space for events (95% of available width)
-    // and reduce the gap between events
-    const width = 95 / (totalOverlapping || 1);
-    const leftPosition = width * index;
+    // Use more space for events (90% of available width)
+    // and distribute events more evenly
+    const width = 90 / (totalOverlapping || 1);
+    const leftPosition = width * index + 5; // Add 5% left margin for better spacing
     
     return {
       top: `${topPosition}px`,
       height: `${height}px`,
       left: `${leftPosition}%`,
-      width: `${width - 0.5}%`, // smaller gap between events (0.5%)
+      width: `${width - 2}%`, // 2% gap between events for better separation
     };
   };
   
@@ -61,8 +61,13 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
         ...eventStyle,
         zIndex: 10,
         boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+        minHeight: '25px',
+        touchAction: 'manipulation', // Improve touch behavior
       }}
       onClick={() => handleViewEvent(event)}
+      role="button"
+      aria-label={`Event: ${event.title}`}
+      tabIndex={0}
     >
       <div className="font-medium text-white mb-0.5 truncate">{event.title}</div>
       <div className="flex items-center text-white/90 text-[10px] mb-0.5">
