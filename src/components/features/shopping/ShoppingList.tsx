@@ -85,7 +85,7 @@ const ShoppingList = ({
     setIsEditDialogOpen(false);
   };
 
-  const handleSaveItem = async (updatedItem: any) => {
+  const handleSaveItem = (updatedItem: any) => {
     try {
       if (onEditItem) {
         onEditItem(updatedItem.id, updatedItem.name, updatedItem);
