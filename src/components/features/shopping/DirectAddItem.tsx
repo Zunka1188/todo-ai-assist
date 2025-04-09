@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useShoppingItems } from './useShoppingItems';
 import { useToast } from '@/components/ui/use-toast';
 import { Plus, Check, ShoppingCart } from 'lucide-react';
 
@@ -15,7 +14,6 @@ interface DirectAddItemProps {
  * This bypasses the dialog UI to help debug issues with item addition
  */
 const DirectAddItem = ({ onSave, readOnly }: DirectAddItemProps) => {
-  const { addItem } = useShoppingItems('all', '');
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
   const [lastAddedStatus, setLastAddedStatus] = useState<{success: boolean, time: string} | null>(null);
@@ -74,6 +72,11 @@ const DirectAddItem = ({ onSave, readOnly }: DirectAddItemProps) => {
     }
   };
 
+  // For production, completely hide this component
+  return null;
+
+  // Development version (commented out)
+  /*
   // Hide the component completely if in read-only mode
   if (readOnly) {
     return null;
@@ -124,6 +127,7 @@ const DirectAddItem = ({ onSave, readOnly }: DirectAddItemProps) => {
       </div>
     </div>
   );
+  */
 };
 
 export default DirectAddItem;

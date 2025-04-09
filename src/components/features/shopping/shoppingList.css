@@ -1,0 +1,30 @@
+
+/* Shopping list grid layout */
+.shopping-item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  padding: 4px;
+  justify-items: center;
+  width: 100%;
+}
+
+/* Ensure each item wrapper takes consistent space */
+.shopping-item-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 640px) {
+  .shopping-item-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 6px;
+  }
+}
+
+/* Ensure proper alignment for both empty and filled lists */
+.shopping-item-grid:empty {
+  display: none;
+}

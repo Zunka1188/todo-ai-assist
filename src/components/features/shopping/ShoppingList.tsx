@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, memo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+import './shoppingList.css';
 
 type ShoppingListProps = {
   searchTerm?: string;
@@ -54,12 +56,12 @@ const ShoppingList = ({
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  useEffect(() => {
+  React.useEffect(() => {
     updateSearchTerm(searchTerm);
     updateFilterMode(filterMode);
   }, [searchTerm, filterMode, updateSearchTerm, updateFilterMode]);
   
-  useEffect(() => {
+  React.useEffect(() => {
     console.log(`[DEBUG] ShoppingList - ${filterMode} items:`, 
       "Unpurchased:", notPurchasedItems.length, 
       "Purchased:", purchasedItems.length);
@@ -245,15 +247,12 @@ const ShoppingList = ({
     
     return (
       <div 
-        className={cn(
-          "shopping-item-grid",
-          "shopping-item-grid"
-        )}
+        className="shopping-item-grid"
         role="list"
         aria-label={items[0]?.completed ? "Purchased items" : "Shopping items"}
       >
         {items.map(item => (
-          <div key={item.id} className="flex justify-center">
+          <div key={item.id} className="shopping-item-wrapper">
             <ShoppingItemCard
               id={item.id}
               name={item.name}
@@ -299,13 +298,13 @@ const ShoppingList = ({
           role="region"
           aria-label="Shopping list items"
         >
-          <div className="pb-16">
+          <div className="pb-16 px-4">
             {notPurchasedItems.length > 0 && renderItemGrid(notPurchasedItems)}
             
             {purchasedItems.length > 0 && (
               <div className="mt-6">
                 <Separator className="mb-4" />
-                <h3 className="text-lg font-medium mb-4 px-4" id="purchased-heading">
+                <h3 className="text-lg font-medium mb-4" id="purchased-heading">
                   {isMobile ? 'Purchased' : 'Purchased Items'}
                 </h3>
                 {renderItemGrid(purchasedItems)}

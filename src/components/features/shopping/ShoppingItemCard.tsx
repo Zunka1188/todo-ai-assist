@@ -60,14 +60,6 @@ const ShoppingItemCard = ({
     }
   };
 
-  // Improved button styling with better spacing and visibility
-  const buttonSize = "w-10 h-10"; // Slightly smaller for better positioning
-  
-  // Button background styling with better dark mode contrast
-  const buttonBgClass = theme === 'dark' 
-    ? "bg-white/80 hover:bg-white text-gray-800" 
-    : "bg-white/70 hover:bg-white text-gray-800";
-
   return (
     <Card 
       className={cn(
@@ -78,75 +70,77 @@ const ShoppingItemCard = ({
         ...cardStyle,
         width: cardSize,
         height: cardSize,
-        margin: '0' // Let the grid control spacing
+        margin: '4px' // Consistent margin for better alignment
       }}
       onClick={handleCardClick}
       role="button"
       aria-pressed={completed}
       tabIndex={0}
     >
-      {/* Repeat Option Badge - Positioned directly above item name */}
-      {repeatOption && repeatOption !== 'none' && (
-        <Badge 
-          variant="secondary" 
-          className={cn(
-            "absolute top-2 left-2 bg-black/50 text-white px-2 py-1",
-            "text-xs shadow-sm z-10", // Improved visibility
-            "dark:bg-black/70 dark:text-white" // Better dark mode contrast
+      {/* Item actions - positioned in top corners */}
+      <div className="absolute top-0 left-0 right-0 flex justify-between p-2 z-10">
+        {/* Left side - Edit button and badge */}
+        <div className="flex flex-col items-start gap-2">
+          {/* Repeat Option Badge - Only show if there is a repeat option */}
+          {repeatOption && repeatOption !== 'none' && (
+            <Badge 
+              variant="secondary" 
+              className={cn(
+                "bg-black/50 text-white px-2 py-0.5 mb-1",
+                "text-xs shadow-sm", 
+                "dark:bg-black/70 dark:text-white"
+              )}
+            >
+              {repeatOption}
+            </Badge>
           )}
-        >
-          {repeatOption}
-        </Badge>
-      )}
-      
-      {/* Control buttons container - positioned with edit on left, delete on right */}
-      <div className="absolute top-2 right-2 z-10">
-        {/* Delete Button on right */}
-        <Button
-          size="icon"
-          variant="secondary"
-          className={cn(
-            "rounded-full shadow-md",
-            buttonBgClass,
-            "transition-all duration-200 hover:scale-110",
-            buttonSize,
-            "dark:border dark:border-gray-600" // Better dark mode visibility
+          
+          {/* Edit button */}
+          {!readOnly && (
+            <Button
+              size="icon"
+              variant="secondary"
+              className={cn(
+                "rounded-full shadow-md",
+                "bg-white/80 hover:bg-white text-gray-800",
+                "w-8 h-8",
+                "transition-all duration-200 hover:scale-110",
+                "dark:border dark:border-gray-600"
+              )}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              aria-label={`Edit ${name}`}
+            >
+              <Pencil className="h-3.5 w-3.5 stroke-[2.5px]" />
+            </Button>
           )}
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          disabled={readOnly}
-          aria-label={`Delete ${name}`}
-        >
-          <Trash2 className="h-4 w-4 stroke-[2.5px]" />
-        </Button>
-      </div>
-      
-      {/* Edit Button on left (different div to separate positioning) */}
-      <div className="absolute top-2 left-2 z-10">
-        {repeatOption && repeatOption !== 'none' && (
-          <div className="h-6"></div> /* Space holder for badge */
-        )}
-        <Button
-          size="icon"
-          variant="secondary"
-          className={cn(
-            "rounded-full shadow-md mt-1",
-            buttonBgClass,
-            "transition-all duration-200 hover:scale-110",
-            buttonSize,
-            "dark:border dark:border-gray-600" // Better dark mode visibility
+        </div>
+        
+        {/* Right side - Delete button */}
+        <div>
+          {!readOnly && (
+            <Button
+              size="icon"
+              variant="secondary"
+              className={cn(
+                "rounded-full shadow-md",
+                "bg-white/80 hover:bg-white text-gray-800",
+                "w-8 h-8",
+                "transition-all duration-200 hover:scale-110",
+                "dark:border dark:border-gray-600"
+              )}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              aria-label={`Delete ${name}`}
+            >
+              <Trash2 className="h-3.5 w-3.5 stroke-[2.5px]" />
+            </Button>
           )}
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit();
-          }}
-          disabled={readOnly}
-          aria-label={`Edit ${name}`}
-        >
-          <Pencil className="h-4 w-4 stroke-[2.5px]" />
-        </Button>
+        </div>
       </div>
 
       {/* Completion Status - centered checkmark */}
