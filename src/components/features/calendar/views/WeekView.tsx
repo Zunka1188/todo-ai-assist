@@ -41,7 +41,7 @@ const WeekView: React.FC<WeekViewProps> = ({
   const HOUR_HEIGHT = 60; // Height in pixels for each hour block in Week View
   const MINUTES_PER_HOUR = 60;
   const MINUTE_HEIGHT = HOUR_HEIGHT / MINUTES_PER_HOUR; // Height in pixels for 1 minute
-  const TIME_COLUMN_WIDTH = 10; // Percentage width of time column - slightly narrower
+  const TIME_COLUMN_WIDTH = 10; // Percentage width of time column
   const DAY_COLUMN_WIDTH = (100 - TIME_COLUMN_WIDTH) / 7; // Equal width for each day column
   
   const weekStart = startOfWeek(date, { weekStartsOn });
@@ -157,9 +157,11 @@ const WeekView: React.FC<WeekViewProps> = ({
     
     const dayColumnIndex = daysInWeek.findIndex(d => isSameDay(d, day));
     
-    const eventWidth = (DAY_COLUMN_WIDTH / totalOverlapping) - 0.5;
+    const maxSideEvents = Math.min(totalOverlapping, 2);
+    const eventWidth = (DAY_COLUMN_WIDTH / maxSideEvents) - 0.5;
     
-    const leftOffset = TIME_COLUMN_WIDTH + (dayColumnIndex * DAY_COLUMN_WIDTH) + (index * (eventWidth + 0.1));
+    const adjustedIndex = index % maxSideEvents;
+    const leftOffset = TIME_COLUMN_WIDTH + (dayColumnIndex * DAY_COLUMN_WIDTH) + (adjustedIndex * (eventWidth + 0.1));
     
     return {
       position: 'absolute',
@@ -167,7 +169,7 @@ const WeekView: React.FC<WeekViewProps> = ({
       height: `${heightValue}px`, 
       left: `${leftOffset}%`,
       width: `${eventWidth}%`,
-      minWidth: '60px',
+      minWidth: '80px',
       zIndex: 20,
     };
   };
@@ -480,7 +482,7 @@ const WeekView: React.FC<WeekViewProps> = ({
           isMobile ? "max-h-[calc(100vh-360px)]" : "max-h-[600px]"
         )}>
           <div className="grid grid-cols-8 divide-x">
-            <div className="bg-muted/10" style={{minWidth: "5rem"}}>
+            <div className="bg-muted/10 sticky left-0 z-10" style={{minWidth: "5rem"}}>
               {hours.map((hour, i) => (
                 <div key={`hour-${i}`} className="border-b h-[60px] px-2 py-1 text-right text-sm text-muted-foreground">
                   {hour}:00

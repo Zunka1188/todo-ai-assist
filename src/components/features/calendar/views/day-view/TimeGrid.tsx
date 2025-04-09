@@ -79,7 +79,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
         ))}
       </div>
       
-      {/* Time markers - improved styling */}
+      {/* Time markers column with vertical border - improved styling */}
       <div className="absolute top-0 left-0 h-full border-r border-muted bg-background/80 z-10">
         {hours.map((hour, index) => {
           const displayHour = hour % 12 === 0 ? 12 : hour % 12;
@@ -100,8 +100,8 @@ const TimeGrid: React.FC<TimeGridProps> = ({
         })}
       </div>
       
-      {/* Events container - wider layout */}
-      <div className="absolute top-0 left-14 right-0 w-[calc(100%-3.5rem)]">
+      {/* Events container - wider layout with left margin */}
+      <div className="absolute top-0 left-14 right-0 w-[calc(100%-3.5rem)] pl-2">
         {processedEvents && processedEvents.length > 0 ? (
           processedEvents.map((eventGroup, groupIndex) => {
             if (debugEnabled) {
@@ -137,7 +137,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
       </div>
       
       {/* Empty hour cells for layout */}
-      <div className="ml-14">
+      <div className="ml-14 pl-2">
         {hours.map((hour, index) => (
           <div 
             key={`hour-cell-${index}`} 

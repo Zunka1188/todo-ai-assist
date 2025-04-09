@@ -120,8 +120,8 @@ const DayView: React.FC<DayViewProps> = ({
       <div className="border rounded-lg overflow-hidden w-full">
         {/* Fixed headers with sticky positioning - improved z-index and styling */}
         <div className="grid grid-cols-[3.5rem_1fr] bg-background p-2 border-b sticky top-0 z-20">
-          <div className="text-xs font-medium">Time</div>
-          <div className="text-xs font-medium">Events</div>
+          <div className="text-xs font-medium border-r">Time</div>
+          <div className="text-xs font-medium pl-2">Events</div>
         </div>
         
         {/* Scrollable time grid with proper height and scroll behavior */}

@@ -38,10 +38,12 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
     const height = Math.max(30, (endMinutesSinceMidnight - startMinutesSinceMidnight) * minuteHeight);
     
     // Improved width calculation for better visibility
-    // Use more space for events (90% of available width)
-    // and distribute events more evenly
-    const width = 90 / (totalOverlapping || 1);
-    const leftPosition = width * index + 5; // Add 5% left margin for better spacing
+    // Use more space for events (95% of available width)
+    // and limit the number of events side by side for better readability
+    const maxEventsInRow = Math.min(totalOverlapping, 2); // Limit to 2 events side by side max
+    const width = 95 / maxEventsInRow;
+    const adjustedIndex = index % maxEventsInRow; // Cycle through positions if more than maxEventsInRow
+    const leftPosition = width * adjustedIndex;
     
     return {
       top: `${topPosition}px`,
@@ -63,6 +65,7 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
         boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
         minHeight: '25px',
         touchAction: 'manipulation', // Improve touch behavior
+        minWidth: '90px', // Ensure minimum width for readability
       }}
       onClick={() => handleViewEvent(event)}
       role="button"
