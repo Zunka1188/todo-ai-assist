@@ -82,7 +82,7 @@ const ProduceScanner: React.FC = () => {
       
       toast({
         title: "Item Recognized",
-        description: `${randomItem.name} (${randomItem.confidence.toFixed(2) * 100}% confidence)`,
+        description: `${randomItem.name} (${Math.round(randomItem.confidence * 100)}% confidence)`,
       });
     }, 2000);
   };
@@ -148,7 +148,7 @@ const ProduceScanner: React.FC = () => {
               <h3 className="text-lg font-medium">
                 {recognizedItem.name}
                 <span className="ml-2 text-sm text-gray-500">
-                  ({(recognizedItem.confidence * 100).toFixed(0)}%)
+                  ({Math.round(recognizedItem.confidence * 100)}%)
                 </span>
               </h3>
               <Button variant="outline" size="icon" onClick={handleReset}>
