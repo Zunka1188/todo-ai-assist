@@ -41,7 +41,8 @@ const WeekView: React.FC<WeekViewProps> = ({
   const HOUR_HEIGHT = 60; // Height in pixels for each hour block in Week View
   const MINUTES_PER_HOUR = 60;
   const MINUTE_HEIGHT = HOUR_HEIGHT / MINUTES_PER_HOUR; // Height in pixels for 1 minute
-  const TIME_COLUMN_WIDTH = 12.5; // Percentage width of time column
+  const TIME_COLUMN_WIDTH = 10; // Percentage width of time column - slightly narrower
+  const DAY_COLUMN_WIDTH = (100 - TIME_COLUMN_WIDTH) / 7; // Equal width for each day column
   
   const weekStart = startOfWeek(date, { weekStartsOn });
   const weekEnd = endOfWeek(date, { weekStartsOn });
@@ -156,16 +157,17 @@ const WeekView: React.FC<WeekViewProps> = ({
     
     const dayColumnIndex = daysInWeek.findIndex(d => isSameDay(d, day));
     
-    const eventWidth = 10.5 / totalOverlapping;
+    const eventWidth = (DAY_COLUMN_WIDTH / totalOverlapping) - 0.5;
     
-    const leftOffset = (TIME_COLUMN_WIDTH * (dayColumnIndex + 1)) + 1 + (index * eventWidth);
+    const leftOffset = TIME_COLUMN_WIDTH + (dayColumnIndex * DAY_COLUMN_WIDTH) + (index * (eventWidth + 0.1));
     
     return {
       position: 'absolute',
       top: `${topPosition}px`,
       height: `${heightValue}px`, 
       left: `${leftOffset}%`,
-      width: `${eventWidth - 0.5}%`,
+      width: `${eventWidth}%`,
+      minWidth: '60px',
       zIndex: 20,
     };
   };
@@ -175,7 +177,6 @@ const WeekView: React.FC<WeekViewProps> = ({
     return groupOverlappingEvents(dayEvents);
   };
 
-  // Process event groups for each day
   const daysEventGroups = daysInWeek.map(day => {
     return getVisibleMultiHourEventGroups(day);
   });
@@ -410,71 +411,73 @@ const WeekView: React.FC<WeekViewProps> = ({
       </div>
       
       <div className="border rounded-lg overflow-hidden">
-        <div className="grid grid-cols-8 divide-x border-b">
-          <div className={cn("p-2 text-sm font-medium bg-muted/30 text-center", 
-            isMobile ? "text-[0.8rem]" : "")}
-            style={{minWidth: "5rem"}}
-          >
-            All Day
-          </div>
-          {daysInWeek.map((day, index) => {
-            const allDayEvents = getEventsForDay(day).filter(event => event.allDay);
-            const isCurrentDate = isToday(day);
-            return (
-              <div 
-                key={index} 
-                className={cn("p-1 min-h-[60px]", isCurrentDate && "bg-accent/30")}
-              >
-                {allDayEvents.map(event => (
-                  <div 
-                    key={event.id} 
-                    className="text-xs p-1 mb-1 rounded truncate cursor-pointer hover:opacity-80 touch-manipulation" 
-                    style={{ backgroundColor: event.color || '#4285F4' }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleViewEvent(event);
-                    }}
-                  >
-                    <span className="text-white truncate">{event.title}</span>
+        <div className="sticky top-0 z-10 bg-background border-b">
+          <div className="grid grid-cols-8 divide-x">
+            <div className={cn("p-2 text-sm font-medium bg-muted/30 text-center", 
+              isMobile ? "text-[0.8rem]" : "")}
+              style={{minWidth: "5rem"}}
+            >
+              All Day
+            </div>
+            {daysInWeek.map((day, index) => {
+              const isCurrentDate = isToday(day);
+              return (
+                <div 
+                  key={index} 
+                  className={cn("p-2 text-center", isCurrentDate && "bg-accent/30")}
+                >
+                  <div className={cn("font-medium", isMobile ? "text-[0.8rem]" : "")}>
+                    {format(day, 'EEE')}
                   </div>
-                ))}
-              </div>
-            );
-          })}
-        </div>
-        
-        <div className="grid grid-cols-8 divide-x border-b">
-          <div className={cn("py-2 px-1 text-sm font-medium bg-muted/30 text-center", 
-            isMobile ? "text-[0.8rem]" : "")}
-            style={{minWidth: "5rem"}}
-          >
-            Time / Day
+                  <div className={cn(
+                    "text-sm", 
+                    isCurrentDate ? "text-primary font-semibold" : "text-muted-foreground",
+                    isMobile ? "text-[0.8rem]" : ""
+                  )}>
+                    {format(day, 'd')}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          {daysInWeek.map((day, index) => {
-            const isCurrentDate = isToday(day);
-            return (
-              <div 
-                key={index} 
-                className={cn("p-2 text-center", isCurrentDate && "bg-accent/30")}
-              >
-                <div className={cn("font-medium", isMobile ? "text-[0.8rem]" : "")}>
-                  {format(day, 'EEE')}
+          
+          <div className="grid grid-cols-8 divide-x border-b">
+            <div className={cn("p-2 text-sm font-medium bg-muted/30 text-center", 
+              isMobile ? "text-[0.8rem]" : "")}
+              style={{minWidth: "5rem"}}
+            >
+              All Day
+            </div>
+            {daysInWeek.map((day, index) => {
+              const allDayEvents = getEventsForDay(day).filter(event => event.allDay);
+              const isCurrentDate = isToday(day);
+              return (
+                <div 
+                  key={index} 
+                  className={cn("p-1 min-h-[60px]", isCurrentDate && "bg-accent/30")}
+                >
+                  {allDayEvents.map(event => (
+                    <div 
+                      key={event.id} 
+                      className="text-xs p-1 mb-1 rounded truncate cursor-pointer hover:opacity-80 touch-manipulation" 
+                      style={{ backgroundColor: event.color || '#4285F4' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewEvent(event);
+                      }}
+                    >
+                      <span className="text-white truncate">{event.title}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className={cn(
-                  "text-sm", 
-                  isCurrentDate ? "text-primary font-semibold" : "text-muted-foreground",
-                  isMobile ? "text-[0.8rem]" : ""
-                )}>
-                  {format(day, 'd')}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
         
         <div className={cn(
           "overflow-y-auto relative",
-          isMobile ? "max-h-[calc(100vh-320px)]" : "max-h-[600px]"
+          isMobile ? "max-h-[calc(100vh-360px)]" : "max-h-[600px]"
         )}>
           <div className="grid grid-cols-8 divide-x">
             <div className="bg-muted/10" style={{minWidth: "5rem"}}>
@@ -493,39 +496,41 @@ const WeekView: React.FC<WeekViewProps> = ({
                     className="border-b h-[60px]"
                   />
                 ))}
-                {/* Events */}
-                {daysEventGroups.map((eventGroups, dayIndex) => (
-                  <React.Fragment key={`day-events-${dayIndex}`}>
-                    {eventGroups.map((group, groupIndex) => (
-                      <React.Fragment key={`group-${dayIndex}-${groupIndex}`}>
-                        {group.map((event, eventIndex) => (
-                          <div 
-                            key={`multi-${event.id}-${dayIndex}`} 
-                            className="absolute text-xs p-1 rounded truncate cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto" 
-                            style={{
-                              backgroundColor: event.color || '#4285F4',
-                              ...getMultiHourEventStyle(event, daysInWeek[dayIndex], group.length, eventIndex)
-                            }}
-                            onClick={() => handleViewEvent(event)}
-                          >
-                            <div className="flex items-center">
-                              <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
-                              <span className="text-white truncate">{event.title}</span>
-                            </div>
-                            <div className="text-white/90 text-[10px] truncate">
-                              {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
-                            </div>
-                            {event.location && (
-                              <div className="text-white/90 text-[10px] flex items-center truncate">
-                                <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80 flex-shrink-0" />
-                                <span className="truncate">{event.location}</span>
+                
+                {daysEventGroups.map((eventGroups, dayIdx) => (
+                  dayIdx === dayIndex && (
+                    <React.Fragment key={`day-events-${dayIdx}`}>
+                      {eventGroups.map((group, groupIndex) => (
+                        <React.Fragment key={`group-${dayIdx}-${groupIndex}`}>
+                          {group.map((event, eventIndex) => (
+                            <div 
+                              key={`multi-${event.id}-${dayIdx}`} 
+                              className="absolute text-xs p-2 rounded cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto" 
+                              style={{
+                                backgroundColor: event.color || '#4285F4',
+                                ...getMultiHourEventStyle(event, daysInWeek[dayIdx], group.length, eventIndex)
+                              }}
+                              onClick={() => handleViewEvent(event)}
+                            >
+                              <div className="flex items-center">
+                                <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
+                                <span className="text-white truncate">{event.title}</span>
                               </div>
-                            )}
-                          </div>
-                        ))}
-                      </React.Fragment>
-                    ))}
-                  </React.Fragment>
+                              <div className="text-white/90 text-[10px] truncate">
+                                {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
+                              </div>
+                              {event.location && (
+                                <div className="text-white/90 text-[10px] flex items-center truncate">
+                                  <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80 flex-shrink-0" />
+                                  <span className="truncate">{event.location}</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </React.Fragment>
+                      ))}
+                    </React.Fragment>
+                  )
                 ))}
               </div>
             ))}

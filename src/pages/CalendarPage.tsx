@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
@@ -152,7 +153,8 @@ const CalendarPage = () => {
       className="flex flex-col h-[calc(100vh-4rem)] pb-0"
       noPadding
     >
-      <div className="px-4 pt-4 pb-2 sticky top-0 z-20 bg-background border-b">
+      {/* Fixed header section with consistent padding */}
+      <div className="px-4 pt-4 pb-2 sticky top-0 z-30 bg-background border-b">
         <PageHeader 
           title="Calendar"
           searchTerm={searchTerm}
@@ -186,6 +188,7 @@ const CalendarPage = () => {
           }
         />
 
+        {/* View selector tabs with consistent grid */}
         <div className="flex w-full">
           <Tabs 
             defaultValue="day" 
@@ -239,23 +242,26 @@ const CalendarPage = () => {
         </div>
       </div>
       
+      {/* Main content area with proper overflow handling */}
       <div className={cn(
         "flex-1 overflow-hidden w-full",
         "bg-muted/10",
         theme === 'dark' ? 'text-white' : ''
       )}>
-        <div className="px-4 py-3 h-full overflow-y-auto">
-          <ErrorBoundary>
-            <CalendarView 
-              viewMode={viewMode} 
-              searchTerm={debouncedSearchTerm} 
-              weekStartsOn={1} 
-              isCreateDialogOpen={createDialogOpen} 
-              setIsCreateDialogOpen={handleDialogClose}
-              isFileUploaderOpen={showFileUploader}
-              setIsFileUploaderOpen={handleFileUploaderChange}
-            />
-          </ErrorBoundary>
+        <div className="h-full overflow-y-auto">
+          <div className="px-4 py-3">
+            <ErrorBoundary>
+              <CalendarView 
+                viewMode={viewMode} 
+                searchTerm={debouncedSearchTerm} 
+                weekStartsOn={1} 
+                isCreateDialogOpen={createDialogOpen} 
+                setIsCreateDialogOpen={handleDialogClose}
+                isFileUploaderOpen={showFileUploader}
+                setIsFileUploaderOpen={handleFileUploaderChange}
+              />
+            </ErrorBoundary>
+          </div>
         </div>
       </div>
 

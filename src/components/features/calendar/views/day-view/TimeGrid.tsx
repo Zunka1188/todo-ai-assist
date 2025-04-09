@@ -5,6 +5,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import TimeGridEvent from './TimeGridEvent';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface TimeGridProps {
   events: Event[];
@@ -66,7 +67,10 @@ const TimeGrid: React.FC<TimeGridProps> = ({
         {hours.map((hour, index) => (
           <div
             key={`grid-${index}`}
-            className="border-t border-muted absolute w-full"
+            className={cn(
+              "border-t border-muted absolute w-full",
+              index % 2 === 0 ? "bg-muted/5" : ""
+            )}
             style={{
               top: `${index * hourHeight}px`,
               height: `${hourHeight}px`,
@@ -76,7 +80,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
       </div>
       
       {/* Time markers - improved styling */}
-      <div className="absolute top-0 left-0 h-full border-r border-muted bg-muted/5">
+      <div className="absolute top-0 left-0 h-full border-r border-muted bg-background/80 z-10">
         {hours.map((hour, index) => {
           const displayHour = hour % 12 === 0 ? 12 : hour % 12;
           const amPm = hour < 12 || hour === 24 ? 'am' : 'pm';
@@ -88,7 +92,6 @@ const TimeGrid: React.FC<TimeGridProps> = ({
               style={{
                 top: `${index * hourHeight}px`,
                 height: `${hourHeight}px`,
-                borderRight: '1px solid var(--border)',
               }}
             >
               <div className="pt-1">{displayHour} {amPm}</div>
@@ -138,7 +141,10 @@ const TimeGrid: React.FC<TimeGridProps> = ({
         {hours.map((hour, index) => (
           <div 
             key={`hour-cell-${index}`} 
-            className="border-b border-muted/30"
+            className={cn(
+              "border-b", 
+              index % 2 === 0 ? "bg-muted/5" : "bg-transparent"
+            )}
             style={{ height: `${hourHeight}px` }}
           />
         ))}

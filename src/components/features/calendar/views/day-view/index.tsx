@@ -11,6 +11,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import ResponsiveContainer from '@/components/ui/responsive-container';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 interface DayViewProps {
   date: Date;
@@ -87,8 +88,8 @@ const DayView: React.FC<DayViewProps> = ({
   
   // Calculate the appropriate height for the scroll container
   const scrollContainerHeight = isMobile 
-    ? 'calc(100vh - 300px)' 
-    : 'calc(100vh - 280px)';
+    ? 'calc(100vh - 320px)' 
+    : 'calc(100vh - 300px)';
 
   return (
     <ResponsiveContainer fullWidth noGutters mobileFullWidth className="space-y-2">
@@ -117,8 +118,8 @@ const DayView: React.FC<DayViewProps> = ({
       />
       
       <div className="border rounded-lg overflow-hidden w-full">
-        {/* Fixed headers with sticky positioning */}
-        <div className="grid grid-cols-[3.5rem_1fr] bg-muted/30 p-2 border-b sticky top-0 z-10">
+        {/* Fixed headers with sticky positioning - improved z-index and styling */}
+        <div className="grid grid-cols-[3.5rem_1fr] bg-background p-2 border-b sticky top-0 z-20">
           <div className="text-xs font-medium">Time</div>
           <div className="text-xs font-medium">Events</div>
         </div>
@@ -126,7 +127,7 @@ const DayView: React.FC<DayViewProps> = ({
         {/* Scrollable time grid with proper height and scroll behavior */}
         <ScrollArea 
           className="overflow-auto" 
-          style={{ height: scrollContainerHeight }}
+          style={{ height: scrollContainerHeight, position: 'relative' }}
           scrollRef={gridRef}
         >
           <TimeGrid
