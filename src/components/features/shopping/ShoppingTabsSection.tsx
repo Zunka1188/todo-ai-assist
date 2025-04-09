@@ -20,7 +20,7 @@ const ShoppingTabsSection: React.FC<ShoppingTabsSectionProps> = ({
 }) => {
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-      <div className="px-4 md:px-4 mb-2">
+      <div className="mb-2">
         <TabsList className="w-full flex flex-wrap md:flex-nowrap justify-around gap-2">
           <TabsTrigger value="one-off" className="flex-1 text-sm px-3 py-1.5 h-10">
             One-off
@@ -37,7 +37,7 @@ const ShoppingTabsSection: React.FC<ShoppingTabsSectionProps> = ({
         </TabsList>
       </div>
       
-      <TabsContent value="one-off" className="mt-0 p-0 px-4 md:px-4">
+      <TabsContent value="one-off" className="mt-0 p-0">
         <div className="shopping-list-container">
           <ShoppingList 
             searchTerm={searchTerm}
@@ -48,7 +48,7 @@ const ShoppingTabsSection: React.FC<ShoppingTabsSectionProps> = ({
         </div>
       </TabsContent>
       
-      <TabsContent value="weekly" className="mt-0 p-0 px-4 md:px-4">
+      <TabsContent value="weekly" className="mt-0 p-0">
         <div className="shopping-list-container">
           <ShoppingList 
             searchTerm={searchTerm}
@@ -59,7 +59,7 @@ const ShoppingTabsSection: React.FC<ShoppingTabsSectionProps> = ({
         </div>
       </TabsContent>
       
-      <TabsContent value="monthly" className="mt-0 p-0 px-4 md:px-4">
+      <TabsContent value="monthly" className="mt-0 p-0">
         <div className="shopping-list-container">
           <ShoppingList 
             searchTerm={searchTerm}
@@ -70,7 +70,7 @@ const ShoppingTabsSection: React.FC<ShoppingTabsSectionProps> = ({
         </div>
       </TabsContent>
       
-      <TabsContent value="all" className="mt-0 p-0 px-4 md:px-4">
+      <TabsContent value="all" className="mt-0 p-0">
         <div className="shopping-list-container">
           <ShoppingList 
             searchTerm={searchTerm}

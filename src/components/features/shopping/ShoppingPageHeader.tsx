@@ -39,6 +39,7 @@ const ShoppingPageHeader: React.FC<ShoppingPageHeaderProps> = ({
           <Users className="h-5 w-5" />
         </Button>
       }
+      className="px-0" // Remove any padding from the header itself
     />
   );
 };

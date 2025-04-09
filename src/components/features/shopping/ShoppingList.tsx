@@ -1,3 +1,4 @@
+
 import React, { useState, memo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -292,7 +293,7 @@ const ShoppingList = ({
         </div>
       ) : (
         <ScrollArea 
-          className="h-[calc(100vh-280px)] overflow-y-auto touch-auto px-1" 
+          className="h-[calc(100vh-280px)] overflow-y-auto touch-auto px-0" 
           style={{ WebkitOverflowScrolling: 'touch' }}
           tabIndex={0}
           role="region"
