@@ -44,6 +44,17 @@ interface ShoppingItemsProviderProps {
   defaultSearchTerm?: string;
 }
 
+// Create a new function to handle localStorage persistence with error handling
+const persistItemsToStorage = (items: ShoppingItem[]) => {
+  try {
+    saveItems(items);
+    return true;
+  } catch (error) {
+    console.error("[ERROR] Failed to persist items to localStorage:", error);
+    return false;
+  }
+};
+
 export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
   children,
   defaultFilterMode = 'all',
@@ -53,6 +64,7 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>(defaultSearchTerm);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [initialized, setInitialized] = useState(false);
   
   // Create a single instance of useShoppingItems
   const shoppingItemsData = useShoppingItems(filterMode, searchTerm);
@@ -70,27 +82,65 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
   
   // Load items from localStorage on initial render
   useEffect(() => {
+    if (initialized) return;
+    
     try {
       setIsLoading(true);
       const storedItems = loadItems();
-      if (storedItems.length > 0) {
+      
+      if (storedItems && storedItems.length > 0) {
         // Only update if we have items to prevent unnecessary re-renders
+        console.log("[DEBUG] ShoppingItemsContext - Loaded items from localStorage:", storedItems.length);
         shoppingItemsData.setItems(storedItems);
+      } else {
+        console.log("[DEBUG] ShoppingItemsContext - No stored items found, using defaults");
       }
+      
+      setInitialized(true);
       setIsLoading(false);
     } catch (err) {
       console.error("[ERROR] ShoppingItemsContext - Failed to load items:", err);
       setError(err instanceof Error ? err : new Error("Failed to load shopping items"));
       setIsLoading(false);
+      setInitialized(true);
     }
-  }, [shoppingItemsData.setItems]);
+  }, [shoppingItemsData.setItems, initialized]);
   
   // Save items to localStorage whenever they change
   useEffect(() => {
-    if (!isLoading && shoppingItemsData.items.length > 0) {
-      saveItems(shoppingItemsData.items);
+    if (!isLoading && initialized && shoppingItemsData.items.length > 0) {
+      console.log("[DEBUG] ShoppingItemsContext - Saving items to localStorage:", shoppingItemsData.items.length);
+      persistItemsToStorage(shoppingItemsData.items);
     }
-  }, [shoppingItemsData.items, isLoading]);
+  }, [shoppingItemsData.items, isLoading, initialized]);
+
+  // Handle storage events from other tabs
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'shoppingItems' && event.newValue) {
+        try {
+          console.log("[DEBUG] ShoppingItemsContext - Storage event detected in another tab");
+          const parsedItems = JSON.parse(event.newValue);
+          
+          if (Array.isArray(parsedItems) && parsedItems.length > 0) {
+            // Convert date strings back to Date objects
+            const items = parsedItems.map((item: any) => ({
+              ...item,
+              dateAdded: new Date(item.dateAdded),
+              lastPurchased: item.lastPurchased ? new Date(item.lastPurchased) : undefined
+            }));
+            
+            shoppingItemsData.setItems(items);
+          }
+        } catch (err) {
+          console.error("[ERROR] ShoppingItemsContext - Failed to process storage event:", err);
+        }
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [shoppingItemsData.setItems]);
   
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({

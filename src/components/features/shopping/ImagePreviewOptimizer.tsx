@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ImageIcon } from 'lucide-react';
 
 interface ImagePreviewOptimizerProps {
   imageUrl: string;
@@ -32,6 +32,14 @@ const ImagePreviewOptimizer: React.FC<ImagePreviewOptimizerProps> = ({
     // Reset state when image URL changes
     if (!imageUrl) {
       setIsLoading(false);
+      return;
+    }
+
+    // Handle data URLs directly without preloading
+    if (imageUrl.startsWith('data:')) {
+      setDisplayUrl(imageUrl);
+      setIsLoading(false);
+      onLoad?.();
       return;
     }
 
@@ -71,7 +79,8 @@ const ImagePreviewOptimizer: React.FC<ImagePreviewOptimizerProps> = ({
   if (hasError || !displayUrl) {
     return (
       <div className={`flex items-center justify-center bg-gray-100 ${className}`}>
-        <span className="text-sm text-gray-500">Image not available</span>
+        <ImageIcon className="h-8 w-8 text-gray-400" />
+        <span className="text-sm text-gray-500 ml-2">Image not available</span>
       </div>
     );
   }

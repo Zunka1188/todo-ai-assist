@@ -40,7 +40,7 @@ interface EditItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
   item: ShoppingItem | null;
-  onSave: (item: ShoppingItem, imageFile: File | null) => void;
+  onSave: (item: ShoppingItem, imageFile: File | null) => boolean | void;
 }
 
 const EditItemDialog: React.FC<EditItemDialogProps> = ({
@@ -108,10 +108,18 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
         }
       }
     };
+    reader.onerror = () => {
+      toast({
+        title: "File Error",
+        description: "Failed to read the selected file.",
+        variant: "destructive"
+      });
+      setIsUploading(false);
+    };
     reader.readAsDataURL(selectedFile);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!item) return;
     if (name.trim() === '' && !file) {
       toast({
@@ -138,13 +146,17 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
         repeatOption
       };
       
-      onSave(updatedItem, editItemImage);
-      onClose();
+      const result = await onSave(updatedItem, editItemImage);
       
-      toast({
-        title: "Item Updated",
-        description: `${updatedItem.name} has been updated.`,
-      });
+      // Only close if save was successful or didn't return a value (assuming success)
+      if (result !== false) {
+        onClose();
+        
+        toast({
+          title: "Item Updated",
+          description: `${updatedItem.name} has been updated.`,
+        });
+      }
     } catch (error) {
       console.error("[ERROR] EditItemDialog - Error saving item:", error);
       toast({
@@ -152,6 +164,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
         description: "Failed to save changes",
         variant: "destructive"
       });
+    } finally {
       setIsSaving(false);
     }
   };
@@ -193,6 +206,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
               placeholder="Enter item name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              disabled={isSaving}
             />
           </div>
 
@@ -204,7 +218,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
                 className="w-full flex items-center justify-center h-10"
-                disabled={isUploading}
+                disabled={isUploading || isSaving}
               >
                 {isUploading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -224,6 +238,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 className="hidden"
+                disabled={isSaving}
               />
             </div>
             
@@ -243,6 +258,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
                       size="sm"
                       className="h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
                       onClick={toggleFullScreenPreview}
+                      disabled={isSaving}
                     >
                       <Maximize2 className="h-4 w-4" />
                     </Button>
@@ -253,6 +269,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
                     size="sm"
                     className="h-8 w-8 p-0"
                     onClick={clearFile}
+                    disabled={isSaving}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -268,6 +285,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
               placeholder="e.g., 2 boxes"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              disabled={isSaving}
             />
           </div>
           
@@ -279,6 +297,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
                 console.log("[DEBUG] EditItemDialog - Repeat option selected:", value);
                 setRepeatOption(value as 'none' | 'weekly' | 'monthly');
               }}
+              disabled={isSaving}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select frequency" />
@@ -308,6 +327,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="min-h-[80px]"
+              disabled={isSaving}
             />
           </div>
         </div>
@@ -324,6 +344,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
             size="icon"
             className="text-white" 
             onClick={toggleFullScreenPreview}
+            disabled={isSaving}
           >
             <Minimize2 className="h-6 w-6" />
           </Button>
@@ -331,7 +352,8 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
             variant="ghost" 
             size="icon"
             className="text-white" 
-            onClick={() => onClose()}
+            onClick={onClose}
+            disabled={isSaving}
           >
             <X className="h-6 w-6" />
           </Button>
@@ -351,7 +373,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
     return (
       <>
         <Drawer open={isOpen} onOpenChange={(open) => {
-          if (!open) onClose();
+          if (!open && !isSaving) onClose();
         }}>
           <DrawerContent className="max-h-[90vh] overflow-hidden">
             <DrawerHeader className="px-4 py-2">
@@ -368,7 +390,12 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
             </ScrollArea>
             
             <DrawerFooter className="px-4 py-2 gap-2 border-t mt-auto">
-              <Button variant="outline" className="w-full" onClick={onClose}>
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={onClose}
+                disabled={isSaving}
+              >
                 Cancel
               </Button>
               <Button 
@@ -403,7 +430,7 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => {
-        if (!open) onClose();
+        if (!open && !isSaving) onClose();
       }}>
         <DialogContent 
           className="sm:max-w-md overflow-hidden max-h-[85vh] flex flex-col"
@@ -419,7 +446,11 @@ const EditItemDialog: React.FC<EditItemDialogProps> = ({
           </ScrollArea>
 
           <DialogFooter className="mt-4 pt-2 border-t">
-            <Button variant="outline" onClick={onClose}>
+            <Button 
+              variant="outline" 
+              onClick={onClose}
+              disabled={isSaving}
+            >
               Cancel
             </Button>
             <Button 

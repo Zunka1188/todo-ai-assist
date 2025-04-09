@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, memo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -41,12 +42,14 @@ const ShoppingList = ({
     toggleItem, 
     addItem,
     updateSearchTerm,
-    updateFilterMode 
+    updateFilterMode,
+    isLoading 
   } = useShoppingItemsContext();
   
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -192,30 +195,44 @@ const ShoppingList = ({
     setShowDeleteDialog(true);
   };
 
-  const confirmDeleteItem = () => {
-    if (!itemToDelete) return;
+  const confirmDeleteItem = async () => {
+    if (!itemToDelete || isDeleting) return;
     
-    const result = removeItem(itemToDelete.id);
-    if (result) {
-      toast({
-        title: "Item Deleted",
-        description: `${itemToDelete.name} has been removed from your list.`,
-        role: "status",
-        "aria-live": "polite"
-      });
-    } else {
-      console.error("[ERROR] ShoppingList - Failed to delete item");
+    setIsDeleting(true);
+    
+    try {
+      const result = removeItem(itemToDelete.id);
+      if (result) {
+        toast({
+          title: "Item Deleted",
+          description: `${itemToDelete.name} has been removed from your list.`,
+          role: "status",
+          "aria-live": "polite"
+        });
+      } else {
+        console.error("[ERROR] ShoppingList - Failed to delete item");
+        toast({
+          title: "Error",
+          description: "Failed to delete item",
+          variant: "destructive",
+          role: "alert",
+          "aria-live": "assertive"
+        });
+      }
+    } catch (error) {
+      console.error("[ERROR] ShoppingList - Error during item deletion:", error);
       toast({
         title: "Error",
-        description: "Failed to delete item",
+        description: "Failed to delete item due to an error",
         variant: "destructive",
         role: "alert",
         "aria-live": "assertive"
       });
+    } finally {
+      setShowDeleteDialog(false);
+      setItemToDelete(null);
+      setIsDeleting(false);
     }
-    
-    setShowDeleteDialog(false);
-    setItemToDelete(null);
   };
   
   const cancelDeleteItem = () => {
@@ -229,7 +246,9 @@ const ShoppingList = ({
     return (
       <div 
         className={cn(
-          "grid grid-cols-4 md:grid-cols-6 gap-2 md:gap-3 p-4",
+          "grid gap-2 md:gap-3 p-4",
+          // Improved responsive grid - 2 columns on mobile, 4 on tablets, 6 on desktop
+          "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6",
           "shopping-item-grid"
         )}
         role="list"
@@ -256,6 +275,14 @@ const ShoppingList = ({
       </div>
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full flex items-center justify-center p-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className={cn('w-full', className)}>
@@ -323,7 +350,7 @@ const ShoppingList = ({
       <AlertDialog
         open={showDeleteDialog}
         onOpenChange={(isOpen) => {
-          if (!isOpen) {
+          if (!isOpen && !isDeleting) {
             cancelDeleteItem();
           }
         }}
@@ -336,8 +363,17 @@ const ShoppingList = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelDeleteItem}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteItem}>Delete</AlertDialogAction>
+            <AlertDialogCancel onClick={cancelDeleteItem} disabled={isDeleting}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteItem} disabled={isDeleting}>
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : "Delete"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

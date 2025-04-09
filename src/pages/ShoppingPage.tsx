@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShoppingList from '@/components/features/shopping/ShoppingList';
@@ -12,7 +13,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import PageHeader from '@/components/ui/page-header';
 import { cn } from '@/lib/utils';
 import DirectAddItem from '@/components/features/shopping/DirectAddItem';
-import { Users, Loader2 } from 'lucide-react';
+import { Users, Loader2, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -27,6 +28,10 @@ import {
 import { compressImage } from '@/utils/imageProcessing';
 import ErrorBoundary from '@/components/ui/error-boundary';
 import { useDebounce } from '@/hooks/useDebounce';
+
+const STORAGE_KEY_INVITE_ACCEPTED = 'shoppingInviteAccepted';
+const STORAGE_KEY_READ_ONLY_MODE = 'shoppingReadOnlyMode';
+const STORAGE_KEY_INVITE_LINKS = 'shoppingInviteLinks';
 
 const uploadImage = async (imageFile: File) => {
   try {
@@ -66,7 +71,7 @@ const ShoppingPageContent: React.FC = () => {
   const { toast } = useToast();
   const { isMobile } = useIsMobile();
 
-  const { addItem, updateItem, removeItem, updateFilterMode } = useShoppingItemsContext();
+  const { addItem, updateItem, removeItem, updateFilterMode, isLoading: itemsLoading } = useShoppingItemsContext();
 
   const searchParams = new URLSearchParams(location.search);
   const tabFromUrl = searchParams.get('tab');
@@ -78,16 +83,19 @@ const ShoppingPageContent: React.FC = () => {
   const memoizedToast = useCallback(toast, [toast]);
 
   const storeInvitationStatus = useCallback((isReadOnly: boolean) => {
-    localStorage.setItem('shoppingInviteAccepted', 'true');
-    localStorage.setItem('shoppingReadOnlyMode', isReadOnly ? 'true' : 'false');
+    localStorage.setItem(STORAGE_KEY_INVITE_ACCEPTED, 'true');
+    localStorage.setItem(STORAGE_KEY_READ_ONLY_MODE, isReadOnly ? 'true' : 'false');
   }, []);
 
+  // Load read-only mode status from localStorage on initial render
   useEffect(() => {
-    const storedInviteAccepted = localStorage.getItem('shoppingInviteAccepted');
-    const storedReadOnlyMode = localStorage.getItem('shoppingReadOnlyMode');
+    const storedInviteAccepted = localStorage.getItem(STORAGE_KEY_INVITE_ACCEPTED);
+    const storedReadOnlyMode = localStorage.getItem(STORAGE_KEY_READ_ONLY_MODE);
     
     if (storedInviteAccepted === 'true') {
-      setIsReadOnlyMode(storedReadOnlyMode === 'true');
+      const newReadOnlyMode = storedReadOnlyMode === 'true';
+      console.log(`[DEBUG] ShoppingPage - Setting read-only mode from localStorage: ${newReadOnlyMode}`);
+      setIsReadOnlyMode(newReadOnlyMode);
     }
   }, []);
 
@@ -98,13 +106,14 @@ const ShoppingPageContent: React.FC = () => {
     updateFilterMode(newTab as any);
   }, [location.search, tabFromUrl, updateFilterMode]);
 
+  // Process invitation parameters in URL
   useEffect(() => {
     const inviteParam = searchParams.get('invite');
     const modeParam = searchParams.get('mode');
     
     if (inviteParam) {
       try {
-        const storedLinks = localStorage.getItem('shoppingInviteLinks');
+        const storedLinks = localStorage.getItem(STORAGE_KEY_INVITE_LINKS);
         if (storedLinks) {
           const links = JSON.parse(storedLinks);
           const matchingLink = links.find((link: any) => 
@@ -122,6 +131,7 @@ const ShoppingPageContent: React.FC = () => {
             }
             
             const isReadOnly = modeParam === 'readonly';
+            console.log(`[DEBUG] ShoppingPage - Setting read-only mode from invitation: ${isReadOnly}`);
             setIsReadOnlyMode(isReadOnly);
             storeInvitationStatus(isReadOnly);
             
@@ -147,6 +157,7 @@ const ShoppingPageContent: React.FC = () => {
         console.error("[ERROR] ShoppingPage - Error processing invitation:", error);
       }
       
+      // Clean up the URL after processing invitation
       const newUrl = `${window.location.pathname}?tab=${activeTab}`;
       window.history.replaceState({}, '', newUrl);
     }
@@ -179,7 +190,7 @@ const ShoppingPageContent: React.FC = () => {
     setEditItem(null);
   }
 
-  const handleSaveItem = (item: any) => {
+  const handleSaveItem = async (item: any) => {
     if (isReadOnlyMode) {
       memoizedToast({
         title: "Read-only Mode",
@@ -191,90 +202,95 @@ const ShoppingPageContent: React.FC = () => {
       return false;
     }
     
+    // Prevent duplicate submissions
+    if (isProcessing) {
+      return false;
+    }
+    
     setIsProcessing(true);
     
-    (async () => {
-      try {
-        console.log('[DEBUG] ShoppingPage - Adding item with data:', JSON.stringify(item, null, 2));
-        
-        let imageUrl = null;
-        if (item.file && item.file instanceof File) {
-          try {
-            imageUrl = await uploadImage(item.file);
-          } catch (error) {
-            memoizedToast({
-              title: "Image Upload Failed",
-              description: "Failed to upload image, but we'll continue adding the item.",
-              variant: "destructive",
-              role: "alert",
-              "aria-live": "assertive"
-            });
-          }
-        } else if (item.imageUrl) {
-          imageUrl = item.imageUrl;
-        }
-        
-        const itemToAdd = {
-          name: item.name || 'Unnamed Item',
-          amount: item.amount || '',
-          price: item.price || '',
-          imageUrl: imageUrl,
-          notes: item.notes || '',
-          repeatOption: item.repeatOption || 'none',
-          category: item.category || '',
-          dateToPurchase: item.dateToPurchase || '',
-          completed: false
-        };
-        
-        console.log('[DEBUG] ShoppingPage - Properly structured item to add:', JSON.stringify(itemToAdd, null, 2));
-        
-        const result = addItem(itemToAdd);
-        console.log('[DEBUG] ShoppingPage - Add item result:', result);
-        
-        if (result) {
-          const targetTab = itemToAdd.repeatOption === 'weekly' 
-            ? 'weekly' 
-            : itemToAdd.repeatOption === 'monthly' 
-              ? 'monthly' 
-              : 'one-off';
-              
-          if (activeTab !== targetTab && activeTab !== 'all') {
-            navigate(`/shopping?tab=${targetTab}`, { replace: true });
-          }
-          
+    try {
+      console.log('[DEBUG] ShoppingPage - Adding item with data:', JSON.stringify(item, null, 2));
+      
+      let imageUrl = null;
+      if (item.file && item.file instanceof File) {
+        try {
+          imageUrl = await uploadImage(item.file);
+        } catch (error) {
           memoizedToast({
-            title: "Item Added",
-            description: `${item.name} has been added to your shopping list.`,
-            role: "status",
-            "aria-live": "polite"
-          });
-        } else {
-          memoizedToast({
-            title: "Failed to Add Item",
-            description: "The item could not be added to your shopping list.",
+            title: "Image Upload Failed",
+            description: "Failed to upload image, but we'll continue adding the item.",
             variant: "destructive",
             role: "alert",
             "aria-live": "assertive"
           });
         }
-      } catch (error) {
-        console.error("[ERROR] ShoppingPage - Error adding item:", error);
+      } else if (item.imageUrl) {
+        imageUrl = item.imageUrl;
+      }
+      
+      const itemToAdd = {
+        name: item.name || 'Unnamed Item',
+        amount: item.amount || '',
+        price: item.price || '',
+        imageUrl: imageUrl,
+        notes: item.notes || '',
+        repeatOption: item.repeatOption || 'none',
+        category: item.category || '',
+        dateToPurchase: item.dateToPurchase || '',
+        completed: false
+      };
+      
+      console.log('[DEBUG] ShoppingPage - Properly structured item to add:', JSON.stringify(itemToAdd, null, 2));
+      
+      const result = addItem(itemToAdd);
+      console.log('[DEBUG] ShoppingPage - Add item result:', result);
+      
+      if (result) {
+        const targetTab = itemToAdd.repeatOption === 'weekly' 
+          ? 'weekly' 
+          : itemToAdd.repeatOption === 'monthly' 
+            ? 'monthly' 
+            : 'one-off';
+            
+        if (activeTab !== targetTab && activeTab !== 'all') {
+          navigate(`/shopping?tab=${targetTab}`, { replace: true });
+        }
+        
         memoizedToast({
-          title: "Error",
-          description: "Failed to add item to list",
+          title: "Item Added",
+          description: `${item.name} has been added to your shopping list.`,
+          role: "status",
+          "aria-live": "polite"
+        });
+        
+        return true;
+      } else {
+        memoizedToast({
+          title: "Failed to Add Item",
+          description: "The item could not be added to your shopping list.",
           variant: "destructive",
           role: "alert",
           "aria-live": "assertive"
         });
-      } finally {
-        setIsProcessing(false);
+        return false;
       }
-    })();
-    
-    return true;
+    } catch (error) {
+      console.error("[ERROR] ShoppingPage - Error adding item:", error);
+      memoizedToast({
+        title: "Error",
+        description: "Failed to add item to list",
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
+      });
+      return false;
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
-  const handleUpdateItem = (updatedItem: any) => {
+  const handleUpdateItem = async (updatedItem: any) => {
     if (isReadOnlyMode) {
       memoizedToast({
         title: "Read-only Mode",
@@ -286,65 +302,64 @@ const ShoppingPageContent: React.FC = () => {
       return false;
     }
     
-    if (!editItem || !editItem.id) return false;
+    if (!editItem || !editItem.id || isProcessing) return false;
     
     setIsProcessing(true);
     
-    (async () => {
-      try {
-        console.log("[DEBUG] ShoppingPage - Updating item:", JSON.stringify(updatedItem, null, 2));
-        
-        let imageUrl = null;
-        if (updatedItem.file && updatedItem.file instanceof File) {
-          try {
-            imageUrl = await uploadImage(updatedItem.file);
-          } catch (error) {
-            memoizedToast({
-              title: "Image Upload Failed",
-              description: "Failed to upload image, but we'll continue updating the item.",
-              variant: "destructive",
-              role: "alert",
-              "aria-live": "assertive"
-            });
-          }
-        } else if (updatedItem.imageUrl) {
-          imageUrl = updatedItem.imageUrl;
-        }
-        
-        const itemData = {
-          name: updatedItem.name,
-          amount: updatedItem.amount,
-          imageUrl: imageUrl,
-          notes: updatedItem.notes,
-          repeatOption: updatedItem.repeatOption || 'none',
-          completed: editItem.item?.completed
-        };
-        
-        const result = updateItem(editItem.id, itemData);
-        
-        if (result) {
+    try {
+      console.log("[DEBUG] ShoppingPage - Updating item:", JSON.stringify(updatedItem, null, 2));
+      
+      let imageUrl = null;
+      if (updatedItem.file && updatedItem.file instanceof File) {
+        try {
+          imageUrl = await uploadImage(updatedItem.file);
+        } catch (error) {
           memoizedToast({
-            title: "Item Updated",
-            description: `${updatedItem.name} has been updated.`,
-            role: "status",
-            "aria-live": "polite"
+            title: "Image Upload Failed",
+            description: "Failed to upload image, but we'll continue updating the item.",
+            variant: "destructive",
+            role: "alert",
+            "aria-live": "assertive"
           });
         }
-      } catch (error) {
-        console.error("[ERROR] ShoppingPage - Error updating item:", error);
-        memoizedToast({
-          title: "Error",
-          description: "Failed to update item",
-          variant: "destructive",
-          role: "alert",
-          "aria-live": "assertive"
-        });
-      } finally {
-        setIsProcessing(false);
+      } else if (updatedItem.imageUrl) {
+        imageUrl = updatedItem.imageUrl;
       }
-    })();
-    
-    return true;
+      
+      const itemData = {
+        name: updatedItem.name,
+        amount: updatedItem.amount,
+        imageUrl: imageUrl,
+        notes: updatedItem.notes,
+        repeatOption: updatedItem.repeatOption || 'none',
+        completed: editItem.item?.completed
+      };
+      
+      const result = updateItem(editItem.id, itemData);
+      
+      if (result) {
+        memoizedToast({
+          title: "Item Updated",
+          description: `${updatedItem.name} has been updated.`,
+          role: "status",
+          "aria-live": "polite"
+        });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("[ERROR] ShoppingPage - Error updating item:", error);
+      memoizedToast({
+        title: "Error",
+        description: "Failed to update item",
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
+      });
+      return false;
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
   const handleDeleteItem = (id: string) => {
@@ -364,7 +379,7 @@ const ShoppingPageContent: React.FC = () => {
     setShowConfirmDialog(true);
   };
 
-  const confirmDeleteItem = () => {
+  const confirmDeleteItem = async () => {
     if (isProcessing || !itemToDeleteId) {
       console.log("[DEBUG] ShoppingPage - Prevented duplicate delete execution or missing itemToDeleteId");
       return;
@@ -423,6 +438,15 @@ const ShoppingPageContent: React.FC = () => {
     />
   ), [searchTerm, activeTab, handleEditItem, isReadOnlyMode]);
 
+  if (itemsLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-12">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Loading your shopping list...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full">
       <PageHeader 
@@ -464,6 +488,7 @@ const ShoppingPageContent: React.FC = () => {
             variant="secondary"
             className="flex items-center gap-1"
             aria-label="Invite others to your shopping list"
+            disabled={isProcessing}
           >
             <Users className="h-4 w-4" aria-hidden="true" />
             {isMobile ? "" : "Invite"}
@@ -472,14 +497,21 @@ const ShoppingPageContent: React.FC = () => {
       />
 
       {isReadOnlyMode && (
-        <div className="mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800 text-xs" role="status">
-          You are viewing this shopping list in read-only mode. You cannot add, edit, or mark items as completed.
+        <div className="mb-4 p-2 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800 text-xs md:text-sm" role="status">
+          <div className="flex items-center">
+            <ShoppingCart className="h-4 w-4 mr-2 flex-shrink-0" />
+            <span>You are viewing this shopping list in read-only mode. You cannot add, edit, or mark items as completed.</span>
+          </div>
         </div>
       )}
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList 
-          className="w-full grid grid-cols-4 mb-6 gap-1" 
+          className={cn(
+            "w-full grid mb-6 gap-1",
+            // Use responsive columns for tabs
+            "grid-cols-2 sm:grid-cols-4",
+          )}
           role="tablist" 
           aria-label="Shopping list categories"
         >
@@ -540,15 +572,21 @@ const ShoppingPageContent: React.FC = () => {
       <AddItemDialog 
         open={showAddDialog}
         onOpenChange={(open) => {
-          console.log("[DEBUG] ShoppingPage - AddItemDialog onOpenChange called with value:", open);
-          setShowAddDialog(open);
+          if (!open && !isProcessing) {
+            console.log("[DEBUG] ShoppingPage - AddItemDialog onOpenChange called with value:", open);
+            setShowAddDialog(open);
+          }
         }}
         onSave={handleSaveItem}
       />
 
       <InviteDialog
         open={showInviteDialog}
-        onOpenChange={setShowInviteDialog}
+        onOpenChange={(open) => {
+          if (!open && !isProcessing) {
+            setShowInviteDialog(open);
+          }
+        }}
       />
 
       {editItem && editItem.item && (
@@ -565,7 +603,7 @@ const ShoppingPageContent: React.FC = () => {
       <AlertDialog 
         open={showConfirmDialog} 
         onOpenChange={(open) => {
-          if (!open) {
+          if (!open && !isProcessing) {
             cancelDeleteItem();
           }
           setShowConfirmDialog(open);
