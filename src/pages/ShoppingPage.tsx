@@ -207,7 +207,6 @@ const ShoppingPageContent: React.FC = () => {
     try {
       console.log('[DEBUG] ShoppingPage - Adding item with data:', JSON.stringify(item, null, 2));
       
-      let imageUrl = null;
       if (item.file && item.file instanceof File) {
         uploadImage(item.file)
           .then(url => {
@@ -223,11 +222,12 @@ const ShoppingPageContent: React.FC = () => {
             });
             proceedWithSave(item, null);
           });
+          
+        return true;
       } else {
         proceedWithSave(item, item.imageUrl);
+        return true;
       }
-      
-      return;
     } catch (error) {
       console.error("[ERROR] ShoppingPage - Error adding item:", error);
       memoizedToast({
@@ -326,11 +326,12 @@ const ShoppingPageContent: React.FC = () => {
             });
             proceedWithUpdate(updatedItem, updatedItem.imageUrl);
           });
+          
+        return true;
       } else {
         proceedWithUpdate(updatedItem, updatedItem.imageUrl);
+        return true;
       }
-      
-      return;
     } catch (error) {
       console.error("[ERROR] ShoppingPage - Error updating item:", error);
       memoizedToast({
@@ -395,7 +396,7 @@ const ShoppingPageContent: React.FC = () => {
     setShowConfirmDialog(true);
   };
 
-  const confirmDeleteItem = async () => {
+  const confirmDeleteItem = () => {
     if (isProcessing || !itemToDeleteId) {
       console.log("[DEBUG] ShoppingPage - Prevented duplicate delete execution or missing itemToDeleteId");
       return;
@@ -521,39 +522,39 @@ const ShoppingPageContent: React.FC = () => {
         </div>
       )}
 
-      <Tabs value={activeTab} onValueChange={handleTabChange}>
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList 
           className={cn(
-            "w-full grid mb-6 gap-1",
-            "grid-cols-2 sm:grid-cols-4",
+            "w-full grid mb-6 gap-2",
+            isMobile ? "grid-cols-4 overflow-x-auto" : "grid-cols-4", 
           )}
           role="tablist" 
           aria-label="Shopping list categories"
         >
           <TabsTrigger 
             value="one-off" 
-            className="text-sm whitespace-nowrap overflow-hidden overflow-ellipsis px-1 h-12 md:h-10"
+            className="text-sm px-2 py-1 h-12 md:h-10 min-w-[70px]"
             aria-controls={`tabpanel-one-off`}
           >
             {isMobile ? "One-off" : "One-off Items"}
           </TabsTrigger>
           <TabsTrigger 
             value="weekly" 
-            className="text-sm px-1 h-12 md:h-10"
+            className="text-sm px-2 py-1 h-12 md:h-10 min-w-[70px]"
             aria-controls={`tabpanel-weekly`}
           >
             Weekly
           </TabsTrigger>
           <TabsTrigger 
             value="monthly" 
-            className="text-sm px-1 h-12 md:h-10"
+            className="text-sm px-2 py-1 h-12 md:h-10 min-w-[70px]"
             aria-controls={`tabpanel-monthly`}
           >
             Monthly
           </TabsTrigger>
           <TabsTrigger 
             value="all" 
-            className="text-sm px-1 h-12 md:h-10"
+            className="text-sm px-2 py-1 h-12 md:h-10 min-w-[70px]"
             aria-controls={`tabpanel-all`}
           >
             {isMobile ? "All" : "All Items"}

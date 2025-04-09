@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -47,8 +48,8 @@ const ShoppingItemCard = ({
       } 
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
-  // Fixed item size based on device - exactly following Bring! style specification
-  const cardSize = isMobile ? '80px' : '100px';
+  // Larger card sizes for both mobile and desktop
+  const cardSize = isMobile ? '120px' : '140px'; // Increased from 80px/100px
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only trigger image preview if clicking on the card background
@@ -60,6 +61,9 @@ const ShoppingItemCard = ({
     }
   };
 
+  // Button size increased for better tap targets - especially on mobile
+  const buttonSize = isMobile ? "min-w-11 min-h-11" : "min-w-9 min-h-9";
+
   return (
     <Card 
       className={cn(
@@ -70,21 +74,22 @@ const ShoppingItemCard = ({
         ...cardStyle,
         width: cardSize,
         height: cardSize,
-        margin: isMobile ? '4px' : '6px' // Half of grid gap for even spacing
+        margin: '0' // Let the grid control spacing
       }}
       onClick={handleCardClick}
       role="button"
       aria-pressed={completed}
       tabIndex={0}
     >
-      {/* Edit Button - top-left */}
+      {/* Edit Button - top-left with improved tap target */}
       <div className="absolute top-2 left-2 z-10">
         <Button
           size="icon"
           variant="secondary"
           className={cn(
             "rounded-full bg-white/70 hover:bg-white shadow-md",
-            "h-6 w-6" // Consistent button size
+            "transition-all duration-200 hover:scale-110", // Added hover effect
+            buttonSize // Using the dynamic size
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -93,18 +98,19 @@ const ShoppingItemCard = ({
           disabled={readOnly}
           aria-label={`Edit ${name}`}
         >
-          <Pencil className="h-3 w-3 text-gray-700" />
+          <Pencil className={isMobile ? "h-4 w-4" : "h-3.5 w-3.5"} />
         </Button>
       </div>
       
-      {/* Delete Button - top-right */}
+      {/* Delete Button - top-right with improved tap target */}
       <div className="absolute top-2 right-2 z-10">
         <Button
           size="icon"
           variant="secondary"
           className={cn(
             "rounded-full bg-white/70 hover:bg-white shadow-md",
-            "h-6 w-6" // Consistent button size
+            "transition-all duration-200 hover:scale-110", // Added hover effect
+            buttonSize // Using the dynamic size
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -113,7 +119,7 @@ const ShoppingItemCard = ({
           disabled={readOnly}
           aria-label={`Delete ${name}`}
         >
-          <Trash2 className="h-3 w-3 text-gray-700" />
+          <Trash2 className={isMobile ? "h-4 w-4" : "h-3.5 w-3.5"} />
         </Button>
       </div>
 
@@ -126,11 +132,11 @@ const ShoppingItemCard = ({
         }}
       >
         {completed && (
-          <div className="rounded-full bg-green-500/80 flex items-center justify-center h-10 w-10">
+          <div className="rounded-full bg-green-500/80 flex items-center justify-center h-12 w-12">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              width="20" 
-              height="20" 
+              width="24" 
+              height="24" 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
@@ -148,33 +154,38 @@ const ShoppingItemCard = ({
       
       {/* Item Name - positioned at bottom with gradient background */}
       <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-        <h3 className="text-white font-medium text-shadow truncate text-xs" 
+        <h3 className="text-white font-medium text-shadow truncate" 
             style={{ 
               textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
-              lineHeight: 1.2
+              lineHeight: 1.2,
+              fontSize: isMobile ? '0.9rem' : '0.85rem' // Increased from text-xs
             }}>
           {name}
         </h3>
         {quantity && (
           <div className="flex items-center gap-1">
-            <span className="text-white/90 text-shadow text-[10px]" 
-                  style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
+            <span className="text-white/90 text-shadow" 
+                  style={{ 
+                    textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                    fontSize: '0.75rem' // Increased from text-[10px]
+                  }}>
               {quantity}
             </span>
           </div>
         )}
       </div>
       
-      {/* Repeat Option Badge - positioned at bottom-right */}
+      {/* Repeat Option Badge - improved positioning */}
       {repeatOption && repeatOption !== 'none' && (
         <Badge 
           variant="secondary" 
           className={cn(
-            "absolute bottom-2 right-2 bg-white/80 text-black cursor-default text-[7px] px-1 py-0"
+            "absolute bottom-2 right-2 bg-white/80 text-black px-2 py-1",
+            "text-xs shadow-sm z-10" // Improved visibility and positioning
           )}
         >
           {repeatOption}

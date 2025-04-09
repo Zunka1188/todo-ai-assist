@@ -67,25 +67,43 @@
 }
 
 @layer components {
-  /* Shopping item specific styling */
+  /* Shopping item specific styling - improved responsive design */
   .shopping-item-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
     padding: 16px;
+    width: 100%;
+  }
+  
+  @media (min-width: 480px) {
+    .shopping-item-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
   
   @media (min-width: 768px) {
     .shopping-item-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .shopping-item-grid {
+      grid-template-columns: repeat(5, 1fr);
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .shopping-item-grid {
       grid-template-columns: repeat(6, 1fr);
-      gap: 12px;
     }
   }
   
   .shopping-item-card {
-    width: 80px;
-    height: 80px;
-    margin: 4px;
+    width: 100%;
+    height: 120px; /* Taller card size */
     border-radius: 8px;
     overflow: hidden;
     position: relative;
@@ -94,18 +112,18 @@
   
   @media (min-width: 768px) {
     .shopping-item-card {
-      width: 100px;
-      height: 100px;
-      margin: 6px;
+      height: 140px;
     }
   }
   
+  /* Improved tap targets for mobile */
   .item-button {
-    width: 32px;
-    height: 32px;
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
+    width: 44px; /* Apple/Material minimum tap target */
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
   }
   
   /* Text shadow utility for better text readability on images */
@@ -169,161 +187,37 @@
     opacity: 1 !important;
   }
   
-  /* Text shadow utility for better text readability on images */
-  .text-shadow {
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+  /* Tag positioning and styling */
+  .item-tag {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #000;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    z-index: 5;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
   
-  .text-shadow-sm {
-    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
+  /* Improved icon button hover styles */
+  .icon-button:hover {
+    transform: scale(1.1);
+    background-color: rgba(255, 255, 255, 0.9);
   }
   
-  .text-shadow-lg {
-    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.8);
+  /* Tab navigation container */
+  .tabs-container {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
   }
   
-  @layer utilities {
-    .hide-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    
-    .hide-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    
-    .smooth-scroll {
-      scroll-behavior: smooth;
-    }
-    
-    /* Yuka-inspired button styles */
-    .yuka-button {
-      @apply bg-primary text-white rounded-lg px-4 py-2.5 flex items-center justify-center;
-      @apply transition-all duration-200 hover:bg-primary-light active:bg-primary-dark;
-      @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50;
-    }
-    
-    .responsive-button {
-      @apply flex items-center justify-between w-auto max-w-[200px] rounded-lg px-4 py-2.5 min-h-[44px];
-      @apply transition-all duration-200 hover:cursor-pointer;
-      @apply overflow-hidden;
-    }
-    
-    .responsive-button-text {
-      @apply truncate text-base font-medium;
-    }
-    
-    .responsive-button-icon {
-      @apply flex items-center justify-center ml-2;
-      @apply hover:bg-black/10 dark:hover:bg-white/10 rounded-full p-0.5 transition-colors;
-    }
-    
-    /* Button hover animations */
-    .button-hover-scale {
-      @apply transition-transform duration-200 hover:scale-105;
-    }
-    
-    .button-hover-shadow {
-      @apply transition-shadow duration-200 hover:shadow-md;
-    }
-    
-    /* Icon animations */
-    .icon-hover-rotate {
-      @apply transition-transform duration-200 hover:rotate-90;
-    }
-    
-    .icon-hover-pulse {
-      @apply hover:animate-pulse;
-    }
-    
-    /* High contrast text utilities */
-    .text-high-contrast {
-      @apply text-foreground dark:text-white;
-    }
-    
-    .text-medium-contrast {
-      @apply text-foreground/80 dark:text-white/90;
-    }
-    
-    .text-low-contrast {
-      @apply text-muted-foreground dark:text-white/70;
-    }
-    
-    /* Button contrast utilities */
-    .button-primary {
-      @apply bg-primary text-primary-foreground hover:bg-primary/90 dark:hover:bg-primary/80;
-    }
-    
-    .button-secondary {
-      @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 dark:hover:bg-secondary/70;
-    }
-    
-    .button-outline {
-      @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
-    }
-    
-    /* Icon contrast utilities */
-    .icon-high-contrast {
-      @apply text-foreground dark:text-white;
-    }
-    
-    .icon-medium-contrast {
-      @apply text-muted-foreground dark:text-primary;
-    }
-    
-    .icon-low-contrast {
-      @apply text-muted-foreground/70 dark:text-white/70;
-    }
-    
-    /* Tab contrast utilities */
-    .tab-active {
-      @apply text-primary font-medium dark:text-white;
-    }
-    
-    .tab-inactive-light {
-      @apply text-foreground/90 hover:text-primary;
-    }
-    
-    .tab-inactive-dark {
-      @apply text-white/80 hover:text-white;
-    }
-    
-    /* Mobile specific utilities */
-    .touch-manipulation {
-      touch-action: manipulation;
-    }
-    
-    .safe-bottom {
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-    
-    .safe-top {
-      padding-top: env(safe-area-inset-top);
-    }
-    
-    /* Mobile tappable area - ensure touch targets are at least 44x44px */
-    .tap-target {
-      @apply min-h-[44px] min-w-[44px];
-    }
-    
-    /* Mobile active state */
-    .mobile-active-effect {
-      @apply active:bg-black/5 dark:active:bg-white/10;
-    }
-    
-    /* Card styles */
-    .card-gradient {
-      @apply bg-gradient-to-br from-card to-secondary/80 backdrop-blur-sm;
-    }
-    
-    /* Glassmorphism */
-    .glass {
-      @apply bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl;
-    }
-    
-    .dark .glass {
-      @apply bg-black/20 backdrop-blur-lg border border-white/10 rounded-2xl;
-    }
+  .tabs-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
   }
 }
 

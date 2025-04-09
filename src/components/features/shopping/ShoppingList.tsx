@@ -9,7 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
 import ShoppingItemCard from './ShoppingItemCard';
-import { Loader2 } from 'lucide-react'; // Added this import
+import { Loader2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -196,7 +196,7 @@ const ShoppingList = ({
     setShowDeleteDialog(true);
   };
 
-  const confirmDeleteItem = async () => {
+  const confirmDeleteItem = () => {
     if (!itemToDelete || isDeleting) return;
     
     setIsDeleting(true);
@@ -247,9 +247,9 @@ const ShoppingList = ({
     return (
       <div 
         className={cn(
-          "grid gap-2 md:gap-3 p-4",
-          // Improved responsive grid - 2 columns on mobile, 4 on tablets, 6 on desktop
-          "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6",
+          "grid gap-4 md:gap-5 p-4",
+          // Improved responsive grid with fewer columns on smaller screens
+          "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
           "shopping-item-grid"
         )}
         role="list"
@@ -279,16 +279,16 @@ const ShoppingList = ({
 
   if (isLoading) {
     return (
-      <div className="w-full flex items-center justify-center p-12">
+      <div className="w-full flex items-center justify-center p-12 min-h-[30vh]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className={cn('w-full', className)}>
+    <div className={cn('w-full min-h-[60vh]', className)}>
       {notPurchasedItems.length === 0 && purchasedItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-4 text-center" role="status">
+        <div className="flex flex-col items-center justify-center p-8 text-center min-h-[40vh]" role="status">
           <p className="text-muted-foreground mb-2">No items found</p>
           <p className="text-sm text-muted-foreground">
             {searchTerm ? "Try a different search term" : "Add an item to get started"}
@@ -306,7 +306,7 @@ const ShoppingList = ({
             {notPurchasedItems.length > 0 && renderItemGrid(notPurchasedItems)}
             
             {purchasedItems.length > 0 && (
-              <div className="mt-4">
+              <div className="mt-6">
                 <Separator className="mb-4" />
                 <h3 className="text-lg font-medium mb-4 px-4" id="purchased-heading">
                   {isMobile ? 'Purchased' : 'Purchased Items'}
