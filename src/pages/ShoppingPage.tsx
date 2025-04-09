@@ -503,29 +503,6 @@ const ShoppingPageContent: React.FC = () => {
     />
   ), [searchTerm, activeTab, handleEditItem, isReadOnlyMode]);
 
-  // Setup mobile persistence hooks to ensure data is saved
-  useEffect(() => {
-    // Set up mobile-specific persistence handling
-    const cleanupMobilePersistence = isMobile ? setupMobilePersistence() : undefined;
-    
-    // Force an immediate sync for mobile devices
-    if (isMobile) {
-      const allItems = [...notPurchasedItems, ...purchasedItems];
-      try {
-        localStorage.setItem('shoppingItems', JSON.stringify(allItems));
-        console.log('[DEBUG] ShoppingPage - Initial forced mobile sync on mount');
-      } catch (err) {
-        console.error('[ERROR] ShoppingPage - Failed initial mobile sync:', err);
-      }
-    }
-    
-    return () => {
-      if (cleanupMobilePersistence) {
-        cleanupMobilePersistence();
-      }
-    };
-  }, [isMobile, notPurchasedItems, purchasedItems]);
-
   useEffect(() => {
     const inviteParam = searchParams.get('invite');
     const modeParam = searchParams.get('mode');
@@ -924,38 +901,58 @@ const ShoppingPageContent: React.FC = () => {
     />
   ), [searchTerm, activeTab, handleEditItem, isReadOnlyMode]);
 
-  if (itemsLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full p-12">
-        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground">Loading your shopping list...</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    // Set up mobile-specific persistence handling
+    const cleanupMobilePersistence = isMobile ? setupMobilePersistence() : undefined;
+    
+    // Force an immediate sync for mobile devices
+    if (isMobile) {
+      const allItems = [...notPurchasedItems, ...purchasedItems];
+      try {
+        localStorage.setItem('shoppingItems', JSON.stringify(allItems));
+        console.log('[DEBUG] ShoppingPage - Initial forced mobile sync on mount');
+      } catch (err) {
+        console.error('[ERROR] ShoppingPage - Failed initial mobile sync:', err);
+      }
+    }
+    
+    return () => {
+      if (cleanupMobilePersistence) {
+        cleanupMobilePersistence();
+      }
+    };
+  }, [isMobile, notPurchasedItems, purchasedItems]);
 
-  return (
-    <div className="flex flex-col h-full">
-      <PageHeader 
-        title="Shopping List"
-        searchTerm={rawSearchTerm}
-        onSearchChange={setRawSearchTerm}
-        onAddItem={() => {
-          if (isReadOnlyMode) {
+  useEffect(() => {
+    const inviteParam = searchParams.get('invite');
+    const modeParam = searchParams.get('mode');
+    
+    if (inviteParam) {
+      try {
+        const storedLinks = localStorage.getItem(STORAGE_KEY_INVITE_LINKS);
+        if (storedLinks) {
+          const links = JSON.parse(storedLinks);
+          const matchingLink = links.find((link: any) => 
+            link.id === inviteParam && link.isActive
+          );
+          
+          if (matchingLink) {
+            if (matchingLink.expiresAt && new Date(matchingLink.expiresAt) < new Date()) {
+              memoizedToast({
+                title: "Invitation Expired",
+                description: "This shopping list invitation has expired.",
+                variant: "destructive"
+              });
+              return;
+            }
+            
+            const isReadOnly = modeParam === 'readonly';
+            console.log(`[DEBUG] ShoppingPage - Setting read-only mode from invitation: ${isReadOnly}`);
+            setIsReadOnlyMode(isReadOnly);
+            storeInvitationStatus(isReadOnly);
+            
             memoizedToast({
-              title: "Read-only Mode",
-              description: "You don't have permission to add items to this shared list.",
-              variant: "destructive",
-              role: "alert",
-              "aria-live": "assertive"
-            });
-            return;
-          }
-          console.log("[DEBUG] ShoppingPage - Add button clicked, setting showAddDialog to true");
-          setShowAddDialog(true);
-        }}
-        addItemLabel="Add Item"
-        showAddButton={!isReadOnlyMode}
-        rightContent={
-          <Button
-            onClick={() => {
-              if (is
+              title: isReadOnly ? "View-only Access" : "Invitation Accepted",
+              description: isReadOnly 
+                ? "You can view but not modify this shopping list" 
+                : "You've joined a shared shopping
