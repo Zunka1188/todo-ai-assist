@@ -19,19 +19,19 @@ const ShoppingTabsSection: React.FC<ShoppingTabsSectionProps> = ({
   readOnly
 }) => {
   return (
-    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full shopping-tabs-container">
       <div className="mb-2">
-        <TabsList className="w-full flex flex-wrap md:flex-nowrap justify-around gap-2">
-          <TabsTrigger value="one-off" className="flex-1 text-sm px-3 py-1.5 h-10">
+        <TabsList className="w-full flex justify-around gap-1 px-0">
+          <TabsTrigger value="one-off" className="flex-1 text-sm px-1 py-1.5 h-10">
             One-off
           </TabsTrigger>
-          <TabsTrigger value="weekly" className="flex-1 text-sm px-3 py-1.5 h-10">
+          <TabsTrigger value="weekly" className="flex-1 text-sm px-1 py-1.5 h-10">
             Weekly
           </TabsTrigger>
-          <TabsTrigger value="monthly" className="flex-1 text-sm px-3 py-1.5 h-10">
+          <TabsTrigger value="monthly" className="flex-1 text-sm px-1 py-1.5 h-10">
             Monthly
           </TabsTrigger>
-          <TabsTrigger value="all" className="flex-1 text-sm px-3 py-1.5 h-10">
+          <TabsTrigger value="all" className="flex-1 text-sm px-1 py-1.5 h-10">
             All Items
           </TabsTrigger>
         </TabsList>

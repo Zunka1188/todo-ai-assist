@@ -304,7 +304,7 @@ const ShoppingList = ({
             {purchasedItems.length > 0 && (
               <div className="mt-6">
                 <Separator className="mb-4" />
-                <h3 className="text-lg font-medium mb-4 px-1" id="purchased-heading">
+                <h3 className="text-lg font-medium mb-4 px-0" id="purchased-heading">
                   {isMobile ? 'Purchased' : 'Purchased Items'}
                 </h3>
                 {renderItemGrid(purchasedItems)}

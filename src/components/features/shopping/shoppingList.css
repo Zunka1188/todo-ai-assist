@@ -2,24 +2,38 @@
 /* Shopping list grid layout */
 .shopping-item-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 8px;
   padding: 0;
   width: 100%;
+  margin: 0;
 }
 
 /* Ensure each item wrapper takes consistent space */
 .shopping-item-wrapper {
   width: 100%;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 /* Mobile-specific adjustments */
 @media (max-width: 640px) {
   .shopping-item-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
     gap: 8px;
+    padding: 0;
+  }
+  
+  .shopping-item-wrapper {
+    justify-content: flex-start;
+  }
+}
+
+/* Wider screens - allow more columns */
+@media (min-width: 768px) {
+  .shopping-item-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
   }
 }
 
@@ -33,4 +47,16 @@
   .shopping-list-container {
     padding-bottom: 5rem;
   }
+}
+
+/* Add proper container padding for alignment */
+.shopping-list-container {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Tab improvements */
+.shopping-tabs-container {
+  padding: 0;
+  width: 100%;
 }

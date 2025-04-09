@@ -8,7 +8,7 @@ const ShoppingPage: React.FC = () => {
   return (
     <ErrorBoundary>
       <ShoppingItemsProvider>
-        <div className="px-4 md:px-4">
+        <div className="px-0">
           <ShoppingPageContent />
         </div>
       </ShoppingItemsProvider>
