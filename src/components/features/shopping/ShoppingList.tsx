@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
 import ShoppingItemCard from './ShoppingItemCard';
+import { Loader2 } from 'lucide-react'; // Added this import
 import {
   AlertDialog,
   AlertDialogAction,

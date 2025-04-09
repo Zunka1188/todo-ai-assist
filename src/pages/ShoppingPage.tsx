@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShoppingList from '@/components/features/shopping/ShoppingList';
@@ -87,7 +86,6 @@ const ShoppingPageContent: React.FC = () => {
     localStorage.setItem(STORAGE_KEY_READ_ONLY_MODE, isReadOnly ? 'true' : 'false');
   }, []);
 
-  // Load read-only mode status from localStorage on initial render
   useEffect(() => {
     const storedInviteAccepted = localStorage.getItem(STORAGE_KEY_INVITE_ACCEPTED);
     const storedReadOnlyMode = localStorage.getItem(STORAGE_KEY_READ_ONLY_MODE);
@@ -106,7 +104,6 @@ const ShoppingPageContent: React.FC = () => {
     updateFilterMode(newTab as any);
   }, [location.search, tabFromUrl, updateFilterMode]);
 
-  // Process invitation parameters in URL
   useEffect(() => {
     const inviteParam = searchParams.get('invite');
     const modeParam = searchParams.get('mode');
@@ -157,7 +154,6 @@ const ShoppingPageContent: React.FC = () => {
         console.error("[ERROR] ShoppingPage - Error processing invitation:", error);
       }
       
-      // Clean up the URL after processing invitation
       const newUrl = `${window.location.pathname}?tab=${activeTab}`;
       window.history.replaceState({}, '', newUrl);
     }
@@ -202,7 +198,6 @@ const ShoppingPageContent: React.FC = () => {
       return false;
     }
     
-    // Prevent duplicate submissions
     if (isProcessing) {
       return false;
     }
@@ -509,7 +504,6 @@ const ShoppingPageContent: React.FC = () => {
         <TabsList 
           className={cn(
             "w-full grid mb-6 gap-1",
-            // Use responsive columns for tabs
             "grid-cols-2 sm:grid-cols-4",
           )}
           role="tablist" 
