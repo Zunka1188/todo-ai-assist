@@ -1,4 +1,3 @@
-
 import { ShoppingItem } from "@/components/features/shopping/useShoppingItems";
 
 const STORAGE_KEY = 'shoppingItems';
@@ -14,14 +13,16 @@ const parseStoredItems = (items: any[]): ShoppingItem[] => {
   }));
 };
 
-// Load items from localStorage with throttling to avoid excessive operations
+// Load items from localStorage with improved mobile reliability
 export const loadItems = (): ShoppingItem[] => {
   try {
+    // Force synchronous load for mobile devices
     const storedValue = localStorage.getItem(STORAGE_KEY);
     if (!storedValue) return [];
     
     const parsedValue = JSON.parse(storedValue);
     if (Array.isArray(parsedValue)) {
+      console.log(`[DEBUG] shoppingService - Loaded ${parsedValue.length} items from localStorage`);
       return parseStoredItems(parsedValue);
     }
     return [];
@@ -31,7 +32,7 @@ export const loadItems = (): ShoppingItem[] => {
   }
 };
 
-// Function to implement throttled saves to localStorage
+// Function to implement immediate saves to localStorage for better mobile persistence
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
 export const saveItems = (items: ShoppingItem[]): void => {
@@ -40,16 +41,25 @@ export const saveItems = (items: ShoppingItem[]): void => {
     clearTimeout(saveTimeout);
   }
   
-  // Throttle writes to localStorage with a 500ms delay
-  saveTimeout = setTimeout(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-      console.log(`[DEBUG] shoppingService - Saved items to localStorage (${items.length} items)`);
-    } catch (error) {
-      console.error("[ERROR] shoppingService - Error saving to localStorage:", error);
-    }
-    saveTimeout = null;
-  }, 500);
+  // For mobile reliability, save immediately and then schedule a backup save
+  try {
+    // Immediate save for mobile reliability
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    console.log(`[DEBUG] shoppingService - Immediately saved ${items.length} items to localStorage`);
+    
+    // Schedule a backup save to ensure data is persisted
+    saveTimeout = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        console.log(`[DEBUG] shoppingService - Backup save completed (${items.length} items)`);
+      } catch (error) {
+        console.error("[ERROR] shoppingService - Error in backup save to localStorage:", error);
+      }
+      saveTimeout = null;
+    }, 100); // Short timeout for backup save
+  } catch (error) {
+    console.error("[ERROR] shoppingService - Error saving to localStorage:", error);
+  }
 };
 
 // Mock API retry logic with exponential backoff
@@ -145,4 +155,23 @@ export const setupCrossBrowserSync = (updateCallback: (items: ShoppingItem[]) =>
   
   // Return cleanup function
   return () => window.removeEventListener('storage', handleStorageChange);
+};
+
+// Special function for mobile to ensure data is saved before page unload
+export const setupMobilePersistence = () => {
+  const handleBeforeUnload = () => {
+    // Force sync any pending items to localStorage
+    const items = loadItems();
+    if (items.length > 0) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        console.log("[DEBUG] Mobile persistence - Forced sync before page unload");
+      } catch (error) {
+        console.error("[ERROR] Mobile persistence - Failed to sync before unload:", error);
+      }
+    }
+  };
+
+  window.addEventListener('beforeunload', handleBeforeUnload);
+  return () => window.removeEventListener('beforeunload', handleBeforeUnload);
 };

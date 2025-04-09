@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, ReactNode, useState, useCallback, useMemo, useEffect } from 'react';
 import { useShoppingItems, ShoppingItem, SortOption } from './useShoppingItems';
-import { loadItems, saveItems } from '@/services/shoppingService';
+import { loadItems, saveItems, setupMobilePersistence } from '@/services/shoppingService';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type FilterMode = 'one-off' | 'weekly' | 'monthly' | 'all';
 
@@ -44,7 +45,7 @@ interface ShoppingItemsProviderProps {
   defaultSearchTerm?: string;
 }
 
-// Create a new function to handle localStorage persistence with error handling
+// Create a new function to handle localStorage persistence with error handling and mobile optimizations
 const persistItemsToStorage = (items: ShoppingItem[]) => {
   try {
     saveItems(items);
@@ -65,6 +66,7 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const { isMobile } = useIsMobile();
   
   // Create a single instance of useShoppingItems
   const shoppingItemsData = useShoppingItems(filterMode, searchTerm);
@@ -80,7 +82,7 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     setSearchTerm(term);
   }, []);
   
-  // Load items from localStorage on initial render
+  // Load items from localStorage on initial render with mobile optimization
   useEffect(() => {
     if (initialized) return;
     
@@ -106,13 +108,38 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     }
   }, [shoppingItemsData.setItems, initialized]);
   
-  // Save items to localStorage whenever they change
+  // Save items to localStorage whenever they change with extra mobile safeguards
   useEffect(() => {
     if (!isLoading && initialized && shoppingItemsData.items.length > 0) {
       console.log("[DEBUG] ShoppingItemsContext - Saving items to localStorage:", shoppingItemsData.items.length);
       persistItemsToStorage(shoppingItemsData.items);
+      
+      // For mobile devices, do extra verification that items were actually saved
+      if (isMobile) {
+        // Verify the save was successful by reading back
+        setTimeout(() => {
+          try {
+            const verifiedItems = loadItems();
+            if (verifiedItems.length !== shoppingItemsData.items.length) {
+              console.warn("[WARN] ShoppingItemsContext - Mobile save verification failed, retrying...");
+              persistItemsToStorage(shoppingItemsData.items);
+            }
+          } catch (err) {
+            console.error("[ERROR] ShoppingItemsContext - Mobile verification failed:", err);
+          }
+        }, 200);
+      }
     }
-  }, [shoppingItemsData.items, isLoading, initialized]);
+  }, [shoppingItemsData.items, isLoading, initialized, isMobile]);
+
+  // Setup mobile-specific persistence for page unload events
+  useEffect(() => {
+    if (isMobile) {
+      console.log("[DEBUG] ShoppingItemsContext - Setting up mobile persistence");
+      return setupMobilePersistence();
+    }
+    return undefined;
+  }, [isMobile]);
 
   // Handle storage events from other tabs
   useEffect(() => {

@@ -70,7 +70,7 @@ const ShoppingPageContent: React.FC = () => {
   const { toast } = useToast();
   const { isMobile } = useIsMobile();
 
-  const { addItem, updateItem, removeItem, updateFilterMode, isLoading: itemsLoading } = useShoppingItemsContext();
+  const { addItem, updateItem, removeItem, updateFilterMode, isLoading: itemsLoading, notPurchasedItems, purchasedItems } = useShoppingItemsContext();
 
   const searchParams = new URLSearchParams(location.search);
   const tabFromUrl = searchParams.get('tab');
@@ -266,9 +266,24 @@ const ShoppingPageContent: React.FC = () => {
         : itemToAdd.repeatOption === 'monthly' 
           ? 'monthly' 
           : 'one-off';
-          
+        
       if (activeTab !== targetTab && activeTab !== 'all') {
         navigate(`/shopping?tab=${targetTab}`, { replace: true });
+      }
+      
+      // Force a sync with localStorage to ensure persistence
+      if (isMobile) {
+        try {
+          // Special handling for mobile - explicit persist
+          const allItems = [...notPurchasedItems, ...purchasedItems];
+          if (result && !allItems.find(i => i.id === result.id)) {
+            allItems.push(result);
+          }
+          localStorage.setItem('shoppingItems', JSON.stringify(allItems));
+          console.log('[DEBUG] ShoppingPage - Forced mobile sync after add');
+        } catch (err) {
+          console.error('[ERROR] ShoppingPage - Failed to force mobile sync:', err);
+        }
       }
       
       memoizedToast({
