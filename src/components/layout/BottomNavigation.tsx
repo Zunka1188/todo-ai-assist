@@ -1,67 +1,50 @@
-
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, ShoppingBag, Calendar, Camera, FileText } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Link, useLocation } from 'react-router-dom';
+import { Home, Calendar, ShoppingBag, FileText, Cpu } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
 
-const BottomNavigation = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const currentPath = location.pathname;
-  const { isMobile } = useIsMobile();
+const BottomNavigation: React.FC = () => {
+  const { isMobile, isIOS } = useIsMobile();
   const { theme } = useTheme();
+  const location = useLocation();
 
-  const isActive = (path: string) => currentPath === path;
+  const textColorClass = theme === 'light' ? "text-foreground" : "text-white";
 
   const navItems = [
-    { path: '/', icon: Home, label: 'Home', action: () => navigate('/') },
-    { path: '/shopping', icon: ShoppingBag, label: 'Shopping', action: () => navigate('/shopping') },
-    { path: '/scan', icon: Camera, label: 'Smart Scanner', action: () => navigate('/scan') },
-    { path: '/calendar', icon: Calendar, label: 'Calendar', action: () => navigate('/calendar') },
-    { path: '/documents', icon: FileText, label: 'Documents', action: () => navigate('/documents') },
+    { to: '/', icon: <Home className="h-5 w-5" />, label: 'Home' },
+    { to: '/calendar', icon: <Calendar className="h-5 w-5" />, label: 'Calendar' },
+    { to: '/shopping', icon: <ShoppingBag className="h-5 w-5" />, label: 'Shopping' },
+    { to: '/documents', icon: <FileText className="h-5 w-5" />, label: 'Documents' },
+    { to: '/produce-recognition', icon: <Cpu className="h-5 w-5" />, label: 'Produce' },
   ];
 
-  // If not mobile, don't render the bottom navigation
   if (!isMobile) {
     return null;
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 shadow-md safe-bottom">
-      <div className="container mx-auto px-1 py-2 flex justify-between items-center">
-        {navItems.map(({ path, icon: Icon, label, action }) => (
-          <Link 
-            key={path}
-            to={path}
+    <nav
+      className={cn(
+        "fixed z-50 w-full bottom-0 border-t border-border bg-secondary",
+        isIOS ? "pb-safe-bottom" : "pb-2"
+      )}
+    >
+      <div className="container mx-auto flex items-center justify-between p-2">
+        {navItems.map((item) => (
+          <Link
+            key={item.to}
+            to={item.to}
             className={cn(
-              "flex flex-col items-center justify-center min-w-[60px] p-2 rounded-md transition-colors",
-              "active:bg-secondary/70 touch-manipulation",
-              isActive(path) 
-                ? "text-primary font-medium" 
-                : theme === 'light'
-                  ? "text-foreground hover:text-primary"
-                  : "text-white hover:text-foreground"
+              "flex flex-col items-center justify-center gap-1 rounded-md p-2 transition-colors hover:bg-accent hover:text-accent-foreground",
+              location.pathname === item.to
+                ? "text-accent-foreground"
+                : textColorClass
             )}
           >
-            <Icon className={cn(
-              "h-5 w-5", 
-              isActive(path) 
-                ? "text-primary" 
-                : theme === 'light'
-                  ? "text-foreground/90" 
-                  : "text-white"
-            )} />
-            <span className={cn(
-              "text-[12px] mt-1 leading-tight text-center", // Updated to 12px for captions
-              isActive(path) 
-                ? "font-medium" 
-                : "font-normal",
-              theme === 'dark' && !isActive(path) ? "text-white/90" : ""
-            )}>
-              {label}
-            </span>
+            {item.icon}
+            <span className="text-xs">{item.label}</span>
           </Link>
         ))}
       </div>

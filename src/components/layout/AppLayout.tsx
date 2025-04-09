@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import BottomNavigation from './BottomNavigation';
@@ -7,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, HelpCircle, Cloud, MessageSquare } from 'lucide-react';
+import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, HelpCircle, Cloud, MessageSquare, Leaf } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -124,6 +123,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
                 <Link to="/troubleshoot" className={cn("cursor-pointer flex items-center gap-2", isMobile ? mobileBodyTextClass : "")}>
                   <HelpCircle className="h-4 w-4" />
                   <span className={textColorClass}>Troubleshoot</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/produce-recognition" className={cn("cursor-pointer flex items-center gap-2", isMobile ? mobileBodyTextClass : "")}>
+                  <Leaf className="h-4 w-4" />
+                  <span className={textColorClass}>Produce Recognition</span>
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>

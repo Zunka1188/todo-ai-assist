@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Index from '@/pages/Index';
 import ScanPage from '@/pages/ScanPage';
@@ -14,6 +13,7 @@ import TroubleshootPage from '@/pages/TroubleshootPage';
 import AIModelsPage from '@/pages/AIModelsPage';
 import WeatherPage from '@/pages/WeatherPage';
 import { ShoppingItemsProvider } from '@/components/features/shopping/ShoppingItemsContext';
+import ProduceRecognitionPage from '@/pages/ProduceRecognitionPage';
 
 const Router = () => {
   return (
@@ -35,6 +35,7 @@ const Router = () => {
       <Route path="/ai-models" element={<AIModelsPage />} />
       <Route path="/weather" element={<WeatherPage />} />
       <Route path="*" element={<NotFound />} />
+      <Route path="produce-recognition" element={<ProduceRecognitionPage />} />
     </Routes>
   );
 };
