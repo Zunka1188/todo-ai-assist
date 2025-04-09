@@ -628,37 +628,45 @@ const ShoppingPageContent: React.FC = () => {
       />
       
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <div className="px-4 md:px-6 mb-2">
-          <TabsList className="w-full h-auto md:h-10 grid grid-cols-4 gap-2 md:flex">
-            <TabsTrigger value="one-off" className="text-sm px-3 py-1.5 h-10 flex-1 md:flex-none">
+        <div className="px-4 md:px-4 mb-2">
+          <TabsList className="w-full flex flex-wrap md:flex-nowrap justify-around gap-2">
+            <TabsTrigger value="one-off" className="flex-1 text-sm px-3 py-1.5 h-10">
               One-off
             </TabsTrigger>
-            <TabsTrigger value="weekly" className="text-sm px-3 py-1.5 h-10 flex-1 md:flex-none">
+            <TabsTrigger value="weekly" className="flex-1 text-sm px-3 py-1.5 h-10">
               Weekly
             </TabsTrigger>
-            <TabsTrigger value="monthly" className="text-sm px-3 py-1.5 h-10 flex-1 md:flex-none">
+            <TabsTrigger value="monthly" className="flex-1 text-sm px-3 py-1.5 h-10">
               Monthly
             </TabsTrigger>
-            <TabsTrigger value="all" className="text-sm px-3 py-1.5 h-10 flex-1 md:flex-none">
+            <TabsTrigger value="all" className="flex-1 text-sm px-3 py-1.5 h-10">
               All Items
             </TabsTrigger>
           </TabsList>
         </div>
         
-        <TabsContent value="one-off" className="mt-0 p-0">
-          {MemoizedShoppingList}
+        <TabsContent value="one-off" className="mt-0 p-0 px-4 md:px-4">
+          <div className="shopping-list-container">
+            {MemoizedShoppingList}
+          </div>
         </TabsContent>
         
-        <TabsContent value="weekly" className="mt-0 p-0">
-          {MemoizedShoppingList}
+        <TabsContent value="weekly" className="mt-0 p-0 px-4 md:px-4">
+          <div className="shopping-list-container">
+            {MemoizedShoppingList}
+          </div>
         </TabsContent>
         
-        <TabsContent value="monthly" className="mt-0 p-0">
-          {MemoizedShoppingList}
+        <TabsContent value="monthly" className="mt-0 p-0 px-4 md:px-4">
+          <div className="shopping-list-container">
+            {MemoizedShoppingList}
+          </div>
         </TabsContent>
         
-        <TabsContent value="all" className="mt-0 p-0">
-          {MemoizedShoppingList}
+        <TabsContent value="all" className="mt-0 p-0 px-4 md:px-4">
+          <div className="shopping-list-container">
+            {MemoizedShoppingList}
+          </div>
         </TabsContent>
       </Tabs>
       

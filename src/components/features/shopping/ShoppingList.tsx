@@ -282,7 +282,7 @@ const ShoppingList = ({
   }
 
   return (
-    <div className={cn('w-full min-h-[60vh]', className)}>
+    <div className={cn('w-full min-h-[60vh] shopping-list-container', className)}>
       {notPurchasedItems.length === 0 && purchasedItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-8 text-center min-h-[40vh]" role="status">
           <p className="text-muted-foreground mb-2">No items found</p>
@@ -292,19 +292,19 @@ const ShoppingList = ({
         </div>
       ) : (
         <ScrollArea 
-          className="h-[calc(100vh-280px)] overflow-y-auto touch-auto" 
+          className="h-[calc(100vh-280px)] overflow-y-auto touch-auto px-1" 
           style={{ WebkitOverflowScrolling: 'touch' }}
           tabIndex={0}
           role="region"
           aria-label="Shopping list items"
         >
-          <div className="pb-16 px-4">
+          <div className="pb-16">
             {notPurchasedItems.length > 0 && renderItemGrid(notPurchasedItems)}
             
             {purchasedItems.length > 0 && (
               <div className="mt-6">
                 <Separator className="mb-4" />
-                <h3 className="text-lg font-medium mb-4" id="purchased-heading">
+                <h3 className="text-lg font-medium mb-4 px-1" id="purchased-heading">
                   {isMobile ? 'Purchased' : 'Purchased Items'}
                 </h3>
                 {renderItemGrid(purchasedItems)}

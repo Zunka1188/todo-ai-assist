@@ -63,82 +63,80 @@ const ShoppingItemCard = ({
   return (
     <Card 
       className={cn(
-        "relative overflow-hidden transition-all duration-200 group",
+        "relative overflow-hidden transition-all duration-200 group flex flex-col",
         completed ? "opacity-70" : "opacity-100",
       )}
       style={{
         ...cardStyle,
         width: cardSize,
         height: cardSize,
-        margin: '4px' // Consistent margin for better alignment
+        margin: '4px'
       }}
       onClick={handleCardClick}
       role="button"
       aria-pressed={completed}
       tabIndex={0}
     >
-      {/* Item actions - positioned in top corners */}
+      {/* Item actions - positioned in top corners with clearer layout */}
       <div className="absolute top-0 left-0 right-0 flex justify-between p-2 z-10">
-        {/* Left side - Edit button and badge */}
+        {/* Left side - Repeat Option Badge - Only show if there is a repeat option */}
         <div className="flex flex-col items-start gap-2">
-          {/* Repeat Option Badge - Only show if there is a repeat option */}
           {repeatOption && repeatOption !== 'none' && (
             <Badge 
               variant="secondary" 
               className={cn(
-                "bg-black/50 text-white px-2 py-0.5 mb-1",
+                "bg-black/70 text-white px-2 py-0.5",
                 "text-xs shadow-sm", 
-                "dark:bg-black/70 dark:text-white"
+                "dark:bg-black/80 dark:text-white"
               )}
             >
               {repeatOption}
             </Badge>
           )}
-          
-          {/* Edit button */}
-          {!readOnly && (
-            <Button
-              size="icon"
-              variant="secondary"
-              className={cn(
-                "rounded-full shadow-md",
-                "bg-white/80 hover:bg-white text-gray-800",
-                "w-8 h-8",
-                "transition-all duration-200 hover:scale-110",
-                "dark:border dark:border-gray-600"
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit();
-              }}
-              aria-label={`Edit ${name}`}
-            >
-              <Pencil className="h-3.5 w-3.5 stroke-[2.5px]" />
-            </Button>
-          )}
         </div>
         
-        {/* Right side - Delete button */}
-        <div>
+        {/* Right side - Edit and Delete buttons with better positioning */}
+        <div className="flex gap-1">
           {!readOnly && (
-            <Button
-              size="icon"
-              variant="secondary"
-              className={cn(
-                "rounded-full shadow-md",
-                "bg-white/80 hover:bg-white text-gray-800",
-                "w-8 h-8",
-                "transition-all duration-200 hover:scale-110",
-                "dark:border dark:border-gray-600"
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-              aria-label={`Delete ${name}`}
-            >
-              <Trash2 className="h-3.5 w-3.5 stroke-[2.5px]" />
-            </Button>
+            <>
+              <Button
+                size="icon"
+                variant="secondary"
+                className={cn(
+                  "rounded-full shadow-md",
+                  "bg-white/80 hover:bg-white text-gray-800",
+                  "w-8 h-8",
+                  "transition-all duration-200 hover:scale-110",
+                  "dark:border dark:border-gray-600"
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit();
+                }}
+                aria-label={`Edit ${name}`}
+              >
+                <Pencil className="h-3.5 w-3.5 stroke-[2.5px]" />
+              </Button>
+              
+              <Button
+                size="icon"
+                variant="secondary"
+                className={cn(
+                  "rounded-full shadow-md",
+                  "bg-white/80 hover:bg-white text-gray-800",
+                  "w-8 h-8",
+                  "transition-all duration-200 hover:scale-110",
+                  "dark:border dark:border-gray-600"
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+                aria-label={`Delete ${name}`}
+              >
+                <Trash2 className="h-3.5 w-3.5 stroke-[2.5px]" />
+              </Button>
+            </>
           )}
         </div>
       </div>

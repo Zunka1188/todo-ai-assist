@@ -3,9 +3,8 @@
 .shopping-item-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 8px;
+  gap: 12px;
   padding: 4px;
-  justify-items: center;
   width: 100%;
 }
 
@@ -20,11 +19,18 @@
 @media (max-width: 640px) {
   .shopping-item-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 6px;
+    gap: 8px;
   }
 }
 
 /* Ensure proper alignment for both empty and filled lists */
 .shopping-item-grid:empty {
   display: none;
+}
+
+/* Additional padding at bottom for mobile to prevent overlap with navigation */
+@media (max-width: 768px) {
+  .shopping-list-container {
+    padding-bottom: 5rem;
+  }
 }

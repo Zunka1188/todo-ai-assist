@@ -72,62 +72,8 @@ const DirectAddItem = ({ onSave, readOnly }: DirectAddItemProps) => {
     }
   };
 
-  // For production, completely hide this component
+  // Always return null to hide this component
   return null;
-
-  // Development version (commented out)
-  /*
-  // Hide the component completely if in read-only mode
-  if (readOnly) {
-    return null;
-  }
-
-  return (
-    <div className="fixed bottom-24 right-0 z-10 p-2 bg-background/80 backdrop-blur-sm rounded-l-md shadow-md border border-primary/20">
-      <div className="flex flex-col gap-2">
-        <div className="text-xs text-center mb-1 font-medium">Quick Add Test</div>
-        
-        {lastAddedStatus && (
-          <div className={`text-xs text-center p-1 rounded ${lastAddedStatus.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-            {lastAddedStatus.success ? <Check className="h-3 w-3 inline mr-1" /> : <span className="inline mr-1">❌</span>}
-            {lastAddedStatus.time}
-          </div>
-        )}
-        
-        <Button 
-          size="sm" 
-          variant="outline" 
-          onClick={() => handleAddItem('none')} 
-          disabled={isAdding}
-          className="text-xs py-1 px-2 border-primary/50 flex items-center gap-1"
-        >
-          <ShoppingCart className="h-3 w-3" />
-          One-Off
-        </Button>
-        <Button 
-          size="sm" 
-          variant="outline" 
-          onClick={() => handleAddItem('weekly')} 
-          disabled={isAdding}
-          className="text-xs py-1 px-2 border-primary/50 flex items-center gap-1"
-        >
-          <Plus className="h-3 w-3" />
-          Weekly
-        </Button>
-        <Button 
-          size="sm" 
-          variant="outline" 
-          onClick={() => handleAddItem('monthly')} 
-          disabled={isAdding}
-          className="text-xs py-1 px-2 border-primary/50 flex items-center gap-1"
-        >
-          <Plus className="h-3 w-3" />
-          Monthly
-        </Button>
-      </div>
-    </div>
-  );
-  */
 };
 
 export default DirectAddItem;
