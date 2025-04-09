@@ -173,7 +173,7 @@ const ProduceScanner: React.FC = () => {
                   Price
                 </div>
                 <div className="text-lg font-medium">
-                  ${recognizedItem.price?.toFixed(2)}
+                  ${recognizedItem.price !== null ? recognizedItem.price.toFixed(2) : 'N/A'}
                 </div>
               </div>
             </div>
