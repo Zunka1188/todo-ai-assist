@@ -41,24 +41,44 @@ export const saveItems = (items: ShoppingItem[]): void => {
     clearTimeout(saveTimeout);
   }
   
-  // For mobile reliability, save immediately and then schedule a backup save
+  // For mobile reliability, save immediately and then schedule multiple backup saves
   try {
     // Immediate save for mobile reliability
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     console.log(`[DEBUG] shoppingService - Immediately saved ${items.length} items to localStorage`);
     
-    // Schedule a backup save to ensure data is persisted
+    // First backup save - very quick (better for mobile browsers that might suspend JS)
     saveTimeout = setTimeout(() => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        console.log(`[DEBUG] shoppingService - Backup save completed (${items.length} items)`);
+        console.log(`[DEBUG] shoppingService - First backup save completed (${items.length} items)`);
       } catch (error) {
-        console.error("[ERROR] shoppingService - Error in backup save to localStorage:", error);
+        console.error("[ERROR] shoppingService - Error in first backup save:", error);
       }
-      saveTimeout = null;
-    }, 100); // Short timeout for backup save
+    }, 50);
+    
+    // Second backup save - to ensure data is properly flushed on mobile
+    setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        console.log(`[DEBUG] shoppingService - Second backup save completed (${items.length} items)`);
+      } catch (error) {
+        console.error("[ERROR] shoppingService - Error in second backup save:", error);
+      }
+    }, 200);
+    
+    // Final backup save with longer timeout for absolute certainty
+    setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        console.log(`[DEBUG] shoppingService - Final backup save completed (${items.length} items)`);
+        saveTimeout = null;
+      } catch (error) {
+        console.error("[ERROR] shoppingService - Error in final backup save:", error);
+      }
+    }, 1000);
   } catch (error) {
-    console.error("[ERROR] shoppingService - Error saving to localStorage:", error);
+    console.error("[ERROR] shoppingService - Error in immediate save to localStorage:", error);
     // Try alternative approach if direct save fails
     try {
       setTimeout(() => {
@@ -69,6 +89,55 @@ export const saveItems = (items: ShoppingItem[]): void => {
       console.error("[ERROR] shoppingService - Alternative save also failed:", innerError);
     }
   }
+};
+
+// Special function for mobile to ensure data is saved before page unload
+export const setupMobilePersistence = () => {
+  const forceSync = () => {
+    // Force sync any pending items to localStorage
+    try {
+      const items = loadItems();
+      if (items.length > 0) {
+        // Use synchronous direct write to ensure data is saved
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        console.log("[DEBUG] Mobile persistence - Forced sync before page unload");
+      }
+    } catch (error) {
+      console.error("[ERROR] Mobile persistence - Failed to sync:", error);
+    }
+  };
+
+  // Add multiple event listeners for increased reliability
+  window.addEventListener('beforeunload', forceSync, { capture: true });
+  window.addEventListener('pagehide', forceSync, { capture: true });
+  window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      forceSync();
+    }
+  });
+  
+  // Additional reliability for mobile devices
+  if ('onpagehide' in window) {
+    window.addEventListener('pagehide', forceSync);
+  }
+  
+  // Handle iOS app switching
+  window.addEventListener('blur', forceSync);
+  
+  // Handle Android back button
+  document.addEventListener('backbutton', forceSync, false);
+  
+  // Return cleanup function
+  return () => {
+    window.removeEventListener('beforeunload', forceSync);
+    window.removeEventListener('pagehide', forceSync);
+    window.removeEventListener('visibilitychange', () => {});
+    window.removeEventListener('blur', forceSync);
+    document.removeEventListener('backbutton', forceSync);
+    if ('onpagehide' in window) {
+      window.removeEventListener('pagehide', forceSync);
+    }
+  };
 };
 
 // Mock API retry logic with exponential backoff
@@ -164,47 +233,4 @@ export const setupCrossBrowserSync = (updateCallback: (items: ShoppingItem[]) =>
   
   // Return cleanup function
   return () => window.removeEventListener('storage', handleStorageChange);
-};
-
-// Special function for mobile to ensure data is saved before page unload
-export const setupMobilePersistence = () => {
-  const handleBeforeUnload = () => {
-    // Force sync any pending items to localStorage
-    const items = loadItems();
-    if (items.length > 0) {
-      try {
-        // Use synchronous direct write to ensure data is saved
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        
-        // For extra reliability, flush any operations
-        if (typeof localStorage.flush === 'function') {
-          (localStorage as any).flush();
-        }
-        
-        console.log("[DEBUG] Mobile persistence - Forced sync before page unload");
-      } catch (error) {
-        console.error("[ERROR] Mobile persistence - Failed to sync before unload:", error);
-      }
-    }
-  };
-
-  // Add multiple event listeners for increased reliability
-  window.addEventListener('beforeunload', handleBeforeUnload, { capture: true });
-  window.addEventListener('pagehide', handleBeforeUnload, { capture: true });
-  
-  if ('onvisibilitychange' in document) {
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') {
-        handleBeforeUnload();
-      }
-    });
-  }
-  
-  return () => {
-    window.removeEventListener('beforeunload', handleBeforeUnload);
-    window.removeEventListener('pagehide', handleBeforeUnload);
-    if ('onvisibilitychange' in document) {
-      document.removeEventListener('visibilitychange', () => {});
-    }
-  };
 };

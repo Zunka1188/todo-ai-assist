@@ -61,8 +61,7 @@ const ShoppingItemCard = ({
   };
 
   // Improved button styling with better spacing and visibility
-  const buttonSize = isMobile ? "w-11 h-11" : "w-11 h-11"; // Using fixed width/height for consistent spacing
-  const buttonSpacing = "mr-1"; // Adding minimal horizontal spacing between buttons
+  const buttonSize = "w-10 h-10"; // Slightly smaller for better positioning
   
   // Button background styling with better dark mode contrast
   const buttonBgClass = theme === 'dark' 
@@ -86,7 +85,7 @@ const ShoppingItemCard = ({
       aria-pressed={completed}
       tabIndex={0}
     >
-      {/* Repeat Option Badge - Positioned at the top left, ABOVE item name */}
+      {/* Repeat Option Badge - Positioned directly above item name */}
       {repeatOption && repeatOption !== 'none' && (
         <Badge 
           variant="secondary" 
@@ -100,31 +99,9 @@ const ShoppingItemCard = ({
         </Badge>
       )}
       
-      {/* Control buttons container - positioned at top right with fixed spacing */}
-      <div className="absolute top-2 right-2 z-10 flex">
-        {/* Edit Button */}
-        <Button
-          size="icon"
-          variant="secondary"
-          className={cn(
-            "rounded-full shadow-md",
-            buttonBgClass,
-            "transition-all duration-200 hover:scale-110", 
-            buttonSize,
-            buttonSpacing,
-            "dark:border dark:border-gray-600" // Better dark mode visibility
-          )}
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit();
-          }}
-          disabled={readOnly}
-          aria-label={`Edit ${name}`}
-        >
-          <Pencil className="h-4 w-4 stroke-[2.5px]" />
-        </Button>
-        
-        {/* Delete Button */}
+      {/* Control buttons container - positioned with edit on left, delete on right */}
+      <div className="absolute top-2 right-2 z-10">
+        {/* Delete Button on right */}
         <Button
           size="icon"
           variant="secondary"
@@ -143,6 +120,32 @@ const ShoppingItemCard = ({
           aria-label={`Delete ${name}`}
         >
           <Trash2 className="h-4 w-4 stroke-[2.5px]" />
+        </Button>
+      </div>
+      
+      {/* Edit Button on left (different div to separate positioning) */}
+      <div className="absolute top-2 left-2 z-10">
+        {repeatOption && repeatOption !== 'none' && (
+          <div className="h-6"></div> /* Space holder for badge */
+        )}
+        <Button
+          size="icon"
+          variant="secondary"
+          className={cn(
+            "rounded-full shadow-md mt-1",
+            buttonBgClass,
+            "transition-all duration-200 hover:scale-110",
+            buttonSize,
+            "dark:border dark:border-gray-600" // Better dark mode visibility
+          )}
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
+          disabled={readOnly}
+          aria-label={`Edit ${name}`}
+        >
+          <Pencil className="h-4 w-4 stroke-[2.5px]" />
         </Button>
       </div>
 

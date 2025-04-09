@@ -71,7 +71,7 @@
   .shopping-item-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px; /* Reduced, consistent gap between items */
+    gap: 8px; /* Reduced, consistent gap between items */
     padding: 12px;
     width: 100%;
     max-width: 100%;
@@ -80,28 +80,35 @@
   @media (min-width: 480px) {
     .shopping-item-grid {
       grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 10px; /* Consistent small gap */
+      gap: 8px; /* Consistent small gap */
     }
   }
   
   @media (min-width: 768px) {
     .shopping-item-grid {
       grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 10px; /* Consistent small gap */
+      gap: 8px; /* Consistent small gap */
     }
   }
   
   @media (min-width: 1024px) {
     .shopping-item-grid {
       grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 10px; /* Consistent small gap */
+      gap: 8px; /* Consistent small gap */
     }
   }
   
   @media (min-width: 1280px) {
     .shopping-item-grid {
       grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 10px;
+      gap: 8px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .shopping-item-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px; /* Even smaller gap for mobile 3-column layout */
     }
   }
   
@@ -267,9 +274,9 @@
 }
 
 /* Fix for tab active state alignment issue - improved matching to Calendar tabs */
-.data-\[state\=active\]\:border-b-2 {
-  border-bottom-width: 2px !important;
-  margin-bottom: -2px;
+[role="tab"][data-state="active"] {
+  box-shadow: none !important;
+  position: relative;
 }
 
 /* Make sure the tabs are properly contained */
@@ -280,7 +287,7 @@
 
 /* Ensure tab triggers contain their active indicators */
 [role="tab"] {
-  overflow: hidden;
+  overflow: visible;
   position: relative;
 }
 
