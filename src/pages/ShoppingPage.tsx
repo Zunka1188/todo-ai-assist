@@ -663,7 +663,7 @@ const ShoppingPageContent: React.FC = () => {
       </Tabs>
       
       <DirectAddItem
-        onSaveItem={handleSaveItem}
+        onSave={handleSaveItem}
         readOnly={isReadOnlyMode}
       />
       
@@ -674,10 +674,8 @@ const ShoppingPageContent: React.FC = () => {
       />
       
       <EditItemDialog
-        open={!!editItem}
-        onOpenChange={(open) => {
-          if (!open) handleCloseEditDialog();
-        }}
+        isOpen={!!editItem}
+        onClose={handleCloseEditDialog}
         item={editItem?.item}
         onSave={handleUpdateItem}
       />
