@@ -3,7 +3,7 @@ import React from 'react';
 import { Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/ui/page-header';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface ShoppingPageHeaderProps {
   searchTerm: string;

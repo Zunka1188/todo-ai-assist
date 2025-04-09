@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -48,7 +49,8 @@ const ShoppingItemCard = ({
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
   // Fixed card dimensions - ensure all items have the same size
-  const cardSize = '140px';
+  // Making sure cards are more compact on mobile
+  const cardSize = isMobile ? '130px' : '140px';
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only trigger image preview if clicking on the card background
