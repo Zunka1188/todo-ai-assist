@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -48,8 +47,8 @@ const ShoppingItemCard = ({
       } 
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
-  // Larger card sizes with consistent dimensions for both mobile and desktop
-  const cardSize = isMobile ? '130px' : '140px';
+  // Consistent card dimensions for both mobile and desktop
+  const cardSize = isMobile ? '140px' : '150px';
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only trigger image preview if clicking on the card background
@@ -61,9 +60,9 @@ const ShoppingItemCard = ({
     }
   };
 
-  // Improved button styling with consistent spacing and better visibility in dark mode
-  const buttonSize = "w-12 h-12"; // Using fixed width/height for consistent spacing
-  const buttonSpacing = "mx-0.5"; // Adding minimal horizontal spacing
+  // Improved button styling with better spacing and visibility
+  const buttonSize = isMobile ? "w-11 h-11" : "w-11 h-11"; // Using fixed width/height for consistent spacing
+  const buttonSpacing = "mr-1"; // Adding minimal horizontal spacing between buttons
   
   // Button background styling with better dark mode contrast
   const buttonBgClass = theme === 'dark' 
@@ -87,22 +86,23 @@ const ShoppingItemCard = ({
       aria-pressed={completed}
       tabIndex={0}
     >
-      {/* Repeat Option Badge - Moved to top left for better visibility */}
+      {/* Repeat Option Badge - Positioned at the top left, ABOVE item name */}
       {repeatOption && repeatOption !== 'none' && (
         <Badge 
           variant="secondary" 
           className={cn(
-            "absolute top-2 left-2 bg-white/80 text-black px-2 py-1",
-            "text-xs shadow-sm z-10", // Improved visibility and positioning
-            "dark:bg-black/60 dark:text-white" // Better dark mode contrast
+            "absolute top-2 left-2 bg-black/50 text-white px-2 py-1",
+            "text-xs shadow-sm z-10", // Improved visibility
+            "dark:bg-black/70 dark:text-white" // Better dark mode contrast
           )}
         >
           {repeatOption}
         </Badge>
       )}
       
-      {/* Edit Button - top-right with improved tap target */}
-      <div className="absolute top-2 right-12 z-10">
+      {/* Control buttons container - positioned at top right with fixed spacing */}
+      <div className="absolute top-2 right-2 z-10 flex">
+        {/* Edit Button */}
         <Button
           size="icon"
           variant="secondary"
@@ -110,8 +110,8 @@ const ShoppingItemCard = ({
             "rounded-full shadow-md",
             buttonBgClass,
             "transition-all duration-200 hover:scale-110", 
-            buttonSize, // Using fixed size
-            buttonSpacing, // Minimal horizontal spacing
+            buttonSize,
+            buttonSpacing,
             "dark:border dark:border-gray-600" // Better dark mode visibility
           )}
           onClick={(e) => {
@@ -121,12 +121,10 @@ const ShoppingItemCard = ({
           disabled={readOnly}
           aria-label={`Edit ${name}`}
         >
-          <Pencil className={isMobile ? "h-4 w-4 stroke-[2.5px]" : "h-3.5 w-3.5 stroke-[2.5px]"} />
+          <Pencil className="h-4 w-4 stroke-[2.5px]" />
         </Button>
-      </div>
-      
-      {/* Delete Button - top-right with improved tap target */}
-      <div className="absolute top-2 right-2 z-10">
+        
+        {/* Delete Button */}
         <Button
           size="icon"
           variant="secondary"
@@ -134,8 +132,7 @@ const ShoppingItemCard = ({
             "rounded-full shadow-md",
             buttonBgClass,
             "transition-all duration-200 hover:scale-110",
-            buttonSize, // Using fixed size
-            buttonSpacing, // Minimal horizontal spacing
+            buttonSize,
             "dark:border dark:border-gray-600" // Better dark mode visibility
           )}
           onClick={(e) => {
@@ -145,7 +142,7 @@ const ShoppingItemCard = ({
           disabled={readOnly}
           aria-label={`Delete ${name}`}
         >
-          <Trash2 className={isMobile ? "h-4 w-4 stroke-[2.5px]" : "h-3.5 w-3.5 stroke-[2.5px]"} />
+          <Trash2 className="h-4 w-4 stroke-[2.5px]" />
         </Button>
       </div>
 
@@ -180,7 +177,7 @@ const ShoppingItemCard = ({
       
       {/* Item Name - positioned at bottom with gradient background */}
       <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-        <h3 className="text-white font-medium text-shadow truncate" 
+        <h3 className="text-white font-medium text-shadow truncate pt-4" 
             style={{ 
               textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
               display: '-webkit-box',

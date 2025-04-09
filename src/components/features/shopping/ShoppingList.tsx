@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, memo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -247,9 +246,7 @@ const ShoppingList = ({
     return (
       <div 
         className={cn(
-          "grid gap-4 md:gap-5 p-4",
-          // Improved responsive grid with fewer columns on smaller screens
-          "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
+          "shopping-item-grid",
           "shopping-item-grid"
         )}
         role="list"

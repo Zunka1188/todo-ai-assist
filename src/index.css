@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -68,47 +67,47 @@
 }
 
 @layer components {
-  /* Shopping item specific styling - improved responsive design */
+  /* Shopping item specific styling - improved grid and spacing */
   .shopping-item-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px; /* Consistent gap between items */
-    padding: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px; /* Reduced, consistent gap between items */
+    padding: 12px;
     width: 100%;
     max-width: 100%;
   }
   
   @media (min-width: 480px) {
     .shopping-item-grid {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px; /* Keep consistent gap */
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px; /* Consistent small gap */
     }
   }
   
   @media (min-width: 768px) {
     .shopping-item-grid {
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px; /* Slightly larger gap for medium screens */
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px; /* Consistent small gap */
     }
   }
   
   @media (min-width: 1024px) {
     .shopping-item-grid {
-      grid-template-columns: repeat(5, 1fr);
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px; /* Consistent small gap */
     }
   }
   
   @media (min-width: 1280px) {
     .shopping-item-grid {
-      grid-template-columns: repeat(6, 1fr);
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
     }
   }
   
   .shopping-item-card {
     width: 100%;
-    height: 130px; /* Taller card size for better content visibility */
+    height: 140px; /* Taller card size for better content visibility */
     border-radius: 8px;
     overflow: hidden;
     position: relative;
@@ -117,7 +116,7 @@
   
   @media (min-width: 768px) {
     .shopping-item-card {
-      height: 140px;
+      height: 150px;
     }
   }
   
@@ -224,6 +223,18 @@
   .tabs-container::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera */
   }
+  
+  /* Custom active indicator style for better UI consistency */
+  [role="tab"][data-state="active"]::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: hsl(var(--primary));
+    border-radius: 1px;
+  }
 }
 
 /* Animation classes */
@@ -255,7 +266,7 @@
   }
 }
 
-/* Fix for tab active state alignment issue */
+/* Fix for tab active state alignment issue - improved matching to Calendar tabs */
 .data-\[state\=active\]\:border-b-2 {
   border-bottom-width: 2px !important;
   margin-bottom: -2px;
@@ -270,17 +281,11 @@
 /* Ensure tab triggers contain their active indicators */
 [role="tab"] {
   overflow: hidden;
+  position: relative;
 }
 
-/* Ensure consistent grid item sizes with minimal gaps */
+/* Ensure consistent grid item sizes with reduced gaps */
 .shopping-item-grid > div {
   display: flex;
   justify-content: center;
-}
-
-/* Ensure active tab indicator stays within bounds */
-.data-\[state\=active\]\:after\:opacity-100::after {
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
 }
