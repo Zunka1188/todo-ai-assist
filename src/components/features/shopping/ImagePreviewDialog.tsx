@@ -1,155 +1,94 @@
 
-import React, { useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import React from 'react';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X, Pencil, Trash2 } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogAction, AlertDialogCancel, AlertDialogTitle, AlertDialogFooter } from '@/components/ui/alert-dialog';
-import { useState } from 'react';
+import { Pencil, Trash2, Eye } from 'lucide-react';
 
 interface ImagePreviewDialogProps {
   imageUrl: string | null;
+  item: any;
   onClose: () => void;
-  onSaveItem?: (itemData: any) => boolean;
-  item?: any;
+  onSaveItem?: (item: any) => boolean | void;
   onEdit?: () => void;
   onDelete?: () => void;
   readOnly?: boolean;
 }
 
-const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({ 
-  imageUrl, 
-  onClose, 
-  onSaveItem,
+const ImagePreviewDialog = ({ 
+  imageUrl,
   item,
+  onClose,
+  onSaveItem,
   onEdit,
   onDelete,
   readOnly = false
-}) => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
-  // Handle back navigation and prevent default behavior
-  useEffect(() => {
-    if (!imageUrl) return;
-    
-    const handlePopState = (e: PopStateEvent) => {
-      // Prevent the default navigation behavior
-      e.preventDefault();
-      // Close the dialog
-      onClose();
-      // Push the current path back to history to maintain correct state
-      navigate(location.pathname, { replace: true });
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [imageUrl, onClose, navigate, location.pathname]);
-
-  if (!imageUrl) return null;
+}: ImagePreviewDialogProps) => {
+  if (!imageUrl && !item) return null;
   
   return (
-    <>
-      <Dialog 
-        open={!!imageUrl} 
-        onOpenChange={(open) => {
-          if (!open) onClose();
-        }}
-      >
-        <DialogContent 
-          className="max-w-3xl p-0 flex items-center justify-center" 
-          preventNavigateOnClose={true}
-          style={{ 
-            minHeight: '50vh', 
-            maxHeight: '90vh',
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)'
-          }}
-        >
-          <div className="w-full h-full flex items-center justify-center p-4">
+    <Dialog open={!!imageUrl} onOpenChange={() => onClose()}>
+      <DialogContent className="max-w-md mx-auto">
+        <DialogHeader>
+          <DialogTitle>{item?.name || 'Image Preview'}</DialogTitle>
+        </DialogHeader>
+        
+        <div className="flex justify-center my-4">
+          {imageUrl ? (
             <img 
               src={imageUrl} 
-              alt="Preview" 
-              className="max-w-full max-h-[80vh] object-contain" 
+              alt={item?.name || 'Item preview'} 
+              className="max-h-[60vh] object-contain rounded-md"
+              loading="lazy"
             />
-          </div>
-          
-          {/* Action buttons - only edit and delete remain */}
-          <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-            {/* Edit button */}
-            {onEdit && !readOnly && (
-              <Button
-                onClick={() => {
-                  onClose();
-                  onEdit();
-                }}
-                variant="secondary" 
-                size="icon"
-                className="bg-background/80 hover:bg-background/90"
-                title="Edit item"
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
+          ) : (
+            <div className="bg-muted h-48 w-full flex items-center justify-center rounded-md">
+              <Eye className="h-12 w-12 text-muted-foreground/40" />
+              <p className="text-muted-foreground">No image available</p>
+            </div>
+          )}
+        </div>
+        
+        {item && (
+          <div className="space-y-2 text-sm">
+            {item.notes && (
+              <p className="text-muted-foreground">{item.notes}</p>
             )}
             
-            {/* Delete button */}
-            {onDelete && !readOnly && (
-              <Button
-                onClick={() => setShowDeleteConfirm(true)}
-                variant="destructive" 
-                size="icon"
-                className="bg-destructive/80 hover:bg-destructive/90"
-                title="Delete item"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+            {item.amount && (
+              <p><span className="font-medium">Quantity:</span> {item.amount}</p>
+            )}
+            
+            {item.price && (
+              <p><span className="font-medium">Price:</span> {item.price}</p>
+            )}
+            
+            {item.repeatOption && item.repeatOption !== 'none' && (
+              <p><span className="font-medium">Recurring:</span> {item.repeatOption === 'weekly' ? 'Weekly' : 'Monthly'}</p>
             )}
           </div>
+        )}
+        
+        <DialogFooter className="flex flex-row justify-end space-x-2">
+          {!readOnly && onEdit && (
+            <Button variant="outline" size="sm" onClick={onEdit}>
+              <Pencil className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+          )}
           
-          {/* Close Button in the top right */}
-          <Button 
-            onClick={onClose}
-            variant="ghost" 
-            size="icon"
-            className="absolute right-2 top-2 rounded-full h-8 w-8 p-0 bg-background/80 hover:bg-background/90"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </Button>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Delete confirmation dialog */}
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This will permanently delete this item from your shopping list.
-          </AlertDialogDescription>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowDeleteConfirm(false)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={() => {
-                setShowDeleteConfirm(false);
-                onClose();
-                if (onDelete) onDelete();
-              }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+          {!readOnly && onDelete && (
+            <Button variant="destructive" size="sm" onClick={onDelete}>
+              <Trash2 className="h-4 w-4 mr-1" />
               Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+            </Button>
+          )}
+          
+          <Button variant="default" size="sm" onClick={onClose}>
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
