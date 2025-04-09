@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -248,4 +249,10 @@
     transform: scale(1);
     opacity: 1;
   }
+}
+
+/* Fix for tab active state alignment issue */
+.data-\[state\=active\]\:border-b-2 {
+  border-bottom-width: 2px !important;
+  margin-bottom: -2px;
 }

@@ -61,8 +61,14 @@ const ShoppingItemCard = ({
     }
   };
 
-  // Button size increased for better tap targets - especially on mobile
-  const buttonSize = isMobile ? "min-w-11 min-h-11" : "min-w-9 min-h-9";
+  // Improved button styling with consistent spacing and better visibility in dark mode
+  // Using fixed width/height instead of min-width/min-height for consistent spacing
+  const buttonSize = isMobile ? "w-12 h-12" : "w-10 h-10";
+  
+  // Button background styling with better dark mode contrast
+  const buttonBgClass = theme === 'dark' 
+    ? "bg-white/80 hover:bg-white text-gray-800" 
+    : "bg-white/70 hover:bg-white text-gray-800";
 
   return (
     <Card 
@@ -81,15 +87,16 @@ const ShoppingItemCard = ({
       aria-pressed={completed}
       tabIndex={0}
     >
-      {/* Edit Button - top-left with improved tap target */}
+      {/* Edit Button - top-left with improved tap target and consistent spacing */}
       <div className="absolute top-2 left-2 z-10">
         <Button
           size="icon"
           variant="secondary"
           className={cn(
-            "rounded-full bg-white/70 hover:bg-white shadow-md",
-            "transition-all duration-200 hover:scale-110", // Added hover effect
-            buttonSize // Using the dynamic size
+            "rounded-full shadow-md",
+            buttonBgClass,
+            "transition-all duration-200 hover:scale-110", 
+            buttonSize // Using fixed size
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -98,19 +105,20 @@ const ShoppingItemCard = ({
           disabled={readOnly}
           aria-label={`Edit ${name}`}
         >
-          <Pencil className={isMobile ? "h-4 w-4" : "h-3.5 w-3.5"} />
+          <Pencil className={isMobile ? "h-4 w-4 stroke-[2.5px]" : "h-3.5 w-3.5 stroke-[2.5px]"} />
         </Button>
       </div>
       
-      {/* Delete Button - top-right with improved tap target */}
+      {/* Delete Button - top-right with improved tap target and consistent spacing */}
       <div className="absolute top-2 right-2 z-10">
         <Button
           size="icon"
           variant="secondary"
           className={cn(
-            "rounded-full bg-white/70 hover:bg-white shadow-md",
-            "transition-all duration-200 hover:scale-110", // Added hover effect
-            buttonSize // Using the dynamic size
+            "rounded-full shadow-md",
+            buttonBgClass,
+            "transition-all duration-200 hover:scale-110",
+            buttonSize // Using fixed size
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -119,7 +127,7 @@ const ShoppingItemCard = ({
           disabled={readOnly}
           aria-label={`Delete ${name}`}
         >
-          <Trash2 className={isMobile ? "h-4 w-4" : "h-3.5 w-3.5"} />
+          <Trash2 className={isMobile ? "h-4 w-4 stroke-[2.5px]" : "h-3.5 w-3.5 stroke-[2.5px]"} />
         </Button>
       </div>
 
@@ -162,7 +170,7 @@ const ShoppingItemCard = ({
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
               lineHeight: 1.2,
-              fontSize: isMobile ? '0.9rem' : '0.85rem' // Increased from text-xs
+              fontSize: isMobile ? '0.9rem' : '0.85rem'
             }}>
           {name}
         </h3>
@@ -171,7 +179,7 @@ const ShoppingItemCard = ({
             <span className="text-white/90 text-shadow" 
                   style={{ 
                     textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-                    fontSize: '0.75rem' // Increased from text-[10px]
+                    fontSize: '0.75rem'
                   }}>
               {quantity}
             </span>
