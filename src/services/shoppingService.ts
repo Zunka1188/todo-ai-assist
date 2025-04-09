@@ -1,236 +1,105 @@
-import { ShoppingItem } from "@/components/features/shopping/useShoppingItems";
 
-const STORAGE_KEY = 'shoppingItems';
-const CACHE_DURATION = 60000; // 60 seconds
-let lastSyncTimestamp = 0;
+/**
+ * Shopping service utilities to help with mobile/desktop synchronization
+ */
 
-// Helper for type safety when parsing stored items
-const parseStoredItems = (items: any[]): ShoppingItem[] => {
-  return items.map(item => ({
-    ...item,
-    dateAdded: new Date(item.dateAdded),
-    lastPurchased: item.lastPurchased ? new Date(item.lastPurchased) : undefined
-  }));
-};
+import { ShoppingItem } from '@/components/features/shopping/useShoppingItems';
 
-// Load items from localStorage with improved mobile reliability
+// Constants for storage keys
+export const STORAGE_KEY = 'shoppingItems';
+export const LAST_SYNC_KEY = 'shoppingLastSync';
+
+/**
+ * Load items from storage with error handling
+ */
 export const loadItems = (): ShoppingItem[] => {
   try {
-    // Force synchronous load for mobile devices
-    const storedValue = localStorage.getItem(STORAGE_KEY);
-    if (!storedValue) return [];
+    const items = localStorage.getItem(STORAGE_KEY);
+    if (!items) return [];
+
+    const parsedItems = JSON.parse(items);
     
-    const parsedValue = JSON.parse(storedValue);
-    if (Array.isArray(parsedValue)) {
-      console.log(`[DEBUG] shoppingService - Loaded ${parsedValue.length} items from localStorage`);
-      return parseStoredItems(parsedValue);
-    }
-    return [];
+    // Convert date strings back to Date objects
+    return parsedItems.map((item: any) => ({
+      ...item,
+      dateAdded: new Date(item.dateAdded),
+      lastPurchased: item.lastPurchased ? new Date(item.lastPurchased) : undefined
+    }));
   } catch (error) {
-    console.error("[ERROR] shoppingService - Error loading from localStorage:", error);
+    console.error("[ERROR] Failed to load items from storage:", error);
     return [];
   }
 };
 
-// Function to implement immediate saves to localStorage for better mobile persistence
-let saveTimeout: ReturnType<typeof setTimeout> | null = null;
-
-export const saveItems = (items: ShoppingItem[]): void => {
-  // Clear any pending save operations
-  if (saveTimeout) {
-    clearTimeout(saveTimeout);
-  }
-  
-  // For mobile reliability, save immediately and then schedule multiple backup saves
+/**
+ * Save items to storage with error handling
+ */
+export const saveItems = (items: ShoppingItem[]): boolean => {
   try {
-    // Immediate save for mobile reliability
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    console.log(`[DEBUG] shoppingService - Immediately saved ${items.length} items to localStorage`);
-    
-    // First backup save - very quick (better for mobile browsers that might suspend JS)
-    saveTimeout = setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        console.log(`[DEBUG] shoppingService - First backup save completed (${items.length} items)`);
-      } catch (error) {
-        console.error("[ERROR] shoppingService - Error in first backup save:", error);
-      }
-    }, 50);
-    
-    // Second backup save - to ensure data is properly flushed on mobile
-    setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        console.log(`[DEBUG] shoppingService - Second backup save completed (${items.length} items)`);
-      } catch (error) {
-        console.error("[ERROR] shoppingService - Error in second backup save:", error);
-      }
-    }, 200);
-    
-    // Final backup save with longer timeout for absolute certainty
-    setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        console.log(`[DEBUG] shoppingService - Final backup save completed (${items.length} items)`);
-        saveTimeout = null;
-      } catch (error) {
-        console.error("[ERROR] shoppingService - Error in final backup save:", error);
-      }
-    }, 1000);
+    localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
+    return true;
   } catch (error) {
-    console.error("[ERROR] shoppingService - Error in immediate save to localStorage:", error);
-    // Try alternative approach if direct save fails
-    try {
-      setTimeout(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        console.log(`[DEBUG] shoppingService - Alternative save completed (${items.length} items)`);
-      }, 50);
-    } catch (innerError) {
-      console.error("[ERROR] shoppingService - Alternative save also failed:", innerError);
-    }
+    console.error("[ERROR] Failed to save items to storage:", error);
+    return false;
   }
 };
 
-// Special function for mobile to ensure data is saved before page unload
+/**
+ * Setup event listeners for mobile persistence
+ * This helps prevent data loss when using the app on mobile
+ */
 export const setupMobilePersistence = () => {
-  const forceSync = () => {
-    // Force sync any pending items to localStorage
-    try {
+  // Save on page visibility change (user switches apps)
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'hidden') {
+      // Force sync when app goes to background
       const items = loadItems();
       if (items.length > 0) {
-        // Use synchronous direct write to ensure data is saved
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        console.log("[DEBUG] Mobile persistence - Forced sync before page unload");
+        saveItems(items);
+        console.log("[DEBUG] Force synced items on visibility change");
       }
-    } catch (error) {
-      console.error("[ERROR] Mobile persistence - Failed to sync:", error);
     }
   };
 
-  // Add multiple event listeners for increased reliability
-  window.addEventListener('beforeunload', forceSync, { capture: true });
-  window.addEventListener('pagehide', forceSync, { capture: true });
-  window.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-      forceSync();
+  // Save before app closes/refreshes
+  const handleBeforeUnload = () => {
+    const items = loadItems();
+    if (items.length > 0) {
+      saveItems(items);
+      console.log("[DEBUG] Force synced items before unload");
     }
-  });
-  
-  // Additional reliability for mobile devices
-  if ('onpagehide' in window) {
-    window.addEventListener('pagehide', forceSync);
-  }
-  
-  // Handle iOS app switching
-  window.addEventListener('blur', forceSync);
-  
-  // Handle Android back button
-  document.addEventListener('backbutton', forceSync, false);
-  
+  };
+
+  // Add event listeners
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('beforeunload', handleBeforeUnload);
+
   // Return cleanup function
   return () => {
-    window.removeEventListener('beforeunload', forceSync);
-    window.removeEventListener('pagehide', forceSync);
-    window.removeEventListener('visibilitychange', () => {});
-    window.removeEventListener('blur', forceSync);
-    document.removeEventListener('backbutton', forceSync);
-    if ('onpagehide' in window) {
-      window.removeEventListener('pagehide', forceSync);
-    }
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.removeEventListener('beforeunload', handleBeforeUnload);
   };
 };
 
-// Mock API retry logic with exponential backoff
-export const apiRequest = async <T,>(
-  url: string, 
-  options: RequestInit, 
-  maxRetries = 3
-): Promise<T> => {
-  let retries = 0;
-  let lastError: Error;
-  
-  while (retries <= maxRetries) {
-    try {
-      const response = await fetch(url, options);
-      
-      if (!response.ok) {
-        throw new Error(`Request failed with status: ${response.status}`);
-      }
-      
-      return await response.json();
-    } catch (error) {
-      lastError = error as Error;
-      retries++;
-      
-      if (retries <= maxRetries) {
-        // Exponential backoff with jitter to prevent synchronization
-        const delay = Math.min(1000 * Math.pow(2, retries) + Math.random() * 1000, 10000);
-        console.log(`[INFO] shoppingService - Retrying request (${retries}/${maxRetries}) after ${delay}ms`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-    }
-  }
-  
-  console.error("[ERROR] shoppingService - Max retries reached, falling back to local data");
-  throw lastError!;
-};
-
-// Simple in-memory cache implementation
-const cache: Record<string, { data: any; timestamp: number }> = {};
-
-export const cachedApiRequest = async <T,>(
-  url: string, 
-  options: RequestInit
-): Promise<T> => {
-  const cacheKey = `${url}-${JSON.stringify(options)}`;
-  const now = Date.now();
-  
-  // Return cached data if it's still fresh
-  if (cache[cacheKey] && (now - cache[cacheKey].timestamp) < CACHE_DURATION) {
-    console.log("[INFO] shoppingService - Using cached response for:", url);
-    return cache[cacheKey].data;
-  }
-  
-  // If the last sync was less than 1 second ago, return cached data or wait
-  if (now - lastSyncTimestamp < 1000) {
-    if (cache[cacheKey]) {
-      console.log("[INFO] shoppingService - Rate limiting, using cached data");
-      return cache[cacheKey].data;
-    }
-    // Wait a bit to avoid hammering the API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  }
-  
-  try {
-    lastSyncTimestamp = now;
-    const data = await apiRequest<T>(url, options);
-    cache[cacheKey] = { data, timestamp: now };
-    return data;
-  } catch (error) {
-    // If API fails, attempt to return cached version even if expired
-    if (cache[cacheKey]) {
-      console.log("[INFO] shoppingService - API failed, using expired cache as fallback");
-      return cache[cacheKey].data;
-    }
-    throw error;
-  }
-};
-
-// Function to monitor localStorage changes across tabs
-export const setupCrossBrowserSync = (updateCallback: (items: ShoppingItem[]) => void): () => void => {
+/**
+ * Setup cross-browser synchronization
+ * This is intended to help sync between tabs but doesn't sync across devices
+ */
+export const setupCrossBrowserSync = () => {
+  // Listen for storage events from other tabs
   const handleStorageChange = (event: StorageEvent) => {
     if (event.key === STORAGE_KEY && event.newValue) {
-      try {
-        const newItems = parseStoredItems(JSON.parse(event.newValue));
-        updateCallback(newItems);
-      } catch (error) {
-        console.error("[ERROR] shoppingService - Failed to parse items from storage event:", error);
-      }
+      console.log("[DEBUG] Detected shopping list change in another tab");
+      // Processing could be done here in the future
     }
   };
 
+  // Add event listener
   window.addEventListener('storage', handleStorageChange);
-  
+
   // Return cleanup function
-  return () => window.removeEventListener('storage', handleStorageChange);
+  return () => {
+    window.removeEventListener('storage', handleStorageChange);
+  };
 };

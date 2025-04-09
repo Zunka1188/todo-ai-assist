@@ -73,12 +73,10 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
   
   // Expose methods to update filterMode and searchTerm
   const updateFilterMode = useCallback((mode: FilterMode) => {
-    console.log("[DEBUG] ShoppingItemsContext - Updating filter mode:", mode);
     setFilterMode(mode);
   }, []);
   
   const updateSearchTerm = useCallback((term: string) => {
-    console.log("[DEBUG] ShoppingItemsContext - Updating search term:", term);
     setSearchTerm(term);
   }, []);
   
@@ -92,10 +90,7 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
       
       if (storedItems && storedItems.length > 0) {
         // Only update if we have items to prevent unnecessary re-renders
-        console.log("[DEBUG] ShoppingItemsContext - Loaded items from localStorage:", storedItems.length);
         shoppingItemsData.setItems(storedItems);
-      } else {
-        console.log("[DEBUG] ShoppingItemsContext - No stored items found, using defaults");
       }
       
       setInitialized(true);
@@ -111,7 +106,6 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
   // Save items to localStorage whenever they change with extra mobile safeguards
   useEffect(() => {
     if (!isLoading && initialized && shoppingItemsData.items.length > 0) {
-      console.log("[DEBUG] ShoppingItemsContext - Saving items to localStorage:", shoppingItemsData.items.length);
       persistItemsToStorage(shoppingItemsData.items);
       
       // For mobile devices, do extra verification that items were actually saved
@@ -121,7 +115,6 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
           try {
             const verifiedItems = loadItems();
             if (verifiedItems.length !== shoppingItemsData.items.length) {
-              console.warn("[WARN] ShoppingItemsContext - Mobile save verification failed, retrying...");
               persistItemsToStorage(shoppingItemsData.items);
             }
           } catch (err) {
@@ -135,7 +128,6 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
   // Setup mobile-specific persistence for page unload events
   useEffect(() => {
     if (isMobile) {
-      console.log("[DEBUG] ShoppingItemsContext - Setting up mobile persistence");
       return setupMobilePersistence();
     }
     return undefined;
@@ -146,7 +138,6 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'shoppingItems' && event.newValue) {
         try {
-          console.log("[DEBUG] ShoppingItemsContext - Storage event detected in another tab");
           const parsedItems = JSON.parse(event.newValue);
           
           if (Array.isArray(parsedItems) && parsedItems.length > 0) {
@@ -168,10 +159,44 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [shoppingItemsData.setItems]);
+
+  // Improve the addItem method for better mobile reliability
+  const enhancedAddItem = useCallback((
+    item: Omit<ShoppingItem, 'id' | 'dateAdded'> & {dateAdded?: Date, id?: string, file?: string | null}
+  ) => {
+    const result = shoppingItemsData.addItem(item);
+    
+    // Extra save for mobile reliability
+    if (result && isMobile) {
+      try {
+        const allItems = [...shoppingItemsData.items];
+        if (!allItems.find(i => i.id === result.id)) {
+          allItems.push(result);
+        }
+        
+        // Immediate save
+        persistItemsToStorage(allItems);
+        
+        // Extra save with timeout for reliability
+        setTimeout(() => {
+          try {
+            persistItemsToStorage(allItems);
+          } catch (err) {
+            console.error("[ERROR] Mobile add item backup save failed:", err);
+          }
+        }, 300);
+      } catch (error) {
+        console.error("[ERROR] Enhanced add item mobile save failed:", error);
+      }
+    }
+    
+    return result;
+  }, [shoppingItemsData, shoppingItemsData.addItem, shoppingItemsData.items, isMobile]);
   
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({
     ...shoppingItemsData,
+    addItem: enhancedAddItem, // Use enhanced version for mobile reliability
     filterMode,
     searchTerm,
     updateFilterMode,
@@ -181,6 +206,7 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     setItems: shoppingItemsData.setItems
   }), [
     shoppingItemsData, 
+    enhancedAddItem,
     filterMode, 
     searchTerm, 
     updateFilterMode, 

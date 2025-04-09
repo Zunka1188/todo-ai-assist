@@ -1,3 +1,4 @@
+
 import React, { useState, memo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -51,14 +52,7 @@ const ShoppingList = ({
     updateFilterMode(filterMode);
   }, [searchTerm, filterMode, updateSearchTerm, updateFilterMode]);
   
-  React.useEffect(() => {
-    console.log(`[DEBUG] ShoppingList - ${filterMode} items:`, 
-      "Unpurchased:", notPurchasedItems.length, 
-      "Purchased:", purchasedItems.length);
-  }, [notPurchasedItems.length, purchasedItems.length, filterMode]);
-  
   const handleImagePreview = (item: any) => {
-    console.log("[DEBUG] ShoppingList - Opening image preview for:", item.name);
     setSelectedItem(item);
   };
   
@@ -92,7 +86,7 @@ const ShoppingList = ({
       }
       return true;
     } catch (error) {
-      console.error("[ERROR] ShoppingList - Error saving item:", error);
+      console.error("Error saving item:", error);
       toast({
         title: "Error",
         description: "Failed to save item changes",
@@ -102,7 +96,7 @@ const ShoppingList = ({
     }
   };
 
-  const handleDeleteItem = async (itemId: string) => {
+  const handleDeleteItem = (itemId: string) => {
     if (readOnly) {
       toast({
         title: "Read-only Mode",
@@ -129,7 +123,7 @@ const ShoppingList = ({
         return false;
       }
     } catch (error) {
-      console.error("[ERROR] ShoppingList - Error deleting item:", error);
+      console.error("Error deleting item:", error);
       toast({
         title: "Error",
         description: "Failed to delete item due to an error",
@@ -152,10 +146,8 @@ const ShoppingList = ({
         return false;
       }
       
-      console.log("[DEBUG] ShoppingList - Handling save from capture:", JSON.stringify(itemData, null, 2));
-      
       if (!itemData.name) {
-        console.warn("[WARN] Name is missing, setting default name");
+        console.warn("Name is missing, setting default name");
         itemData.name = "Unnamed Item";
       }
       
@@ -175,10 +167,7 @@ const ShoppingList = ({
         completed: false
       };
       
-      console.log("[DEBUG] ShoppingList - Structured item to add:", JSON.stringify(newItem, null, 2));
-      
       const result = addItem(newItem);
-      console.log("[DEBUG] ShoppingList - Called addItem function, result:", result);
       
       if (result) {
         toast({
@@ -209,7 +198,7 @@ const ShoppingList = ({
         });
       }
     } catch (error) {
-      console.error("[ERROR] ShoppingList - Error adding item to shopping list:", error);
+      console.error("Error adding item to shopping list:", error);
       toast({
         title: "Error",
         description: "Error adding item to shopping list: " + (error instanceof Error ? error.message : String(error)),
@@ -232,13 +221,10 @@ const ShoppingList = ({
       return;
     }
     
-    console.log("[DEBUG] ShoppingList - Toggling completion for item ID:", itemId);
     const result = toggleItem(itemId);
     
-    if (result) {
-      console.log("[DEBUG] ShoppingList - Toggle result:", result.completed ? "Completed" : "Uncompleted", result.item);
-    } else {
-      console.error("[ERROR] ShoppingList - Failed to toggle item completion");
+    if (!result) {
+      console.error("Failed to toggle item completion");
     }
   };
 

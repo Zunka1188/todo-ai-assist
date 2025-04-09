@@ -19,6 +19,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ImageAnalysisModal from '../documents/ImageAnalysisModal';
 import { AnalysisResult } from '@/utils/imageAnalysis';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { 
   Select,
   SelectContent,
@@ -69,6 +70,8 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   const [isUploading, setIsUploading] = useState(false);
   const [repeatOption, setRepeatOption] = useState<'none' | 'weekly' | 'monthly'>('none');
   const [isSaving, setIsSaving] = useState(false);
+  const [showCancelAlert, setShowCancelAlert] = useState(false);
+  const [formModified, setFormModified] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -85,6 +88,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
         setFileName(editItem.fileName || '');
         setFileType(editItem.fileType || '');
         setRepeatOption(editItem.repeatOption || 'none');
+        setFormModified(false);
       } else {
         // Only reset if not editing an item and dialog is opening
         resetForm();
@@ -103,6 +107,13 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     setFullScreenPreview(false);
     setRepeatOption('none');
     setIsSaving(false);
+    setFormModified(false);
+  };
+
+  // Mark form as modified when any input changes
+  const handleInputChange = (setter: React.Dispatch<React.SetStateAction<any>>, value: any) => {
+    setter(value);
+    setFormModified(true);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,6 +124,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     setFileName(selectedFile.name);
     const detectedFileType = getFileTypeFromName(selectedFile.name);
     setFileType(detectedFileType);
+    setFormModified(true);
     
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -157,20 +169,14 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
         completed: false
       };
       
-      console.log("[DEBUG] AddItemDialog - Saving item with data:", JSON.stringify(itemData, null, 2));
-      
       // Call onSave and store result
       const saveResult = onSave(itemData);
-      console.log("[DEBUG] AddItemDialog - Save result:", saveResult);
       
-      // FIXED: Only close if saveResult isn't explicitly false and ensure we're not closing before the save operation completes
+      // Only close if saveResult isn't explicitly false
       if (saveResult !== false) {
-        // First reset form data to prevent state updates on unmounted components
         resetForm();
-        // Then close the dialog
         onOpenChange(false);
       } else {
-        console.warn("[WARN] AddItemDialog - Save operation returned false");
         setIsSaving(false);
       }
     } catch (error) {
@@ -188,6 +194,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     setFile(null);
     setFileName('');
     setFileType('');
+    setFormModified(true);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -198,8 +205,14 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
   };
 
   const handleAnalysisComplete = (result: AnalysisResult) => {
-    if (result.title) setName(result.title);
-    if (result.description) setNotes(result.description);
+    if (result.title) {
+      setName(result.title);
+      setFormModified(true);
+    }
+    if (result.description) {
+      setNotes(result.description);
+      setFormModified(true);
+    }
     
     setShowAnalysisModal(false);
     
@@ -209,13 +222,14 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     });
   };
 
-  // Handle dialog cancellation - consistent between mobile and desktop
+  // Handle dialog cancellation - check for unsaved changes
   const handleCancel = () => {
-    console.log("[DEBUG] AddItemDialog - Cancel button clicked, closing dialog");
-    // Reset form first to prevent state updates on unmounted components
-    resetForm();
-    // Then close the dialog
-    onOpenChange(false);
+    if (formModified) {
+      setShowCancelAlert(true);
+    } else {
+      resetForm();
+      onOpenChange(false);
+    }
   };
 
   if (fullScreenPreview && file && fileType === 'image') {
@@ -260,7 +274,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
               id="name"
               placeholder="Enter item name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => handleInputChange(setName, e.target.value)}
             />
           </div>
 
@@ -335,7 +349,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
               id="amount"
               placeholder="e.g., 2 boxes"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => handleInputChange(setAmount, e.target.value)}
             />
           </div>
           
@@ -343,7 +357,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
             <Label htmlFor="repeat-option">Repeat</Label>
             <Select 
               value={repeatOption} 
-              onValueChange={(value) => setRepeatOption(value as 'none' | 'weekly' | 'monthly')}
+              onValueChange={(value) => handleInputChange(setRepeatOption, value as 'none' | 'weekly' | 'monthly')}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select frequency" />
@@ -362,7 +376,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
               id="notes"
               placeholder="Add any additional notes here"
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e) => handleInputChange(setNotes, e.target.value)}
               className="min-h-[80px]"
             />
           </div>
@@ -371,19 +385,18 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     </>
   );
 
-  // Use consistent rendering paths for mobile vs desktop
-  if (isMobile) {
-    return (
-      <>
+  // Use ONLY drawer for mobile and dialog for desktop to prevent duplicate rendering
+  return (
+    <>
+      {isMobile ? (
         <Drawer 
           open={open} 
           onOpenChange={(isOpen) => {
-            console.log("[DEBUG] AddItemDialog - Drawer onOpenChange:", isOpen);
             if (!isOpen) {
-              // FIXED: Reset form before closing dialog
-              resetForm();
+              handleCancel();
+            } else {
+              onOpenChange(isOpen);
             }
-            onOpenChange(isOpen);
           }}
         >
           <DrawerContent className="max-h-[85vh] overflow-hidden">
@@ -399,9 +412,6 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
             </ScrollArea>
             
             <DrawerFooter className="px-4 py-2 gap-2">
-              <Button variant="outline" className="w-full" onClick={handleCancel}>
-                Cancel
-              </Button>
               <Button 
                 onClick={handleSave}
                 className="w-full"
@@ -416,66 +426,56 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
                   isEditing ? "Save Changes" : "Add to Shopping List"
                 )}
               </Button>
+              <Button variant="outline" className="w-full" onClick={handleCancel}>
+                Cancel
+              </Button>
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
-
-        <ImageAnalysisModal
-          imageData={file}
-          fileName={fileName}
-          isOpen={showAnalysisModal}
-          onAnalysisComplete={handleAnalysisComplete}
-          onClose={() => setShowAnalysisModal(false)}
-        />
-      </>
-    );
-  }
-
-  return (
-    <>
-      <Dialog 
-        open={open} 
-        onOpenChange={(isOpen) => {
-          console.log("[DEBUG] AddItemDialog - Dialog onOpenChange:", isOpen);
-          if (!isOpen) {
-            // FIXED: Reset form before closing dialog
-            resetForm();
-          }
-          onOpenChange(isOpen);
-        }}
-      >
-        <DialogContent 
-          className="sm:max-w-md overflow-hidden max-h-[85vh] flex flex-col"
-          preventNavigateOnClose={true}
+      ) : (
+        <Dialog 
+          open={open} 
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              handleCancel();
+            } else {
+              onOpenChange(isOpen);
+            }
+          }}
         >
-          <DialogHeader>
-            <DialogTitle>{isEditing ? "Edit Item" : "Add New Item"}</DialogTitle>
-          </DialogHeader>
+          <DialogContent 
+            className="sm:max-w-md overflow-hidden max-h-[85vh] flex flex-col"
+            preventNavigateOnClose={true}
+          >
+            <DialogHeader>
+              <DialogTitle>{isEditing ? "Edit Item" : "Add New Item"}</DialogTitle>
+            </DialogHeader>
 
-          <ScrollArea className="flex-1 max-h-[60vh] pr-4 overflow-y-auto" scrollRef={scrollRef}>
-            {dialogContent}
-          </ScrollArea>
+            <ScrollArea className="flex-1 max-h-[60vh] pr-4 overflow-y-auto" scrollRef={scrollRef}>
+              {dialogContent}
+            </ScrollArea>
 
-          <DialogFooter className="mt-4 pt-2 border-t">
-            <Button variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSave}
-              disabled={isSaving || (name.trim() === '' && !file)}
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isEditing ? "Saving..." : "Adding..."}
-                </>
-              ) : (
-                isEditing ? "Save Changes" : "Add to Shopping List"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter className="mt-4 pt-2 border-t">
+              <Button variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSave}
+                disabled={isSaving || (name.trim() === '' && !file)}
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isEditing ? "Saving..." : "Adding..."}
+                  </>
+                ) : (
+                  isEditing ? "Save Changes" : "Add to Shopping List"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       <ImageAnalysisModal
         imageData={file}
@@ -484,6 +484,31 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
         onAnalysisComplete={handleAnalysisComplete}
         onClose={() => setShowAnalysisModal(false)}
       />
+
+      {/* Confirmation Alert Dialog for unsaved changes */}
+      <AlertDialog open={showCancelAlert} onOpenChange={setShowCancelAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes that will be lost if you cancel.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <AlertDialogCancel className="mt-0 sm:mt-0">Keep Editing</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                resetForm();
+                onOpenChange(false);
+                setShowCancelAlert(false);
+              }} 
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Discard Changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

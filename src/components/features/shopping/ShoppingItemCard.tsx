@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -47,7 +48,7 @@ const ShoppingItemCard = ({
       } 
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
-  // Fixed card dimensions - ensuring cards are smaller to fit 3 on mobile
+  // Fixed card dimensions - ensuring cards are the right size for mobile
   const cardSize = isMobile ? '105px' : '130px';
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -102,7 +103,7 @@ const ShoppingItemCard = ({
             className={cn(
               "rounded-full shadow-md",
               "bg-white/80 hover:bg-white text-gray-800",
-              "w-7 h-7",
+              "w-8 h-8", // Increased from w-7 h-7 to match desired size
               "transition-all duration-200 hover:scale-110",
               "dark:border dark:border-gray-600"
             )}
@@ -112,7 +113,7 @@ const ShoppingItemCard = ({
             }}
             aria-label={`Edit ${name}`}
           >
-            <Pencil className="h-3 w-3 stroke-[2.5px]" />
+            <Pencil className="h-4 w-4" /> {/* Increased from h-3 w-3 */}
           </Button>
         )}
       </div>
@@ -126,11 +127,11 @@ const ShoppingItemCard = ({
         }}
       >
         {completed && (
-          <div className="rounded-full bg-green-500/80 flex items-center justify-center h-10 w-10">
+          <div className="rounded-full bg-green-500/80 flex items-center justify-center h-12 w-12"> {/* Increased from h-10 w-10 */}
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              width="20" 
-              height="20" 
+              width="24" 
+              height="24" 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
