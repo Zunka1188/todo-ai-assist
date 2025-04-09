@@ -9,16 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
 import ShoppingItemCard from './ShoppingItemCard';
 import { Loader2 } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import EditItemDialog from './EditItemDialog';
 
 import './shoppingList.css';
 
@@ -49,9 +40,8 @@ const ShoppingList = ({
   } = useShoppingItemsContext();
   
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
-  const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [itemToEdit, setItemToEdit] = useState<any | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { isMobile } = useIsMobile();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -74,6 +64,79 @@ const ShoppingList = ({
   
   const handleCloseImageDialog = () => {
     setSelectedItem(null);
+  };
+
+  const handleOpenEditDialog = (itemId: string, item: any) => {
+    if (readOnly) {
+      toast({
+        title: "Read-only Mode",
+        description: "You don't have permission to edit items in this shared list.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setItemToEdit(item);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleCloseEditDialog = () => {
+    setItemToEdit(null);
+    setIsEditDialogOpen(false);
+  };
+
+  const handleSaveItem = async (updatedItem: any) => {
+    try {
+      if (onEditItem) {
+        onEditItem(updatedItem.id, updatedItem.name, updatedItem);
+      }
+      return true;
+    } catch (error) {
+      console.error("[ERROR] ShoppingList - Error saving item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save item changes",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    if (readOnly) {
+      toast({
+        title: "Read-only Mode",
+        description: "You don't have permission to delete items in this shared list.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    try {
+      const result = removeItem(itemId);
+      if (result) {
+        toast({
+          title: "Item Deleted",
+          description: `Item has been removed from your list.`
+        });
+        return true;
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete item",
+          variant: "destructive"
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error("[ERROR] ShoppingList - Error deleting item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete item due to an error",
+        variant: "destructive"
+      });
+      return false;
+    }
   };
 
   const handleSaveItemFromCapture = (itemData: any) => {
@@ -164,9 +227,7 @@ const ShoppingList = ({
       toast({
         title: "Read-only Mode",
         description: "You don't have permission to mark items as completed.",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
+        variant: "destructive"
       });
       return;
     }
@@ -179,67 +240,6 @@ const ShoppingList = ({
     } else {
       console.error("[ERROR] ShoppingList - Failed to toggle item completion");
     }
-  };
-
-  const handleDeleteItem = (itemId: string, itemName: string) => {
-    if (readOnly) {
-      toast({
-        title: "Read-only Mode",
-        description: "You don't have permission to delete items in this shared list.",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-      return;
-    }
-    
-    setItemToDelete({id: itemId, name: itemName});
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDeleteItem = () => {
-    if (!itemToDelete || isDeleting) return;
-    
-    setIsDeleting(true);
-    
-    try {
-      const result = removeItem(itemToDelete.id);
-      if (result) {
-        toast({
-          title: "Item Deleted",
-          description: `${itemToDelete.name} has been removed from your list.`,
-          role: "status",
-          "aria-live": "polite"
-        });
-      } else {
-        console.error("[ERROR] ShoppingList - Failed to delete item");
-        toast({
-          title: "Error",
-          description: "Failed to delete item",
-          variant: "destructive",
-          role: "alert",
-          "aria-live": "assertive"
-        });
-      }
-    } catch (error) {
-      console.error("[ERROR] ShoppingList - Error during item deletion:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete item due to an error",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-    } finally {
-      setShowDeleteDialog(false);
-      setItemToDelete(null);
-      setIsDeleting(false);
-    }
-  };
-  
-  const cancelDeleteItem = () => {
-    setShowDeleteDialog(false);
-    setItemToDelete(null);
   };
 
   const renderItemGrid = (items: any[]) => {
@@ -262,8 +262,7 @@ const ShoppingList = ({
               imageUrl={item.imageUrl}
               notes={item.notes}
               onClick={() => handleToggleItemCompletion(item.id)}
-              onDelete={() => handleDeleteItem(item.id, item.name)}
-              onEdit={() => onEditItem && onEditItem(item.id, item.name, item)}
+              onEdit={() => handleOpenEditDialog(item.id, item)}
               onImagePreview={() => handleImagePreview(item)}
               readOnly={readOnly}
             />
@@ -321,59 +320,22 @@ const ShoppingList = ({
         onSaveItem={handleSaveItemFromCapture}
         onEdit={() => {
           handleCloseImageDialog();
-          if (selectedItem && onEditItem) {
-            onEditItem(selectedItem.id, selectedItem.name, selectedItem);
-          }
-        }}
-        onDelete={() => {
-          if (readOnly) {
-            toast({
-              title: "Read-only Mode",
-              description: "You don't have permission to delete items in this shared list.",
-              variant: "destructive",
-              role: "alert",
-              "aria-live": "assertive"
-            });
-            return;
-          }
           if (selectedItem) {
-            handleDeleteItem(selectedItem.id, selectedItem.name);
+            handleOpenEditDialog(selectedItem.id, selectedItem);
           }
-          handleCloseImageDialog();
         }}
         readOnly={readOnly}
       />
       
-      <AlertDialog
-        open={showDeleteDialog}
-        onOpenChange={(isOpen) => {
-          if (!isOpen && !isDeleting) {
-            cancelDeleteItem();
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Item</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete {itemToDelete?.name}? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelDeleteItem} disabled={isDeleting}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteItem} disabled={isDeleting}>
-              {isDeleting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
-                </>
-              ) : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {itemToEdit && (
+        <EditItemDialog
+          isOpen={isEditDialogOpen}
+          onClose={handleCloseEditDialog}
+          item={itemToEdit}
+          onSave={handleSaveItem}
+          onDelete={handleDeleteItem}
+        />
+      )}
     </div>
   );
 };

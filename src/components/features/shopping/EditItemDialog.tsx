@@ -6,17 +6,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 
 export interface EditItemDialogProps {
   isOpen: boolean;
   onClose: () => void;
   item: any;
   onSave: (updatedItem: any) => boolean | void;
+  onDelete?: (id: string) => void;
 }
 
-const EditItemDialog = ({ isOpen, onClose, item, onSave }: EditItemDialogProps) => {
+const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDialogProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     amount: '',
@@ -74,6 +76,20 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave }: EditItemDialogProps) 
       console.error("Error saving item:", error);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!item?.id || !onDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await onDelete(item.id);
+      onClose();
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    } finally {
+      setIsDeleting(false);
     }
   };
   
@@ -156,18 +172,43 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave }: EditItemDialogProps) 
             />
           </div>
           
-          <DialogFooter className="pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : 'Save Changes'}
-            </Button>
+          <DialogFooter className="pt-4 flex flex-col sm:flex-row gap-2">
+            <div className="flex-1 flex justify-start">
+              {onDelete && (
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  onClick={handleDelete}
+                  disabled={isSubmitting || isDeleting}
+                  className="flex items-center gap-1"
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4" />
+                      Delete
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting || isDeleting}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting || isDeleting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : 'Save Changes'}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>

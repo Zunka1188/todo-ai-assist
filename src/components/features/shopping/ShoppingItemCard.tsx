@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,7 @@ interface ShoppingItemCardProps {
   notes?: string;
   onClick: () => void;
   onEdit: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   onImagePreview?: () => void;
   readOnly?: boolean;
 }
@@ -48,9 +47,8 @@ const ShoppingItemCard = ({
       } 
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
-  // Fixed card dimensions - ensure all items have the same size
-  // Making sure cards are more compact on mobile
-  const cardSize = isMobile ? '130px' : '140px';
+  // Fixed card dimensions - ensuring cards are smaller to fit 3 on mobile
+  const cardSize = isMobile ? '105px' : '130px';
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only trigger image preview if clicking on the card background
@@ -78,7 +76,7 @@ const ShoppingItemCard = ({
       aria-pressed={completed}
       tabIndex={0}
     >
-      {/* Item actions - positioned in top corners with clearer layout */}
+      {/* Item actions - only edit button in top right corner */}
       <div className="absolute top-0 left-0 right-0 flex justify-between p-2 z-10">
         {/* Left side - Repeat Option Badge - Only show if there is a repeat option */}
         <div className="flex flex-col items-start gap-2">
@@ -96,50 +94,27 @@ const ShoppingItemCard = ({
           )}
         </div>
         
-        {/* Right side - Edit and Delete buttons with better positioning */}
-        <div className="flex gap-1">
-          {!readOnly && (
-            <>
-              <Button
-                size="icon"
-                variant="secondary"
-                className={cn(
-                  "rounded-full shadow-md",
-                  "bg-white/80 hover:bg-white text-gray-800",
-                  "w-7 h-7",
-                  "transition-all duration-200 hover:scale-110",
-                  "dark:border dark:border-gray-600"
-                )}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit();
-                }}
-                aria-label={`Edit ${name}`}
-              >
-                <Pencil className="h-3 w-3 stroke-[2.5px]" />
-              </Button>
-              
-              <Button
-                size="icon"
-                variant="secondary"
-                className={cn(
-                  "rounded-full shadow-md",
-                  "bg-white/80 hover:bg-white text-gray-800",
-                  "w-7 h-7",
-                  "transition-all duration-200 hover:scale-110",
-                  "dark:border dark:border-gray-600"
-                )}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete();
-                }}
-                aria-label={`Delete ${name}`}
-              >
-                <Trash2 className="h-3 w-3 stroke-[2.5px]" />
-              </Button>
-            </>
-          )}
-        </div>
+        {/* Right side - Only Edit button */}
+        {!readOnly && (
+          <Button
+            size="icon"
+            variant="secondary"
+            className={cn(
+              "rounded-full shadow-md",
+              "bg-white/80 hover:bg-white text-gray-800",
+              "w-7 h-7",
+              "transition-all duration-200 hover:scale-110",
+              "dark:border dark:border-gray-600"
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            aria-label={`Edit ${name}`}
+          >
+            <Pencil className="h-3 w-3 stroke-[2.5px]" />
+          </Button>
+        )}
       </div>
 
       {/* Completion Status - centered checkmark */}
