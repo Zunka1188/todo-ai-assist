@@ -186,7 +186,7 @@ const ShoppingPageContent: React.FC = () => {
     setEditItem(null);
   }
 
-  const handleSaveItem = async (item: any) => {
+  const handleSaveItem = (item: any): boolean | void => {
     if (isReadOnlyMode) {
       memoizedToast({
         title: "Read-only Mode",
@@ -209,67 +209,25 @@ const ShoppingPageContent: React.FC = () => {
       
       let imageUrl = null;
       if (item.file && item.file instanceof File) {
-        try {
-          imageUrl = await uploadImage(item.file);
-        } catch (error) {
-          memoizedToast({
-            title: "Image Upload Failed",
-            description: "Failed to upload image, but we'll continue adding the item.",
-            variant: "destructive",
-            role: "alert",
-            "aria-live": "assertive"
+        uploadImage(item.file)
+          .then(url => {
+            proceedWithSave(item, url);
+          })
+          .catch(error => {
+            memoizedToast({
+              title: "Image Upload Failed",
+              description: "Failed to upload image, but we'll continue adding the item.",
+              variant: "destructive",
+              role: "alert",
+              "aria-live": "assertive"
+            });
+            proceedWithSave(item, null);
           });
-        }
-      } else if (item.imageUrl) {
-        imageUrl = item.imageUrl;
-      }
-      
-      const itemToAdd = {
-        name: item.name || 'Unnamed Item',
-        amount: item.amount || '',
-        price: item.price || '',
-        imageUrl: imageUrl,
-        notes: item.notes || '',
-        repeatOption: item.repeatOption || 'none',
-        category: item.category || '',
-        dateToPurchase: item.dateToPurchase || '',
-        completed: false
-      };
-      
-      console.log('[DEBUG] ShoppingPage - Properly structured item to add:', JSON.stringify(itemToAdd, null, 2));
-      
-      const result = addItem(itemToAdd);
-      console.log('[DEBUG] ShoppingPage - Add item result:', result);
-      
-      if (result) {
-        const targetTab = itemToAdd.repeatOption === 'weekly' 
-          ? 'weekly' 
-          : itemToAdd.repeatOption === 'monthly' 
-            ? 'monthly' 
-            : 'one-off';
-            
-        if (activeTab !== targetTab && activeTab !== 'all') {
-          navigate(`/shopping?tab=${targetTab}`, { replace: true });
-        }
-        
-        memoizedToast({
-          title: "Item Added",
-          description: `${item.name} has been added to your shopping list.`,
-          role: "status",
-          "aria-live": "polite"
-        });
-        
-        return true;
       } else {
-        memoizedToast({
-          title: "Failed to Add Item",
-          description: "The item could not be added to your shopping list.",
-          variant: "destructive",
-          role: "alert",
-          "aria-live": "assertive"
-        });
-        return false;
+        proceedWithSave(item, item.imageUrl);
       }
+      
+      return;
     } catch (error) {
       console.error("[ERROR] ShoppingPage - Error adding item:", error);
       memoizedToast({
@@ -279,13 +237,62 @@ const ShoppingPageContent: React.FC = () => {
         role: "alert",
         "aria-live": "assertive"
       });
-      return false;
-    } finally {
       setIsProcessing(false);
+      return false;
     }
   }
+  
+  const proceedWithSave = (item: any, imageUrl: string | null) => {
+    const itemToAdd = {
+      name: item.name || 'Unnamed Item',
+      amount: item.amount || '',
+      price: item.price || '',
+      imageUrl: imageUrl,
+      notes: item.notes || '',
+      repeatOption: item.repeatOption || 'none',
+      category: item.category || '',
+      dateToPurchase: item.dateToPurchase || '',
+      completed: false
+    };
+    
+    console.log('[DEBUG] ShoppingPage - Properly structured item to add:', JSON.stringify(itemToAdd, null, 2));
+    
+    const result = addItem(itemToAdd);
+    console.log('[DEBUG] ShoppingPage - Add item result:', result);
+    
+    if (result) {
+      const targetTab = itemToAdd.repeatOption === 'weekly' 
+        ? 'weekly' 
+        : itemToAdd.repeatOption === 'monthly' 
+          ? 'monthly' 
+          : 'one-off';
+          
+      if (activeTab !== targetTab && activeTab !== 'all') {
+        navigate(`/shopping?tab=${targetTab}`, { replace: true });
+      }
+      
+      memoizedToast({
+        title: "Item Added",
+        description: `${item.name} has been added to your shopping list.`,
+        role: "status",
+        "aria-live": "polite"
+      });
+      
+      setShowAddDialog(false);
+    } else {
+      memoizedToast({
+        title: "Failed to Add Item",
+        description: "The item could not be added to your shopping list.",
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
+      });
+    }
+    
+    setIsProcessing(false);
+  }
 
-  const handleUpdateItem = async (updatedItem: any) => {
+  const handleUpdateItem = (updatedItem: any): boolean | void => {
     if (isReadOnlyMode) {
       memoizedToast({
         title: "Read-only Mode",
@@ -304,44 +311,26 @@ const ShoppingPageContent: React.FC = () => {
     try {
       console.log("[DEBUG] ShoppingPage - Updating item:", JSON.stringify(updatedItem, null, 2));
       
-      let imageUrl = null;
       if (updatedItem.file && updatedItem.file instanceof File) {
-        try {
-          imageUrl = await uploadImage(updatedItem.file);
-        } catch (error) {
-          memoizedToast({
-            title: "Image Upload Failed",
-            description: "Failed to upload image, but we'll continue updating the item.",
-            variant: "destructive",
-            role: "alert",
-            "aria-live": "assertive"
+        uploadImage(updatedItem.file)
+          .then(url => {
+            proceedWithUpdate(updatedItem, url);
+          })
+          .catch(error => {
+            memoizedToast({
+              title: "Image Upload Failed",
+              description: "Failed to upload image, but we'll continue updating the item.",
+              variant: "destructive",
+              role: "alert",
+              "aria-live": "assertive"
+            });
+            proceedWithUpdate(updatedItem, updatedItem.imageUrl);
           });
-        }
-      } else if (updatedItem.imageUrl) {
-        imageUrl = updatedItem.imageUrl;
+      } else {
+        proceedWithUpdate(updatedItem, updatedItem.imageUrl);
       }
       
-      const itemData = {
-        name: updatedItem.name,
-        amount: updatedItem.amount,
-        imageUrl: imageUrl,
-        notes: updatedItem.notes,
-        repeatOption: updatedItem.repeatOption || 'none',
-        completed: editItem.item?.completed
-      };
-      
-      const result = updateItem(editItem.id, itemData);
-      
-      if (result) {
-        memoizedToast({
-          title: "Item Updated",
-          description: `${updatedItem.name} has been updated.`,
-          role: "status",
-          "aria-live": "polite"
-        });
-        return true;
-      }
-      return false;
+      return;
     } catch (error) {
       console.error("[ERROR] ShoppingPage - Error updating item:", error);
       memoizedToast({
@@ -351,10 +340,42 @@ const ShoppingPageContent: React.FC = () => {
         role: "alert",
         "aria-live": "assertive"
       });
-      return false;
-    } finally {
       setIsProcessing(false);
+      return false;
     }
+  }
+  
+  const proceedWithUpdate = (updatedItem: any, imageUrl: string | null) => {
+    const itemData = {
+      name: updatedItem.name,
+      amount: updatedItem.amount,
+      imageUrl: imageUrl,
+      notes: updatedItem.notes,
+      repeatOption: updatedItem.repeatOption || 'none',
+      completed: editItem?.item?.completed
+    };
+    
+    const result = updateItem(editItem!.id, itemData);
+    
+    if (result) {
+      memoizedToast({
+        title: "Item Updated",
+        description: `${updatedItem.name} has been updated.`,
+        role: "status",
+        "aria-live": "polite"
+      });
+      setEditItem(null);
+    } else {
+      memoizedToast({
+        title: "Update Failed",
+        description: "Failed to update the item.",
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
+      });
+    }
+    
+    setIsProcessing(false);
   }
 
   const handleDeleteItem = (id: string) => {
