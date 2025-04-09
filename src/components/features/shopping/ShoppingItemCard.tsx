@@ -103,7 +103,7 @@ const ShoppingItemCard = ({
             className={cn(
               "rounded-full shadow-md",
               "bg-white/80 hover:bg-white text-gray-800",
-              "w-8 h-8", // Increased from w-7 h-7 to match desired size
+              "w-10 h-10", // Increased from w-8 h-8 to match desired size in image 1
               "transition-all duration-200 hover:scale-110",
               "dark:border dark:border-gray-600"
             )}
@@ -113,7 +113,7 @@ const ShoppingItemCard = ({
             }}
             aria-label={`Edit ${name}`}
           >
-            <Pencil className="h-4 w-4" /> {/* Increased from h-3 w-3 */}
+            <Pencil className="h-5 w-5" /> {/* Increased from h-4 w-4 to match desired size */}
           </Button>
         )}
       </div>
@@ -127,11 +127,11 @@ const ShoppingItemCard = ({
         }}
       >
         {completed && (
-          <div className="rounded-full bg-green-500/80 flex items-center justify-center h-12 w-12"> {/* Increased from h-10 w-10 */}
+          <div className="rounded-full bg-green-500/80 flex items-center justify-center h-14 w-14"> {/* Increased from h-12 w-12 */}
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              width="24" 
-              height="24" 
+              width="28" 
+              height="28" 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 

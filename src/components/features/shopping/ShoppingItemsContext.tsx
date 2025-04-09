@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, ReactNode, useState, useCallback, useMemo, useEffect } from 'react';
 import { useShoppingItems, ShoppingItem, SortOption } from './useShoppingItems';
-import { loadItems, saveItems, setupMobilePersistence } from '@/services/shoppingService';
+import { loadItems, saveItems, setupMobilePersistence, enhancedMobileSave } from '@/services/shoppingService';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 type FilterMode = 'one-off' | 'weekly' | 'monthly' | 'all';
@@ -46,10 +46,13 @@ interface ShoppingItemsProviderProps {
 }
 
 // Create a new function to handle localStorage persistence with error handling and mobile optimizations
-const persistItemsToStorage = (items: ShoppingItem[]) => {
+const persistItemsToStorage = (items: ShoppingItem[], isMobile = false) => {
   try {
-    saveItems(items);
-    return true;
+    if (isMobile) {
+      return enhancedMobileSave(items);
+    } else {
+      return saveItems(items);
+    }
   } catch (error) {
     console.error("[ERROR] Failed to persist items to localStorage:", error);
     return false;
@@ -106,22 +109,7 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
   // Save items to localStorage whenever they change with extra mobile safeguards
   useEffect(() => {
     if (!isLoading && initialized && shoppingItemsData.items.length > 0) {
-      persistItemsToStorage(shoppingItemsData.items);
-      
-      // For mobile devices, do extra verification that items were actually saved
-      if (isMobile) {
-        // Verify the save was successful by reading back
-        setTimeout(() => {
-          try {
-            const verifiedItems = loadItems();
-            if (verifiedItems.length !== shoppingItemsData.items.length) {
-              persistItemsToStorage(shoppingItemsData.items);
-            }
-          } catch (err) {
-            console.error("[ERROR] ShoppingItemsContext - Mobile verification failed:", err);
-          }
-        }, 200);
-      }
+      persistItemsToStorage(shoppingItemsData.items, isMobile);
     }
   }, [shoppingItemsData.items, isLoading, initialized, isMobile]);
 
@@ -132,33 +120,6 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     }
     return undefined;
   }, [isMobile]);
-
-  // Handle storage events from other tabs
-  useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'shoppingItems' && event.newValue) {
-        try {
-          const parsedItems = JSON.parse(event.newValue);
-          
-          if (Array.isArray(parsedItems) && parsedItems.length > 0) {
-            // Convert date strings back to Date objects
-            const items = parsedItems.map((item: any) => ({
-              ...item,
-              dateAdded: new Date(item.dateAdded),
-              lastPurchased: item.lastPurchased ? new Date(item.lastPurchased) : undefined
-            }));
-            
-            shoppingItemsData.setItems(items);
-          }
-        } catch (err) {
-          console.error("[ERROR] ShoppingItemsContext - Failed to process storage event:", err);
-        }
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [shoppingItemsData.setItems]);
 
   // Improve the addItem method for better mobile reliability
   const enhancedAddItem = useCallback((
@@ -175,12 +136,12 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
         }
         
         // Immediate save
-        persistItemsToStorage(allItems);
+        persistItemsToStorage(allItems, true);
         
         // Extra save with timeout for reliability
         setTimeout(() => {
           try {
-            persistItemsToStorage(allItems);
+            persistItemsToStorage(allItems, true);
           } catch (err) {
             console.error("[ERROR] Mobile add item backup save failed:", err);
           }
@@ -193,10 +154,37 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     return result;
   }, [shoppingItemsData, shoppingItemsData.addItem, shoppingItemsData.items, isMobile]);
   
+  // Enhanced toggle item for better mobile reliability
+  const enhancedToggleItem = useCallback((id: string) => {
+    const result = shoppingItemsData.toggleItem(id);
+    
+    // Extra save for mobile reliability
+    if (result && isMobile) {
+      try {
+        // Immediate save
+        persistItemsToStorage(shoppingItemsData.items, true);
+        
+        // Extra save with timeout for reliability
+        setTimeout(() => {
+          try {
+            persistItemsToStorage(shoppingItemsData.items, true);
+          } catch (err) {
+            console.error("[ERROR] Mobile toggle item backup save failed:", err);
+          }
+        }, 300);
+      } catch (error) {
+        console.error("[ERROR] Enhanced toggle item mobile save failed:", error);
+      }
+    }
+    
+    return result;
+  }, [shoppingItemsData, shoppingItemsData.toggleItem, shoppingItemsData.items, isMobile]);
+  
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({
     ...shoppingItemsData,
     addItem: enhancedAddItem, // Use enhanced version for mobile reliability
+    toggleItem: enhancedToggleItem, // Use enhanced version for mobile reliability
     filterMode,
     searchTerm,
     updateFilterMode,
@@ -207,6 +195,7 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
   }), [
     shoppingItemsData, 
     enhancedAddItem,
+    enhancedToggleItem,
     filterMode, 
     searchTerm, 
     updateFilterMode, 

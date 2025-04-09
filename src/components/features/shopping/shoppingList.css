@@ -3,7 +3,7 @@
 .shopping-item-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  gap: 12px;
   padding: 0;
   width: 100%;
   margin: 0;
@@ -20,7 +20,7 @@
 @media (max-width: 640px) {
   .shopping-item-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
+    gap: 12px;
     padding: 0;
   }
   
@@ -33,7 +33,7 @@
 @media (min-width: 768px) {
   .shopping-item-grid {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 8px;
+    gap: 16px;
   }
 }
 

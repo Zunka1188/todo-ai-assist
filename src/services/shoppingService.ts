@@ -46,8 +46,7 @@ export const saveItems = (items: ShoppingItem[]): boolean => {
 };
 
 /**
- * Setup event listeners for mobile persistence
- * This helps prevent data loss when using the app on mobile
+ * Mobile-specific persistence helpers
  */
 export const setupMobilePersistence = () => {
   // Save on page visibility change (user switches apps)
@@ -84,7 +83,7 @@ export const setupMobilePersistence = () => {
 
 /**
  * Setup cross-browser synchronization
- * This is intended to help sync between tabs but doesn't sync across devices
+ * This is intended to help sync between tabs
  */
 export const setupCrossBrowserSync = () => {
   // Listen for storage events from other tabs
@@ -102,4 +101,24 @@ export const setupCrossBrowserSync = () => {
   return () => {
     window.removeEventListener('storage', handleStorageChange);
   };
+};
+
+/**
+ * Mobile-specific save enhancement to help with browser storage limits
+ * and ensure data is saved even when the app is in the background
+ */
+export const enhancedMobileSave = (items: ShoppingItem[]): boolean => {
+  // First try - normal save
+  const result = saveItems(items);
+  
+  // Fallback with delay (helps with mobile browsers)
+  setTimeout(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    } catch (error) {
+      console.error('[ERROR] Enhanced save fallback failed:', error);
+    }
+  }, 100);
+  
+  return result;
 };

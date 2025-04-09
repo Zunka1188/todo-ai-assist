@@ -68,12 +68,13 @@ interface State {
   toasts: ToasterToast[];
 }
 
-const memoryState: State = { toasts: [] };
+let memoryState: State = { toasts: [] };
 
 let listeners: ((state: State) => void)[] = [];
 
 function dispatch(action: ActionType) {
-  memoryState = reducer(memoryState, action);
+  const newState = reducer(memoryState, action);
+  memoryState = newState;
   listeners.forEach((listener) => {
     listener(memoryState);
   });
