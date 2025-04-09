@@ -540,36 +540,36 @@ const ShoppingPageContent: React.FC = () => {
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList 
           className={cn(
-            "w-full grid mb-6 gap-2",
-            isMobile ? "grid-cols-4 overflow-x-auto" : "grid-cols-4", 
+            "w-full grid mb-6 gap-0",
+            isMobile ? "grid-cols-4 overflow-x-auto tabs-container" : "grid-cols-4", 
           )}
           role="tablist" 
           aria-label="Shopping list categories"
         >
           <TabsTrigger 
             value="one-off" 
-            className="text-sm px-2 py-1 h-12 md:h-10 min-w-[70px] relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:opacity-0 data-[state=active]:after:opacity-100"
+            className="text-sm px-2 py-1 h-12 md:h-10 min-w-[70px] relative overflow-hidden after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:opacity-0 data-[state=active]:after:opacity-100"
             aria-controls={`tabpanel-one-off`}
           >
             {isMobile ? "One-off" : "One-off Items"}
           </TabsTrigger>
           <TabsTrigger 
             value="weekly" 
-            className="text-sm px-2 py-1 h-12 md:h-10 min-w-[70px] relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:opacity-0 data-[state=active]:after:opacity-100"
+            className="text-sm px-2 py-1 h-12 md:h-10 min-w-[70px] relative overflow-hidden after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:opacity-0 data-[state=active]:after:opacity-100"
             aria-controls={`tabpanel-weekly`}
           >
             Weekly
           </TabsTrigger>
           <TabsTrigger 
             value="monthly" 
-            className="text-sm px-2 py-1 h-12 md:h-10 min-w-[70px] relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:opacity-0 data-[state=active]:after:opacity-100"
+            className="text-sm px-2 py-1 h-12 md:h-10 min-w-[70px] relative overflow-hidden after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:opacity-0 data-[state=active]:after:opacity-100"
             aria-controls={`tabpanel-monthly`}
           >
             Monthly
           </TabsTrigger>
           <TabsTrigger 
             value="all" 
-            className="text-sm px-2 py-1 h-12 md:h-10 min-w-[70px] relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:opacity-0 data-[state=active]:after:opacity-100"
+            className="text-sm px-2 py-1 h-12 md:h-10 min-w-[70px] relative overflow-hidden after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:opacity-0 data-[state=active]:after:opacity-100"
             aria-controls={`tabpanel-all`}
           >
             {isMobile ? "All" : "All Items"}

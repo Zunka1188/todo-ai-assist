@@ -59,6 +59,15 @@ export const saveItems = (items: ShoppingItem[]): void => {
     }, 100); // Short timeout for backup save
   } catch (error) {
     console.error("[ERROR] shoppingService - Error saving to localStorage:", error);
+    // Try alternative approach if direct save fails
+    try {
+      setTimeout(() => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        console.log(`[DEBUG] shoppingService - Alternative save completed (${items.length} items)`);
+      }, 50);
+    } catch (innerError) {
+      console.error("[ERROR] shoppingService - Alternative save also failed:", innerError);
+    }
   }
 };
 
@@ -164,7 +173,14 @@ export const setupMobilePersistence = () => {
     const items = loadItems();
     if (items.length > 0) {
       try {
+        // Use synchronous direct write to ensure data is saved
         localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        
+        // For extra reliability, flush any operations
+        if (typeof localStorage.flush === 'function') {
+          (localStorage as any).flush();
+        }
+        
         console.log("[DEBUG] Mobile persistence - Forced sync before page unload");
       } catch (error) {
         console.error("[ERROR] Mobile persistence - Failed to sync before unload:", error);
@@ -172,6 +188,23 @@ export const setupMobilePersistence = () => {
     }
   };
 
-  window.addEventListener('beforeunload', handleBeforeUnload);
-  return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  // Add multiple event listeners for increased reliability
+  window.addEventListener('beforeunload', handleBeforeUnload, { capture: true });
+  window.addEventListener('pagehide', handleBeforeUnload, { capture: true });
+  
+  if ('onvisibilitychange' in document) {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        handleBeforeUnload();
+      }
+    });
+  }
+  
+  return () => {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.removeEventListener('pagehide', handleBeforeUnload);
+    if ('onvisibilitychange' in document) {
+      document.removeEventListener('visibilitychange', () => {});
+    }
+  };
 };

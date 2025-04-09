@@ -42,14 +42,14 @@ const ShoppingItemCard = ({
   // Base card style with background image if available
   const cardStyle = imageUrl 
     ? { 
-        backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0) 60%, rgba(0,0,0,0.7) 100%), url(${imageUrl})`,
+        backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0.7) 100%), url(${imageUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       } 
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
-  // Larger card sizes for both mobile and desktop
-  const cardSize = isMobile ? '120px' : '140px'; // Increased from 80px/100px
+  // Larger card sizes with consistent dimensions for both mobile and desktop
+  const cardSize = isMobile ? '130px' : '140px';
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only trigger image preview if clicking on the card background
@@ -62,8 +62,8 @@ const ShoppingItemCard = ({
   };
 
   // Improved button styling with consistent spacing and better visibility in dark mode
-  // Using fixed width/height instead of min-width/min-height for consistent spacing
-  const buttonSize = isMobile ? "w-12 h-12" : "w-10 h-10";
+  const buttonSize = "w-12 h-12"; // Using fixed width/height for consistent spacing
+  const buttonSpacing = "mx-0.5"; // Adding minimal horizontal spacing
   
   // Button background styling with better dark mode contrast
   const buttonBgClass = theme === 'dark' 
@@ -87,8 +87,22 @@ const ShoppingItemCard = ({
       aria-pressed={completed}
       tabIndex={0}
     >
-      {/* Edit Button - top-left with improved tap target and consistent spacing */}
-      <div className="absolute top-2 left-2 z-10">
+      {/* Repeat Option Badge - Moved to top left for better visibility */}
+      {repeatOption && repeatOption !== 'none' && (
+        <Badge 
+          variant="secondary" 
+          className={cn(
+            "absolute top-2 left-2 bg-white/80 text-black px-2 py-1",
+            "text-xs shadow-sm z-10", // Improved visibility and positioning
+            "dark:bg-black/60 dark:text-white" // Better dark mode contrast
+          )}
+        >
+          {repeatOption}
+        </Badge>
+      )}
+      
+      {/* Edit Button - top-right with improved tap target */}
+      <div className="absolute top-2 right-12 z-10">
         <Button
           size="icon"
           variant="secondary"
@@ -96,7 +110,9 @@ const ShoppingItemCard = ({
             "rounded-full shadow-md",
             buttonBgClass,
             "transition-all duration-200 hover:scale-110", 
-            buttonSize // Using fixed size
+            buttonSize, // Using fixed size
+            buttonSpacing, // Minimal horizontal spacing
+            "dark:border dark:border-gray-600" // Better dark mode visibility
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -109,7 +125,7 @@ const ShoppingItemCard = ({
         </Button>
       </div>
       
-      {/* Delete Button - top-right with improved tap target and consistent spacing */}
+      {/* Delete Button - top-right with improved tap target */}
       <div className="absolute top-2 right-2 z-10">
         <Button
           size="icon"
@@ -118,7 +134,9 @@ const ShoppingItemCard = ({
             "rounded-full shadow-md",
             buttonBgClass,
             "transition-all duration-200 hover:scale-110",
-            buttonSize // Using fixed size
+            buttonSize, // Using fixed size
+            buttonSpacing, // Minimal horizontal spacing
+            "dark:border dark:border-gray-600" // Better dark mode visibility
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -186,19 +204,6 @@ const ShoppingItemCard = ({
           </div>
         )}
       </div>
-      
-      {/* Repeat Option Badge - improved positioning */}
-      {repeatOption && repeatOption !== 'none' && (
-        <Badge 
-          variant="secondary" 
-          className={cn(
-            "absolute bottom-2 right-2 bg-white/80 text-black px-2 py-1",
-            "text-xs shadow-sm z-10" // Improved visibility and positioning
-          )}
-        >
-          {repeatOption}
-        </Badge>
-      )}
     </Card>
   );
 };
