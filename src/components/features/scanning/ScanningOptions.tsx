@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
-import { Camera, Upload, Calendar, FileText, ShoppingBag, Image, PlusCircle } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { Camera, Upload, Calendar, FileText, ShoppingBag, Image, PlusCircle, Brain } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
@@ -9,9 +8,12 @@ import { useTheme } from '@/hooks/use-theme';
 import UnifiedScannerCapture from './UnifiedScannerCapture';
 import ControlledScannerCapture from './ControlledScannerCapture';
 import FileUploader from './FileUploader';
+import SmartScannerCapture from './SmartScannerCapture';
 import ResponsiveContainer from '@/components/ui/responsive-container';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AIDetectionMode } from '@/services/aiDetectionService';
 
 interface ScanningOptionsProps {
   onScreenSelectionClick?: () => void;
@@ -34,9 +36,11 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
   const [showScannerCapture, setShowScannerCapture] = useState(false);
   const [showControlledScanner, setShowControlledScanner] = useState(false);
   const [showFileUploader, setShowFileUploader] = useState(false);
+  const [showSmartScanner, setShowSmartScanner] = useState(false);
   const [currentScanMode, setCurrentScanMode] = useState<string | undefined>(preferredMode);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-  const [manualCapture, setManualCapture] = useState<boolean>(true); // Default to manual capture
+  const [manualCapture, setManualCapture] = useState<boolean>(true);
+  const [smartScannerMode, setSmartScannerMode] = useState<AIDetectionMode>('auto');
 
   useEffect(() => {
     const checkPermission = async () => {
@@ -60,8 +64,6 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
     }
   }, [hasCamera]);
 
-  // This effect will no longer automatically activate the camera
-  // It will only check if there's a preferred mode and set it
   useEffect(() => {
     if (preferredMode && !noAutomaticActivation) {
       handleTakePhoto(preferredMode);
@@ -86,11 +88,15 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
     } else if (data.saveToDocuments || data.itemType === 'document') {
       navigate('/documents');
     }
+    
+    setShowSmartScanner(false);
+    setShowScannerCapture(false);
+    setShowControlledScanner(false);
+    setShowFileUploader(false);
   };
 
   const handleTakePhoto = (mode?: string) => {
     setCurrentScanMode(mode);
-    // Always use controlled scanner for desktop to ensure manual capture
     if (!isMobile) {
       setShowControlledScanner(true);
       setShowScannerCapture(false);
@@ -105,6 +111,19 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
     });
   };
   
+  const handleSmartScan = (mode: AIDetectionMode = 'auto') => {
+    setSmartScannerMode(mode);
+    setShowSmartScanner(true);
+    setShowScannerCapture(false);
+    setShowControlledScanner(false);
+    setShowFileUploader(false);
+    
+    toast({
+      title: "AI Scanner Active",
+      description: "Take a photo or upload an image for AI analysis.",
+    });
+  };
+  
   const handleUploadFile = () => {
     if (onFileUpload) {
       onFileUpload();
@@ -112,6 +131,7 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
       setShowFileUploader(true);
       setShowScannerCapture(false);
       setShowControlledScanner(false);
+      setShowSmartScanner(false);
       
       toast({
         title: "File Upload",
@@ -144,6 +164,19 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
           onClose={() => setShowFileUploader(false)}
           onSaveSuccess={handleSaveSuccess}
         />
+      ) : showSmartScanner ? (
+        <Dialog open={showSmartScanner} onOpenChange={setShowSmartScanner}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>AI Smart Scan</DialogTitle>
+            </DialogHeader>
+            <SmartScannerCapture
+              preferredMode={smartScannerMode}
+              onSaveSuccess={handleSaveSuccess}
+              onClose={() => setShowSmartScanner(false)}
+            />
+          </DialogContent>
+        </Dialog>
       ) : (
         <div className="flex flex-col h-full">
           <div className={cn(
@@ -159,6 +192,10 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleSmartScan()} className="cursor-pointer">
+                    <Brain className="h-4 w-4 mr-2 text-purple-500" />
+                    Smart AI Scan
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleTakePhoto()} className="cursor-pointer">
                     <Camera className="h-4 w-4 mr-2" />
                     Take Picture
@@ -183,6 +220,15 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
             
             <div className="flex flex-col items-center gap-4 mb-8 px-4">
               <Button 
+                onClick={() => handleSmartScan()}
+                className="w-full max-w-md bg-todo-purple hover:bg-todo-purple/90 h-14 text-lg"
+              >
+                <Brain className="h-5 w-5 mr-3 text-white" />
+                Smart AI Scan
+                <span className="text-xs ml-2 opacity-75">(Auto-detect content)</span>
+              </Button>
+
+              <Button 
                 onClick={() => handleTakePhoto()}
                 className="w-full max-w-md bg-primary hover:bg-primary/90 h-14 text-lg"
                 disabled={!hasCamera}
@@ -204,41 +250,41 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
             
             <ResponsiveContainer className="mb-6">
               <div className="flex flex-col space-y-4">
-                <h4 className="font-medium text-lg">Quick Actions</h4>
+                <h4 className="font-medium text-lg">AI Quick Actions</h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   <Button 
                     variant="outline"
                     className="flex items-center justify-start border-dashed border-primary/30 h-auto py-3"
-                    onClick={() => handleTakePhoto('shopping')}
+                    onClick={() => handleSmartScan('shopping')}
                   >
                     <ShoppingBag className="h-4 w-4 mr-2 text-primary" />
                     <div className="text-left">
                       <span className="block">Scan Shopping Item</span>
-                      <span className="text-xs text-muted-foreground">Add to shopping list</span>
+                      <span className="text-xs text-muted-foreground">Auto-detect products</span>
                     </div>
                   </Button>
                   
                   <Button 
                     variant="outline"
                     className="flex items-center justify-start border-dashed border-primary/30 h-auto py-3"
-                    onClick={() => handleTakePhoto('document')}
+                    onClick={() => handleSmartScan('document')}
                   >
                     <FileText className="h-4 w-4 mr-2 text-primary" />
                     <div className="text-left">
                       <span className="block">Scan Document</span>
-                      <span className="text-xs text-muted-foreground">Save to documents</span>
+                      <span className="text-xs text-muted-foreground">Extract text & data</span>
                     </div>
                   </Button>
                   
                   <Button 
                     variant="outline"
                     className="flex items-center justify-start border-dashed border-primary/30 h-auto py-3"
-                    onClick={() => handleTakePhoto('invitation')}
+                    onClick={() => handleSmartScan('calendar')}
                   >
                     <Calendar className="h-4 w-4 mr-2 text-primary" />
                     <div className="text-left">
                       <span className="block">Scan Invitation</span>
-                      <span className="text-xs text-muted-foreground">Add to calendar</span>
+                      <span className="text-xs text-muted-foreground">Parse event details</span>
                     </div>
                   </Button>
                 </div>
@@ -247,15 +293,19 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
             
             <ResponsiveContainer className="mb-4">
               <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border dark:border-gray-700">
-                <h4 className="font-medium text-foreground dark:text-white mb-3">File Types Supported</h4>
+                <h4 className="font-medium text-foreground dark:text-white mb-3">AI Features</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                   <div className="flex items-center">
-                    <Image className="h-4 w-4 mr-2 text-primary" />
-                    <span>Images (.jpg, .png, etc)</span>
+                    <ShoppingBag className="h-4 w-4 mr-2 text-primary" />
+                    <span>Product recognition</span>
                   </div>
                   <div className="flex items-center">
                     <FileText className="h-4 w-4 mr-2 text-primary" />
-                    <span>Documents (.pdf, .docx)</span>
+                    <span>Document text extraction</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-2 text-primary" />
+                    <span>Event detection</span>
                   </div>
                 </div>
               </div>
