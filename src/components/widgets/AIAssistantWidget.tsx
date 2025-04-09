@@ -16,8 +16,6 @@ const AIAssistantWidget = ({ className }: AIScanWidgetProps) => {
 
   return (
     <WidgetWrapper
-      title="AI Assistant"
-      icon={<Brain className="text-purple-500" />}
       className={cn("bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/30", 
         className
       )}
@@ -25,9 +23,10 @@ const AIAssistantWidget = ({ className }: AIScanWidgetProps) => {
       <div className="flex flex-col space-y-3 p-1">
         <div className="flex justify-between items-center mb-1">
           <span className="text-sm font-medium flex items-center">
-            <Sparkles className="h-3.5 w-3.5 mr-1.5 text-purple-500" />
-            Smart Detection
+            <Brain className="h-3.5 w-3.5 mr-1.5 text-purple-500" />
+            AI Assistant
           </span>
+          <Sparkles className="h-3.5 w-3.5 text-purple-500" />
         </div>
         
         <p className="text-xs text-muted-foreground">
