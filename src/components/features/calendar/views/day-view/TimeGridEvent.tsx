@@ -37,19 +37,35 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
     const topPosition = Math.max(0, (startMinutesSinceMidnight - startHourInMinutes) * minuteHeight);
     const height = Math.max(30, (endMinutesSinceMidnight - startMinutesSinceMidnight) * minuteHeight);
     
-    // Improved width calculation for better visibility
-    // Use more space for events (95% of available width)
-    // and limit the number of events side by side for better readability
-    const maxEventsInRow = Math.min(totalOverlapping, 2); // Limit to 2 events side by side max
-    const width = 95 / maxEventsInRow;
-    const adjustedIndex = index % maxEventsInRow; // Cycle through positions if more than maxEventsInRow
-    const leftPosition = width * adjustedIndex;
+    // Improved width calculation based on overlapping events
+    let width = 95;  // Default to 95% width if no overlap
+    let leftPosition = 3; // Default to 3% from left edge
+    
+    if (totalOverlapping > 1) {
+      // If events overlap, calculate appropriate width
+      width = Math.max(95 / totalOverlapping, 45); // Ensure minimum readable width (45%)
+      
+      // For mobile, we want less side-by-side items
+      if (isMobile && totalOverlapping > 2) {
+        width = 90; // Full width on mobile for better readability
+        leftPosition = 5;
+      } else {
+        // Position based on index, but ensure events don't go off-screen
+        const gap = 1; // 1% gap between events
+        leftPosition = (width + gap) * index;
+        
+        // Ensure event doesn't go off-screen
+        if (leftPosition + width > 98) {
+          leftPosition = 98 - width;
+        }
+      }
+    }
     
     return {
       top: `${topPosition}px`,
       height: `${height}px`,
       left: `${leftPosition}%`,
-      width: `${width - 2}%`, // 2% gap between events for better separation
+      width: `${width}%`,
     };
   };
   
@@ -65,7 +81,7 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
         boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
         minHeight: '25px',
         touchAction: 'manipulation', // Improve touch behavior
-        minWidth: '90px', // Ensure minimum width for readability
+        minWidth: isMobile ? '85%' : '90px', // Ensure minimum width for readability
       }}
       onClick={() => handleViewEvent(event)}
       role="button"

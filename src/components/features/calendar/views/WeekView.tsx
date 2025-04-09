@@ -157,11 +157,19 @@ const WeekView: React.FC<WeekViewProps> = ({
     
     const dayColumnIndex = daysInWeek.findIndex(d => isSameDay(d, day));
     
-    const maxSideEvents = Math.min(totalOverlapping, 2);
-    const eventWidth = (DAY_COLUMN_WIDTH / maxSideEvents) - 0.5;
+    let eventWidth;
+    let leftOffset;
     
-    const adjustedIndex = index % maxSideEvents;
-    const leftOffset = TIME_COLUMN_WIDTH + (dayColumnIndex * DAY_COLUMN_WIDTH) + (adjustedIndex * (eventWidth + 0.1));
+    if (isMobile) {
+      eventWidth = totalOverlapping > 1 ? 90 : 90;
+      leftOffset = TIME_COLUMN_WIDTH + (dayColumnIndex * DAY_COLUMN_WIDTH) + 1;
+    } else {
+      const maxSideEvents = Math.min(totalOverlapping, 3);
+      eventWidth = (DAY_COLUMN_WIDTH / maxSideEvents) - 0.5;
+      
+      const adjustedIndex = index % maxSideEvents;
+      leftOffset = TIME_COLUMN_WIDTH + (dayColumnIndex * DAY_COLUMN_WIDTH) + (adjustedIndex * (eventWidth));
+    }
     
     return {
       position: 'absolute',
@@ -169,7 +177,7 @@ const WeekView: React.FC<WeekViewProps> = ({
       height: `${heightValue}px`, 
       left: `${leftOffset}%`,
       width: `${eventWidth}%`,
-      minWidth: '80px',
+      minWidth: isMobile ? '80%' : '80px',
       zIndex: 20,
     };
   };
@@ -482,7 +490,7 @@ const WeekView: React.FC<WeekViewProps> = ({
           isMobile ? "max-h-[calc(100vh-360px)]" : "max-h-[600px]"
         )}>
           <div className="grid grid-cols-8 divide-x">
-            <div className="bg-muted/10 sticky left-0 z-10" style={{minWidth: "5rem"}}>
+            <div className="bg-muted/10 sticky left-0 z-10 border-r border-muted" style={{minWidth: "5rem"}}>
               {hours.map((hour, i) => (
                 <div key={`hour-${i}`} className="border-b h-[60px] px-2 py-1 text-right text-sm text-muted-foreground">
                   {hour}:00
@@ -507,7 +515,10 @@ const WeekView: React.FC<WeekViewProps> = ({
                           {group.map((event, eventIndex) => (
                             <div 
                               key={`multi-${event.id}-${dayIdx}`} 
-                              className="absolute text-xs p-2 rounded cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto" 
+                              className={cn(
+                                "absolute text-xs p-2 rounded cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto",
+                                isMobile ? "left-0 right-0 mx-1" : ""
+                              )}
                               style={{
                                 backgroundColor: event.color || '#4285F4',
                                 ...getMultiHourEventStyle(event, daysInWeek[dayIdx], group.length, eventIndex)

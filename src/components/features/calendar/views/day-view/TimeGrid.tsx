@@ -79,6 +79,12 @@ const TimeGrid: React.FC<TimeGridProps> = ({
         ))}
       </div>
       
+      {/* Vertical divider between time column and events column */}
+      <div 
+        className="absolute top-0 left-14 h-full border-l border-muted" 
+        style={{ height: `${numHours * hourHeight}px` }}
+      />
+      
       {/* Time markers column with vertical border - improved styling */}
       <div className="absolute top-0 left-0 h-full border-r border-muted bg-background/80 z-10">
         {hours.map((hour, index) => {
@@ -100,7 +106,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
         })}
       </div>
       
-      {/* Events container - wider layout with left margin */}
+      {/* Events container - proper layout with correct left margin */}
       <div className="absolute top-0 left-14 right-0 w-[calc(100%-3.5rem)] pl-2">
         {processedEvents && processedEvents.length > 0 ? (
           processedEvents.map((eventGroup, groupIndex) => {
