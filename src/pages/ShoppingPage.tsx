@@ -504,6 +504,28 @@ const ShoppingPageContent: React.FC = () => {
   ), [searchTerm, activeTab, handleEditItem, isReadOnlyMode]);
 
   useEffect(() => {
+    // Set up mobile-specific persistence handling
+    const cleanupMobilePersistence = isMobile ? setupMobilePersistence() : undefined;
+    
+    // Force an immediate sync for mobile devices
+    if (isMobile) {
+      const allItems = [...notPurchasedItems, ...purchasedItems];
+      try {
+        localStorage.setItem('shoppingItems', JSON.stringify(allItems));
+        console.log('[DEBUG] ShoppingPage - Initial forced mobile sync on mount');
+      } catch (err) {
+        console.error('[ERROR] ShoppingPage - Failed initial mobile sync:', err);
+      }
+    }
+    
+    return () => {
+      if (cleanupMobilePersistence) {
+        cleanupMobilePersistence();
+      }
+    };
+  }, [isMobile, notPurchasedItems, purchasedItems]);
+
+  useEffect(() => {
     const inviteParam = searchParams.get('invite');
     const modeParam = searchParams.get('mode');
     
@@ -558,401 +580,151 @@ const ShoppingPageContent: React.FC = () => {
     }
   }, [location.search, memoizedToast, activeTab, storeInvitationStatus]);
 
-  const handleTabChange = (value: string) => {
-    console.log(`[DEBUG] ShoppingPage - Tab changed to: ${value}`);
-    setActiveTab(value);
-    updateFilterMode(value as any);
-    navigate(`/shopping?tab=${value}`, { replace: true });
-  };
-
-  const handleEditItem = (id: string, name?: string, item?: any) => {
-    if (isReadOnlyMode) {
-      memoizedToast({
-        title: "Read-only Mode",
-        description: "You don't have permission to edit items in this shared list.",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-      return;
-    }
-    
-    console.log("[DEBUG] ShoppingPage - Editing item:", id, name, item);
-    setEditItem({ id, name, item });
+  if (itemsLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-12">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Loading your shopping list...</p>
+      </div>
+    );
   }
 
-  const handleCloseEditDialog = () => {
-    setEditItem(null);
-  }
-
-  const handleSaveItem = (item: any): boolean | void => {
-    if (isReadOnlyMode) {
-      memoizedToast({
-        title: "Read-only Mode",
-        description: "You don't have permission to add items to this shared list.",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-      return false;
-    }
-    
-    if (isProcessing) {
-      return false;
-    }
-    
-    setIsProcessing(true);
-    
-    try {
-      console.log('[DEBUG] ShoppingPage - Adding item with data:', JSON.stringify(item, null, 2));
-      
-      if (item.file && item.file instanceof File) {
-        uploadImage(item.file)
-          .then(url => {
-            proceedWithSave(item, url);
-          })
-          .catch(error => {
+  return (
+    <div className="flex flex-col h-full">
+      <PageHeader 
+        title="Shopping List"
+        searchTerm={rawSearchTerm}
+        onSearchChange={setRawSearchTerm}
+        onAddItem={() => {
+          if (isReadOnlyMode) {
             memoizedToast({
-              title: "Image Upload Failed",
-              description: "Failed to upload image, but we'll continue adding the item.",
+              title: "Read-only Mode",
+              description: "You don't have permission to add items to this shared list.",
               variant: "destructive",
               role: "alert",
               "aria-live": "assertive"
             });
-            proceedWithSave(item, null);
-          });
-          
-        return true;
-      } else {
-        proceedWithSave(item, item.imageUrl);
-        return true;
-      }
-    } catch (error) {
-      console.error("[ERROR] ShoppingPage - Error adding item:", error);
-      memoizedToast({
-        title: "Error",
-        description: "Failed to add item to list",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-      setIsProcessing(false);
-      return false;
-    }
-  }
-  
-  const proceedWithSave = (item: any, imageUrl: string | null) => {
-    const itemToAdd = {
-      name: item.name || 'Unnamed Item',
-      amount: item.amount || '',
-      price: item.price || '',
-      imageUrl: imageUrl,
-      notes: item.notes || '',
-      repeatOption: item.repeatOption || 'none',
-      category: item.category || '',
-      dateToPurchase: item.dateToPurchase || '',
-      completed: false
-    };
-    
-    console.log('[DEBUG] ShoppingPage - Properly structured item to add:', JSON.stringify(itemToAdd, null, 2));
-    
-    const result = addItem(itemToAdd);
-    console.log('[DEBUG] ShoppingPage - Add item result:', result);
-    
-    if (result) {
-      const targetTab = itemToAdd.repeatOption === 'weekly' 
-        ? 'weekly' 
-        : itemToAdd.repeatOption === 'monthly' 
-          ? 'monthly' 
-          : 'one-off';
-        
-      if (activeTab !== targetTab && activeTab !== 'all') {
-        navigate(`/shopping?tab=${targetTab}`, { replace: true });
-      }
-      
-      // Enhanced mobile persistence - extra forced sync with multiple attempts
-      if (isMobile) {
-        try {
-          // Special handling for mobile - explicit persist with multiple attempts
-          const allItems = [...notPurchasedItems, ...purchasedItems];
-          if (result && !allItems.find(i => i.id === result.id)) {
-            allItems.push(result);
+            return;
           }
-          
-          // First attempt - immediate
-          localStorage.setItem('shoppingItems', JSON.stringify(allItems));
-          
-          // Secondary attempts with timeouts for better reliability
-          setTimeout(() => {
-            try {
-              localStorage.setItem('shoppingItems', JSON.stringify(allItems));
-              console.log('[DEBUG] ShoppingPage - Secondary mobile sync attempt');
-            } catch (err) {
-              console.error('[ERROR] ShoppingPage - Failed secondary mobile sync:', err);
-            }
-          }, 100);
-          
-          // Final attempt with longer timeout
-          setTimeout(() => {
-            try {
-              localStorage.setItem('shoppingItems', JSON.stringify(allItems));
-              console.log('[DEBUG] ShoppingPage - Final mobile sync attempt');
-            } catch (err) {
-              console.error('[ERROR] ShoppingPage - Failed final mobile sync:', err);
-            }
-          }, 500);
-          
-          console.log('[DEBUG] ShoppingPage - Forced multiple mobile syncs after add');
-        } catch (err) {
-          console.error('[ERROR] ShoppingPage - Failed to force mobile sync:', err);
-          // Last resort attempt
-          try {
-            setTimeout(() => {
-              const allItems = [...notPurchasedItems, ...purchasedItems];
-              localStorage.setItem('shoppingItems', JSON.stringify(allItems));
-            }, 1000);
-          } catch (finalErr) {
-            console.error('[ERROR] ShoppingPage - All sync attempts failed:', finalErr);
-          }
+          console.log("[DEBUG] ShoppingPage - Add button clicked, setting showAddDialog to true");
+          setShowAddDialog(true);
+        }}
+        addItemLabel="Add Item"
+        showAddButton={!isReadOnlyMode}
+        rightContent={
+          <Button
+            onClick={() => {
+              console.log("[DEBUG] ShoppingPage - Share button clicked, setting showInviteDialog to true");
+              setShowInviteDialog(true);
+            }}
+            variant="ghost"
+            size="icon"
+            className="mr-2"
+            aria-label="Share shopping list"
+          >
+            <Users className="h-5 w-5" />
+          </Button>
         }
-      }
+      />
       
-      memoizedToast({
-        title: "Item Added",
-        description: `${item.name} has been added to your shopping list.`,
-        role: "status",
-        "aria-live": "polite"
-      });
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <div className="px-4 md:px-6 mb-2">
+          <TabsList className="w-full h-auto md:h-10 grid grid-cols-4 gap-2 md:flex">
+            <TabsTrigger value="one-off" className="text-sm px-3 py-1.5 h-10 flex-1 md:flex-none">
+              One-off
+            </TabsTrigger>
+            <TabsTrigger value="weekly" className="text-sm px-3 py-1.5 h-10 flex-1 md:flex-none">
+              Weekly
+            </TabsTrigger>
+            <TabsTrigger value="monthly" className="text-sm px-3 py-1.5 h-10 flex-1 md:flex-none">
+              Monthly
+            </TabsTrigger>
+            <TabsTrigger value="all" className="text-sm px-3 py-1.5 h-10 flex-1 md:flex-none">
+              All Items
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        
+        <TabsContent value="one-off" className="mt-0 p-0">
+          {MemoizedShoppingList}
+        </TabsContent>
+        
+        <TabsContent value="weekly" className="mt-0 p-0">
+          {MemoizedShoppingList}
+        </TabsContent>
+        
+        <TabsContent value="monthly" className="mt-0 p-0">
+          {MemoizedShoppingList}
+        </TabsContent>
+        
+        <TabsContent value="all" className="mt-0 p-0">
+          {MemoizedShoppingList}
+        </TabsContent>
+      </Tabs>
       
-      setShowAddDialog(false);
-    } else {
-      memoizedToast({
-        title: "Failed to Add Item",
-        description: "The item could not be added to your shopping list.",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-    }
-    
-    setIsProcessing(false);
-  }
-
-  const handleUpdateItem = (updatedItem: any): boolean | void => {
-    if (isReadOnlyMode) {
-      memoizedToast({
-        title: "Read-only Mode",
-        description: "You don't have permission to update items in this shared list.",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-      return false;
-    }
-    
-    if (!editItem || !editItem.id || isProcessing) return false;
-    
-    setIsProcessing(true);
-    
-    try {
-      console.log("[DEBUG] ShoppingPage - Updating item:", JSON.stringify(updatedItem, null, 2));
+      <DirectAddItem
+        onSaveItem={handleSaveItem}
+        readOnly={isReadOnlyMode}
+      />
       
-      if (updatedItem.file && updatedItem.file instanceof File) {
-        uploadImage(updatedItem.file)
-          .then(url => {
-            proceedWithUpdate(updatedItem, url);
-          })
-          .catch(error => {
-            memoizedToast({
-              title: "Image Upload Failed",
-              description: "Failed to upload image, but we'll continue updating the item.",
-              variant: "destructive",
-              role: "alert",
-              "aria-live": "assertive"
-            });
-            proceedWithUpdate(updatedItem, updatedItem.imageUrl);
-          });
-          
-        return true;
-      } else {
-        proceedWithUpdate(updatedItem, updatedItem.imageUrl);
-        return true;
-      }
-    } catch (error) {
-      console.error("[ERROR] ShoppingPage - Error updating item:", error);
-      memoizedToast({
-        title: "Error",
-        description: "Failed to update item",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-      setIsProcessing(false);
-      return false;
-    }
-  }
-  
-  const proceedWithUpdate = (updatedItem: any, imageUrl: string | null) => {
-    const itemData = {
-      name: updatedItem.name,
-      amount: updatedItem.amount,
-      imageUrl: imageUrl,
-      notes: updatedItem.notes,
-      repeatOption: updatedItem.repeatOption || 'none',
-      completed: editItem?.item?.completed
-    };
-    
-    const result = updateItem(editItem!.id, itemData);
-    
-    if (result) {
-      memoizedToast({
-        title: "Item Updated",
-        description: `${updatedItem.name} has been updated.`,
-        role: "status",
-        "aria-live": "polite"
-      });
-      setEditItem(null);
-    } else {
-      memoizedToast({
-        title: "Update Failed",
-        description: "Failed to update the item.",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-    }
-    
-    setIsProcessing(false);
-  }
-
-  const handleDeleteItem = (id: string) => {
-    if (isReadOnlyMode) {
-      memoizedToast({
-        title: "Read-only Mode",
-        description: "You don't have permission to delete items in this shared list.",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-      return;
-    }
-    
-    console.log("[DEBUG] ShoppingPage - Preparing to delete item ID:", id);
-    setItemToDeleteId(id);
-    setShowConfirmDialog(true);
-  };
-
-  const confirmDeleteItem = () => {
-    if (isProcessing || !itemToDeleteId) {
-      console.log("[DEBUG] ShoppingPage - Prevented duplicate delete execution or missing itemToDeleteId");
-      return;
-    }
-    
-    console.log("[DEBUG] ShoppingPage - Confirming deletion of item ID:", itemToDeleteId);
-    setIsProcessing(true);
-    
-    try {
-      const result = removeItem(itemToDeleteId);
+      <AddItemDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        onSave={handleSaveItem}
+      />
       
-      if (result) {
-        memoizedToast({
-          title: "Item Deleted",
-          description: "The item has been removed from your shopping list.",
-          role: "status",
-          "aria-live": "polite"
-        });
-      } else {
-        memoizedToast({
-          title: "Error",
-          description: "Failed to delete the item.",
-          variant: "destructive",
-          role: "alert",
-          "aria-live": "assertive"
-        });
-      }
-    } catch (error) {
-      console.error("[ERROR] ShoppingPage - Error deleting item:", error);
-      memoizedToast({
-        title: "Error",
-        description: "Failed to delete the item.",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-    } finally {
-      setShowConfirmDialog(false);
-      setItemToDeleteId(null);
-      setIsProcessing(false);
-    }
-  };
+      <EditItemDialog
+        open={!!editItem}
+        onOpenChange={(open) => {
+          if (!open) handleCloseEditDialog();
+        }}
+        item={editItem?.item}
+        onSave={handleUpdateItem}
+      />
+      
+      <InviteDialog
+        open={showInviteDialog}
+        onOpenChange={setShowInviteDialog}
+      />
+      
+      <AlertDialog
+        open={showConfirmDialog}
+        onOpenChange={(open) => {
+          if (!open) cancelDeleteItem();
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Item</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this item? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteItem} disabled={isProcessing}>
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
 
-  const cancelDeleteItem = () => {
-    console.log("[DEBUG] ShoppingPage - Delete operation canceled");
-    setShowConfirmDialog(false);
-    setItemToDeleteId(null);
-  };
+const ShoppingPage: React.FC = () => {
+  return (
+    <ErrorBoundary>
+      <ShoppingItemsProvider>
+        <ShoppingPageContent />
+      </ShoppingItemsProvider>
+    </ErrorBoundary>
+  );
+};
 
-  const MemoizedShoppingList = useMemo(() => (
-    <ShoppingList 
-      searchTerm={searchTerm}
-      filterMode={activeTab as any}
-      onEditItem={handleEditItem}
-      readOnly={isReadOnlyMode}
-    />
-  ), [searchTerm, activeTab, handleEditItem, isReadOnlyMode]);
-
-  useEffect(() => {
-    // Set up mobile-specific persistence handling
-    const cleanupMobilePersistence = isMobile ? setupMobilePersistence() : undefined;
-    
-    // Force an immediate sync for mobile devices
-    if (isMobile) {
-      const allItems = [...notPurchasedItems, ...purchasedItems];
-      try {
-        localStorage.setItem('shoppingItems', JSON.stringify(allItems));
-        console.log('[DEBUG] ShoppingPage - Initial forced mobile sync on mount');
-      } catch (err) {
-        console.error('[ERROR] ShoppingPage - Failed initial mobile sync:', err);
-      }
-    }
-    
-    return () => {
-      if (cleanupMobilePersistence) {
-        cleanupMobilePersistence();
-      }
-    };
-  }, [isMobile, notPurchasedItems, purchasedItems]);
-
-  useEffect(() => {
-    const inviteParam = searchParams.get('invite');
-    const modeParam = searchParams.get('mode');
-    
-    if (inviteParam) {
-      try {
-        const storedLinks = localStorage.getItem(STORAGE_KEY_INVITE_LINKS);
-        if (storedLinks) {
-          const links = JSON.parse(storedLinks);
-          const matchingLink = links.find((link: any) => 
-            link.id === inviteParam && link.isActive
-          );
-          
-          if (matchingLink) {
-            if (matchingLink.expiresAt && new Date(matchingLink.expiresAt) < new Date()) {
-              memoizedToast({
-                title: "Invitation Expired",
-                description: "This shopping list invitation has expired.",
-                variant: "destructive"
-              });
-              return;
-            }
-            
-            const isReadOnly = modeParam === 'readonly';
-            console.log(`[DEBUG] ShoppingPage - Setting read-only mode from invitation: ${isReadOnly}`);
-            setIsReadOnlyMode(isReadOnly);
-            storeInvitationStatus(isReadOnly);
-            
-            memoizedToast({
-              title: isReadOnly ? "View-only Access" : "Invitation Accepted",
-              description: isReadOnly 
-                ? "You can view but not modify this shopping list" 
-                : "You've joined a shared shopping
+export default ShoppingPage;
