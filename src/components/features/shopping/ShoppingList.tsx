@@ -229,17 +229,9 @@ const ShoppingList = ({
     return (
       <div 
         className={cn(
-          "grid",
-          isMobile 
-            ? "grid-template-columns: repeat(4, 1fr); gap-8px;"
-            : "grid-template-columns: repeat(6, 1fr); gap-12px;"
+          "grid grid-cols-4 md:grid-cols-6 gap-2 md:gap-3 p-4",
+          "shopping-item-grid"
         )}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? 'repeat(4, 1fr)' : 'repeat(6, 1fr)',
-          gap: isMobile ? '8px' : '12px',
-          padding: '16px'
-        }}
         role="list"
         aria-label={items[0]?.completed ? "Purchased items" : "Shopping items"}
       >

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ShoppingList from '@/components/features/shopping/ShoppingList';
@@ -29,39 +28,30 @@ import { compressImage } from '@/utils/imageProcessing';
 import ErrorBoundary from '@/components/ui/error-boundary';
 import { useDebounce } from '@/hooks/useDebounce';
 
-// Function to upload images to the server
 const uploadImage = async (imageFile: File) => {
   try {
-    // First compress the image
     const compressedImage = await compressImage(imageFile);
-    
-    // Create form data for upload
     const formData = new FormData();
     formData.append('image', compressedImage);
-    
-    // Upload to the server
     const response = await fetch('/api/upload', {
       method: 'POST',
       body: formData,
     });
-    
     if (!response.ok) {
       throw new Error(`Upload failed with status: ${response.status}`);
     }
-    
-    // Parse the response to get the image URL
     const data = await response.json();
     return data.imageUrl;
   } catch (error) {
     console.error('Error uploading image:', error);
-    throw error; // Rethrow to handle in the calling function
+    throw error;
   }
 };
 
 const ShoppingPageContent: React.FC = () => {
   const [rawSearchTerm, setRawSearchTerm] = useState<string>('');
-  const searchTerm = useDebounce(rawSearchTerm, 300); // Debounce search input by 300ms
-  
+  const searchTerm = useDebounce(rawSearchTerm, 300);
+
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [editItem, setEditItem] = useState<{ id: string, name?: string, item?: any } | null>(null);
@@ -69,15 +59,15 @@ const ShoppingPageContent: React.FC = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [itemToDeleteId, setItemToDeleteId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   const navigate = useNavigate();
   const location = useLocation();
   const { enabled: debugEnabled } = useDebugMode();
   const { toast } = useToast();
   const { isMobile } = useIsMobile();
-  
+
   const { addItem, updateItem, removeItem, updateFilterMode } = useShoppingItemsContext();
-  
+
   const searchParams = new URLSearchParams(location.search);
   const tabFromUrl = searchParams.get('tab');
   const validTabs = ['one-off', 'weekly', 'monthly', 'all'];
@@ -85,7 +75,6 @@ const ShoppingPageContent: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState(defaultTab);
 
-  // Memoized toast function to prevent unnecessary re-renders
   const memoizedToast = useCallback(toast, [toast]);
 
   const storeInvitationStatus = useCallback((isReadOnly: boolean) => {
@@ -141,7 +130,6 @@ const ShoppingPageContent: React.FC = () => {
               description: isReadOnly 
                 ? "You can view but not modify this shopping list" 
                 : "You've joined a shared shopping list",
-              // Add ARIA live region for screen readers
               role: "status",
               "aria-live": "polite"
             });
@@ -191,7 +179,6 @@ const ShoppingPageContent: React.FC = () => {
     setEditItem(null);
   }
 
-  // Fixed handleSaveItem to return void or boolean directly instead of Promise<boolean>
   const handleSaveItem = (item: any) => {
     if (isReadOnlyMode) {
       memoizedToast({
@@ -284,7 +271,7 @@ const ShoppingPageContent: React.FC = () => {
       }
     })();
     
-    return true; // Return synchronously to satisfy the type requirements
+    return true;
   }
 
   const handleUpdateItem = (updatedItem: any) => {
@@ -357,7 +344,7 @@ const ShoppingPageContent: React.FC = () => {
       }
     })();
     
-    return true; // Return synchronously to satisfy the type requirements
+    return true;
   }
 
   const handleDeleteItem = (id: string) => {
@@ -378,7 +365,6 @@ const ShoppingPageContent: React.FC = () => {
   };
 
   const confirmDeleteItem = () => {
-    // Prevent double execution
     if (isProcessing || !itemToDeleteId) {
       console.log("[DEBUG] ShoppingPage - Prevented duplicate delete execution or missing itemToDeleteId");
       return;
@@ -413,24 +399,21 @@ const ShoppingPageContent: React.FC = () => {
         description: "Failed to delete the item.",
         variant: "destructive",
         role: "alert",
-        "aria-live": "assertive" 
+        "aria-live": "assertive"
       });
     } finally {
-      // Clean up state variables
       setShowConfirmDialog(false);
       setItemToDeleteId(null);
       setIsProcessing(false);
     }
   };
 
-  // Cancel delete operation
   const cancelDeleteItem = () => {
     console.log("[DEBUG] ShoppingPage - Delete operation canceled");
     setShowConfirmDialog(false);
     setItemToDeleteId(null);
   };
 
-  // Memoize ShoppingList to prevent unnecessary re-renders
   const MemoizedShoppingList = useMemo(() => (
     <ShoppingList 
       searchTerm={searchTerm}
@@ -495,31 +478,35 @@ const ShoppingPageContent: React.FC = () => {
       )}
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="w-full grid grid-cols-4 mb-6" role="tablist" aria-label="Shopping list categories">
+        <TabsList 
+          className="w-full grid grid-cols-4 mb-6 gap-1" 
+          role="tablist" 
+          aria-label="Shopping list categories"
+        >
           <TabsTrigger 
             value="one-off" 
-            className="text-sm whitespace-nowrap overflow-hidden overflow-ellipsis"
+            className="text-sm whitespace-nowrap overflow-hidden overflow-ellipsis px-1 h-12 md:h-10"
             aria-controls={`tabpanel-one-off`}
           >
             {isMobile ? "One-off" : "One-off Items"}
           </TabsTrigger>
           <TabsTrigger 
             value="weekly" 
-            className="text-sm"
+            className="text-sm px-1 h-12 md:h-10"
             aria-controls={`tabpanel-weekly`}
           >
             Weekly
           </TabsTrigger>
           <TabsTrigger 
             value="monthly" 
-            className="text-sm"
+            className="text-sm px-1 h-12 md:h-10"
             aria-controls={`tabpanel-monthly`}
           >
             Monthly
           </TabsTrigger>
           <TabsTrigger 
             value="all" 
-            className="text-sm"
+            className="text-sm px-1 h-12 md:h-10"
             aria-controls={`tabpanel-all`}
           >
             {isMobile ? "All" : "All Items"}
@@ -620,7 +607,6 @@ const ShoppingPageContent: React.FC = () => {
   );
 };
 
-// Wrap ShoppingPageContent with ErrorBoundary
 const ShoppingPage: React.FC = () => {
   return (
     <ErrorBoundary>

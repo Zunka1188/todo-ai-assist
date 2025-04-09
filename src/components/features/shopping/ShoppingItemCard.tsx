@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -48,17 +47,17 @@ const ShoppingItemCard = ({
       } 
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
-  // Item size based on device - follows the Bring! style specification
+  // Fixed item size based on device - exactly following Bring! style specification
   const cardSize = isMobile ? '80px' : '100px';
 
   const handleCardClick = (e: React.MouseEvent) => {
-    if (onImagePreview && e.target === e.currentTarget) {
+    // Only trigger image preview if clicking on the card background
+    if (onImagePreview && imageUrl && e.target === e.currentTarget) {
       onImagePreview();
+    } else if (e.target === e.currentTarget) {
+      // Otherwise toggle completion status
+      onClick();
     }
-  };
-
-  const handleRepeatBadgeClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
   };
 
   return (
@@ -78,14 +77,14 @@ const ShoppingItemCard = ({
       aria-pressed={completed}
       tabIndex={0}
     >
-      {/* Edit Button - positioned at top-left */}
+      {/* Edit Button - top-left */}
       <div className="absolute top-2 left-2 z-10">
         <Button
           size="icon"
           variant="secondary"
           className={cn(
             "rounded-full bg-white/70 hover:bg-white shadow-md",
-            "h-6 w-6" // Smaller consistent button size
+            "h-6 w-6" // Consistent button size
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -98,14 +97,14 @@ const ShoppingItemCard = ({
         </Button>
       </div>
       
-      {/* Delete Button - positioned at top-right */}
+      {/* Delete Button - top-right */}
       <div className="absolute top-2 right-2 z-10">
         <Button
           size="icon"
           variant="secondary"
           className={cn(
             "rounded-full bg-white/70 hover:bg-white shadow-md",
-            "h-6 w-6" // Smaller consistent button size
+            "h-6 w-6" // Consistent button size
           )}
           onClick={(e) => {
             e.stopPropagation();
@@ -177,7 +176,6 @@ const ShoppingItemCard = ({
           className={cn(
             "absolute bottom-2 right-2 bg-white/80 text-black cursor-default text-[7px] px-1 py-0"
           )}
-          onClick={handleRepeatBadgeClick}
         >
           {repeatOption}
         </Badge>

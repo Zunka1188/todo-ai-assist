@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useCallback, useMemo, useEffect } from 'react';
 import { useShoppingItems, ShoppingItem, SortOption } from './useShoppingItems';
 import { loadItems, saveItems } from '@/services/shoppingService';
 
@@ -69,7 +69,7 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
   }, []);
   
   // Load items from localStorage on initial render
-  React.useEffect(() => {
+  useEffect(() => {
     try {
       setIsLoading(true);
       const storedItems = loadItems();
@@ -86,7 +86,7 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
   }, [shoppingItemsData.setItems]);
   
   // Save items to localStorage whenever they change
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isLoading && shoppingItemsData.items.length > 0) {
       saveItems(shoppingItemsData.items);
     }
