@@ -17,7 +17,7 @@ import FileUploader from '../scanning/FileUploader';
 import FullScreenPreview from '../documents/FullScreenPreview';
 import InviteDialog from './dialogs/InviteDialog';
 import RSVPDialog from './dialogs/RSVPDialog';
-import { Event } from './types/event';
+import { Event, AttachmentType } from './types/event';
 import EventViewDialogExtension from './dialogs/EventViewDialogExtension';
 import ErrorBoundary from './ErrorBoundary';
 

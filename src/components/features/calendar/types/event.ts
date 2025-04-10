@@ -17,4 +17,13 @@ export interface Event {
     daysOfWeek?: number[];
   };
   reminder?: string;
+  attachments?: AttachmentType[];
+}
+
+export interface AttachmentType {
+  id: string;
+  name: string;
+  type: 'image' | 'document';
+  url: string;
+  thumbnailUrl?: string;
 }
