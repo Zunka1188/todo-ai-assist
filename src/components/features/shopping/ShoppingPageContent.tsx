@@ -20,13 +20,13 @@ const ShoppingPageContent: React.FC = () => {
   // Remove spacing property as it doesn't exist in the OptionsType
   const { containerClass, contentClass } = layout;
   
-  const handleSaveItem = (item: any) => {
+  const handleSaveItem = (item: any): boolean => {
     const result = addItem(item);
     if (result) {
       setIsAddDialogOpen(false);
-      return true; // Return boolean instead of the result object
+      return true;
     }
-    return false; // Return false if result is falsy
+    return false;
   };
   
   return (
