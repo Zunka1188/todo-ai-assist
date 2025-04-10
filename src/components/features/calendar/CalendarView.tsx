@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
@@ -101,6 +100,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     try {
       setIsFileUploaderOpen(false);
       
+      const attachments: AttachmentType[] = data.file || data.content ? [
+        {
+          id: `attachment-${Date.now()}`,
+          name: data.title || 'Uploaded file',
+          type: 'image',
+          url: data.file || data.content || '',
+        }
+      ] : [];
+      
       const newEvent = {
         id: `event-${Date.now()}`,
         title: data.title || 'Event from file',
@@ -111,7 +119,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         color: data.color || '#4285F4',
         allDay: false,
         reminder: '30',
-        image: data.file || data.content || null
+        attachments: attachments.length > 0 ? attachments : undefined
       };
       
       handleSaveEvent(newEvent);
