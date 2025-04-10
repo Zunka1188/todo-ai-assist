@@ -48,8 +48,9 @@ const ShoppingItemCard = ({
       } 
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
-  // Fixed card dimensions - ensuring cards are the right size for mobile
-  const cardSize = isMobile ? '105px' : '130px';
+  // Increased card dimensions for mobile based on the user's screenshots
+  // The first image shows smaller cards, the second shows desired larger cards
+  const cardSize = isMobile ? '140px' : '130px';
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only trigger image preview if clicking on the card background
@@ -103,7 +104,7 @@ const ShoppingItemCard = ({
             className={cn(
               "rounded-full shadow-md",
               "bg-white/80 hover:bg-white text-gray-800",
-              "w-10 h-10", // Increased from w-8 h-8 to match desired size in image 1
+              "w-10 h-10",
               "transition-all duration-200 hover:scale-110",
               "dark:border dark:border-gray-600"
             )}
@@ -113,7 +114,7 @@ const ShoppingItemCard = ({
             }}
             aria-label={`Edit ${name}`}
           >
-            <Pencil className="h-5 w-5" /> {/* Increased from h-4 w-4 to match desired size */}
+            <Pencil className="h-5 w-5" />
           </Button>
         )}
       </div>
@@ -127,7 +128,7 @@ const ShoppingItemCard = ({
         }}
       >
         {completed && (
-          <div className="rounded-full bg-green-500/80 flex items-center justify-center h-14 w-14"> {/* Increased from h-12 w-12 */}
+          <div className="rounded-full bg-green-500/80 flex items-center justify-center h-14 w-14">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               width="28" 

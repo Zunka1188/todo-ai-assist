@@ -76,7 +76,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
     }, isMobile ? 50 : 0); // Small delay for mobile
   };
 
-  const handleCheckboxChange = (e: React.MouseEvent) => {
+  const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent double triggers
     
     if (isProcessing || readOnly) return;
@@ -85,7 +85,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
     setTimeout(() => {
       if (onClick) {
         onClick(e);
-        console.log("Checkbox change handler executed for:", name, "- Completed:", !completed);
+        console.log("Checkbox click handler executed for:", name, "- Completed:", !completed);
       }
       setIsProcessing(false);
     }, isMobile ? 50 : 0);
@@ -107,7 +107,11 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           <Checkbox
             id={`item-${name}`}
             checked={completed}
-            onCheckedChange={handleCheckboxChange}
+            onCheckedChange={() => {
+              if (!isProcessing && !readOnly) {
+                handleCheckboxClick({} as React.MouseEvent);
+              }
+            }}
             disabled={isProcessing || readOnly}
             aria-label={name}
           />
@@ -118,7 +122,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
               // Help ensure click events propagate correctly on mobile
               if (isMobile) {
                 e.preventDefault();
-                handleCheckboxChange(e as unknown as React.MouseEvent);
+                handleCheckboxClick(e as unknown as React.MouseEvent);
               }
             }}
           >

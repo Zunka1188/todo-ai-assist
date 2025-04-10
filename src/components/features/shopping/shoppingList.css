@@ -16,10 +16,10 @@
   justify-content: center;
 }
 
-/* Mobile-specific adjustments */
+/* Mobile-specific adjustments - larger cards with 2 columns */
 @media (max-width: 640px) {
   .shopping-item-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     padding: 0;
   }

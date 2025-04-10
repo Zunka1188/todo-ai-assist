@@ -80,14 +80,14 @@
   
   @media (min-width: 480px) {
     .shopping-item-grid {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 6px;
     }
   }
   
   @media (min-width: 640px) {
     .shopping-item-grid {
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
     }
   }
@@ -113,16 +113,17 @@
     }
   }
   
+  /* Mobile grid layout specifically for 2 bigger cards per row */
   @media (max-width: 480px) {
     .shopping-item-grid {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px; /* Even smaller gap for mobile 3-column layout */
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px; /* Slightly larger gap for bigger cards */
     }
   }
   
   .shopping-item-card {
     width: 100%;
-    height: 120px; /* Smaller card height for mobile */
+    height: 140px; /* Larger card height for mobile */
     border-radius: 8px;
     overflow: hidden;
     position: relative;
