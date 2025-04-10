@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { AlertCircle, Loader2, CheckSquare, Paperclip } from 'lucide-react';
+import { AlertCircle, Loader2, Check, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import MonthView from './views/MonthView';
