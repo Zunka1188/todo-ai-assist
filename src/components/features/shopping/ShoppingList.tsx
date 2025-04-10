@@ -53,9 +53,9 @@ const ShoppingList = ({
     updateFilterMode(filterMode);
   }, [searchTerm, filterMode, updateSearchTerm, updateFilterMode]);
   
-  const handleImagePreview = (item: any) => {
+  const handleImagePreview = useCallback((item: any) => {
     setSelectedItem(item);
-  };
+  }, []);
   
   const handleCloseImageDialog = () => {
     setSelectedItem(null);
