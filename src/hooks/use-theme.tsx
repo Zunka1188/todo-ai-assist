@@ -32,7 +32,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   });
   
   // Track the system theme separately
-  const [systemTheme, setSystemTheme] = useState<Theme | null>(null);
+  const [systemTheme, setSystemTheme] = useState<Theme | null>(getSystemTheme());
   
   // The actual theme to apply
   const [theme, setTheme] = useState<Theme>(() => {
@@ -50,11 +50,6 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     }
     return 'dark'; // Default to dark when window is not available
   });
-
-  // Initialize system theme after mount
-  useEffect(() => {
-    setSystemTheme(getSystemTheme());
-  }, []);
 
   // Apply theme class to document
   useEffect(() => {
