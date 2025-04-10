@@ -39,6 +39,7 @@ const ShoppingList = ({
     selectedItem,
     itemToEdit,
     isEditDialogOpen,
+    isImagePreviewOpen,
     handleImagePreview,
     handleCloseImageDialog,
     handleOpenEditDialog,

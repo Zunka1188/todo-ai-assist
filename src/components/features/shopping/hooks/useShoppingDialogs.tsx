@@ -6,14 +6,17 @@ export const useShoppingDialogs = (filterMode: string) => {
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [itemToEdit, setItemToEdit] = useState<any | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleImagePreview = useCallback((item: any) => {
     setSelectedItem(item);
+    setIsImagePreviewOpen(true);
   }, []);
   
   const handleCloseImageDialog = useCallback(() => {
     setSelectedItem(null);
+    setIsImagePreviewOpen(false);
   }, []);
 
   const handleOpenEditDialog = useCallback((itemId: string, item: any) => {
@@ -37,6 +40,8 @@ export const useShoppingDialogs = (filterMode: string) => {
     setItemToEdit,
     isEditDialogOpen,
     setIsEditDialogOpen,
+    isImagePreviewOpen,
+    setIsImagePreviewOpen,
     handleImagePreview,
     handleCloseImageDialog,
     handleOpenEditDialog,
