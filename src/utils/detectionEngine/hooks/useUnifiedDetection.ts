@@ -12,7 +12,7 @@ export const useUnifiedDetection = () => {
   const [status, setStatus] = useState<DetectionStatus>('idle');
   const [result, setResult] = useState<DetectionResult | null>(null);
   const [error, setError] = useState<Error | null>(null);
-  const [detectionType, setDetectionType] = useState<'product' | null>(null);
+  const [detectionType, setDetectionType] = useState<'product' | 'barcode' | null>(null);
   const scanIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   /**
@@ -48,7 +48,8 @@ export const useUnifiedDetection = () => {
       
       setResult(generalResult);
       setStatus(generalResult ? 'success' : 'error');
-      setDetectionType(generalResult ? 'product' : null);
+      setDetectionType(generalResult?.type === 'product' ? 'product' : 
+                      generalResult?.type === 'barcode' ? 'barcode' : null);
       
       return generalResult;
     } catch (err: any) {

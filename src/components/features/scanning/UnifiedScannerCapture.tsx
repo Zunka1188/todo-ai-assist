@@ -5,7 +5,7 @@ import { useUnifiedDetection } from '@/utils/detectionEngine/hooks/useUnifiedDet
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import './camera-animations.css';
-import { DetectionResult } from '@/utils/detectionEngine/types';
+import { DetectionResult, ProductResult, BarcodeResult } from '@/utils/detectionEngine/types';
 
 interface UnifiedScannerCaptureProps {
   onCapture: (result: any) => void;
@@ -38,7 +38,8 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
 
   const { 
     detectImage,
-    isDetecting
+    isDetecting,
+    result
   } = useUnifiedDetection();
 
   const initializeCamera = async (videoElement: HTMLVideoElement): Promise<void> => {
@@ -136,7 +137,15 @@ const UnifiedScannerCapture: React.FC<UnifiedScannerCaptureProps> = ({
       setScanning(false);
       
       if (result && Object.keys(result).length > 0) {
-        const detectionName = "Detected item";
+        let detectionName = "Detected item";
+        
+        // Type-safe property access based on detection type
+        if (result.type === 'product') {
+          detectionName = (result as ProductResult).productInfo?.name || "Product";
+        } else if (result.type === 'barcode') {
+          detectionName = `Barcode ${(result as BarcodeResult).value || ""}`;
+        }
+        
         toast({
           title: "Detection Successful",
           description: `${detectionName} was identified.`,
