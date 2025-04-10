@@ -21,7 +21,7 @@ const ShoppingPageContent: React.FC = () => {
   const { containerClass, contentClass } = layout;
   
   const handleSaveItem = (item: any): boolean => {
-    const result = addItem(item);
+    const result = addItem(item);  // Changed from handleAddItem to addItem
     if (result) {
       setIsAddDialogOpen(false);
       return true;
