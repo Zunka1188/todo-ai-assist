@@ -11,7 +11,7 @@ interface FullScreenPreviewProps {
   item: DocumentItem | DocumentFile | null;
   onClose: () => void;
   onDownload?: (fileUrl?: string, fileName?: string) => void;
-  readOnly?: boolean; // Added readOnly prop
+  readOnly?: boolean; // This prop is now properly defined
 }
 
 const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose, onDownload, readOnly = false }) => {

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { File, FileText, Archive, Image, File as FileIcon, FileSpreadsheet, FileCode, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,6 +12,7 @@ interface FilePreviewProps {
   showIcon?: boolean;
   fileType?: string;
   fullScreen?: boolean;
+  fileUrl?: string; // Added the fileUrl prop
 }
 
 export const getFileTypeFromName = (fileName: string): string => {
@@ -74,14 +76,18 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   className,
   showIcon = true,
   fileType: explicitFileType,
-  fullScreen = false
+  fullScreen = false,
+  fileUrl // Added fileUrl prop
 }) => {
   const { toast } = useToast();
   const fileType = explicitFileType || 
     (fileName ? getFileTypeFromName(fileName) : 
     file ? getFileTypeFromContent(file) : 'unknown');
   
-  if (!file) {
+  // Use fileUrl if provided, otherwise fall back to file
+  const fileContent = fileUrl || file;
+  
+  if (!fileContent) {
     return (
       <div className={cn("flex items-center justify-center w-full h-32 bg-muted/30 rounded-md border", className)}>
         <FileIcon className="h-10 w-10 text-muted-foreground" />
@@ -93,7 +99,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   const handleDownload = () => {
     try {
       const link = document.createElement('a');
-      link.href = file;
+      link.href = fileContent;
       link.download = fileName || `download.${fileType}`;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
