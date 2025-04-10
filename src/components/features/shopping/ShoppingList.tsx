@@ -1,3 +1,4 @@
+
 import React, { useState, memo, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -224,10 +225,6 @@ const ShoppingList = ({
     const itemToToggle = allItems.find(item => item.id === itemId);
     
     if (itemToToggle) {
-      const updatedItems = allItems.map(item => 
-        item.id === itemId ? { ...item, completed: !item.completed } : item
-      );
-      
       const result = toggleItem(itemId);
       
       if (!result) {
