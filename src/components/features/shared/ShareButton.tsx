@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { Share2, Copy, Instagram, MessageSquare, Link as LinkIcon, ExternalLink, Download } from 'lucide-react';
@@ -59,7 +58,6 @@ const ShareButton: React.FC<ShareButtonProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const { createShareableLink, getLinksForItem } = useShareableLinks();
   
-  // Generate a shareable URL using our system if itemId is provided
   const generateLink = () => {
     if (itemId) {
       return createShareableLink(itemId, itemType, expiresInDays);
