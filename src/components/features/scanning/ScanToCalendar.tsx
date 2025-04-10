@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Camera, ArrowLeft, Calendar as CalendarIcon, Bell, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -78,14 +77,12 @@ const ScanToCalendar: React.FC<ScanToCalendarProps> = ({ onClose }) => {
   const handleScan = () => {
     setScanning(true);
     
-    // Simulate scanning process
     setTimeout(() => {
       setScanning(false);
       setScanned(true);
       
-      // Fill form with mock data (simulating extracted data from a scan)
       form.setValue("title", "Team Offsite Meeting");
-      form.setValue("date", new Date(2025, 4, 15)); // May 15, 2025
+      form.setValue("date", new Date(2025, 4, 15));
       form.setValue("time", "10:00 AM");
       form.setValue("location", "Conference Room A, Building 2");
       form.setValue("notes", "Quarterly team meeting. Bring your presentation materials.");
@@ -127,7 +124,6 @@ const ScanToCalendar: React.FC<ScanToCalendarProps> = ({ onClose }) => {
     
     console.log("Event data:", data);
     
-    // Redirect to calendar page after adding event
     setTimeout(() => {
       navigate('/calendar');
     }, 1000);
