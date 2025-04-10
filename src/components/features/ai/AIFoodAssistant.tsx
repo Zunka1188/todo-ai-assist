@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Upload, ScanBarcode, Send, X, RotateCcw, Calendar, ShoppingCart, Receipt, Clock } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -475,7 +474,7 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       }
     } else {
       // Generic ingredient list for other dishes
-      ingredientsList = `Ingredients for ${dishName} (${servingSize} servings):\n\n`;
+      ingredientsList = `Ingredients for ${dishName || "your dish"} (${servingSize || 2} servings):\n\n`;
       ingredientsList += `- Main ingredient\n`;
       ingredientsList += `- Secondary ingredient\n`;
       ingredientsList += `- Herbs and spices\n`;
@@ -683,7 +682,7 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         
       } else {
         // Generic recipe for other dishes
-        recipe = `# ${dishName} Recipe (${servingSize} servings)\n\n`;
+        recipe = `# ${dishName || "Your Dish"} Recipe (${servingSize || 2} servings)\n\n`;
         recipe += `## Ingredients\n`;
         recipe += `- Main ingredient\n`;
         recipe += `- Secondary ingredient\n`;
@@ -693,7 +692,7 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         recipe += `2. Step two\n`;
         recipe += `3. Step three\n`;
         recipe += `4. Step four\n`;
-        recipe += `5. Enjoy your ${dishName}!\n`;
+        recipe += `5. Enjoy your ${dishName || "meal"}!\n`;
       }
       
       // Create recipe action buttons
@@ -885,242 +884,4 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       } else if (items.length === 2) {
         closingMessage = `Your ${items[0]} and ${items[1]} are saved. Enjoy your meal! 🍽️`;
       } else {
-        closingMessage = `Your ${items[0]}, ${items[1]}, and ${items[2]} are saved. Enjoy your meal! 🍽️`;
-      }
-      
-      // Add restart button
-      const restartButtons: ButtonOption[] = [
-        { 
-          id: 'new-conversation', 
-          label: 'Start New Conversation', 
-          action: () => resetConversation() 
-        }
-      ];
-      
-      addAssistantMessage(closingMessage, undefined, restartButtons);
-    }, 800);
-  };
-  
-  const handleCustomServingSize = (servingSize: number) => {
-    if (isNaN(servingSize) || servingSize < 1) {
-      addAssistantMessage("Please enter a valid number for servings.");
-      return;
-    }
-    
-    // Handle the specified serving size
-    handleServingSizeSelection(servingSize);
-  };
-
-  const handleSendMessage = () => {
-    if (!input.trim()) return;
-    
-    // Process message based on current conversation state
-    switch (foodContext.conversationState) {
-      case 'initial':
-      case 'dish_selection':
-        handleDishNameInput(input);
-        break;
-      case 'serving_size':
-        const servingSize = parseInt(input);
-        handleCustomServingSize(servingSize);
-        break;
-      default:
-        // For other states, just send message and get generic response
-        const userMsg = addUserMessage(input);
-        
-        setIsTyping(true);
-        setTimeout(() => {
-          setIsTyping(false);
-          addAssistantMessage(`I understand you're asking about "${input}". Let's continue with our current conversation.`);
-        }, 1000);
-        break;
-    }
-    
-    setInput('');
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSendMessage();
-    }
-  };
-
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date);
-  };
-
-  return (
-    <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent 
-        side="left" 
-        className={cn(
-          "flex flex-col p-0 w-full sm:max-w-md",
-          theme === 'dark' ? 'bg-background text-foreground' : 'bg-white'
-        )}
-        preventNavigateOnClose
-      >
-        <SheetHeader className="px-4 py-3 border-b flex justify-between items-center">
-          <div className="flex flex-col">
-            <SheetTitle className="text-lg">Mr. Todoodle</SheetTitle>
-            <span className={cn(
-              "text-xs text-muted-foreground",
-              isMobile ? "text-[12px]" : ""
-            )}>
-              Your AI Food Assistant
-            </span>
-          </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={resetConversation}
-              className="h-8 px-2 flex items-center gap-1"
-            >
-              <RotateCcw className="h-3 w-3" />
-              <span>New Chat</span>
-            </Button>
-          </div>
-        </SheetHeader>
-        
-        {/* Chat messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
-            <div key={message.id} className="space-y-2">
-              <div 
-                className={cn(
-                  "flex max-w-[85%] rounded-lg p-3 whitespace-pre-line",
-                  message.role === 'user' 
-                    ? "ml-auto bg-primary text-primary-foreground" 
-                    : "bg-muted"
-                )}
-              >
-                {message.content}
-              </div>
-              
-              {message.options && message.options.length > 0 && (
-                <div className="flex flex-wrap gap-2 my-2">
-                  {message.options.map(option => (
-                    <Badge 
-                      key={option.id}
-                      className="cursor-pointer hover:bg-primary"
-                      variant="outline"
-                      onClick={option.action}
-                    >
-                      {option.label}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-              
-              {message.buttons && message.buttons.length > 0 && (
-                <div className="flex flex-wrap gap-2 my-2">
-                  {message.buttons.map(button => (
-                    <Button
-                      key={button.id}
-                      variant={button.variant || "default"}
-                      size="sm"
-                      onClick={button.action}
-                      className="flex items-center"
-                    >
-                      {button.icon && button.icon}
-                      {button.label}
-                    </Button>
-                  ))}
-                </div>
-              )}
-              
-              {message.content === "Select a date:" && (
-                <div className="flex justify-center my-4 bg-background rounded-lg p-2 shadow">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn(
-                        "w-[240px] justify-start text-left font-normal",
-                        !selectedDate && "text-muted-foreground"
-                      )}>
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={handleDateSelect}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              )}
-              
-              {message.content === "Add notes (optional):" && (
-                <div className="flex justify-center my-4">
-                  <Textarea
-                    placeholder="Add notes for your calendar event"
-                    className="w-full max-w-[350px]"
-                    value={eventNotes}
-                    onChange={(e) => setEventNotes(e.target.value)}
-                  />
-                </div>
-              )}
-              
-              {/* Display selected dietary restrictions as badges if in dietary selection state */}
-              {foodContext.conversationState === 'dietary_restrictions' && 
-               message.content === "Any dietary needs? (Select all that apply)" && 
-               foodContext.dietaryRestrictions.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  <span className="text-sm text-muted-foreground mr-1">Selected:</span>
-                  {foodContext.dietaryRestrictions.map(restriction => (
-                    <Badge 
-                      key={restriction} 
-                      variant="secondary"
-                      className="bg-primary/20"
-                    >
-                      {restriction}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-          
-          {isProcessing && isTyping && (
-            <div className="bg-muted rounded-lg p-3 max-w-[80%]">
-              <div className="flex space-x-2">
-                <div className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse"></div>
-                <div className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse delay-150"></div>
-                <div className="h-2 w-2 bg-foreground/50 rounded-full animate-pulse delay-300"></div>
-              </div>
-            </div>
-          )}
-          
-          {/* For auto-scrolling to bottom */}
-          <div ref={messagesEndRef} />
-        </div>
-        
-        {/* Input area */}
-        <div className="p-4 border-t">
-          <div className="flex items-center gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Type your message..."
-              className="flex-1"
-              disabled={isProcessing}
-            />
-            <Button 
-              size="icon" 
-              onClick={handleSendMessage}
-              disabled={!input.trim() || isProcessing}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-};
-
-export default AIFoodAssistant;
+        closingMessage = `Your ${items[0]}, ${items[1]},
