@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useIsMobile } from './use-mobile';
 import { useTheme } from './use-theme';
+import { cn } from '@/lib/utils';
 
 export interface LayoutConfig {
   spacing: string;
@@ -58,7 +59,4 @@ export function useLayout() {
   return layout;
 }
 
-// Helper utilities
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(' ');
-}
+// Remove the local cn helper function since we're now importing it
