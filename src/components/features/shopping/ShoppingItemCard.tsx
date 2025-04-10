@@ -3,6 +3,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Image } from 'lucide-react';
+import ImagePreviewOptimizer from './ImagePreviewOptimizer';
 
 interface ShoppingItemCardProps {
   id: string;
@@ -66,13 +67,21 @@ const ShoppingItemCard: React.FC<ShoppingItemCardProps> = ({
         
         {imageUrl && (
           <div 
-            className="w-10 h-10 rounded bg-muted flex items-center justify-center cursor-pointer"
+            className="w-10 h-10 rounded bg-muted overflow-hidden"
             onClick={(e) => {
               e.stopPropagation();
               if (onImagePreview) onImagePreview();
             }}
           >
-            <Image className="w-5 h-5 text-muted-foreground" />
+            <ImagePreviewOptimizer 
+              imageUrl={imageUrl}
+              alt={name}
+              className="w-full h-full object-cover"
+              previewable={true}
+              onPreview={() => {
+                if (onImagePreview) onImagePreview();
+              }}
+            />
           </div>
         )}
       </div>

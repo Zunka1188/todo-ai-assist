@@ -8,6 +8,8 @@ interface ImagePreviewOptimizerProps {
   className?: string;
   onLoad?: () => void;
   onError?: () => void;
+  onPreview?: () => void;
+  previewable?: boolean;
 }
 
 /**
@@ -18,7 +20,9 @@ const ImagePreviewOptimizer: React.FC<ImagePreviewOptimizerProps> = ({
   alt,
   className = '',
   onLoad,
-  onError
+  onError,
+  onPreview,
+  previewable = false
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -85,12 +89,21 @@ const ImagePreviewOptimizer: React.FC<ImagePreviewOptimizerProps> = ({
     );
   }
 
+  const handleImageClick = () => {
+    if (previewable && onPreview) {
+      onPreview();
+    }
+  };
+
   return (
     <img
       src={displayUrl}
       alt={alt}
-      className={className}
+      className={`${className} ${previewable ? 'cursor-pointer' : ''}`}
       loading="lazy"
+      onClick={handleImageClick}
+      role={previewable ? "button" : undefined}
+      aria-label={previewable ? `Preview ${alt}` : undefined}
     />
   );
 };

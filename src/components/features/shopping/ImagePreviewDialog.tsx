@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Eye, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Drawer, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import ImagePreviewOptimizer from './ImagePreviewOptimizer';
 
 interface ImagePreviewDialogProps {
   imageUrl: string | null;
@@ -33,11 +34,11 @@ const ImagePreviewDialog = ({
     <>
       <div className="flex justify-center my-4">
         {imageUrl ? (
-          <img 
-            src={imageUrl} 
+          <ImagePreviewOptimizer 
+            imageUrl={imageUrl} 
             alt={item?.name || 'Item preview'} 
             className="max-h-[60vh] object-contain rounded-md"
-            loading="lazy"
+            onError={() => console.error("Failed to load image in preview dialog")}
           />
         ) : (
           <div className="bg-muted h-48 w-full flex items-center justify-center rounded-md">
