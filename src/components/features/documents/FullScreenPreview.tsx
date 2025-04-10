@@ -48,7 +48,6 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   } else {
     // Handle DocumentItem type
     const docItem = item as DocumentItem;
-    // Only DocumentItem has type, content and file properties
     fileUrl = docItem.type === 'image' ? docItem.content : docItem.file;
     fileName = docItem.fileName || docItem.title;
     fileType = docItem.fileType || docItem.type;
