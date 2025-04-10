@@ -894,7 +894,7 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
                         onClick={button.action}
                         className="text-xs"
                       >
-                        {button.icon && button.icon}
+                        {button.icon}
                         {button.label}
                       </Button>
                     ))}
