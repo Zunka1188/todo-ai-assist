@@ -121,6 +121,7 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
           setMessages(parsedMessages);
           setFoodContext({
             ...context,
+            dietaryRestrictions: Array.isArray(context.dietaryRestrictions) ? context.dietaryRestrictions : [],
             dateTime: context.dateTime ? new Date(context.dateTime) : undefined
           });
         } else {
@@ -334,6 +335,8 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   
   const toggleDietaryRestriction = (restriction: string) => {
     setFoodContext(prev => {
+      const currentRestrictions = Array.isArray(prev.dietaryRestrictions) ? prev.dietaryRestrictions : [];
+      
       if (restriction === 'None') {
         return {
           ...prev,
@@ -341,7 +344,7 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         };
       }
       
-      let updatedRestrictions = prev.dietaryRestrictions.filter(r => r !== 'None');
+      let updatedRestrictions = currentRestrictions.filter(r => r !== 'None');
       
       if (updatedRestrictions.includes(restriction)) {
         updatedRestrictions = updatedRestrictions.filter(r => r !== restriction);
