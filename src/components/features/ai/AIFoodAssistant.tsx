@@ -41,7 +41,6 @@ type ButtonOption = {
   action: () => void;
 };
 
-// Enhanced FoodContext type for conversation state management
 type FoodContext = {
   conversationState: 'initial' | 'dish_selection' | 'serving_size' | 'dietary_restrictions' | 'ingredient_list' | 'decision_point' | 'recipe_generation' | 'schedule_event' | 'closing';
   dishName?: string;
@@ -68,7 +67,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [eventNotes, setEventNotes] = useState('');
   
-  // Initial food context
   const [foodContext, setFoodContext] = useState<FoodContext>({
     conversationState: 'initial',
     dietaryRestrictions: [],
@@ -77,7 +75,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     eventScheduled: false
   });
   
-  // Auto scroll to bottom of chat
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const scrollToBottom = () => {
@@ -88,19 +85,16 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     scrollToBottom();
   }, [messages]);
 
-  // Load session from localStorage when component mounts
   useEffect(() => {
     loadSession();
   }, []);
 
-  // Save session whenever messages or context changes
   useEffect(() => {
     if (messages.length > 0 || Object.keys(foodContext).length > 0) {
       saveSession();
     }
   }, [messages, foodContext]);
   
-  // Initialize conversation if no messages
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       startConversation();
@@ -114,12 +108,10 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       if (sessionData) {
         const { messages: storedMessages, context, timestamp } = JSON.parse(sessionData);
         
-        // Check if session has expired (24 hours)
         const now = new Date().getTime();
         const lastInteraction = new Date(timestamp).getTime();
         
         if (now - lastInteraction < SESSION_EXPIRY) {
-          // Convert ISO strings back to Date objects
           const parsedMessages = storedMessages.map((msg: any) => ({
             ...msg,
             timestamp: new Date(msg.timestamp),
@@ -132,7 +124,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
             dateTime: context.dateTime ? new Date(context.dateTime) : undefined
           });
         } else {
-          // Session expired, clear storage
           localStorage.removeItem(STORAGE_KEY);
           startConversation();
         }
@@ -176,15 +167,11 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
 
   const handleClose = () => {
     onClose();
-    // Reset scan option when closing but preserve conversation
     setActiveScanOption(null);
   };
 
   const resetConversation = () => {
-    // Clear localStorage
     localStorage.removeItem(STORAGE_KEY);
-    
-    // Reset states
     setMessages([]);
     setFoodContext({
       conversationState: 'initial',
@@ -196,8 +183,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     setInput('');
     setActiveScanOption(null);
     setIsProcessing(false);
-    
-    // Start new conversation
     startConversation();
   };
 
@@ -230,24 +215,18 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   };
 
   const handleDishNameInput = (dishName: string) => {
-    // Update context with dish name
     setFoodContext(prev => ({
       ...prev,
       dishName,
       conversationState: 'serving_size'
     }));
     
-    // Add user message
     addUserMessage(dishName);
-    
-    // Show typing indicator
     setIsTyping(true);
     
-    // Simulate typing delay
     setTimeout(() => {
       setIsTyping(false);
       
-      // Create serving size buttons
       const servingButtons: ButtonOption[] = [
         { 
           id: '1', 
@@ -278,7 +257,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
           label: 'Custom', 
           variant: 'outline', 
           action: () => {
-            // Add a prompt for custom serving size input
             addAssistantMessage("How many servings do you need?");
             setFoodContext(prev => ({
               ...prev,
@@ -288,30 +266,24 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         },
       ];
       
-      // Add assistant message with serving size options
       addAssistantMessage("How many servings?", undefined, servingButtons);
     }, 500);
   };
 
   const handleServingSizeSelection = (servingSize: number) => {
-    // Add user message with selection
     addUserMessage(servingSize.toString());
     
-    // Update context with serving size
     setFoodContext(prev => ({
       ...prev,
       servingSize,
       conversationState: 'dietary_restrictions'
     }));
     
-    // Show typing indicator
     setIsTyping(true);
     
-    // Simulate typing delay
     setTimeout(() => {
       setIsTyping(false);
       
-      // Create dietary restriction buttons
       const dietaryButtons: ButtonOption[] = [
         { 
           id: 'vegan', 
@@ -356,14 +328,12 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         },
       ];
       
-      // Add assistant message with dietary restriction options
       addAssistantMessage("Any dietary needs? (Select all that apply)", undefined, dietaryButtons);
     }, 500);
   };
   
   const toggleDietaryRestriction = (restriction: string) => {
     setFoodContext(prev => {
-      // If 'None' is selected, clear other restrictions
       if (restriction === 'None') {
         return {
           ...prev,
@@ -371,10 +341,8 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         };
       }
       
-      // If another restriction is selected, remove 'None' if present
       let updatedRestrictions = prev.dietaryRestrictions.filter(r => r !== 'None');
       
-      // Toggle the restriction
       if (updatedRestrictions.includes(restriction)) {
         updatedRestrictions = updatedRestrictions.filter(r => r !== restriction);
       } else {
@@ -389,7 +357,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   };
   
   const handleDietaryComplete = (restrictions: string[]) => {
-    // Show selected restrictions as user message
     let userMessage = "Selected: ";
     if (restrictions.length === 0 || (restrictions.length === 1 && restrictions[0] === 'None')) {
       userMessage = "No dietary restrictions";
@@ -399,17 +366,14 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     
     addUserMessage(userMessage);
     
-    // Show typing indicator
-    setIsTyping(true);
-    
-    // Update context
     setFoodContext(prev => ({
       ...prev,
       dietaryRestrictions: restrictions,
       conversationState: 'ingredient_list'
     }));
     
-    // Simulate typing delay
+    setIsTyping(true);
+    
     setTimeout(() => {
       setIsTyping(false);
       showIngredientsList();
@@ -419,14 +383,12 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   const showIngredientsList = () => {
     const { dishName, servingSize, dietaryRestrictions } = foodContext;
     
-    // Generate sample ingredient list based on dish and serving size
     let ingredientsList = "";
     
     if (dishName?.toLowerCase() === 'lasagna') {
       const quantity = servingSize || 2;
       ingredientsList = `Ingredients for ${dishName} (${quantity} servings):\n\n`;
       
-      // Adjust ingredients based on dietary restrictions
       if (dietaryRestrictions.includes('Vegan')) {
         ingredientsList += `- ${200 * quantity}g plant-based mince\n`;
         ingredientsList += `- ${100 * quantity}g vegan cheese\n`;
@@ -463,87 +425,106 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         ingredientsList += `- ${1 * quantity} tsp dried oregano\n`;
       }
       
-      // Adjust for lactose-free
       if (dietaryRestrictions.includes('Lactose-Free') && !dietaryRestrictions.includes('Vegan')) {
         ingredientsList = ingredientsList.replace('cheese', 'lactose-free cheese');
       }
       
-      // Adjust for low-carb
       if (dietaryRestrictions.includes('Low-Carb')) {
         ingredientsList = ingredientsList.replace('lasagna sheets', 'sliced zucchini (as pasta replacement)');
       }
+      
+      const ingredientButtons: ButtonOption[] = [
+        { 
+          id: 'add-to-shopping', 
+          label: 'Add to Shopping List', 
+          icon: <ShoppingCart className="w-4 h-4 mr-1" />,
+          action: () => handleAddToShoppingList() 
+        },
+        { 
+          id: 'adjust-servings', 
+          label: 'Adjust Servings', 
+          icon: <Clock className="w-4 h-4 mr-1" />,
+          action: () => {
+            setFoodContext(prev => ({
+              ...prev,
+              conversationState: 'serving_size'
+            }));
+            const servingButtons: ButtonOption[] = [
+              { id: '1', label: '1', variant: 'outline', action: () => handleServingSizeSelection(1) },
+              { id: '2', label: '2', variant: 'outline', action: () => handleServingSizeSelection(2) },
+              { id: '3', label: '3', variant: 'outline', action: () => handleServingSizeSelection(3) },
+              { id: '4', label: '4', variant: 'outline', action: () => handleServingSizeSelection(4) },
+              { id: 'custom', label: 'Custom', variant: 'outline', action: () => {
+                addAssistantMessage("How many servings do you need?");
+              }},
+            ];
+            addAssistantMessage("How many servings would you like instead?", undefined, servingButtons);
+          } 
+        },
+      ];
+      
+      addAssistantMessage(ingredientsList, undefined, ingredientButtons);
     } else {
-      // Generic ingredient list for other dishes
       ingredientsList = `Ingredients for ${dishName || "your dish"} (${servingSize || 2} servings):\n\n`;
       ingredientsList += `- Main ingredient\n`;
       ingredientsList += `- Secondary ingredient\n`;
       ingredientsList += `- Herbs and spices\n`;
+      
+      const ingredientButtons: ButtonOption[] = [
+        { 
+          id: 'add-to-shopping', 
+          label: 'Add to Shopping List', 
+          icon: <ShoppingCart className="w-4 h-4 mr-1" />,
+          action: () => handleAddToShoppingList() 
+        },
+        { 
+          id: 'adjust-servings', 
+          label: 'Adjust Servings', 
+          icon: <Clock className="w-4 h-4 mr-1" />,
+          action: () => {
+            setFoodContext(prev => ({
+              ...prev,
+              conversationState: 'serving_size'
+            }));
+            const servingButtons: ButtonOption[] = [
+              { id: '1', label: '1', variant: 'outline', action: () => handleServingSizeSelection(1) },
+              { id: '2', label: '2', variant: 'outline', action: () => handleServingSizeSelection(2) },
+              { id: '3', label: '3', variant: 'outline', action: () => handleServingSizeSelection(3) },
+              { id: '4', label: '4', variant: 'outline', action: () => handleServingSizeSelection(4) },
+              { id: 'custom', label: 'Custom', variant: 'outline', action: () => {
+                addAssistantMessage("How many servings do you need?");
+              }},
+            ];
+            addAssistantMessage("How many servings would you like instead?", undefined, servingButtons);
+          } 
+        },
+      ];
+      
+      addAssistantMessage(ingredientsList, undefined, ingredientButtons);
     }
-    
-    // Create buttons for ingredient list actions
-    const ingredientButtons: ButtonOption[] = [
-      { 
-        id: 'add-to-shopping', 
-        label: 'Add to Shopping List', 
-        icon: <ShoppingCart className="w-4 h-4 mr-1" />,
-        action: () => handleAddToShoppingList() 
-      },
-      { 
-        id: 'adjust-servings', 
-        label: 'Adjust Servings', 
-        icon: <Clock className="w-4 h-4 mr-1" />,
-        action: () => {
-          // Loop back to serving size selection
-          setFoodContext(prev => ({
-            ...prev,
-            conversationState: 'serving_size'
-          }));
-          const servingButtons: ButtonOption[] = [
-            { id: '1', label: '1', variant: 'outline', action: () => handleServingSizeSelection(1) },
-            { id: '2', label: '2', variant: 'outline', action: () => handleServingSizeSelection(2) },
-            { id: '3', label: '3', variant: 'outline', action: () => handleServingSizeSelection(3) },
-            { id: '4', label: '4', variant: 'outline', action: () => handleServingSizeSelection(4) },
-            { id: 'custom', label: 'Custom', variant: 'outline', action: () => {
-              addAssistantMessage("How many servings do you need?");
-            }},
-          ];
-          addAssistantMessage("How many servings would you like instead?", undefined, servingButtons);
-        } 
-      },
-    ];
-    
-    // Add assistant message with ingredient list
-    addAssistantMessage(ingredientsList, undefined, ingredientButtons);
   };
   
   const handleAddToShoppingList = () => {
-    // Add user message
     addUserMessage("Add ingredients to my shopping list");
     
-    // Update context
     setFoodContext(prev => ({
       ...prev,
       ingredientsAdded: true,
       conversationState: 'decision_point'
     }));
     
-    // Show typing indicator
     setIsTyping(true);
     
-    // Simulate typing delay
     setTimeout(() => {
       setIsTyping(false);
       
-      // Add confirmation message
       addAssistantMessage("Added to your shopping list! You can customize ingredients in the Shopping List tab.");
       
-      // Move to decision point
       showDecisionPoint();
     }, 800);
   };
   
   const showDecisionPoint = () => {
-    // Create decision buttons
     const decisionButtons: ButtonOption[] = [
       { 
         id: 'get-recipe', 
@@ -564,36 +545,29 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       },
     ];
     
-    // Add decision point message
     addAssistantMessage("What would you like to do next?", undefined, decisionButtons);
   };
   
   const handleGetRecipe = () => {
-    // Add user message
     addUserMessage("Get the recipe");
     
-    // Update context
     setFoodContext(prev => ({
       ...prev,
       conversationState: 'recipe_generation'
     }));
     
-    // Show typing indicator
     setIsTyping(true);
     
-    // Simulate typing delay
     setTimeout(() => {
       setIsTyping(false);
       
       const { dishName, servingSize, dietaryRestrictions } = foodContext;
       
-      // Generate sample recipe based on dish
       let recipe = "";
       
       if (dishName?.toLowerCase() === 'lasagna') {
         recipe = `# ${dishName} Recipe (${servingSize} servings)\n\n`;
         
-        // Adjust recipe based on dietary restrictions
         if (dietaryRestrictions.includes('Vegan')) {
           recipe += `## Ingredients\n`;
           recipe += `- ${200 * (servingSize || 2)}g plant-based mince\n`;
@@ -666,7 +640,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
           recipe += `9. Let rest for 5 minutes before serving.\n`;
         }
         
-        // Adjust for dietary restrictions
         if (dietaryRestrictions.includes('Lactose-Free') && !dietaryRestrictions.includes('Vegan')) {
           recipe = recipe.replace(/cheese/g, 'lactose-free cheese');
         }
@@ -681,7 +654,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         }
         
       } else {
-        // Generic recipe for other dishes
         recipe = `# ${dishName || "Your Dish"} Recipe (${servingSize || 2} servings)\n\n`;
         recipe += `## Ingredients\n`;
         recipe += `- Main ingredient\n`;
@@ -695,7 +667,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         recipe += `5. Enjoy your ${dishName || "meal"}!\n`;
       }
       
-      // Create recipe action buttons
       const recipeButtons: ButtonOption[] = [
         { 
           id: 'save-recipe', 
@@ -704,32 +675,25 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         }
       ];
       
-      // Add recipe message
       addAssistantMessage(recipe, undefined, recipeButtons);
     }, 1200);
   };
   
   const handleSaveRecipe = () => {
-    // Add user message
     addUserMessage("Save this recipe");
     
-    // Update context
     setFoodContext(prev => ({
       ...prev,
       recipeSaved: true
     }));
     
-    // Show typing indicator
     setIsTyping(true);
     
-    // Simulate typing delay
     setTimeout(() => {
       setIsTyping(false);
       
-      // Add confirmation message
       addAssistantMessage("Recipe saved to Documents/Recipes!");
       
-      // Ask about scheduling
       const scheduleButtons: ButtonOption[] = [
         { 
           id: 'schedule-event', 
@@ -749,26 +713,20 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   };
   
   const handleScheduleEvent = () => {
-    // Add user message
     addUserMessage("Schedule a cooking event");
     
-    // Update context
     setFoodContext(prev => ({
       ...prev,
       conversationState: 'schedule_event'
     }));
     
-    // Show typing indicator
     setIsTyping(true);
     
-    // Simulate typing delay
     setTimeout(() => {
       setIsTyping(false);
       
-      // Add calendar selection message
       addAssistantMessage("When will you cook this?");
       
-      // Show calendar component in next message
       const calendarMessage: ChatMessage = {
         id: Date.now().toString(),
         role: 'assistant',
@@ -778,7 +736,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       
       setMessages(prev => [...prev, calendarMessage]);
       
-      // Add notes input in the next message
       const notesMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -788,7 +745,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       
       setMessages(prev => [...prev, notesMessage]);
       
-      // Add calendar button in the next message
       const calendarButtons: ButtonOption[] = [
         { 
           id: 'add-to-calendar', 
@@ -808,10 +764,8 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       return;
     }
     
-    // Add user message
     addUserMessage(`Schedule for ${format(selectedDate, 'PPP')}`);
     
-    // Update context
     setFoodContext(prev => ({
       ...prev,
       dateTime: selectedDate,
@@ -819,17 +773,13 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       eventScheduled: true
     }));
     
-    // Show typing indicator
     setIsTyping(true);
     
-    // Simulate typing delay
     setTimeout(() => {
       setIsTyping(false);
       
-      // Add confirmation message
       addAssistantMessage(`Event scheduled for ${format(selectedDate, 'PPP')}!`);
       
-      // Ask about recipe if not already shown
       if (!foodContext.recipeSaved) {
         const recipeButtons: ButtonOption[] = [
           { 
@@ -853,23 +803,18 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   };
   
   const handleFinish = () => {
-    // Add user message
     addUserMessage("Finish");
     
-    // Update context
     setFoodContext(prev => ({
       ...prev,
       conversationState: 'closing'
     }));
     
-    // Show typing indicator
     setIsTyping(true);
     
-    // Simulate typing delay
     setTimeout(() => {
       setIsTyping(false);
       
-      // Add closing message
       let closingMessage = "Your ";
       const items = [];
       
@@ -884,4 +829,198 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       } else if (items.length === 2) {
         closingMessage = `Your ${items[0]} and ${items[1]} are saved. Enjoy your meal! 🍽️`;
       } else {
-        closingMessage = `Your ${items[0]}, ${items[1]},
+        closingMessage = `Your ${items[0]}, ${items[1]}, and ${items[2]} are saved. Enjoy your meal! 🍽️`;
+      }
+      
+      addAssistantMessage(closingMessage);
+    }, 800);
+  };
+  
+  return (
+    <Sheet open={isOpen} onOpenChange={handleClose}>
+      <SheetContent 
+        side="right"
+        className={cn(
+          "sm:max-w-md md:max-w-lg w-full overflow-y-auto",
+          theme === 'dark' ? 'bg-gray-950' : 'bg-white'
+        )}
+        hideCloseButton
+      >
+        <SheetHeader className="border-b pb-2 mb-4">
+          <div className="flex justify-between items-center">
+            <SheetTitle className="flex items-center gap-2">
+              <span className="text-base md:text-lg font-semibold">Mr. Todoodle</span>
+              <Badge variant="outline" className="font-normal">Food Assistant</Badge>
+            </SheetTitle>
+            <div className="flex gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={resetConversation}
+                title="Start over"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={handleClose}
+                title="Close"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </SheetHeader>
+        
+        <div className="flex flex-col space-y-4 pb-20">
+          {messages.map((message, index) => (
+            <div
+              key={message.id}
+              className={cn(
+                "flex flex-col",
+                message.role === "user" ? "items-end" : "items-start"
+              )}
+            >
+              <div
+                className={cn(
+                  "max-w-[85%] rounded-lg px-4 py-2 text-sm",
+                  message.role === "user"
+                    ? "bg-purple-600 text-white"
+                    : theme === "dark"
+                    ? "bg-gray-800"
+                    : "bg-gray-100"
+                )}
+              >
+                <div className="whitespace-pre-wrap">{message.content}</div>
+                
+                {message.options && message.options.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {message.options.map(option => (
+                      <Button
+                        key={option.id}
+                        variant="secondary"
+                        size="sm"
+                        onClick={option.action}
+                        className="text-xs"
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                
+                {message.buttons && message.buttons.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {message.buttons.map(button => (
+                      <Button
+                        key={button.id}
+                        variant={button.variant || "default"}
+                        size="sm"
+                        onClick={button.action}
+                        className="text-xs"
+                      >
+                        {button.icon && button.icon}
+                        {button.label}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                
+                {message.imageUrl && (
+                  <img 
+                    src={message.imageUrl} 
+                    alt="Assistant provided image" 
+                    className="mt-2 rounded-md max-w-full" 
+                  />
+                )}
+              </div>
+              
+              <div className="text-xs text-gray-500 mt-1 px-1">
+                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+          ))}
+          
+          {foodContext.conversationState === 'schedule_event' && (
+            <div className="flex flex-col items-start">
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-2 mb-2">
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  className="border rounded-md"
+                />
+              </div>
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 w-full">
+                <Textarea
+                  placeholder="Event notes (optional)"
+                  value={eventNotes}
+                  onChange={(e) => setEventNotes(e.target.value)}
+                  className="resize-none"
+                  rows={2}
+                />
+              </div>
+            </div>
+          )}
+          
+          {isTyping && (
+            <div className="flex items-center space-x-2 text-gray-500 text-sm">
+              <div className="flex space-x-1">
+                <span className="animate-bounce delay-0">•</span>
+                <span className="animate-bounce delay-150">•</span>
+                <span className="animate-bounce delay-300">•</span>
+              </div>
+              <span>Mr. Todoodle is typing</span>
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
+        
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white dark:bg-gray-950 border-t">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (input.trim()) {
+                const userInput = input.trim();
+                
+                if (foodContext.conversationState === 'dish_selection') {
+                  handleDishNameInput(userInput);
+                } else if (foodContext.conversationState === 'serving_size') {
+                  const servingSize = parseInt(userInput);
+                  if (!isNaN(servingSize) && servingSize > 0) {
+                    handleServingSizeSelection(servingSize);
+                  } else {
+                    addAssistantMessage("Please enter a valid number of servings.");
+                  }
+                } else {
+                  addUserMessage(userInput);
+                  addAssistantMessage("I've noted your input. Let's continue with the current step.");
+                }
+              }
+            }}
+            className="flex items-center space-x-2"
+          >
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type a message..."
+              className="flex-grow"
+            />
+            <Button 
+              type="submit" 
+              size="icon" 
+              disabled={!input.trim() || isProcessing}
+              className="shrink-0"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+};
+
+export default AIFoodAssistant;
