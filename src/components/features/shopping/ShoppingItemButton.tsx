@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Image as ImageIcon, Edit, Trash } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type ShoppingItemButtonProps = {
   name: string;
@@ -38,6 +39,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const { isMobile } = useIsMobile();
   
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -63,10 +65,30 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
     if (isProcessing || readOnly) return;
     
     setIsProcessing(true);
+    
+    // Ensure we have proper timing for mobile devices
     setTimeout(() => {
-      if (onClick) onClick(e);
+      if (onClick) {
+        onClick(e);
+        console.log("Item click handler executed for:", name, "- Completed:", !completed);
+      }
       setIsProcessing(false);
-    }, 0);
+    }, isMobile ? 50 : 0); // Small delay for mobile
+  };
+
+  const handleCheckboxChange = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent double triggers
+    
+    if (isProcessing || readOnly) return;
+    
+    setIsProcessing(true);
+    setTimeout(() => {
+      if (onClick) {
+        onClick(e);
+        console.log("Checkbox change handler executed for:", name, "- Completed:", !completed);
+      }
+      setIsProcessing(false);
+    }, isMobile ? 50 : 0);
   };
 
   return (
@@ -85,17 +107,20 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           <Checkbox
             id={`item-${name}`}
             checked={completed}
-            onCheckedChange={() => {
-              if (!isProcessing && onClick) {
-                handleItemClick({} as React.MouseEvent);
-              }
-            }}
+            onCheckedChange={handleCheckboxChange}
             disabled={isProcessing || readOnly}
             aria-label={name}
           />
           <label
             htmlFor={`item-${name}`}
             className="ml-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            onClick={(e) => {
+              // Help ensure click events propagate correctly on mobile
+              if (isMobile) {
+                e.preventDefault();
+                handleCheckboxChange(e as unknown as React.MouseEvent);
+              }
+            }}
           >
             {name}
           </label>
