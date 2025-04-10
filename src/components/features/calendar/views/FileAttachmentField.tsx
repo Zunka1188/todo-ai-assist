@@ -19,6 +19,7 @@ import {
   SheetClose,
 } from '@/components/ui/sheet';
 import FilePreview, { getFileTypeFromName } from '../../documents/FilePreview';
+import { AttachmentType } from '../types/event';
 
 export interface FileAttachment {
   id: string;
