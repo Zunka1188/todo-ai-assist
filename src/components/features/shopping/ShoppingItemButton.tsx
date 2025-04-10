@@ -109,7 +109,11 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             checked={completed}
             onCheckedChange={() => {
               if (!isProcessing && !readOnly) {
-                handleCheckboxClick({} as React.MouseEvent);
+                // Create a synthetic mouse event or just call the handler directly
+                if (onClick) {
+                  onClick({} as any);
+                  console.log("Checkbox click handler executed for:", name, "- Completed:", !completed);
+                }
               }
             }}
             disabled={isProcessing || readOnly}
