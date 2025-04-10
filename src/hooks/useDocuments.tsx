@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentItem, DocumentFile, DocumentCategory, CATEGORIES } from '@/components/features/documents/types';
@@ -73,7 +74,7 @@ const initialFiles: DocumentFile[] = [
   { 
     id: '1', 
     title: 'Nature Photography Guide', 
-    category: 'other', 
+    category: 'other', // Changed from 'work' to 'other'
     date: twoDaysAgo.toISOString(), 
     fileType: 'pdf', 
     fileUrl: 'https://www.africau.edu/images/default/sample.pdf' // More reliable PDF sample
@@ -147,7 +148,7 @@ PROTEIN POWER SMOOTHIE
   { 
     id: '6', 
     title: 'Architecture Photography', 
-    category: 'other', 
+    category: 'other', // Changed from 'work' to 'other'
     date: yesterday.toISOString(), 
     fileType: 'image', 
     fileUrl: 'https://images.unsplash.com/photo-1486718448742-163732cd1544'

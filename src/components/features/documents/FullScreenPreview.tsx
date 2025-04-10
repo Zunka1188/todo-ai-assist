@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { X, Download, Share2, Maximize2 } from 'lucide-react';
+import { X, Download, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DocumentItem, DocumentFile } from './types';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
@@ -11,7 +11,7 @@ interface FullScreenPreviewProps {
   item: DocumentItem | DocumentFile | null;
   onClose: () => void;
   onDownload?: (fileUrl?: string, fileName?: string) => void;
-  readOnly?: boolean; // This prop is now properly defined
+  readOnly?: boolean;
 }
 
 const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose, onDownload, readOnly = false }) => {
