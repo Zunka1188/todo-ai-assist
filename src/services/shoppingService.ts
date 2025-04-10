@@ -8,6 +8,7 @@ import { ShoppingItem } from '@/components/features/shopping/useShoppingItems';
 // Constants for storage keys
 export const STORAGE_KEY = 'shoppingItems';
 export const LAST_SYNC_KEY = 'shoppingLastSync';
+export const BACKUP_KEY = 'shoppingItems_backup';
 
 /**
  * Load items from storage with error handling
@@ -73,6 +74,13 @@ export const setupMobilePersistence = () => {
       if (items.length > 0) {
         saveItems(items);
         console.log("[DEBUG] Force synced items on visibility change");
+        
+        // Also save to sessionStorage as backup
+        try {
+          sessionStorage.setItem(BACKUP_KEY, JSON.stringify(items));
+        } catch (e) {
+          console.error("[ERROR] Failed to save backup:", e);
+        }
       }
     } else if (document.visibilityState === 'visible') {
       // Also reload when coming back to the app
@@ -99,7 +107,7 @@ export const setupMobilePersistence = () => {
       
       // Create a backup copy in sessionStorage for extra reliability
       try {
-        sessionStorage.setItem('shoppingItems_backup', JSON.stringify(items));
+        sessionStorage.setItem(BACKUP_KEY, JSON.stringify(items));
       } catch (e) {
         console.error("[ERROR] Failed to create backup in sessionStorage:", e);
       }
@@ -147,6 +155,13 @@ export const enhancedMobileSave = (items: ShoppingItem[]): boolean => {
   // First try - normal save
   const result = saveItems(items);
   
+  // Save to sessionStorage as backup immediately
+  try {
+    sessionStorage.setItem(BACKUP_KEY, JSON.stringify(items));
+  } catch (err) {
+    console.error("[ERROR] Failed to save backup to sessionStorage:", err);
+  }
+  
   // Fallback with multiple save attempts (helps with mobile browsers)
   setTimeout(() => {
     try {
@@ -154,7 +169,7 @@ export const enhancedMobileSave = (items: ShoppingItem[]): boolean => {
       console.log("[DEBUG] Mobile fallback save 1 completed");
       
       // Also save to sessionStorage as an additional backup
-      sessionStorage.setItem('shoppingItems_backup', JSON.stringify(items));
+      sessionStorage.setItem(BACKUP_KEY, JSON.stringify(items));
     } catch (error) {
       console.error('[ERROR] Enhanced save fallback 1 failed:', error);
     }
@@ -195,7 +210,7 @@ export const checkAndRestoreBackup = (): ShoppingItem[] | null => {
     }
     
     // If nothing in localStorage, try the backup
-    const backup = sessionStorage.getItem('shoppingItems_backup');
+    const backup = sessionStorage.getItem(BACKUP_KEY);
     if (backup) {
       const parsedBackup = JSON.parse(backup);
       if (Array.isArray(parsedBackup) && parsedBackup.length > 0) {

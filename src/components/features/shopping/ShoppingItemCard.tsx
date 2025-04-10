@@ -48,8 +48,8 @@ const ShoppingItemCard = ({
       } 
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
-  // Adjusted card dimensions for 3-column mobile layout
-  const cardSize = isMobile ? '100px' : '130px';
+  // Adjusted card dimensions for 3-column mobile layout - even smaller for mobile to ensure fit
+  const cardSize = isMobile ? '95px' : '130px';
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only trigger image preview if clicking on the card background
