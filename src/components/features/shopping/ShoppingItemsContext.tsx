@@ -44,7 +44,6 @@ interface ShoppingItemsProviderProps {
   defaultSearchTerm?: string;
 }
 
-// Create a new function to handle localStorage persistence with error handling and mobile optimizations
 const persistItemsToStorage = (items: ShoppingItem[], isMobile = false) => {
   try {
     if (isMobile) {
@@ -70,10 +69,8 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
   const [initialized, setInitialized] = useState(false);
   const { isMobile } = useIsMobile();
   
-  // Create a single instance of useShoppingItems
   const shoppingItemsData = useShoppingItems(filterMode, searchTerm);
   
-  // Expose methods to update filterMode and searchTerm
   const updateFilterMode = useCallback((mode: FilterMode) => {
     setFilterMode(mode);
   }, []);
@@ -82,28 +79,23 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     setSearchTerm(term);
   }, []);
   
-  // Load items from localStorage on initial render with mobile optimization and backup checking
   useEffect(() => {
     if (initialized) return;
     
     try {
       setIsLoading(true);
       
-      // Try loading from localStorage first
       const storedItems = loadItems();
       
       if (storedItems && storedItems.length > 0) {
-        // Only update if we have items to prevent unnecessary re-renders
         shoppingItemsData.setItems(storedItems);
         console.log("[ShoppingItemsContext] Loaded items from localStorage:", storedItems.length);
       } else {
-        // Try to restore from backup if localStorage is empty
         const backupItems = checkAndRestoreBackup();
         if (backupItems && backupItems.length > 0) {
           shoppingItemsData.setItems(backupItems);
           console.log("[ShoppingItemsContext] Restored items from backup:", backupItems.length);
         } else if (shoppingItemsData.items.length > 0) {
-          // If we still have items in memory, make sure they're saved
           persistItemsToStorage(shoppingItemsData.items, isMobile);
           console.log("[ShoppingItemsContext] Used in-memory items:", shoppingItemsData.items.length);
         }
@@ -119,14 +111,12 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     }
   }, [shoppingItemsData.setItems, initialized, shoppingItemsData.items, isMobile]);
   
-  // Save items to localStorage whenever they change with extra mobile safeguards
   useEffect(() => {
     if (!isLoading && initialized && shoppingItemsData.items.length > 0) {
       persistItemsToStorage(shoppingItemsData.items, isMobile);
     }
   }, [shoppingItemsData.items, isLoading, initialized, isMobile]);
-
-  // Setup mobile-specific persistence for page unload events
+  
   useEffect(() => {
     if (isMobile) {
       return setupMobilePersistence();
@@ -134,7 +124,6 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     return undefined;
   }, [isMobile]);
   
-  // Additional mobile safeguards - periodically check and save items (every 10 seconds)
   useEffect(() => {
     if (isMobile && !isLoading && initialized) {
       const intervalId = setInterval(() => {
@@ -148,14 +137,12 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     }
     return undefined;
   }, [isMobile, isLoading, initialized, shoppingItemsData.items]);
-
-  // Improve the addItem method for better mobile reliability
+  
   const enhancedAddItem = useCallback((
     item: Omit<ShoppingItem, 'id' | 'dateAdded'> & {dateAdded?: Date, id?: string, file?: string | null}
   ) => {
     const result = shoppingItemsData.addItem(item);
     
-    // Extra save for mobile reliability
     if (result && isMobile) {
       try {
         const allItems = [...shoppingItemsData.items];
@@ -163,10 +150,8 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
           allItems.push(result);
         }
         
-        // Immediate save
         persistItemsToStorage(allItems, true);
         
-        // Extra save with timeout for reliability
         setTimeout(() => {
           try {
             persistItemsToStorage(allItems, true);
@@ -182,17 +167,13 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     return result;
   }, [shoppingItemsData, shoppingItemsData.addItem, shoppingItemsData.items, isMobile]);
   
-  // Enhanced toggle item for better mobile reliability
   const enhancedToggleItem = useCallback((id: string) => {
     const result = shoppingItemsData.toggleItem(id);
     
-    // Extra save for mobile reliability
     if (result && isMobile) {
       try {
-        // Immediate save
         persistItemsToStorage(shoppingItemsData.items, true);
         
-        // Extra save with timeout for reliability
         setTimeout(() => {
           try {
             persistItemsToStorage(shoppingItemsData.items, true);
@@ -208,11 +189,10 @@ export const ShoppingItemsProvider: React.FC<ShoppingItemsProviderProps> = ({
     return result;
   }, [shoppingItemsData, shoppingItemsData.toggleItem, shoppingItemsData.items, isMobile]);
   
-  // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({
     ...shoppingItemsData,
-    addItem: enhancedAddItem, // Use enhanced version for mobile reliability
-    toggleItem: enhancedToggleItem, // Use enhanced version for mobile reliability
+    addItem: enhancedAddItem,
+    toggleItem: enhancedToggleItem,
     filterMode,
     searchTerm,
     updateFilterMode,
