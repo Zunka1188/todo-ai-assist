@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -34,7 +33,8 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
   const [showCancelAlert, setShowCancelAlert] = useState(false);
   const [formModified, setFormModified] = useState(false);
   const { isMobile } = useIsMobile();
-  
+  const [showFileInput, setShowFileInput] = useState(false);
+
   useEffect(() => {
     if (item && isOpen) {
       setFormData({
@@ -46,20 +46,21 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
         file: null,
       });
       setFormModified(false);
+      setShowFileInput(false);
     }
   }, [item, isOpen]);
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setFormModified(true);
   };
-  
+
   const handleSelectChange = (value: string) => {
     setFormData(prev => ({ ...prev, repeatOption: value }));
     setFormModified(true);
   };
-  
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
@@ -67,7 +68,11 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
       setFormModified(true);
     }
   };
-  
+
+  const toggleFileInput = () => {
+    setShowFileInput(!showFileInput);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
@@ -103,7 +108,7 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
       setIsDeleting(false);
     }
   };
-  
+
   const handleCancel = () => {
     if (formModified) {
       setShowCancelAlert(true);
@@ -112,7 +117,6 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
     }
   };
 
-  // Form fields to be used in both Dialog and Drawer
   const formFields = (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -156,13 +160,30 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="image">Image</Label>
-        <Input
-          id="image"
-          type="file"
-          onChange={handleFileChange}
-          accept="image/*"
-        />
+        <div className="flex items-center justify-between">
+          <Label htmlFor="image">Image</Label>
+          {isMobile && (
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              onClick={toggleFileInput} 
+              className="text-xs"
+            >
+              {showFileInput ? 'Hide' : 'Change Image'}
+            </Button>
+          )}
+        </div>
+        
+        {(!isMobile || showFileInput) && (
+          <Input
+            id="image"
+            type="file"
+            onChange={handleFileChange}
+            accept="image/*"
+          />
+        )}
+        
         {formData.imageUrl && !formData.file && (
           <div className="mt-2">
             <img 
@@ -187,10 +208,9 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
       </div>
     </div>
   );
-  
+
   return (
     <>
-      {/* Use Drawer for mobile and Dialog for desktop */}
       {isMobile ? (
         <Drawer open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
           <DrawerContent>
@@ -305,7 +325,6 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
         </Dialog>
       )}
 
-      {/* Confirmation Alert Dialog for unsaved changes */}
       <AlertDialog open={showCancelAlert} onOpenChange={setShowCancelAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>

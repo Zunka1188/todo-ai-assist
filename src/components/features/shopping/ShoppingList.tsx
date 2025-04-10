@@ -1,5 +1,4 @@
-
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -96,7 +95,7 @@ const ShoppingList = ({
     }
   };
 
-  const handleDeleteItem = (itemId: string) => {
+  const handleDeleteItem = useCallback((itemId: string) => {
     if (readOnly) {
       toast({
         title: "Read-only Mode",
@@ -131,7 +130,7 @@ const ShoppingList = ({
       });
       return false;
     }
-  };
+  }, [readOnly, removeItem, toast]);
 
   const handleSaveItemFromCapture = (itemData: any) => {
     try {
@@ -211,7 +210,7 @@ const ShoppingList = ({
     return false;
   };
 
-  const handleToggleItemCompletion = (itemId: string) => {
+  const handleToggleItemCompletion = useCallback((itemId: string) => {
     if (readOnly) {
       toast({
         title: "Read-only Mode",
@@ -221,12 +220,26 @@ const ShoppingList = ({
       return;
     }
     
-    const result = toggleItem(itemId);
+    const allItems = [...notPurchasedItems, ...purchasedItems];
+    const itemToToggle = allItems.find(item => item.id === itemId);
     
-    if (!result) {
-      console.error("Failed to toggle item completion");
+    if (itemToToggle) {
+      const updatedItems = allItems.map(item => 
+        item.id === itemId ? { ...item, completed: !item.completed } : item
+      );
+      
+      const result = toggleItem(itemId);
+      
+      if (!result) {
+        console.error("Failed to toggle item completion");
+        toast({
+          title: "Error",
+          description: "Failed to update item status",
+          variant: "destructive"
+        });
+      }
     }
-  };
+  }, [notPurchasedItems, purchasedItems, readOnly, toast, toggleItem]);
 
   const renderItemGrid = (items: any[]) => {
     if (items.length === 0) return null;

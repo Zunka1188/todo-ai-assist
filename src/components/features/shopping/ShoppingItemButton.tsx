@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Image as ImageIcon, Edit, Trash } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 type ShoppingItemButtonProps = {
   name: string;
@@ -35,6 +36,19 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
   readOnly = false,
   ...rest
 }) => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setShowDeleteConfirm(false);
+    if (onDelete) onDelete();
+  };
+
   return (
     <div className="group relative">
       <button
@@ -87,7 +101,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
                   <Edit className="mr-2 h-4 w-4" />
                   <span>Edit</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onDelete} className="text-red-500 focus:text-red-500" aria-label="Delete">
+                <DropdownMenuItem onClick={handleDeleteClick} className="text-red-500 focus:text-red-500" aria-label="Delete">
                   <Trash className="mr-2 h-4 w-4" />
                   <span>Delete</span>
                 </DropdownMenuItem>
@@ -117,6 +131,23 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           {repeatOption}
         </Badge>
       )}
+      
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Item</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

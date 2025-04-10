@@ -46,7 +46,7 @@ const ProduceScanner: React.FC = () => {
     },
     {
       name: "Banana",
-      confidence: 0.95,
+      confidence: 0.69,
       price: 0.69,
       weightGrams: 120,
       nutritionData: {

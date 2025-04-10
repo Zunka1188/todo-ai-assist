@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -193,10 +192,12 @@ const ShoppingPageContent: React.FC = () => {
     }
     
     if (isProcessing) {
+      console.log("[DEBUG] ShoppingPage - Save blocked: Already processing");
       return false;
     }
     
     setIsProcessing(true);
+    setShowAddDialog(false); // Close dialog immediately to prevent double-save
     
     try {
       console.log('[DEBUG] ShoppingPage - Adding item with data:', JSON.stringify(item, null, 2));
@@ -207,6 +208,7 @@ const ShoppingPageContent: React.FC = () => {
             proceedWithSave(item, url);
           })
           .catch(error => {
+            console.error("[ERROR] ShoppingPage - Image upload failed:", error);
             memoizedToast({
               title: "Image Upload Failed",
               description: "Failed to upload image, but we'll continue adding the item.",
@@ -348,6 +350,7 @@ const ShoppingPageContent: React.FC = () => {
     if (!editItem || !editItem.id || isProcessing) return false;
     
     setIsProcessing(true);
+    setEditItem(null); // Close edit dialog immediately
     
     try {
       console.log("[DEBUG] ShoppingPage - Updating item:", JSON.stringify(updatedItem, null, 2));
