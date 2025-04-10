@@ -1,4 +1,3 @@
-
 import React, { useState, memo, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -9,7 +8,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
 import ShoppingItemCard from './ShoppingItemCard';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 import EditItemDialog from './EditItemDialog';
 
 import './shoppingList.css';
