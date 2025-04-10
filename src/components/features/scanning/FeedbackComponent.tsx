@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ThumbsUp, ThumbsDown, Pencil, Check, X, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,7 +29,6 @@ const FeedbackComponent: React.FC<FeedbackComponentProps> = ({
   minimal = false,
   className
 }) => {
-  // Updated to use the addFeedback function from useModelUpdates
   const { addFeedback } = useModelUpdates();
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackType, setFeedbackType] = useState<'positive' | 'negative' | null>(null);
@@ -39,7 +37,6 @@ const FeedbackComponent: React.FC<FeedbackComponentProps> = ({
 
   const handleFeedback = async (isAccurate: boolean) => {
     if (minimal) {
-      // For minimal mode, submit feedback immediately
       await addFeedback(detectionType, detectionResult, isAccurate);
       setFeedbackSubmitted(true);
       
@@ -47,7 +44,6 @@ const FeedbackComponent: React.FC<FeedbackComponentProps> = ({
         setTimeout(onComplete, 2000);
       }
     } else {
-      // For full mode, show feedback form
       setFeedbackType(isAccurate ? 'positive' : 'negative');
       setShowFeedback(true);
     }

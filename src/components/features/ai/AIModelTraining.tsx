@@ -31,7 +31,6 @@ const AIModelTraining: React.FC<AIModelTrainingProps> = ({ className }) => {
     { id: 4, type: 'receipt', timestamp: '2023-03-29T09:20:00Z', correct: false },
   ]);
 
-  // Mock metrics for model performance
   const metrics = {
     overall: {
       accuracy: 0.89,

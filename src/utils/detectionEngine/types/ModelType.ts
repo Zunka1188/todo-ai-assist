@@ -1,3 +1,5 @@
 
+/**
+ * Defines the types of AI models available in the detection engine
+ */
 export type ModelType = "barcode" | "product" | "document" | "contextual";
-export type RecognizedItemType = "invitation" | "receipt" | "product" | "document" | "unknown" | "general";

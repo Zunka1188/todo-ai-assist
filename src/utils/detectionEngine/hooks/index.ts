@@ -1,7 +1,10 @@
 
-export * from './useDetection';
-export * from './useBarcodeScan';
-export * from './useDocumentClassification';
-export * from './useProductRecognition';
-export * from './useModelUpdates';
-export * from './useUnifiedDetection';
+export { useModelUpdates } from './useModelUpdates';
+export { useBarcodeScan } from './useBarcodeScan';
+export { useDetection } from './useDetection';
+export { useDocumentClassification } from './useDocumentClassification';
+export { useProductRecognition } from './useProductRecognition';
+export { useUnifiedDetection } from './useUnifiedDetection';
+
+// Also export types
+export type { ModelStatus, ModelVersionInfo } from './useModelUpdates';
