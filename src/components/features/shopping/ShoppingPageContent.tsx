@@ -5,7 +5,7 @@ import { useLayout } from '@/hooks/use-layout';
 import PageHeader from '@/components/ui/page-header';
 import ShoppingList from './ShoppingList';
 import AddItemDialog from './AddItemDialog';
-import FilterButtons from '../shopping/FilterButtons';
+import FilterButtons from '../shopping/FilterButtons';  // Changed import path
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -15,13 +15,13 @@ const ShoppingPageContent: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { isMobile } = useIsMobile();
   const layout = useLayout();
-  const { addItem, isLoading } = useShoppingItemsContext();
+  const { addItem, isLoading } = useShoppingItemsContext();  // Updated to use addItem
   
   // Remove spacing property as it doesn't exist in the OptionsType
   const { containerClass, contentClass } = layout;
   
   const handleSaveItem = (item: any): boolean => {
-    const result = addItem(item);
+    const result = addItem(item);  // Using addItem instead of handleAddItem
     if (result) {
       setIsAddDialogOpen(false);
       return true;
