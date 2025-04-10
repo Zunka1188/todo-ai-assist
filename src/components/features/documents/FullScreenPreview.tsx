@@ -32,25 +32,25 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   if (!item) return null;
 
   // Check if item is a DocumentFile or DocumentItem using type guard
-  const isDocumentFile = 'fileUrl' in item;
+  const isDocumentFile = (item: DocumentItem | DocumentFile): item is DocumentFile => {
+    return 'fileUrl' in item;
+  };
   
   // Determine fileUrl, fileName and fileType based on item type
   let fileUrl: string | null | undefined;
   let fileName: string;
   let fileType: string | undefined;
   
-  if (isDocumentFile) {
+  if (isDocumentFile(item)) {
     // Handle DocumentFile type
-    const docFile = item as DocumentFile;
-    fileUrl = docFile.fileUrl;
-    fileName = docFile.title;
-    fileType = docFile.fileType;
+    fileUrl = item.fileUrl;
+    fileName = item.title;
+    fileType = item.fileType;
   } else {
     // Handle DocumentItem type
-    const docItem = item as DocumentItem;
-    fileUrl = docItem.type === 'image' ? docItem.content : docItem.file;
-    fileName = docItem.fileName || docItem.title;
-    fileType = docItem.fileType || docItem.type;
+    fileUrl = item.type === 'image' ? item.content : item.file;
+    fileName = item.fileName || item.title;
+    fileType = item.fileType || item.type;
   }
 
   const handleDownload = () => {
@@ -103,11 +103,11 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
         <div className="flex-1 overflow-hidden flex flex-col">
           <div className="relative min-h-0 flex-1 overflow-auto">
             <FilePreview
-              fileUrl={fileUrl}
+              file={fileUrl || ""}
               fileType={fileType as string}
               fileName={fileName}
               className="w-full h-full object-contain"
-              file={fileUrl || ""} // Pass fileUrl as file prop to satisfy the required property
+              fileUrl={fileUrl}
             />
           </div>
           
