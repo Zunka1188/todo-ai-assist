@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Camera, Upload, Calendar, FileText, ShoppingBag, Image, PlusCircle, Brain } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -172,7 +171,7 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
               <DialogTitle>AI Smart Scan</DialogTitle>
             </DialogHeader>
             <SmartScannerCapture
-              preferredMode={smartScannerMode}
+              mode={smartScannerMode}
               onSaveSuccess={handleSaveSuccess}
               onClose={() => setShowSmartScanner(false)}
             />
