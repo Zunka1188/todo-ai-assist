@@ -1,10 +1,10 @@
-
 import React, { useEffect } from 'react';
 import { ShoppingItemsProvider } from '@/components/features/shopping/ShoppingItemsContext';
 import ShoppingPageContent from '@/components/features/shopping/ShoppingPageContent';
 import ErrorBoundary from '@/components/ui/error-boundary';
 import { setupCrossBrowserSync, enhancedMobileSave, saveItems, loadItems, setupMobilePersistence, checkAndRestoreBackup } from '@/services/shoppingService';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';  // Add this import for the cn utility function
 
 const ShoppingPage: React.FC = () => {
   const { isMobile } = useIsMobile();
