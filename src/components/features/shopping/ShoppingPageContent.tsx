@@ -5,7 +5,7 @@ import { useLayout } from '@/hooks/use-layout';
 import PageHeader from '@/components/ui/page-header';
 import ShoppingList from './ShoppingList';
 import AddItemDialog from './AddItemDialog';
-import FilterButtons from '@/components/features/shopping/FilterButtons';  // Fixed import path with absolute import
+import FilterButtons from './FilterButtons';  // Corrected import path
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
 
