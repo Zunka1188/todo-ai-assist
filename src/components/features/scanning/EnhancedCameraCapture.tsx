@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Camera, X, CameraOff, Settings, Image, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -454,27 +453,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
           </Button>
         </div>
       )}
-      
-      <style jsx>{`
-        .animate-scan {
-          animation: scan 3s linear infinite;
-        }
-        
-        @keyframes scan {
-          0% {
-            top: 0;
-          }
-          50% {
-            top: 100%;
-          }
-          50.1% {
-            top: 0;
-          }
-          100% {
-            top: 100%;
-          }
-        }
-      `}</style>
     </div>
   );
 };
