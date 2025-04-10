@@ -4,6 +4,7 @@ import { Tabs } from '@/components/ui/tabs';
 import DocumentsPageContent from '@/components/features/documents/DocumentsPageContent';
 import ErrorBoundary from '@/components/ui/error-boundary';
 import { getFileTypeFromName } from '@/components/features/documents/FilePreview';
+import { cn } from '@/lib/utils';
 
 // Wrap DocumentsPageContent with ErrorBoundary for robust error handling
 const DocumentsPage: React.FC = () => {
