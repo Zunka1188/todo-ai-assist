@@ -29,6 +29,7 @@ const ShoppingItemCard: React.FC<ShoppingItemCardProps> = ({
   notes,
   onClick,
   onEdit,
+  onDelete,
   onImagePreview,
   readOnly = false
 }) => {
