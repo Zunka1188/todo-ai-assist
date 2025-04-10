@@ -998,3 +998,4 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
 };
 
 export default AIFoodAssistant;
+
