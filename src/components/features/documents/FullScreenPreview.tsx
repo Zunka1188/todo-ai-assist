@@ -1,109 +1,99 @@
 
 import React from 'react';
-import { X, Download, Share2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { DocumentItem, DocumentFile } from './types';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Download, Share, X } from "lucide-react";
 import FilePreview from './FilePreview';
-import ShareButton from '@/components/features/shared/ShareButton';
+import { DocumentItem, DocumentFile } from './types';
 
 interface FullScreenPreviewProps {
   item: DocumentItem | DocumentFile | null;
   onClose: () => void;
   onDownload?: (fileUrl?: string, fileName?: string) => void;
   readOnly?: boolean;
+  extraActions?: React.ReactNode;
+  additionalContent?: React.ReactNode;
 }
 
-const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ item, onClose, onDownload, readOnly = false }) => {
+const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
+  item,
+  onClose,
+  onDownload,
+  readOnly = true,
+  extraActions,
+  additionalContent,
+}) => {
   if (!item) return null;
 
-  const isDocumentItem = 'type' in item;
-  
-  // Determine content URL based on item type
-  const contentUrl = isDocumentItem 
-    ? (item.type === 'image' ? item.content : item.file || '') 
-    : (item.fileUrl || '');
-  
-  // Determine file name based on item type
-  const fileName = isDocumentItem
-    ? (item.fileName || item.title)
-    : (item.title || 'document');
-  
-  // Determine if the item is viewable (image, pdf, etc.)
-  const isViewable = isDocumentItem 
-    ? (item.type === 'image' || (item.fileType && ['image', 'pdf'].includes(item.fileType)))
-    : (item.fileType && ['image', 'pdf'].includes(item.fileType));
+  const isFile = 'fileUrl' in item;
+  const fileUrl = isFile ? item.fileUrl : (item.type === 'image' ? item.content : item.file);
+  const fileName = isFile ? item.title : ((item as DocumentItem).fileName || item.title);
+  const fileType = isFile ? item.fileType : ((item as DocumentItem).fileType || item.type);
 
   const handleDownload = () => {
-    if (onDownload) {
-      onDownload(contentUrl, fileName);
+    if (onDownload && fileUrl) {
+      onDownload(fileUrl, fileName);
     }
   };
 
   return (
     <Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl w-[90vw] max-h-[90vh] p-0 overflow-hidden bg-black text-white">
-        <DialogTitle className="sr-only">Preview: {fileName}</DialogTitle>
-        <div className="absolute top-2 right-2 flex gap-2 z-10">
-          <ShareButton
-            variant="secondary"
-            size="sm"
-            className="bg-black/50 hover:bg-black/70 text-white"
-            title={`Check out: ${fileName}`}
-            text={fileName}
-            fileUrl={contentUrl}
-            showOptions={true}
-            onDownload={handleDownload}
-          >
-            <Share2 className="h-4 w-4" />
-          </ShareButton>
-          
-          {contentUrl && !readOnly && (
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              className="bg-black/50 hover:bg-black/70 text-white"
-              onClick={handleDownload}
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-          )}
-          
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            className="bg-black/50 hover:bg-black/70 text-white"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        <div className="flex items-center justify-center w-full h-full min-h-[70vh] bg-black p-4">
-          {isViewable ? (
-            isDocumentItem && item.type === 'image' ? (
-              <img 
-                src={item.content} 
-                alt={item.title} 
-                className="max-w-full max-h-full object-contain"
-              />
-            ) : (
-              <FilePreview
-                file={contentUrl}
-                fileName={fileName}
-                fileType={isDocumentItem ? item.fileType : item.fileType}
-                className="w-full h-full max-h-[80vh]"
-              />
-            )
-          ) : (
-            <div className="text-center p-8">
-              <p className="mb-4">Preview not available for this file type</p>
-              <Button onClick={handleDownload} className="bg-white text-black hover:bg-gray-200">
-                <Download className="h-4 w-4 mr-2" />
-                Download to view
+      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex flex-row items-center justify-between">
+          <DialogTitle className="line-clamp-1 mr-8">{item.title}</DialogTitle>
+          <div className="flex items-center gap-2">
+            {!readOnly && onDownload && fileUrl && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownload}
+                className="flex items-center gap-1"
+              >
+                <Download className="h-4 w-4" />
+                <span>Download</span>
               </Button>
-            </div>
-          )}
+            )}
+            {!readOnly && (
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="Share"
+                className="rounded-full"
+              >
+                <Share className="h-4 w-4" />
+              </Button>
+            )}
+            {extraActions}
+            <DialogClose asChild>
+              <Button
+                variant="ghost" 
+                size="icon"
+                aria-label="Close"
+                className="rounded-full"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogClose>
+          </div>
+        </DialogHeader>
+        
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <div className="relative min-h-0 flex-1 overflow-auto">
+            <FilePreview
+              fileUrl={fileUrl}
+              fileType={fileType as string}
+              fileName={fileName}
+              className="w-full h-full object-contain"
+            />
+          </div>
+          
+          {additionalContent}
         </div>
       </DialogContent>
     </Dialog>

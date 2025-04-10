@@ -15,6 +15,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useDebugMode } from '@/hooks/useDebugMode';
 import { useDocumentActions } from '@/hooks/useDocumentActions';
 import { DocumentTabs } from './DocumentTabs';
+import { extractTextFromImage } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Loader2 } from "lucide-react";
+import { Trash2, Loader2, FileSearch } from "lucide-react";
 
 const DocumentsPageContent: React.FC = () => {
   const navigate = useNavigate();
@@ -52,6 +53,8 @@ const DocumentsPageContent: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
+  const [isOcrProcessing, setIsOcrProcessing] = useState(false);
+  const [ocrText, setOcrText] = useState<string | null>(null);
 
   const { 
     handleAddOrUpdateItem, 
@@ -86,6 +89,36 @@ const DocumentsPageContent: React.FC = () => {
     if (debugEnabled) logEvent('openFileUploader');
     setEditingItem(null);
     setIsAddDialogOpen(true);
+  };
+
+  const handleRunOcr = async (imageUrl: string) => {
+    if (!imageUrl) return;
+    
+    try {
+      setIsOcrProcessing(true);
+      setOcrText(null);
+      
+      const extractedText = await extractTextFromImage(imageUrl);
+      setOcrText(extractedText);
+      
+      toast({
+        title: "OCR Completed",
+        description: "Text has been extracted from the image",
+        role: "status",
+        "aria-live": "polite"
+      });
+    } catch (error) {
+      console.error("OCR processing error:", error);
+      toast({
+        title: "OCR Failed",
+        description: "Failed to extract text from the image",
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
+      });
+    } finally {
+      setIsOcrProcessing(false);
+    }
   };
 
   const handleAddItem = async (item: any) => {
@@ -168,6 +201,7 @@ const DocumentsPageContent: React.FC = () => {
   const handleViewFullScreen = (item: DocumentItem | DocumentFile) => {
     if (debugEnabled) logEvent('viewFullScreen', { item });
     setFullScreenPreviewItem(item);
+    setOcrText(null); // Reset OCR text when viewing a new item
   };
 
   const handleDownload = (fileUrl?: string, fileName?: string) => {
@@ -217,6 +251,7 @@ const DocumentsPageContent: React.FC = () => {
 
   const handleFullScreenClose = () => {
     setFullScreenPreviewItem(null);
+    setOcrText(null); // Clear OCR text when closing preview
   };
 
   return (
@@ -257,7 +292,6 @@ const DocumentsPageContent: React.FC = () => {
             }}
             onDeleteDocument={confirmDeleteFile}
             onDownload={handleDownload}
-            // Remove the searchTerm prop as it's not expected by DocumentList
             categories={CATEGORIES} 
             viewMode="table"
             showAddButton={false}
@@ -267,7 +301,6 @@ const DocumentsPageContent: React.FC = () => {
 
       <AddDocumentDialog 
         open={isAddDialogOpen} 
-        // Rename onOpenChange to match the component's expected prop name
         onOpenChange={handleDialogClose} 
         onAdd={handleAddItem} 
         categories={CATEGORIES as string[]} 
@@ -291,6 +324,36 @@ const DocumentsPageContent: React.FC = () => {
         item={fullScreenPreviewItem}
         onClose={handleFullScreenClose}
         onDownload={handleDownload}
+        extraActions={
+          fullScreenPreviewItem && 
+          (fullScreenPreviewItem as DocumentFile).fileType === 'image' ? (
+            <button 
+              onClick={() => handleRunOcr((fullScreenPreviewItem as DocumentFile).fileUrl || '')}
+              className="flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+              disabled={isOcrProcessing}
+            >
+              {isOcrProcessing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <FileSearch className="h-4 w-4" />
+                  <span>Extract Text (OCR)</span>
+                </>
+              )}
+            </button>
+          ) : null
+        }
+        additionalContent={
+          ocrText ? (
+            <div className="mt-4 p-4 bg-muted rounded-md max-h-64 overflow-auto">
+              <h3 className="font-medium mb-2">Extracted Text:</h3>
+              <p className="whitespace-pre-wrap">{ocrText}</p>
+            </div>
+          ) : null
+        }
       />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

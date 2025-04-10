@@ -1,3 +1,4 @@
+
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Index from '@/pages/Index';
 import ScanPage from '@/pages/ScanPage';
@@ -30,6 +31,7 @@ const Router = () => {
       <Route path="/tasks" element={<TasksPage />} />
       <Route path="/documents" element={<DocumentsPage />} />
       <Route path="/documents/:subtab" element={<DocumentsSubtabPage />} />
+      <Route path="/documents/ocr" element={<DocumentsPage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/troubleshoot" element={<TroubleshootPage />} />
       <Route path="/ai-models" element={<AIModelsPage />} />

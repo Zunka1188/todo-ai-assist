@@ -60,3 +60,32 @@ export function formatFileSize(bytes: number, decimals: number = 2): string {
   
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
+
+/**
+ * Extract text from an image using OCR (Optical Character Recognition)
+ * This is a mock function that simulates OCR processing
+ * @param imageData - The image data as a base64 string
+ * @returns Promise that resolves to the extracted text
+ */
+export async function extractTextFromImage(imageData: string): Promise<string> {
+  // In a real implementation, this would call an OCR service
+  // For now, we'll simulate OCR processing with a timeout
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // This is mock text that would normally come from OCR processing
+      resolve("This is sample extracted text from the document image. In a real implementation, this would be the actual text detected by the OCR engine from the uploaded image.");
+    }, 1500);
+  });
+}
+
+/**
+ * Detect the language of a text string
+ * This is a mock function that simulates language detection
+ * @param text - The text to analyze
+ * @returns The detected language code (e.g., 'en', 'es', 'fr')
+ */
+export function detectLanguage(text: string): string {
+  // In a real implementation, this would use a language detection library
+  // For simplicity, we'll just return English
+  return 'en';
+}
