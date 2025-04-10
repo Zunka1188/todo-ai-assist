@@ -1,11 +1,17 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, ScanBarcode, Send, X, RotateCcw } from 'lucide-react';
+import { Camera, Upload, ScanBarcode, Send, X, RotateCcw, Calendar, ShoppingCart, Receipt, Clock } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '@/hooks/use-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { format } from 'date-fns';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface AIFoodAssistantProps {
   isOpen: boolean;
@@ -17,18 +23,36 @@ type ChatMessage = {
   role: 'system' | 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  options?: ChatOption[];
+  buttons?: ButtonOption[];
+  imageUrl?: string;
 };
 
-// Enhanced FoodContext type for better intent handling
+type ChatOption = {
+  id: string;
+  label: string;
+  action: () => void;
+};
+
+type ButtonOption = {
+  id: string;
+  label: string;
+  icon?: React.ReactNode;
+  variant?: 'default' | 'outline' | 'secondary';
+  action: () => void;
+};
+
+// Enhanced FoodContext type for conversation state management
 type FoodContext = {
+  conversationState: 'initial' | 'dish_selection' | 'serving_size' | 'dietary_restrictions' | 'ingredient_list' | 'decision_point' | 'recipe_generation' | 'schedule_event' | 'closing';
   dishName?: string;
   servingSize?: number;
-  intents: Array<'get_recipe' | 'get_ingredients' | 'add_to_shopping' | 'save_recipe' | 'identify_food'>;
-  identifiedFood?: string;
-  confirmationNeeded?: boolean;
-  shoppingListStatus?: 'not_added' | 'added';
-  hasSavedRecipe?: boolean;
-  providedFullResponse?: boolean;
+  dietaryRestrictions: string[];
+  dateTime?: Date;
+  eventNotes?: string;
+  ingredientsAdded: boolean;
+  recipeSaved: boolean;
+  eventScheduled: boolean;
 };
 
 const STORAGE_KEY = 'ai-food-assistant-session';
@@ -37,25 +61,21 @@ const SESSION_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) => {
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: 'How would you like to start your food query?',
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [activeScanOption, setActiveScanOption] = useState<'camera' | 'upload' | 'barcode' | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [eventNotes, setEventNotes] = useState('');
   
-  // Enhanced food context with more details
+  // Initial food context
   const [foodContext, setFoodContext] = useState<FoodContext>({
-    intents: [],
-    shoppingListStatus: 'not_added',
-    hasSavedRecipe: false,
-    providedFullResponse: false
+    conversationState: 'initial',
+    dietaryRestrictions: [],
+    ingredientsAdded: false,
+    recipeSaved: false,
+    eventScheduled: false
   });
   
   // Auto scroll to bottom of chat
@@ -76,10 +96,17 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
 
   // Save session whenever messages or context changes
   useEffect(() => {
-    if (messages.length > 1 || Object.keys(foodContext).length > 0) {
+    if (messages.length > 0 || Object.keys(foodContext).length > 0) {
       saveSession();
     }
   }, [messages, foodContext]);
+  
+  // Initialize conversation if no messages
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      startConversation();
+    }
+  }, [isOpen, messages.length]);
 
   const loadSession = () => {
     try {
@@ -96,18 +123,26 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
           // Convert ISO strings back to Date objects
           const parsedMessages = storedMessages.map((msg: any) => ({
             ...msg,
-            timestamp: new Date(msg.timestamp)
+            timestamp: new Date(msg.timestamp),
+            dateTime: msg.dateTime ? new Date(msg.dateTime) : undefined
           }));
           
           setMessages(parsedMessages);
-          setFoodContext(context);
+          setFoodContext({
+            ...context,
+            dateTime: context.dateTime ? new Date(context.dateTime) : undefined
+          });
         } else {
           // Session expired, clear storage
           localStorage.removeItem(STORAGE_KEY);
+          startConversation();
         }
+      } else {
+        startConversation();
       }
     } catch (error) {
       console.error('Error loading session:', error);
+      startConversation();
     }
   };
 
@@ -125,6 +160,21 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     }
   };
 
+  const startConversation = () => {
+    const welcomeMessage: ChatMessage = {
+      id: '1',
+      role: 'assistant',
+      content: 'I\'m Mr. Todoodle, your food assistant. What dish would you like to explore today?',
+      timestamp: new Date(),
+    };
+    
+    setMessages([welcomeMessage]);
+    setFoodContext({
+      ...foodContext,
+      conversationState: 'dish_selection'
+    });
+  };
+
   const handleClose = () => {
     onClose();
     // Reset scan option when closing but preserve conversation
@@ -136,247 +186,757 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     localStorage.removeItem(STORAGE_KEY);
     
     // Reset states
-    setMessages([
-      {
-        id: '1',
-        role: 'assistant',
-        content: 'How would you like to start your food query?',
-        timestamp: new Date(),
-      },
-    ]);
+    setMessages([]);
     setFoodContext({
-      intents: [],
-      shoppingListStatus: 'not_added',
-      hasSavedRecipe: false,
-      providedFullResponse: false
+      conversationState: 'initial',
+      dietaryRestrictions: [],
+      ingredientsAdded: false,
+      recipeSaved: false,
+      eventScheduled: false
     });
     setInput('');
     setActiveScanOption(null);
     setIsProcessing(false);
+    
+    // Start new conversation
+    startConversation();
   };
 
-  // Enhanced intent detection that understands combined requests
-  const processUserIntent = (userMessage: string) => {
-    const lowerMessage = userMessage.toLowerCase();
-    // Create a copy of the current context to modify
-    let newContext: FoodContext = { 
-      ...foodContext,
-      providedFullResponse: false // Reset this flag for new user messages
+  const addUserMessage = (content: string) => {
+    const newUserMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content,
+      timestamp: new Date(),
     };
     
-    // Check if message is a response to confirmation
-    if (foodContext.confirmationNeeded) {
-      if (lowerMessage.includes('yes') || lowerMessage.includes('yeah') || lowerMessage.includes('correct')) {
-        // Confirm the previously identified food
-        newContext.dishName = foodContext.identifiedFood;
-        newContext.confirmationNeeded = false;
-      } else if (lowerMessage.includes('no') || lowerMessage.includes('nope') || lowerMessage.includes('wrong')) {
-        // Reset identification
-        newContext.identifiedFood = undefined;
-        newContext.confirmationNeeded = false;
-      }
-      setFoodContext(newContext);
-      return newContext;
-    }
+    setMessages(prev => [...prev, newUserMessage]);
+    setInput('');
+    return newUserMessage;
+  };
+  
+  const addAssistantMessage = (content: string, options?: ChatOption[], buttons?: ButtonOption[], imageUrl?: string) => {
+    const newAssistantMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content,
+      timestamp: new Date(),
+      options,
+      buttons,
+      imageUrl
+    };
     
-    // Enhanced intent detection - can detect multiple intents in one message
-    const intents: FoodContext['intents'] = [];
-    
-    // Detect the dish name with improved pattern matching
-    // Look for patterns like "lasagna for 4" or "lasagna recipe for 4 people"
-    const dishWithServingPattern = /([a-z\s]+?)(?:\s+for\s+|recipe\s+for\s+|ingredients\s+for\s+)(\d+)(?:\s+people|\s+servings|\s+persons)?/i;
-    const dishMatch = dishWithServingPattern.exec(lowerMessage);
-    
-    if (dishMatch) {
-      // We found both dish name and servings in one go
-      newContext.dishName = dishMatch[1].trim();
-      newContext.servingSize = parseInt(dishMatch[2]);
-    } else {
-      // Try to just find a dish name
-      const simpleDishPattern = /([a-z\s]+?)(?:\s+recipe|\s+ingredients|\s+shopping)/i;
-      const simpleDishMatch = simpleDishPattern.exec(lowerMessage);
-      if (simpleDishMatch) {
-        newContext.dishName = simpleDishMatch[1].trim();
-      }
-    }
-    
-    // Detect intents
-    if (lowerMessage.includes('recipe')) {
-      intents.push('get_recipe');
-    }
-    
-    if (lowerMessage.includes('ingredients')) {
-      intents.push('get_ingredients');
-    }
-    
-    if (lowerMessage.includes('shopping') || lowerMessage.includes('add to list')) {
-      intents.push('add_to_shopping');
-    }
-    
-    if (lowerMessage.includes('save')) {
-      intents.push('save_recipe');
-    }
-    
-    // If we detected intents, update the context
-    if (intents.length > 0) {
-      newContext.intents = intents;
-    }
-    
-    // Look for serving size if not already found
-    if (!newContext.servingSize) {
-      const servingMatch = lowerMessage.match(/(\d+)\s+(?:people|servings|persons)/i);
-      if (servingMatch && servingMatch[1]) {
-        newContext.servingSize = parseInt(servingMatch[1]);
-      }
-    }
-    
-    // Handle "add to shopping list"
-    if (intents.includes('add_to_shopping')) {
-      newContext.shoppingListStatus = 'added';
-    }
-    
-    // Handle "save recipe"
-    if (intents.includes('save_recipe')) {
-      newContext.hasSavedRecipe = true;
-    }
-    
-    // Update the context
-    setFoodContext(newContext);
-    return newContext;
+    setMessages(prev => [...prev, newAssistantMessage]);
+    return newAssistantMessage;
   };
 
-  // Generate intelligent responses based on updated context
-  const generateAssistantResponse = (context: FoodContext): string => {
-    // If we're waiting for confirmation of identified food
-    if (context.confirmationNeeded && context.identifiedFood) {
-      return `I think this is ${context.identifiedFood} — is that right?`;
-    }
+  const handleDishNameInput = (dishName: string) => {
+    // Update context with dish name
+    setFoodContext(prev => ({
+      ...prev,
+      dishName,
+      conversationState: 'serving_size'
+    }));
     
-    // If we've already provided a full response for the current context
-    if (context.providedFullResponse) {
-      return "Is there anything else you'd like help with?";
-    }
+    // Add user message
+    addUserMessage(dishName);
     
-    // Prepare to generate a full response if we have enough information
-    const canProvideFullResponse = (
-      // For recipe or ingredients, we need dish name and serving size
-      (context.intents.includes('get_recipe') || context.intents.includes('get_ingredients')) &&
-      context.dishName && context.servingSize
-    );
+    // Show typing indicator
+    setIsTyping(true);
     
-    // If we can provide a full response, check what the user wants
-    if (canProvideFullResponse) {
-      let response = '';
-      const dishName = context.dishName || 'your dish';
-      const servingSize = context.servingSize || 2;
+    // Simulate typing delay
+    setTimeout(() => {
+      setIsTyping(false);
       
-      // If they wanted a recipe
-      if (context.intents.includes('get_recipe')) {
-        response += `Here's a ${dishName} recipe for ${servingSize} people! 🍝\n\n` + 
-          `Ingredients:\n` + 
-          `- 400g minced beef\n` + 
-          `- 1 onion, diced\n` + 
-          `- 2 cloves garlic, minced\n` + 
-          `- 1 carrot, diced\n\n` +
-          `Instructions:\n` +
-          `1. Brown the beef in a pan\n` +
-          `2. Add onions and garlic, cook until soft\n` +
-          `3. Add remaining ingredients and simmer\n\n`;
-      } 
-      // If they just wanted ingredients
-      else if (context.intents.includes('get_ingredients')) {
-        response += `Sure! Here's what you'll need for ${servingSize} servings of ${dishName} 🍲\n\n` + 
-          `- 400g minced beef\n` + 
-          `- 1 onion, diced\n` + 
-          `- 2 cloves garlic, minced\n` + 
-          `- 1 carrot, diced\n\n`;
-      }
+      // Create serving size buttons
+      const servingButtons: ButtonOption[] = [
+        { 
+          id: '1', 
+          label: '1', 
+          variant: 'outline', 
+          action: () => handleServingSizeSelection(1) 
+        },
+        { 
+          id: '2', 
+          label: '2', 
+          variant: 'outline', 
+          action: () => handleServingSizeSelection(2) 
+        },
+        { 
+          id: '3', 
+          label: '3', 
+          variant: 'outline', 
+          action: () => handleServingSizeSelection(3) 
+        },
+        { 
+          id: '4', 
+          label: '4', 
+          variant: 'outline', 
+          action: () => handleServingSizeSelection(4) 
+        },
+        { 
+          id: 'custom', 
+          label: 'Custom', 
+          variant: 'outline', 
+          action: () => {
+            // Add a prompt for custom serving size input
+            addAssistantMessage("How many servings do you need?");
+            setFoodContext(prev => ({
+              ...prev,
+              conversationState: 'serving_size'
+            }));
+          } 
+        },
+      ];
       
-      // Add a call to action if they haven't already used shopping list or saved
-      if (!context.shoppingListStatus || context.shoppingListStatus === 'not_added') {
-        if (!context.hasSavedRecipe) {
-          response += "Would you like to add these ingredients to your shopping list or save the recipe for later?";
-        } else {
-          response += "Would you like to add these ingredients to your shopping list?";
-        }
-      } else if (!context.hasSavedRecipe) {
-        response += "Would you like to save this recipe for later?";
-      }
+      // Add assistant message with serving size options
+      addAssistantMessage("How many servings?", undefined, servingButtons);
+    }, 500);
+  };
+
+  const handleServingSizeSelection = (servingSize: number) => {
+    // Add user message with selection
+    addUserMessage(servingSize.toString());
+    
+    // Update context with serving size
+    setFoodContext(prev => ({
+      ...prev,
+      servingSize,
+      conversationState: 'dietary_restrictions'
+    }));
+    
+    // Show typing indicator
+    setIsTyping(true);
+    
+    // Simulate typing delay
+    setTimeout(() => {
+      setIsTyping(false);
       
-      // Mark that we've provided a full response for this context
-      setTimeout(() => {
-        setFoodContext(prev => ({
+      // Create dietary restriction buttons
+      const dietaryButtons: ButtonOption[] = [
+        { 
+          id: 'vegan', 
+          label: 'Vegan', 
+          variant: 'outline', 
+          action: () => toggleDietaryRestriction('Vegan') 
+        },
+        { 
+          id: 'vegetarian', 
+          label: 'Vegetarian', 
+          variant: 'outline', 
+          action: () => toggleDietaryRestriction('Vegetarian') 
+        },
+        { 
+          id: 'nut-free', 
+          label: 'Nut-Free', 
+          variant: 'outline', 
+          action: () => toggleDietaryRestriction('Nut-Free') 
+        },
+        { 
+          id: 'lactose-free', 
+          label: 'Lactose-Free', 
+          variant: 'outline', 
+          action: () => toggleDietaryRestriction('Lactose-Free') 
+        },
+        { 
+          id: 'low-carb', 
+          label: 'Low-Carb', 
+          variant: 'outline', 
+          action: () => toggleDietaryRestriction('Low-Carb') 
+        },
+        { 
+          id: 'none', 
+          label: 'None', 
+          variant: 'outline', 
+          action: () => handleDietaryComplete(['None']) 
+        },
+        { 
+          id: 'continue', 
+          label: 'Continue', 
+          action: () => handleDietaryComplete(foodContext.dietaryRestrictions) 
+        },
+      ];
+      
+      // Add assistant message with dietary restriction options
+      addAssistantMessage("Any dietary needs? (Select all that apply)", undefined, dietaryButtons);
+    }, 500);
+  };
+  
+  const toggleDietaryRestriction = (restriction: string) => {
+    setFoodContext(prev => {
+      // If 'None' is selected, clear other restrictions
+      if (restriction === 'None') {
+        return {
           ...prev,
-          providedFullResponse: true
-        }));
-      }, 500);
+          dietaryRestrictions: ['None']
+        };
+      }
       
-      return response;
+      // If another restriction is selected, remove 'None' if present
+      let updatedRestrictions = prev.dietaryRestrictions.filter(r => r !== 'None');
+      
+      // Toggle the restriction
+      if (updatedRestrictions.includes(restriction)) {
+        updatedRestrictions = updatedRestrictions.filter(r => r !== restriction);
+      } else {
+        updatedRestrictions = [...updatedRestrictions, restriction];
+      }
+      
+      return {
+        ...prev,
+        dietaryRestrictions: updatedRestrictions
+      };
+    });
+  };
+  
+  const handleDietaryComplete = (restrictions: string[]) => {
+    // Show selected restrictions as user message
+    let userMessage = "Selected: ";
+    if (restrictions.length === 0 || (restrictions.length === 1 && restrictions[0] === 'None')) {
+      userMessage = "No dietary restrictions";
+    } else {
+      userMessage += restrictions.join(', ');
     }
     
-    // Handle shopping list addition
-    if (context.intents.includes('add_to_shopping') && context.dishName) {
-      return `I've added the ingredients for ${context.dishName} to your shopping list! Is there anything else you'd like to do?`;
+    addUserMessage(userMessage);
+    
+    // Show typing indicator
+    setIsTyping(true);
+    
+    // Update context
+    setFoodContext(prev => ({
+      ...prev,
+      dietaryRestrictions: restrictions,
+      conversationState: 'ingredient_list'
+    }));
+    
+    // Simulate typing delay
+    setTimeout(() => {
+      setIsTyping(false);
+      showIngredientsList();
+    }, 1000);
+  };
+  
+  const showIngredientsList = () => {
+    const { dishName, servingSize, dietaryRestrictions } = foodContext;
+    
+    // Generate sample ingredient list based on dish and serving size
+    let ingredientsList = "";
+    
+    if (dishName?.toLowerCase() === 'lasagna') {
+      const quantity = servingSize || 2;
+      ingredientsList = `Ingredients for ${dishName} (${quantity} servings):\n\n`;
+      
+      // Adjust ingredients based on dietary restrictions
+      if (dietaryRestrictions.includes('Vegan')) {
+        ingredientsList += `- ${200 * quantity}g plant-based mince\n`;
+        ingredientsList += `- ${100 * quantity}g vegan cheese\n`;
+        ingredientsList += `- ${1 * quantity} large onion, diced\n`;
+        ingredientsList += `- ${2 * quantity} cloves garlic, minced\n`;
+        ingredientsList += `- ${1 * quantity} carrot, grated\n`;
+        ingredientsList += `- ${400 * quantity}g chopped tomatoes\n`;
+        ingredientsList += `- ${6 * quantity} vegan lasagna sheets\n`;
+        ingredientsList += `- ${2 * quantity} tbsp olive oil\n`;
+        ingredientsList += `- Salt and pepper to taste\n`;
+        ingredientsList += `- ${1 * quantity} tsp dried oregano\n`;
+      } else if (dietaryRestrictions.includes('Vegetarian')) {
+        ingredientsList += `- ${2 * quantity} bell peppers, diced\n`;
+        ingredientsList += `- ${100 * quantity}g mushrooms, sliced\n`;
+        ingredientsList += `- ${1 * quantity} large onion, diced\n`;
+        ingredientsList += `- ${2 * quantity} cloves garlic, minced\n`;
+        ingredientsList += `- ${1 * quantity} carrot, grated\n`;
+        ingredientsList += `- ${400 * quantity}g chopped tomatoes\n`;
+        ingredientsList += `- ${100 * quantity}g cheese\n`;
+        ingredientsList += `- ${6 * quantity} lasagna sheets\n`;
+        ingredientsList += `- ${2 * quantity} tbsp olive oil\n`;
+        ingredientsList += `- Salt and pepper to taste\n`;
+        ingredientsList += `- ${1 * quantity} tsp dried oregano\n`;
+      } else {
+        ingredientsList += `- ${250 * quantity}g minced beef\n`;
+        ingredientsList += `- ${1 * quantity} large onion, diced\n`;
+        ingredientsList += `- ${2 * quantity} cloves garlic, minced\n`;
+        ingredientsList += `- ${1 * quantity} carrot, grated\n`;
+        ingredientsList += `- ${400 * quantity}g chopped tomatoes\n`;
+        ingredientsList += `- ${100 * quantity}g cheese\n`;
+        ingredientsList += `- ${6 * quantity} lasagna sheets\n`;
+        ingredientsList += `- ${2 * quantity} tbsp olive oil\n`;
+        ingredientsList += `- Salt and pepper to taste\n`;
+        ingredientsList += `- ${1 * quantity} tsp dried oregano\n`;
+      }
+      
+      // Adjust for lactose-free
+      if (dietaryRestrictions.includes('Lactose-Free') && !dietaryRestrictions.includes('Vegan')) {
+        ingredientsList = ingredientsList.replace('cheese', 'lactose-free cheese');
+      }
+      
+      // Adjust for low-carb
+      if (dietaryRestrictions.includes('Low-Carb')) {
+        ingredientsList = ingredientsList.replace('lasagna sheets', 'sliced zucchini (as pasta replacement)');
+      }
+    } else {
+      // Generic ingredient list for other dishes
+      ingredientsList = `Ingredients for ${dishName} (${servingSize} servings):\n\n`;
+      ingredientsList += `- Main ingredient\n`;
+      ingredientsList += `- Secondary ingredient\n`;
+      ingredientsList += `- Herbs and spices\n`;
     }
     
-    // Handle recipe saving
-    if (context.intents.includes('save_recipe') && context.dishName) {
-      return `I've saved this ${context.dishName} recipe to your documents. You can find it in your Recipe collection!`;
+    // Create buttons for ingredient list actions
+    const ingredientButtons: ButtonOption[] = [
+      { 
+        id: 'add-to-shopping', 
+        label: 'Add to Shopping List', 
+        icon: <ShoppingCart className="w-4 h-4 mr-1" />,
+        action: () => handleAddToShoppingList() 
+      },
+      { 
+        id: 'adjust-servings', 
+        label: 'Adjust Servings', 
+        icon: <Clock className="w-4 h-4 mr-1" />,
+        action: () => {
+          // Loop back to serving size selection
+          setFoodContext(prev => ({
+            ...prev,
+            conversationState: 'serving_size'
+          }));
+          const servingButtons: ButtonOption[] = [
+            { id: '1', label: '1', variant: 'outline', action: () => handleServingSizeSelection(1) },
+            { id: '2', label: '2', variant: 'outline', action: () => handleServingSizeSelection(2) },
+            { id: '3', label: '3', variant: 'outline', action: () => handleServingSizeSelection(3) },
+            { id: '4', label: '4', variant: 'outline', action: () => handleServingSizeSelection(4) },
+            { id: 'custom', label: 'Custom', variant: 'outline', action: () => {
+              addAssistantMessage("How many servings do you need?");
+            }},
+          ];
+          addAssistantMessage("How many servings would you like instead?", undefined, servingButtons);
+        } 
+      },
+    ];
+    
+    // Add assistant message with ingredient list
+    addAssistantMessage(ingredientsList, undefined, ingredientButtons);
+  };
+  
+  const handleAddToShoppingList = () => {
+    // Add user message
+    addUserMessage("Add ingredients to my shopping list");
+    
+    // Update context
+    setFoodContext(prev => ({
+      ...prev,
+      ingredientsAdded: true,
+      conversationState: 'decision_point'
+    }));
+    
+    // Show typing indicator
+    setIsTyping(true);
+    
+    // Simulate typing delay
+    setTimeout(() => {
+      setIsTyping(false);
+      
+      // Add confirmation message
+      addAssistantMessage("Added to your shopping list! You can customize ingredients in the Shopping List tab.");
+      
+      // Move to decision point
+      showDecisionPoint();
+    }, 800);
+  };
+  
+  const showDecisionPoint = () => {
+    // Create decision buttons
+    const decisionButtons: ButtonOption[] = [
+      { 
+        id: 'get-recipe', 
+        label: 'Get Recipe', 
+        icon: <Receipt className="w-4 h-4 mr-1" />,
+        action: () => handleGetRecipe() 
+      },
+      { 
+        id: 'schedule-event', 
+        label: 'Schedule Event', 
+        icon: <Calendar className="w-4 h-4 mr-1" />,
+        action: () => handleScheduleEvent() 
+      },
+      { 
+        id: 'finish', 
+        label: 'Finish', 
+        action: () => handleFinish() 
+      },
+    ];
+    
+    // Add decision point message
+    addAssistantMessage("What would you like to do next?", undefined, decisionButtons);
+  };
+  
+  const handleGetRecipe = () => {
+    // Add user message
+    addUserMessage("Get the recipe");
+    
+    // Update context
+    setFoodContext(prev => ({
+      ...prev,
+      conversationState: 'recipe_generation'
+    }));
+    
+    // Show typing indicator
+    setIsTyping(true);
+    
+    // Simulate typing delay
+    setTimeout(() => {
+      setIsTyping(false);
+      
+      const { dishName, servingSize, dietaryRestrictions } = foodContext;
+      
+      // Generate sample recipe based on dish
+      let recipe = "";
+      
+      if (dishName?.toLowerCase() === 'lasagna') {
+        recipe = `# ${dishName} Recipe (${servingSize} servings)\n\n`;
+        
+        // Adjust recipe based on dietary restrictions
+        if (dietaryRestrictions.includes('Vegan')) {
+          recipe += `## Ingredients\n`;
+          recipe += `- ${200 * (servingSize || 2)}g plant-based mince\n`;
+          recipe += `- ${100 * (servingSize || 2)}g vegan cheese\n`;
+          recipe += `- ${1 * (servingSize || 2)} large onion, diced\n`;
+          recipe += `- ${2 * (servingSize || 2)} cloves garlic, minced\n`;
+          recipe += `- ${1 * (servingSize || 2)} carrot, grated\n`;
+          recipe += `- ${400 * (servingSize || 2)}g chopped tomatoes\n`;
+          recipe += `- ${6 * (servingSize || 2)} vegan lasagna sheets\n`;
+          recipe += `- ${2 * (servingSize || 2)} tbsp olive oil\n`;
+          recipe += `- Salt and pepper to taste\n`;
+          recipe += `- ${1 * (servingSize || 2)} tsp dried oregano\n\n`;
+          
+          recipe += `## Instructions\n`;
+          recipe += `1. Preheat oven to 180°C (350°F).\n`;
+          recipe += `2. Heat olive oil in a pan over medium heat. Add onion and cook for 5 minutes until soft.\n`;
+          recipe += `3. Add garlic and cook for 1 minute.\n`;
+          recipe += `4. Add plant-based mince and cook until browned.\n`;
+          recipe += `5. Add chopped tomatoes, carrot, oregano, salt, and pepper. Simmer for 15 minutes.\n`;
+          recipe += `6. In a baking dish, layer sauce, vegan lasagna sheets, and vegan cheese. Repeat layers.\n`;
+          recipe += `7. Top with remaining vegan cheese.\n`;
+          recipe += `8. Cover with foil and bake for 25 minutes. Remove foil and bake for another 10 minutes.\n`;
+          recipe += `9. Let rest for 5 minutes before serving.\n`;
+        } else if (dietaryRestrictions.includes('Vegetarian')) {
+          recipe += `## Ingredients\n`;
+          recipe += `- ${2 * (servingSize || 2)} bell peppers, diced\n`;
+          recipe += `- ${100 * (servingSize || 2)}g mushrooms, sliced\n`;
+          recipe += `- ${1 * (servingSize || 2)} large onion, diced\n`;
+          recipe += `- ${2 * (servingSize || 2)} cloves garlic, minced\n`;
+          recipe += `- ${1 * (servingSize || 2)} carrot, grated\n`;
+          recipe += `- ${400 * (servingSize || 2)}g chopped tomatoes\n`;
+          recipe += `- ${100 * (servingSize || 2)}g cheese\n`;
+          recipe += `- ${6 * (servingSize || 2)} lasagna sheets\n`;
+          recipe += `- ${2 * (servingSize || 2)} tbsp olive oil\n`;
+          recipe += `- Salt and pepper to taste\n`;
+          recipe += `- ${1 * (servingSize || 2)} tsp dried oregano\n\n`;
+          
+          recipe += `## Instructions\n`;
+          recipe += `1. Preheat oven to 180°C (350°F).\n`;
+          recipe += `2. Heat olive oil in a pan over medium heat. Add onion and cook for 5 minutes until soft.\n`;
+          recipe += `3. Add garlic and cook for 1 minute.\n`;
+          recipe += `4. Add bell peppers and mushrooms and cook for 5 minutes.\n`;
+          recipe += `5. Add chopped tomatoes, carrot, oregano, salt, and pepper. Simmer for 15 minutes.\n`;
+          recipe += `6. In a baking dish, layer sauce, lasagna sheets, and cheese. Repeat layers.\n`;
+          recipe += `7. Top with remaining cheese.\n`;
+          recipe += `8. Cover with foil and bake for 25 minutes. Remove foil and bake for another 10 minutes.\n`;
+          recipe += `9. Let rest for 5 minutes before serving.\n`;
+        } else {
+          recipe += `## Ingredients\n`;
+          recipe += `- ${250 * (servingSize || 2)}g minced beef\n`;
+          recipe += `- ${1 * (servingSize || 2)} large onion, diced\n`;
+          recipe += `- ${2 * (servingSize || 2)} cloves garlic, minced\n`;
+          recipe += `- ${1 * (servingSize || 2)} carrot, grated\n`;
+          recipe += `- ${400 * (servingSize || 2)}g chopped tomatoes\n`;
+          recipe += `- ${100 * (servingSize || 2)}g cheese\n`;
+          recipe += `- ${6 * (servingSize || 2)} lasagna sheets\n`;
+          recipe += `- ${2 * (servingSize || 2)} tbsp olive oil\n`;
+          recipe += `- Salt and pepper to taste\n`;
+          recipe += `- ${1 * (servingSize || 2)} tsp dried oregano\n\n`;
+          
+          recipe += `## Instructions\n`;
+          recipe += `1. Preheat oven to 180°C (350°F).\n`;
+          recipe += `2. Heat olive oil in a pan over medium heat. Add onion and cook for 5 minutes until soft.\n`;
+          recipe += `3. Add garlic and cook for 1 minute.\n`;
+          recipe += `4. Add minced beef and cook until browned.\n`;
+          recipe += `5. Add chopped tomatoes, carrot, oregano, salt, and pepper. Simmer for 15 minutes.\n`;
+          recipe += `6. In a baking dish, layer meat sauce, lasagna sheets, and cheese. Repeat layers.\n`;
+          recipe += `7. Top with remaining cheese.\n`;
+          recipe += `8. Cover with foil and bake for 25 minutes. Remove foil and bake for another 10 minutes.\n`;
+          recipe += `9. Let rest for 5 minutes before serving.\n`;
+        }
+        
+        // Adjust for dietary restrictions
+        if (dietaryRestrictions.includes('Lactose-Free') && !dietaryRestrictions.includes('Vegan')) {
+          recipe = recipe.replace(/cheese/g, 'lactose-free cheese');
+        }
+        
+        if (dietaryRestrictions.includes('Low-Carb')) {
+          recipe = recipe.replace(/lasagna sheets/g, 'sliced zucchini (as pasta replacement)');
+          recipe = recipe.replace(/Preheat oven to 180°C \(350°F\)/g, 'Preheat oven to 180°C (350°F). Slice zucchini thinly lengthwise and salt it to draw out moisture. Let sit for 15 minutes, then pat dry.');
+        }
+        
+        if (dietaryRestrictions.includes('Nut-Free')) {
+          recipe += `\n**Note:** This recipe is nut-free.\n`;
+        }
+        
+      } else {
+        // Generic recipe for other dishes
+        recipe = `# ${dishName} Recipe (${servingSize} servings)\n\n`;
+        recipe += `## Ingredients\n`;
+        recipe += `- Main ingredient\n`;
+        recipe += `- Secondary ingredient\n`;
+        recipe += `- Herbs and spices\n\n`;
+        recipe += `## Instructions\n`;
+        recipe += `1. Step one\n`;
+        recipe += `2. Step two\n`;
+        recipe += `3. Step three\n`;
+        recipe += `4. Step four\n`;
+        recipe += `5. Enjoy your ${dishName}!\n`;
+      }
+      
+      // Create recipe action buttons
+      const recipeButtons: ButtonOption[] = [
+        { 
+          id: 'save-recipe', 
+          label: 'Save Recipe', 
+          action: () => handleSaveRecipe() 
+        }
+      ];
+      
+      // Add recipe message
+      addAssistantMessage(recipe, undefined, recipeButtons);
+    }, 1200);
+  };
+  
+  const handleSaveRecipe = () => {
+    // Add user message
+    addUserMessage("Save this recipe");
+    
+    // Update context
+    setFoodContext(prev => ({
+      ...prev,
+      recipeSaved: true
+    }));
+    
+    // Show typing indicator
+    setIsTyping(true);
+    
+    // Simulate typing delay
+    setTimeout(() => {
+      setIsTyping(false);
+      
+      // Add confirmation message
+      addAssistantMessage("Recipe saved to Documents/Recipes!");
+      
+      // Ask about scheduling
+      const scheduleButtons: ButtonOption[] = [
+        { 
+          id: 'schedule-event', 
+          label: 'Schedule Event', 
+          icon: <Calendar className="w-4 h-4 mr-1" />,
+          action: () => handleScheduleEvent() 
+        },
+        { 
+          id: 'finish', 
+          label: 'Finish', 
+          action: () => handleFinish() 
+        },
+      ];
+      
+      addAssistantMessage("All done with the recipe! Schedule cooking time?", undefined, scheduleButtons);
+    }, 800);
+  };
+  
+  const handleScheduleEvent = () => {
+    // Add user message
+    addUserMessage("Schedule a cooking event");
+    
+    // Update context
+    setFoodContext(prev => ({
+      ...prev,
+      conversationState: 'schedule_event'
+    }));
+    
+    // Show typing indicator
+    setIsTyping(true);
+    
+    // Simulate typing delay
+    setTimeout(() => {
+      setIsTyping(false);
+      
+      // Add calendar selection message
+      addAssistantMessage("When will you cook this?");
+      
+      // Show calendar component in next message
+      const calendarMessage: ChatMessage = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: "Select a date:",
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, calendarMessage]);
+      
+      // Add notes input in the next message
+      const notesMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "Add notes (optional):",
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, notesMessage]);
+      
+      // Add calendar button in the next message
+      const calendarButtons: ButtonOption[] = [
+        { 
+          id: 'add-to-calendar', 
+          label: 'Add to Calendar', 
+          icon: <Calendar className="w-4 h-4 mr-1" />,
+          action: () => handleAddToCalendar() 
+        }
+      ];
+      
+      addAssistantMessage("Click to add to calendar:", undefined, calendarButtons);
+    }, 800);
+  };
+  
+  const handleAddToCalendar = () => {
+    if (!selectedDate) {
+      addAssistantMessage("Please select a date first.");
+      return;
     }
     
-    // If we have a dish but no serving size, ask for serving size
-    if ((context.intents.includes('get_recipe') || context.intents.includes('get_ingredients')) && 
-        context.dishName && !context.servingSize) {
-      return `Got it! How many servings would you like for ${context.dishName}?`;
+    // Add user message
+    addUserMessage(`Schedule for ${format(selectedDate, 'PPP')}`);
+    
+    // Update context
+    setFoodContext(prev => ({
+      ...prev,
+      dateTime: selectedDate,
+      eventNotes: eventNotes,
+      eventScheduled: true
+    }));
+    
+    // Show typing indicator
+    setIsTyping(true);
+    
+    // Simulate typing delay
+    setTimeout(() => {
+      setIsTyping(false);
+      
+      // Add confirmation message
+      addAssistantMessage(`Event scheduled for ${format(selectedDate, 'PPP')}!`);
+      
+      // Ask about recipe if not already shown
+      if (!foodContext.recipeSaved) {
+        const recipeButtons: ButtonOption[] = [
+          { 
+            id: 'get-recipe', 
+            label: 'Get Recipe', 
+            icon: <Receipt className="w-4 h-4 mr-1" />,
+            action: () => handleGetRecipe() 
+          },
+          { 
+            id: 'finish', 
+            label: 'Finish', 
+            action: () => handleFinish() 
+          },
+        ];
+        
+        addAssistantMessage("Event scheduled! Need the recipe too?", undefined, recipeButtons);
+      } else {
+        handleFinish();
+      }
+    }, 800);
+  };
+  
+  const handleFinish = () => {
+    // Add user message
+    addUserMessage("Finish");
+    
+    // Update context
+    setFoodContext(prev => ({
+      ...prev,
+      conversationState: 'closing'
+    }));
+    
+    // Show typing indicator
+    setIsTyping(true);
+    
+    // Simulate typing delay
+    setTimeout(() => {
+      setIsTyping(false);
+      
+      // Add closing message
+      let closingMessage = "Your ";
+      const items = [];
+      
+      if (foodContext.ingredientsAdded) items.push("shopping list");
+      if (foodContext.recipeSaved) items.push("recipe");
+      if (foodContext.eventScheduled) items.push("event");
+      
+      if (items.length === 0) {
+        closingMessage = "Thank you for using Mr. Todoodle! Enjoy your meal! 🍽️";
+      } else if (items.length === 1) {
+        closingMessage = `Your ${items[0]} is saved. Enjoy your meal! 🍽️`;
+      } else if (items.length === 2) {
+        closingMessage = `Your ${items[0]} and ${items[1]} are saved. Enjoy your meal! 🍽️`;
+      } else {
+        closingMessage = `Your ${items[0]}, ${items[1]}, and ${items[2]} are saved. Enjoy your meal! 🍽️`;
+      }
+      
+      // Add restart button
+      const restartButtons: ButtonOption[] = [
+        { 
+          id: 'new-conversation', 
+          label: 'Start New Conversation', 
+          action: () => resetConversation() 
+        }
+      ];
+      
+      addAssistantMessage(closingMessage, undefined, restartButtons);
+    }, 800);
+  };
+  
+  const handleCustomServingSize = (servingSize: number) => {
+    if (isNaN(servingSize) || servingSize < 1) {
+      addAssistantMessage("Please enter a valid number for servings.");
+      return;
     }
     
-    // If we don't have a dish name but have intents
-    if ((context.intents.includes('get_recipe') || context.intents.includes('get_ingredients')) && 
-        !context.dishName) {
-      return "What dish would you like me to help you with?";
-    }
-    
-    // Default response if no specific context is matched
-    return "I'd be happy to help with your food query. Would you like a recipe, ingredient list, or help with meal planning?";
+    // Handle the specified serving size
+    handleServingSizeSelection(servingSize);
   };
 
   const handleSendMessage = () => {
     if (!input.trim()) return;
-
-    const newUserMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: input,
-      timestamp: new Date(),
-    };
-
-    setMessages([...messages, newUserMessage]);
-    setInput('');
-    setIsProcessing(true);
-    setIsTyping(true);
     
-    // Process the message for intent and context
-    setTimeout(() => {
-      const updatedContext = processUserIntent(newUserMessage.content);
-      
-      // Add a small delay before showing the typing indicator
-      setTimeout(() => {
-        setIsTyping(false);
+    // Process message based on current conversation state
+    switch (foodContext.conversationState) {
+      case 'initial':
+      case 'dish_selection':
+        handleDishNameInput(input);
+        break;
+      case 'serving_size':
+        const servingSize = parseInt(input);
+        handleCustomServingSize(servingSize);
+        break;
+      default:
+        // For other states, just send message and get generic response
+        const userMsg = addUserMessage(input);
         
-        // Generate response based on updated context
-        const responseContent = generateAssistantResponse(updatedContext);
-        
-        const assistantResponse: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: responseContent,
-          timestamp: new Date(),
-        };
-        
-        setMessages(prev => [...prev, assistantResponse]);
-        setIsProcessing(false);
-      }, 1500); // Simulate typing time
-    }, 1000);
+        setIsTyping(true);
+        setTimeout(() => {
+          setIsTyping(false);
+          addAssistantMessage(`I understand you're asking about "${input}". Let's continue with our current conversation.`);
+        }, 1000);
+        break;
+    }
+    
+    setInput('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -385,49 +945,8 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     }
   };
 
-  const handleOptionClick = (option: 'camera' | 'upload' | 'barcode') => {
-    setActiveScanOption(option);
-    
-    // Add user message indicating their choice
-    const actionMap = {
-      camera: 'take a picture',
-      upload: 'upload an image',
-      barcode: 'scan a barcode'
-    };
-    
-    const newUserMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: `I want to ${actionMap[option]}`,
-      timestamp: new Date(),
-    };
-    
-    setMessages([...messages, newUserMessage]);
-    setIsProcessing(true);
-    
-    // This is where we would integrate with actual scanning functionality
-    // For now, we'll simulate the response
-    setTimeout(() => {
-      // Set context as if we've identified a food
-      const updatedContext: FoodContext = {
-        ...foodContext,
-        confirmationNeeded: true,
-        identifiedFood: 'lasagna', // This would come from the AI image recognition
-        intents: [...foodContext.intents, 'identify_food']
-      };
-      
-      setFoodContext(updatedContext);
-      
-      const assistantResponse: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: `I think this is lasagna — is that right?`,
-        timestamp: new Date(),
-      };
-      
-      setMessages(prev => [...prev, assistantResponse]);
-      setIsProcessing(false);
-    }, 2000);
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
   };
 
   return (
@@ -447,7 +966,7 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
               "text-xs text-muted-foreground",
               isMobile ? "text-[12px]" : ""
             )}>
-              Chat will be kept for 24h and after is removed.
+              Your AI Food Assistant
             </span>
           </div>
           <div className="flex gap-2">
@@ -466,16 +985,102 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         {/* Chat messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((message) => (
-            <div 
-              key={message.id} 
-              className={cn(
-                "flex max-w-[80%] mb-2 rounded-lg p-3 whitespace-pre-line",
-                message.role === 'user' 
-                  ? "ml-auto bg-primary text-primary-foreground" 
-                  : "bg-muted"
+            <div key={message.id} className="space-y-2">
+              <div 
+                className={cn(
+                  "flex max-w-[85%] rounded-lg p-3 whitespace-pre-line",
+                  message.role === 'user' 
+                    ? "ml-auto bg-primary text-primary-foreground" 
+                    : "bg-muted"
+                )}
+              >
+                {message.content}
+              </div>
+              
+              {message.options && message.options.length > 0 && (
+                <div className="flex flex-wrap gap-2 my-2">
+                  {message.options.map(option => (
+                    <Badge 
+                      key={option.id}
+                      className="cursor-pointer hover:bg-primary"
+                      variant="outline"
+                      onClick={option.action}
+                    >
+                      {option.label}
+                    </Badge>
+                  ))}
+                </div>
               )}
-            >
-              {message.content}
+              
+              {message.buttons && message.buttons.length > 0 && (
+                <div className="flex flex-wrap gap-2 my-2">
+                  {message.buttons.map(button => (
+                    <Button
+                      key={button.id}
+                      variant={button.variant || "default"}
+                      size="sm"
+                      onClick={button.action}
+                      className="flex items-center"
+                    >
+                      {button.icon && button.icon}
+                      {button.label}
+                    </Button>
+                  ))}
+                </div>
+              )}
+              
+              {message.content === "Select a date:" && (
+                <div className="flex justify-center my-4 bg-background rounded-lg p-2 shadow">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className={cn(
+                        "w-[240px] justify-start text-left font-normal",
+                        !selectedDate && "text-muted-foreground"
+                      )}>
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={handleDateSelect}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+              
+              {message.content === "Add notes (optional):" && (
+                <div className="flex justify-center my-4">
+                  <Textarea
+                    placeholder="Add notes for your calendar event"
+                    className="w-full max-w-[350px]"
+                    value={eventNotes}
+                    onChange={(e) => setEventNotes(e.target.value)}
+                  />
+                </div>
+              )}
+              
+              {/* Display selected dietary restrictions as badges if in dietary selection state */}
+              {foodContext.conversationState === 'dietary_restrictions' && 
+               message.content === "Any dietary needs? (Select all that apply)" && 
+               foodContext.dietaryRestrictions.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  <span className="text-sm text-muted-foreground mr-1">Selected:</span>
+                  {foodContext.dietaryRestrictions.map(restriction => (
+                    <Badge 
+                      key={restriction} 
+                      variant="secondary"
+                      className="bg-primary/20"
+                    >
+                      {restriction}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
           
@@ -493,101 +1098,26 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
           <div ref={messagesEndRef} />
         </div>
         
-        {/* Action buttons when no scanning option is active */}
-        {!activeScanOption && (
-          <div className="p-4 space-y-3 border-t">
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-2 flex-1"
-                onClick={() => handleOptionClick('camera')}
-              >
-                <Camera className="h-4 w-4" />
-                <span>Take a Picture</span>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-2 flex-1"
-                onClick={() => handleOptionClick('upload')}
-              >
-                <Upload className="h-4 w-4" />
-                <span>Upload Image</span>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="flex items-center gap-2 flex-1"
-                onClick={() => handleOptionClick('barcode')}
-              >
-                <ScanBarcode className="h-4 w-4" />
-                <span>Scan Barcode</span>
-              </Button>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type your food query..."
-                className="flex-1"
-              />
-              <Button 
-                size="icon" 
-                onClick={handleSendMessage}
-                disabled={!input.trim() || isProcessing}
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
+        {/* Input area */}
+        <div className="p-4 border-t">
+          <div className="flex items-center gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Type your message..."
+              className="flex-1"
+              disabled={isProcessing}
+            />
+            <Button 
+              size="icon" 
+              onClick={handleSendMessage}
+              disabled={!input.trim() || isProcessing}
+            >
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
-        )}
-        
-        {/* Show different UI based on active scanning option */}
-        {activeScanOption && (
-          <div className="p-4 space-y-4 border-t">
-            <div className="flex justify-between items-center">
-              <span className="font-medium">
-                {activeScanOption === 'camera' && 'Take a Picture'}
-                {activeScanOption === 'upload' && 'Upload an Image'}
-                {activeScanOption === 'barcode' && 'Scan a Barcode'}
-              </span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setActiveScanOption(null)}
-              >
-                <X className="h-4 w-4" />
-                <span className="ml-2">Cancel</span>
-              </Button>
-            </div>
-            
-            {/* Placeholder for actual functionality integration */}
-            <div className="bg-muted h-64 rounded-md flex items-center justify-center">
-              {activeScanOption === 'camera' && (
-                <div className="text-center">
-                  <Camera className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
-                  <p>Camera integration will go here</p>
-                </div>
-              )}
-              
-              {activeScanOption === 'upload' && (
-                <div className="text-center">
-                  <Upload className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
-                  <p>File upload integration will go here</p>
-                </div>
-              )}
-              
-              {activeScanOption === 'barcode' && (
-                <div className="text-center">
-                  <ScanBarcode className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
-                  <p>Barcode scanner integration will go here</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        </div>
       </SheetContent>
     </Sheet>
   );
