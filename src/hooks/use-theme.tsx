@@ -115,17 +115,17 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     setTheme(systemTheme || getSystemTheme());
   };
 
+  const contextValue: ThemeContextType = {
+    theme,
+    toggleTheme,
+    setTheme: setThemeWithSave,
+    systemTheme,
+    isUsingSystemTheme,
+    useSystemTheme
+  };
+
   return (
-    <ThemeContext.Provider 
-      value={{ 
-        theme, 
-        toggleTheme, 
-        setTheme: setThemeWithSave,
-        systemTheme,
-        isUsingSystemTheme,
-        useSystemTheme
-      }}
-    >
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

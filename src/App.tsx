@@ -19,6 +19,7 @@ import AIModelsPage from "./pages/AIModelsPage";
 import WeatherPage from "./pages/WeatherPage";
 import NotFound from "./pages/NotFound";
 
+// Create query client with default options
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -28,33 +29,35 @@ const queryClient = new QueryClient({
   }
 });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<Index />} />
-              <Route path="/shopping" element={<ShoppingPage />} />
-              <Route path="/calendar" element={<CalendarPage />} />
-              <Route path="/scan" element={<ScanPage />} />
-              <Route path="/documents" element={<DocumentsPage />} />
-              <Route path="/upload" element={<UploadPage />} />
-              <Route path="/tasks" element={<TasksPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/troubleshoot" element={<TroubleshootPage />} />
-              <Route path="/ai-models" element={<AIModelsPage />} />
-              <Route path="/weather" element={<WeatherPage />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<AppLayout />}>
+                <Route index element={<Index />} />
+                <Route path="/shopping" element={<ShoppingPage />} />
+                <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/scan" element={<ScanPage />} />
+                <Route path="/documents" element={<DocumentsPage />} />
+                <Route path="/upload" element={<UploadPage />} />
+                <Route path="/tasks" element={<TasksPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/troubleshoot" element={<TroubleshootPage />} />
+                <Route path="/ai-models" element={<AIModelsPage />} />
+                <Route path="/weather" element={<WeatherPage />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
