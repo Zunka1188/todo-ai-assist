@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -70,12 +69,10 @@ export const FileAttachmentField: React.FC<FileAttachmentFieldProps> = ({
     };
     reader.readAsDataURL(selectedFile);
     
-    // Reset the input to allow selecting the same file again
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
     
-    // Close the options dialog if open
     setAttachmentOptionsOpen(false);
   };
 
@@ -112,7 +109,6 @@ export const FileAttachmentField: React.FC<FileAttachmentFieldProps> = ({
           
           onAttachmentsChange([...attachments, newAttachment]);
           
-          // Stop camera stream
           stream.getTracks().forEach(track => track.stop());
         }
       };

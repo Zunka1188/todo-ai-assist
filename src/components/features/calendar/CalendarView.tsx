@@ -100,14 +100,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     try {
       setIsFileUploaderOpen(false);
       
-      const attachments: AttachmentType[] = data.file || data.content ? [
-        {
+      const attachments: AttachmentType[] = [];
+      
+      if (data.file || data.content) {
+        attachments.push({
           id: `attachment-${Date.now()}`,
           name: data.title || 'Uploaded file',
           type: 'image',
           url: data.file || data.content || '',
-        }
-      ] : [];
+        });
+      }
       
       const newEvent = {
         id: `event-${Date.now()}`,
