@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Camera, Upload, Calendar, FileText, ShoppingBag, Image, PlusCircle, Brain } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
