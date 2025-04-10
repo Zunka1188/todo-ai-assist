@@ -31,23 +31,26 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
 }) => {
   if (!item) return null;
 
-  // Check if item is a DocumentFile or DocumentItem
+  // Check if item is a DocumentFile or DocumentItem using type guard
   const isDocumentFile = 'fileUrl' in item;
   
   // Determine fileUrl, fileName and fileType based on item type
-  const fileUrl = isDocumentFile 
-    ? item.fileUrl 
-    : (item as DocumentItem).type === 'image' 
-      ? (item as DocumentItem).content 
-      : (item as DocumentItem).file;
-      
-  const fileName = isDocumentFile 
-    ? item.title 
-    : (item as DocumentItem).fileName || item.title;
-    
-  const fileType = isDocumentFile 
-    ? item.fileType 
-    : (item as DocumentItem).fileType || (item as DocumentItem).type;
+  let fileUrl: string | null | undefined;
+  let fileName: string;
+  let fileType: string | undefined;
+  
+  if (isDocumentFile) {
+    // Handle DocumentFile type
+    fileUrl = (item as DocumentFile).fileUrl;
+    fileName = item.title;
+    fileType = (item as DocumentFile).fileType;
+  } else {
+    // Handle DocumentItem type
+    const docItem = item as DocumentItem;
+    fileUrl = docItem.type === 'image' ? docItem.content : docItem.file;
+    fileName = docItem.fileName || item.title;
+    fileType = docItem.fileType || docItem.type;
+  }
 
   const handleDownload = () => {
     if (onDownload && fileUrl) {
@@ -103,7 +106,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
               fileType={fileType as string}
               fileName={fileName}
               className="w-full h-full object-contain"
-              file={null} // Adding null for file prop to satisfy type requirements
+              file={fileUrl} // Use fileUrl for the file prop to satisfy the type requirement
             />
           </div>
           
