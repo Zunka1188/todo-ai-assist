@@ -41,14 +41,15 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
   
   if (isDocumentFile) {
     // Handle DocumentFile type
-    fileUrl = (item as DocumentFile).fileUrl;
-    fileName = item.title;
-    fileType = (item as DocumentFile).fileType;
+    const docFile = item as DocumentFile;
+    fileUrl = docFile.fileUrl;
+    fileName = docFile.title;
+    fileType = docFile.fileType;
   } else {
     // Handle DocumentItem type
     const docItem = item as DocumentItem;
     fileUrl = docItem.type === 'image' ? docItem.content : docItem.file;
-    fileName = docItem.fileName || item.title;
+    fileName = docItem.fileName || docItem.title;
     fileType = docItem.fileType || docItem.type;
   }
 
@@ -106,7 +107,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
               fileType={fileType as string}
               fileName={fileName}
               className="w-full h-full object-contain"
-              file={fileUrl} // Use fileUrl for the file prop to satisfy the type requirement
+              file={fileUrl || ""} // Ensure file prop is always provided with a non-null value
             />
           </div>
           
