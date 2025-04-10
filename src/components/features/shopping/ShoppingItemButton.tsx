@@ -37,6 +37,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
   ...rest
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -45,8 +46,27 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
   };
 
   const handleConfirmDelete = () => {
-    setShowDeleteConfirm(false);
-    if (onDelete) onDelete();
+    if (isProcessing) return;
+    setIsProcessing(true);
+    
+    try {
+      setShowDeleteConfirm(false);
+      if (onDelete) onDelete();
+    } catch (error) {
+      console.error("Error during item deletion:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+  
+  const handleItemClick = (e: React.MouseEvent) => {
+    if (isProcessing || readOnly) return;
+    
+    setIsProcessing(true);
+    setTimeout(() => {
+      if (onClick) onClick(e);
+      setIsProcessing(false);
+    }, 0);
   };
 
   return (
@@ -56,16 +76,21 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
           "w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-between",
           completed ? "opacity-70 line-through" : "opacity-100",
         )}
-        onClick={onClick}
-        disabled={readOnly}
+        onClick={handleItemClick}
+        disabled={isProcessing || readOnly}
+        aria-busy={isProcessing}
         {...rest}
       >
         <div className="flex items-center">
           <Checkbox
             id={`item-${name}`}
             checked={completed}
-            onCheckedChange={() => onClick && onClick({} as any)}
-            disabled={readOnly}
+            onCheckedChange={() => {
+              if (!isProcessing && onClick) {
+                handleItemClick({} as React.MouseEvent);
+              }
+            }}
+            disabled={isProcessing || readOnly}
             aria-label={name}
           />
           <label
@@ -87,7 +112,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
               <MoreHorizontal className="h-4 w-4" aria-label="Options" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
+          <DropdownMenuContent align="end" className="w-40 z-50 bg-background border">
             {imageUrl && (
               <DropdownMenuItem onClick={onImagePreview} aria-label="View Image">
                 <ImageIcon className="mr-2 h-4 w-4" />

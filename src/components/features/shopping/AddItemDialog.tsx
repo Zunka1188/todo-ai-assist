@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Textarea } from '@/components/ui/textarea';
 import FilePreview, { getFileTypeFromName } from '../documents/FilePreview';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ImageAnalysisModal from '../documents/ImageAnalysisModal';
 import { AnalysisResult } from '@/utils/imageAnalysis';
@@ -166,7 +166,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
         fileName: fileName || undefined,
         fileType: fileType || undefined,
         repeatOption,
-        completed: false
+        completed: editItem?.completed || false
       };
       
       // Call onSave and store result
@@ -232,6 +232,12 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
     }
   };
 
+  // Force closing the fullscreen preview
+  const handleForceCloseFullscreen = () => {
+    setFullScreenPreview(false);
+    // Don't show cancel alert when just closing fullscreen view
+  };
+
   if (fullScreenPreview && file && fileType === 'image') {
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col">
@@ -248,7 +254,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
             variant="ghost" 
             size="icon"
             className="text-white" 
-            onClick={handleCancel}
+            onClick={handleForceCloseFullscreen}
           >
             <X className="h-6 w-6" />
           </Button>
@@ -258,6 +264,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
             src={file} 
             alt="Full screen preview" 
             className="max-h-full max-w-full object-contain"
+            loading="lazy"
           />
         </div>
       </div>
@@ -406,7 +413,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
             
             <ScrollArea 
               className="p-4 pt-0 flex-1 overflow-auto max-h-[60vh]" 
-              scrollRef={scrollRef}
+              ref={scrollRef}
             >
               {dialogContent}
             </ScrollArea>
@@ -451,7 +458,7 @@ const AddItemDialog = ({ open, onOpenChange, onSave, editItem = null, isEditing 
               <DialogTitle>{isEditing ? "Edit Item" : "Add New Item"}</DialogTitle>
             </DialogHeader>
 
-            <ScrollArea className="flex-1 max-h-[60vh] pr-4 overflow-y-auto" scrollRef={scrollRef}>
+            <ScrollArea className="flex-1 max-h-[60vh] pr-4 overflow-y-auto">
               {dialogContent}
             </ScrollArea>
 

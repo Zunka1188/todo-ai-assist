@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -6,10 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2, Trash2, Maximize2, Minimize2, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import FilePreview, { getFileTypeFromName } from '../documents/FilePreview';
 
 export interface EditItemDialogProps {
   isOpen: boolean;
@@ -34,6 +36,8 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
   const [formModified, setFormModified] = useState(false);
   const { isMobile } = useIsMobile();
   const [showFileInput, setShowFileInput] = useState(false);
+  const [fullScreenPreview, setFullScreenPreview] = useState(false);
+  const [fileType, setFileType] = useState('');
 
   useEffect(() => {
     if (item && isOpen) {
@@ -45,6 +49,13 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
         imageUrl: item.imageUrl || '',
         file: null,
       });
+      
+      // Detect file type for the image preview
+      if (item.imageUrl) {
+        const fileName = item.fileName || '';
+        setFileType(fileName ? getFileTypeFromName(fileName) : 'image');
+      }
+      
       setFormModified(false);
       setShowFileInput(false);
     }
@@ -66,11 +77,19 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
     if (file) {
       setFormData(prev => ({ ...prev, file }));
       setFormModified(true);
+      
+      // Detect file type for new uploads
+      const fileName = file.name || '';
+      setFileType(getFileTypeFromName(fileName));
     }
   };
 
   const toggleFileInput = () => {
     setShowFileInput(!showFileInput);
+  };
+  
+  const toggleFullScreenPreview = () => {
+    setFullScreenPreview(!fullScreenPreview);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -116,6 +135,45 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
       onClose();
     }
   };
+  
+  // Force close fullscreen preview
+  const handleForceCloseFullscreen = () => {
+    setFullScreenPreview(false);
+  };
+
+  // If in fullscreen preview mode, render that instead of the dialog
+  if (fullScreenPreview && formData.imageUrl) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex flex-col">
+        <div className="p-4 flex justify-between items-center bg-black/80">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-white" 
+            onClick={toggleFullScreenPreview}
+          >
+            <Minimize2 className="h-6 w-6" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="text-white" 
+            onClick={handleForceCloseFullscreen}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
+        <div className="flex-1 flex items-center justify-center overflow-auto">
+          <img 
+            src={formData.imageUrl} 
+            alt="Full screen preview" 
+            className="max-h-full max-w-full object-contain"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    );
+  }
 
   const formFields = (
     <div className="space-y-4">
@@ -151,7 +209,7 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
           <SelectTrigger>
             <SelectValue placeholder="Select frequency" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="z-50 bg-background border">
             <SelectItem value="none">One-time purchase</SelectItem>
             <SelectItem value="weekly">Weekly</SelectItem>
             <SelectItem value="monthly">Monthly</SelectItem>
@@ -185,12 +243,26 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
         )}
         
         {formData.imageUrl && !formData.file && (
-          <div className="mt-2">
-            <img 
-              src={formData.imageUrl} 
-              alt="Item preview" 
-              className="max-h-20 rounded-md" 
-            />
+          <div className="mt-2 relative">
+            <div className="max-h-20 rounded-md overflow-hidden">
+              <img 
+                src={formData.imageUrl} 
+                alt="Item preview" 
+                className="w-full object-cover" 
+              />
+            </div>
+            
+            {/* Add fullscreen button */}
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="absolute top-1 right-1 h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
+              onClick={toggleFullScreenPreview}
+              aria-label="View fullscreen"
+            >
+              <Maximize2 className="h-4 w-4" />
+            </Button>
           </div>
         )}
       </div>
