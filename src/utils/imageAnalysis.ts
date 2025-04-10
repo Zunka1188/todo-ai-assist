@@ -10,6 +10,7 @@ export interface AnalysisResult {
   date?: string;
   extractedText?: string;
   metadata?: Record<string, any>;
+  price?: string | number; // Added price property to fix the TypeScript error
 }
 
 // Helper function to map detected document types to document categories
@@ -390,6 +391,27 @@ export const detectLanguage = (text: string): string => {
   return detectedLanguage;
 };
 
+// Function to extract price from text
+const extractPrice = (text: string): string | null => {
+  // Common price formats
+  const pricePatterns = [
+    /\$\s?(\d+(?:\.\d{1,2})?)/i, // $XX.XX format
+    /(\d+(?:\.\d{1,2})?)\s?(?:dollars|usd)/i, // XX.XX dollars/usd format
+    /price:?\s*\$?\s*(\d+(?:\.\d{1,2})?)/i, // "Price: $XX.XX" format
+    /cost:?\s*\$?\s*(\d+(?:\.\d{1,2})?)/i, // "Cost: $XX.XX" format
+    /(\d+(?:\.\d{1,2})?)\s?(?:€|£|¥)/, // Other currencies
+  ];
+  
+  for (const pattern of pricePatterns) {
+    const match = text.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  
+  return null;
+};
+
 // Export the main image analysis function
 export const analyzeImage = async (imageData: string, fileName?: string): Promise<AnalysisResult> => {
   // Determine file type
@@ -416,10 +438,14 @@ export const analyzeImage = async (imageData: string, fileName?: string): Promis
   // Extract location if available
   const location = extractLocation(extractedText);
   
+  // Extract price if available
+  const price = extractPrice(extractedText);
+  
   // Create metadata object
   const metadata: Record<string, any> = {};
   if (eventDate) metadata.date = eventDate.toISOString().split('T')[0];
   if (location) metadata.location = location;
+  if (price) metadata.price = price;
   
   // Detect language
   metadata.language = detectLanguage(extractedText);
@@ -431,7 +457,8 @@ export const analyzeImage = async (imageData: string, fileName?: string): Promis
     description: extractedText.substring(0, 150),
     date: eventDate ? eventDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     extractedText,
-    metadata
+    metadata,
+    price
   };
 };
 

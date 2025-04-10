@@ -13,6 +13,7 @@ interface DocumentClassificationResult {
   extractedText?: string;
   metadata?: Record<string, any>;
   confidence?: number;
+  price?: string | number;
 }
 
 export const useDocumentClassification = () => {
@@ -59,7 +60,8 @@ export const useDocumentClassification = () => {
       date: result.metadata?.date || new Date().toISOString().split('T')[0],
       extractedText: result.extractedText,
       metadata: result.metadata,
-      confidence: result.confidence
+      confidence: result.confidence,
+      price: result.metadata?.price || null
     };
   };
   
@@ -71,7 +73,8 @@ export const useDocumentClassification = () => {
       description: result.description || '',
       date: result.date || new Date().toISOString().split('T')[0],
       extractedText: result.extractedText,
-      metadata: result.metadata
+      metadata: result.metadata,
+      price: result.price || result.metadata?.price || null
     };
   };
   
