@@ -56,6 +56,7 @@ interface AddDocDialogItem {
 }
 
 const DocumentsSubtabPage = () => {
+  
   const { subtab } = useParams<{ subtab: DocumentTab }>();
   const navigate = useNavigate();
   const { isMobile } = useIsMobile();
@@ -86,6 +87,7 @@ const DocumentsSubtabPage = () => {
   } = useDocumentActions({ setIsLoading });
   
   const { classifyDocument } = useDocumentClassification();
+  
   
   useEffect(() => {
     if (subtab !== activeTab && activeTab) {
@@ -199,25 +201,29 @@ const DocumentsSubtabPage = () => {
     navigate('/documents');
   }, [navigate]);
   
+  // Fixed the document handling function to ensure all required properties are present
   const handleAddDocumentWrapper = useCallback((item: AddDocDialogItem) => {
     console.log("Document item received:", item);
     
-    const documentItem: Partial<DocumentItem> = {
+    const documentItem: DocumentItem = {
       id: item.id,
       title: item.title,
       category: item.category as DocumentCategory,
+      // Ensure these required properties are always defined
       type: (item.type as 'image' | 'note') || 'note',
       content: item.content || item.description || '',
       tags: item.tags || [],
       date: new Date(item.date),
       addedDate: new Date(item.addedDate),
-      file: item.file,
+      file: item.file || null,
       fileName: item.fileName,
       fileType: item.fileType
     };
     
-    handleAddOrUpdateItem(documentItem as DocumentItem);
+    handleAddOrUpdateItem(documentItem);
   }, [handleAddOrUpdateItem]);
+
+  
 
   if (isLoading) {
     return (
