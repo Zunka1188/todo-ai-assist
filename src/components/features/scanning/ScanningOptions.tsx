@@ -171,7 +171,7 @@ const ScanningOptions: React.FC<ScanningOptionsProps> = ({
               <DialogTitle>AI Smart Scan</DialogTitle>
             </DialogHeader>
             <SmartScannerCapture
-              mode={smartScannerMode}
+              preferredMode={smartScannerMode}
               onSaveSuccess={handleSaveSuccess}
               onClose={() => setShowSmartScanner(false)}
             />
