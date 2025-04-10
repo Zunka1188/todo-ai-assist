@@ -25,16 +25,10 @@ const AIAssistantWidget = ({ className }: AIScanWidgetProps) => {
       className={cn("bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/30", 
         className
       )}
+      title="AI Assistant"
+      icon={<Brain className="h-4 w-4 text-purple-500" />}
     >
       <div className="flex flex-col space-y-3 p-1">
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-sm font-medium flex items-center">
-            <Brain className="h-3.5 w-3.5 mr-1.5 text-purple-500" />
-            AI Assistant
-          </span>
-          <Sparkles className="h-3.5 w-3.5 text-purple-500" />
-        </div>
-        
         <p className="text-xs text-muted-foreground">
           Use AI to scan products, get recipe ideas, and manage your shopping list.
         </p>
