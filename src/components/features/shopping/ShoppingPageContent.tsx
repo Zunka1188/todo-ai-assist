@@ -24,8 +24,9 @@ const ShoppingPageContent: React.FC = () => {
     const result = addItem(item);
     if (result) {
       setIsAddDialogOpen(false);
+      return true; // Return boolean instead of the result object
     }
-    return result;
+    return false; // Return false if result is falsy
   };
   
   return (
