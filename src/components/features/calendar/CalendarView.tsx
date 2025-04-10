@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
@@ -110,7 +111,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         color: data.color || '#4285F4',
         allDay: false,
         reminder: '30',
-        image: data.file || data.content || null,
+        image: data.file || data.content || null
       };
       
       handleSaveEvent(newEvent);
