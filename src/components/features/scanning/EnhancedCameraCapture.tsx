@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Camera, X, CameraOff, Settings, Image, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -252,7 +251,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     
     console.log("EnhancedCameraCapture mounted, initializing camera...");
     
-    // Allow time for the DOM to render before requesting camera (longer timeout)
     const timer = setTimeout(() => {
       if (videoRef.current) {
         console.log("Video element is ready, requesting camera permission");
@@ -260,7 +258,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
       } else {
         console.error("Video element still not available after timeout");
       }
-    }, 300); // Increased timeout
+    }, 300);
     
     return () => {
       clearTimeout(timer);
@@ -295,7 +293,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
       </div>
       
       <div className="relative bg-black rounded-lg overflow-hidden aspect-[4/3] flex items-center justify-center">
-        {/* Video element always rendered to maintain reference */}
         <video 
           id="enhanced-camera-video"
           ref={videoRef}
@@ -455,6 +452,27 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
           </Button>
         </div>
       )}
+      
+      <style>
+        {`.animate-scan {
+          animation: scan 3s linear infinite;
+        }
+        
+        @keyframes scan {
+          0% {
+            top: 0;
+          }
+          50% {
+            top: 100%;
+          }
+          50.1% {
+            top: 0;
+          }
+          100% {
+            top: 100%;
+          }
+        }`}
+      </style>
     </div>
   );
 };
