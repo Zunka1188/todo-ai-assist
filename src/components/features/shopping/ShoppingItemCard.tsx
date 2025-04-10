@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -48,9 +47,8 @@ const ShoppingItemCard = ({
       } 
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
-  // Increased card dimensions for mobile based on the user's screenshots
-  // The first image shows smaller cards, the second shows desired larger cards
-  const cardSize = isMobile ? '140px' : '130px';
+  // Adjusted card dimensions for 3-column mobile layout
+  const cardSize = isMobile ? '105px' : '130px';
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only trigger image preview if clicking on the card background
@@ -104,7 +102,7 @@ const ShoppingItemCard = ({
             className={cn(
               "rounded-full shadow-md",
               "bg-white/80 hover:bg-white text-gray-800",
-              "w-10 h-10",
+              "w-6 h-6", // Smaller button for 3-column layout
               "transition-all duration-200 hover:scale-110",
               "dark:border dark:border-gray-600"
             )}
@@ -114,7 +112,7 @@ const ShoppingItemCard = ({
             }}
             aria-label={`Edit ${name}`}
           >
-            <Pencil className="h-5 w-5" />
+            <Pencil className="h-3 w-3" />
           </Button>
         )}
       </div>
@@ -128,11 +126,11 @@ const ShoppingItemCard = ({
         }}
       >
         {completed && (
-          <div className="rounded-full bg-green-500/80 flex items-center justify-center h-14 w-14">
+          <div className="rounded-full bg-green-500/80 flex items-center justify-center h-10 w-10">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              width="28" 
-              height="28" 
+              width="20" 
+              height="20" 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
@@ -158,7 +156,7 @@ const ShoppingItemCard = ({
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
               lineHeight: 1.2,
-              fontSize: '0.85rem'
+              fontSize: '0.8rem'
             }}>
           {name}
         </h3>
@@ -167,7 +165,7 @@ const ShoppingItemCard = ({
             <span className="text-white/90 text-shadow" 
                   style={{ 
                     textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-                    fontSize: '0.75rem'
+                    fontSize: '0.7rem'
                   }}>
               {quantity}
             </span>

@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { ShoppingItemsProvider } from '@/components/features/shopping/ShoppingItemsContext';
 import ShoppingPageContent from '@/components/features/shopping/ShoppingPageContent';
 import ErrorBoundary from '@/components/ui/error-boundary';
-import { setupCrossBrowserSync } from '@/services/shoppingService';
+import { setupCrossBrowserSync, enhancedMobileSave, saveItems, loadItems } from '@/services/shoppingService';
 
 // Add mobile browser persistence enhancement
 import { setupMobilePersistence } from '@/services/shoppingService';
@@ -22,6 +22,18 @@ const ShoppingPage: React.FC = () => {
     if (isMobile) {
       cleanupMobilePersistence = setupMobilePersistence();
       console.log('[ShoppingPage] Mobile persistence setup complete');
+      
+      // Force restore from localStorage on mobile to ensure data is available after refreshes
+      try {
+        const items = loadItems();
+        if (items && items.length > 0) {
+          // Ensure data is properly saved
+          enhancedMobileSave(items);
+          console.log('[ShoppingPage] Mobile data restored and saved:', items.length, 'items');
+        }
+      } catch (error) {
+        console.error('[ShoppingPage] Error restoring mobile data:', error);
+      }
     }
     
     // Cleanup function for both

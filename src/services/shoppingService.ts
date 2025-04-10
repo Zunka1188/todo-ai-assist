@@ -38,6 +38,22 @@ export const saveItems = (items: ShoppingItem[]): boolean => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
+    
+    // Force critical data sync for added reliability
+    try {
+      // Create and dispatch a storage event to notify other tabs
+      if (typeof window !== 'undefined') {
+        const storageEvent = new StorageEvent('storage', {
+          key: STORAGE_KEY,
+          newValue: JSON.stringify(items),
+          url: window.location.href
+        });
+        window.dispatchEvent(storageEvent);
+      }
+    } catch (e) {
+      console.error("[ERROR] Failed to dispatch storage event:", e);
+    }
+    
     return true;
   } catch (error) {
     console.error("[ERROR] Failed to save items to storage:", error);
@@ -111,14 +127,25 @@ export const enhancedMobileSave = (items: ShoppingItem[]): boolean => {
   // First try - normal save
   const result = saveItems(items);
   
-  // Fallback with delay (helps with mobile browsers)
+  // Fallback with multiple save attempts (helps with mobile browsers)
   setTimeout(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      console.log("[DEBUG] Mobile fallback save 1 completed");
     } catch (error) {
-      console.error('[ERROR] Enhanced save fallback failed:', error);
+      console.error('[ERROR] Enhanced save fallback 1 failed:', error);
     }
   }, 100);
+  
+  // Second fallback after longer delay
+  setTimeout(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      console.log("[DEBUG] Mobile fallback save 2 completed");
+    } catch (error) {
+      console.error('[ERROR] Enhanced save fallback 2 failed:', error);
+    }
+  }, 500);
   
   return result;
 };
