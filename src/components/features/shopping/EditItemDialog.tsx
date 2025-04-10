@@ -1,17 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Trash2, Maximize2, Minimize2, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import FilePreview, { getFileTypeFromName } from '../documents/FilePreview';
+import { getFileTypeFromName } from '../documents/FilePreview';
+
+import FormFields from './FormFields';
+import FullScreenPreview from './FullScreenPreview';
+import EditItemFooter from './EditItemFooter';
+import CancelConfirmDialog from './CancelConfirmDialog';
 
 export interface EditItemDialogProps {
   isOpen: boolean;
@@ -91,6 +90,10 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
   const toggleFullScreenPreview = () => {
     setFullScreenPreview(!fullScreenPreview);
   };
+  
+  const handleForceCloseFullscreen = () => {
+    setFullScreenPreview(false);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,152 +138,19 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
       onClose();
     }
   };
-  
-  // Force close fullscreen preview
-  const handleForceCloseFullscreen = () => {
-    setFullScreenPreview(false);
-  };
 
   // If in fullscreen preview mode, render that instead of the dialog
   if (fullScreenPreview && formData.imageUrl) {
     return (
-      <div className="fixed inset-0 bg-black z-50 flex flex-col">
-        <div className="p-4 flex justify-between items-center bg-black/80">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="text-white" 
-            onClick={toggleFullScreenPreview}
-          >
-            <Minimize2 className="h-6 w-6" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="text-white" 
-            onClick={handleForceCloseFullscreen}
-          >
-            <X className="h-6 w-6" />
-          </Button>
-        </div>
-        <div className="flex-1 flex items-center justify-center overflow-auto">
-          <img 
-            src={formData.imageUrl} 
-            alt="Full screen preview" 
-            className="max-h-full max-w-full object-contain"
-            loading="lazy"
-          />
-        </div>
-      </div>
+      <FullScreenPreview 
+        imageUrl={formData.imageUrl} 
+        onClose={handleForceCloseFullscreen}
+        onToggle={toggleFullScreenPreview}
+      />
     );
   }
 
-  const formFields = (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">Name</Label>
-        <Input
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          placeholder="Item name"
-          required
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="amount">Quantity</Label>
-        <Input
-          id="amount"
-          name="amount"
-          value={formData.amount}
-          onChange={handleChange}
-          placeholder="e.g. 2 lbs, 1 carton"
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="repeatOption">Recurring Item</Label>
-        <Select
-          value={formData.repeatOption}
-          onValueChange={handleSelectChange}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select frequency" />
-          </SelectTrigger>
-          <SelectContent className="z-50 bg-background border">
-            <SelectItem value="none">One-time purchase</SelectItem>
-            <SelectItem value="weekly">Weekly</SelectItem>
-            <SelectItem value="monthly">Monthly</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="image">Image</Label>
-          {isMobile && (
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="sm" 
-              onClick={toggleFileInput} 
-              className="text-xs"
-            >
-              {showFileInput ? 'Hide' : 'Change Image'}
-            </Button>
-          )}
-        </div>
-        
-        {(!isMobile || showFileInput) && (
-          <Input
-            id="image"
-            type="file"
-            onChange={handleFileChange}
-            accept="image/*"
-          />
-        )}
-        
-        {formData.imageUrl && !formData.file && (
-          <div className="mt-2 relative">
-            <div className="max-h-20 rounded-md overflow-hidden">
-              <img 
-                src={formData.imageUrl} 
-                alt="Item preview" 
-                className="w-full object-cover" 
-              />
-            </div>
-            
-            {/* Add fullscreen button */}
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="absolute top-1 right-1 h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
-              onClick={toggleFullScreenPreview}
-              aria-label="View fullscreen"
-            >
-              <Maximize2 className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea
-          id="notes"
-          name="notes"
-          value={formData.notes}
-          onChange={handleChange}
-          placeholder="Additional details"
-          rows={3}
-        />
-      </div>
-    </div>
-  );
-
+  // Mobile drawer or desktop dialog
   return (
     <>
       {isMobile ? (
@@ -292,54 +162,26 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
             
             <form onSubmit={handleSubmit} className="px-4 pt-2">
               <ScrollArea className="h-[50vh] overflow-y-auto">
-                {formFields}
+                <FormFields
+                  formData={formData}
+                  handleChange={handleChange}
+                  handleSelectChange={handleSelectChange}
+                  handleFileChange={handleFileChange}
+                  toggleFileInput={toggleFileInput}
+                  toggleFullScreenPreview={toggleFullScreenPreview}
+                  showFileInput={showFileInput}
+                />
               </ScrollArea>
               
-              <DrawerFooter className="flex flex-col gap-2 pt-4">
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isSubmitting || isDeleting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : 'Save Changes'}
-                </Button>
-                
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handleCancel} 
-                  disabled={isSubmitting || isDeleting}
-                  className="w-full"
-                >
-                  Cancel
-                </Button>
-                
-                {onDelete && (
-                  <Button 
-                    type="button" 
-                    variant="destructive" 
-                    onClick={handleDelete}
-                    disabled={isSubmitting || isDeleting}
-                    className="w-full flex items-center justify-center gap-1"
-                  >
-                    {isDeleting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Deleting...
-                      </>
-                    ) : (
-                      <>
-                        <Trash2 className="h-4 w-4" />
-                        Delete
-                      </>
-                    )}
-                  </Button>
-                )}
+              <DrawerFooter>
+                <EditItemFooter
+                  onSave={handleSubmit}
+                  onCancel={handleCancel}
+                  onDelete={onDelete ? handleDelete : undefined}
+                  isSubmitting={isSubmitting}
+                  isDeleting={isDeleting}
+                  isMobile={true}
+                />
               </DrawerFooter>
             </form>
           </DrawerContent>
@@ -352,67 +194,36 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
             </DialogHeader>
             
             <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-              {formFields}
+              <FormFields
+                formData={formData}
+                handleChange={handleChange}
+                handleSelectChange={handleSelectChange}
+                handleFileChange={handleFileChange}
+                toggleFileInput={toggleFileInput}
+                toggleFullScreenPreview={toggleFullScreenPreview}
+                showFileInput={showFileInput}
+              />
               
-              <DialogFooter className="pt-4 flex flex-col sm:flex-row gap-2">
-                <div className="flex-1 flex justify-start">
-                  {onDelete && (
-                    <Button 
-                      type="button" 
-                      variant="destructive" 
-                      onClick={handleDelete}
-                      disabled={isSubmitting || isDeleting}
-                      className="flex items-center gap-1"
-                    >
-                      {isDeleting ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Deleting...
-                        </>
-                      ) : (
-                        <>
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <Button type="button" variant="outline" onClick={handleCancel} disabled={isSubmitting || isDeleting}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting || isDeleting}>
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : 'Save Changes'}
-                  </Button>
-                </div>
+              <DialogFooter>
+                <EditItemFooter
+                  onSave={handleSubmit}
+                  onCancel={handleCancel}
+                  onDelete={onDelete ? handleDelete : undefined}
+                  isSubmitting={isSubmitting}
+                  isDeleting={isDeleting}
+                  isMobile={false}
+                />
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
       )}
 
-      <AlertDialog open={showCancelAlert} onOpenChange={setShowCancelAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Discard changes?</AlertDialogTitle>
-            <AlertDialogDescription>
-              You have unsaved changes that will be lost if you cancel.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-            <AlertDialogCancel className="mt-0 sm:mt-0">Keep Editing</AlertDialogCancel>
-            <AlertDialogAction onClick={onClose} className="bg-red-600 hover:bg-red-700 text-white">
-              Discard Changes
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CancelConfirmDialog
+        isOpen={showCancelAlert} 
+        onOpenChange={setShowCancelAlert}
+        onConfirm={onClose}
+      />
     </>
   );
 };
