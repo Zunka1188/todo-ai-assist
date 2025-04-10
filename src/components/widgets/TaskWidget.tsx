@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { CheckSquare, Plus } from 'lucide-react';
+import { Check, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -82,7 +82,7 @@ const TaskWidget = () => {
     <Card className="h-full shadow-sm hover:shadow transition-shadow duration-300">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="flex items-center space-x-2">
-          <CheckSquare className="h-5 w-5 text-todo-purple" />
+          <Check className="h-5 w-5 text-todo-purple" />
           <h3 className={cn(
             "font-medium",
             theme === 'light' ? "text-foreground" : "text-white"
@@ -113,7 +113,7 @@ const TaskWidget = () => {
                   onClick={() => toggleTaskStatus(task.id)}
                 >
                   {task.completed && (
-                    <CheckSquare className="w-4 h-4 text-white" />
+                    <Check className="w-4 h-4 text-white" />
                   )}
                 </button>
                 <div className="flex flex-col">
