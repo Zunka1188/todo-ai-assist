@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday } from 'date-fns';
@@ -172,13 +173,14 @@ const WeekView: React.FC<WeekViewProps> = ({
     }
     
     return {
-      position: 'absolute',
+      position: 'absolute' as const,
       top: `${topPosition}px`,
       height: `${heightValue}px`, 
       left: `${leftOffset}%`,
       width: `${eventWidth}%`,
       minWidth: isMobile ? '80%' : '80px',
       zIndex: 20,
+      backgroundColor: event.color || '#4285F4'
     };
   };
 
@@ -519,10 +521,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                                 "absolute text-xs p-2 rounded cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto",
                                 isMobile ? "left-0 right-0 mx-1" : ""
                               )}
-                              style={{
-                                backgroundColor: event.color || '#4285F4',
-                                ...getMultiHourEventStyle(event, daysInWeek[dayIdx], group.length, eventIndex)
-                              }}
+                              style={getMultiHourEventStyle(event, daysInWeek[dayIdx], group.length, eventIndex)}
                               onClick={() => handleViewEvent(event)}
                             >
                               <div className="flex items-center">

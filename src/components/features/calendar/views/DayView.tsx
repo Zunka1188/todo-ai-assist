@@ -159,12 +159,13 @@ const DayView: React.FC<DayViewProps> = ({
     const leftOffset = (index * widthPerEvent) + 12;
     
     return {
-      position: 'absolute',
+      position: 'absolute' as const,
       top: `${topPosition}px`,
       height: `${heightValue}px`,
       left: `${leftOffset}%`,
       width: `${widthPerEvent - 1}%`,
       zIndex: 20,
+      backgroundColor: event.color || '#4285F4',
     };
   };
 
@@ -472,10 +473,7 @@ const DayView: React.FC<DayViewProps> = ({
                   <div 
                     key={`multi-${event.id}`}
                     className="rounded p-2 cursor-pointer hover:opacity-90 touch-manipulation pointer-events-auto"
-                    style={{ 
-                      backgroundColor: event.color || '#4285F4',
-                      ...getMultiHourEventStyle(event, group.length, eventIndex)
-                    }}
+                    style={getMultiHourEventStyle(event, group.length, eventIndex)}
                     onClick={() => handleViewEvent(event)}
                   >
                     <div className="font-medium text-white truncate">{event.title}</div>
