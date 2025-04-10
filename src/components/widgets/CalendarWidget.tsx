@@ -198,8 +198,12 @@ const CalendarWidget = () => {
         <EventViewDialog
           isOpen={isViewDialogOpen}
           setIsOpen={setIsViewDialogOpen}
-          event={selectedEvent}
+          selectedEvent={selectedEvent}
           onEdit={handleViewToEdit}
+          onDelete={() => {
+            setIsViewDialogOpen(false);
+            setSelectedEvent(null);
+          }}
         />
       )}
     </WidgetWrapper>
