@@ -14,15 +14,21 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   // Get the current system theme
   const getSystemTheme = (): Theme => {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'dark'; // Default to dark when window is not available
   };
 
   // State to track if we're using the system theme
   const [isUsingSystemTheme, setIsUsingSystemTheme] = useState<boolean>(() => {
-    return localStorage.getItem('theme') === null;
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') === null;
+    }
+    return true;
   });
   
   // Track the system theme separately
@@ -31,15 +37,18 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // The actual theme to apply
   const [theme, setTheme] = useState<Theme>(() => {
     // Get theme from localStorage if available
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    
-    // If using system preference or no saved theme
-    if (!savedTheme) {
-      return getSystemTheme();
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme') as Theme | null;
+      
+      // If using system preference or no saved theme
+      if (!savedTheme) {
+        return getSystemTheme();
+      }
+      
+      // Return saved theme
+      return savedTheme;
     }
-    
-    // Return saved theme
-    return savedTheme;
+    return 'dark'; // Default to dark when window is not available
   });
 
   // Initialize system theme after mount
@@ -49,12 +58,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Apply theme class to document
   useEffect(() => {
-    if (theme) {
+    if (theme && typeof document !== 'undefined') {
       document.documentElement.classList.remove('light', 'dark');
       document.documentElement.classList.add(theme);
       
       // Only save to localStorage if not using system theme
-      if (!isUsingSystemTheme) {
+      if (!isUsingSystemTheme && typeof window !== 'undefined') {
         localStorage.setItem('theme', theme);
       }
     }
@@ -62,6 +71,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Listen for system preference changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     
     const handleChange = (e: MediaQueryListEvent) => {
@@ -98,7 +109,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const useSystemTheme = () => {
     setIsUsingSystemTheme(true);
-    localStorage.removeItem('theme');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('theme');
+    }
     setTheme(systemTheme || getSystemTheme());
   };
 

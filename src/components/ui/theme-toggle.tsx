@@ -37,7 +37,9 @@ export function ThemeToggle() {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <ToggleButton />
+        <span className="inline-block">
+          <ToggleButton />
+        </span>
       </TooltipTrigger>
       <TooltipContent className="bg-card text-card-foreground border-border">
         <p>Toggle {isDark ? 'light' : 'dark'} mode</p>
