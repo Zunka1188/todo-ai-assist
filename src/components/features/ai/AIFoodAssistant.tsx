@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Upload, ScanBarcode, Send, X, RotateCcw, Calendar, ShoppingCart, Receipt, Clock } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -173,6 +174,7 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
 
   const resetConversation = () => {
     localStorage.removeItem(STORAGE_KEY);
+    
     setMessages([]);
     setFoodContext({
       conversationState: 'initial',
@@ -184,6 +186,7 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     setInput('');
     setActiveScanOption(null);
     setIsProcessing(false);
+    
     startConversation();
   };
 
@@ -435,76 +438,44 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       if (dietaryRestrictions.includes('Low-Carb')) {
         ingredientsList = ingredientsList.replace('lasagna sheets', 'sliced zucchini (as pasta replacement)');
       }
-      
-      const ingredientButtons: ButtonOption[] = [
-        { 
-          id: 'add-to-shopping', 
-          label: 'Add to Shopping List', 
-          icon: <ShoppingCart className="w-4 h-4 mr-1" />,
-          action: () => handleAddToShoppingList() 
-        },
-        { 
-          id: 'adjust-servings', 
-          label: 'Adjust Servings', 
-          icon: <Clock className="w-4 h-4 mr-1" />,
-          action: () => {
-            setFoodContext(prev => ({
-              ...prev,
-              conversationState: 'serving_size'
-            }));
-            const servingButtons: ButtonOption[] = [
-              { id: '1', label: '1', variant: 'outline', action: () => handleServingSizeSelection(1) },
-              { id: '2', label: '2', variant: 'outline', action: () => handleServingSizeSelection(2) },
-              { id: '3', label: '3', variant: 'outline', action: () => handleServingSizeSelection(3) },
-              { id: '4', label: '4', variant: 'outline', action: () => handleServingSizeSelection(4) },
-              { id: 'custom', label: 'Custom', variant: 'outline', action: () => {
-                addAssistantMessage("How many servings do you need?");
-              }},
-            ];
-            addAssistantMessage("How many servings would you like instead?", undefined, servingButtons);
-          } 
-        },
-      ];
-      
-      addAssistantMessage(ingredientsList, undefined, ingredientButtons);
     } else {
       ingredientsList = `Ingredients for ${dishName || "your dish"} (${servingSize || 2} servings):\n\n`;
       ingredientsList += `- Main ingredient\n`;
       ingredientsList += `- Secondary ingredient\n`;
       ingredientsList += `- Herbs and spices\n`;
-      
-      const ingredientButtons: ButtonOption[] = [
-        { 
-          id: 'add-to-shopping', 
-          label: 'Add to Shopping List', 
-          icon: <ShoppingCart className="w-4 h-4 mr-1" />,
-          action: () => handleAddToShoppingList() 
-        },
-        { 
-          id: 'adjust-servings', 
-          label: 'Adjust Servings', 
-          icon: <Clock className="w-4 h-4 mr-1" />,
-          action: () => {
-            setFoodContext(prev => ({
-              ...prev,
-              conversationState: 'serving_size'
-            }));
-            const servingButtons: ButtonOption[] = [
-              { id: '1', label: '1', variant: 'outline', action: () => handleServingSizeSelection(1) },
-              { id: '2', label: '2', variant: 'outline', action: () => handleServingSizeSelection(2) },
-              { id: '3', label: '3', variant: 'outline', action: () => handleServingSizeSelection(3) },
-              { id: '4', label: '4', variant: 'outline', action: () => handleServingSizeSelection(4) },
-              { id: 'custom', label: 'Custom', variant: 'outline', action: () => {
-                addAssistantMessage("How many servings do you need?");
-              }},
-            ];
-            addAssistantMessage("How many servings would you like instead?", undefined, servingButtons);
-          } 
-        },
-      ];
-      
-      addAssistantMessage(ingredientsList, undefined, ingredientButtons);
     }
+    
+    const ingredientButtons: ButtonOption[] = [
+      { 
+        id: 'add-to-shopping', 
+        label: 'Add to Shopping List', 
+        icon: <ShoppingCart className="w-4 h-4 mr-1" />,
+        action: () => handleAddToShoppingList() 
+      },
+      { 
+        id: 'adjust-servings', 
+        label: 'Adjust Servings', 
+        icon: <Clock className="w-4 h-4 mr-1" />,
+        action: () => {
+          setFoodContext(prev => ({
+            ...prev,
+            conversationState: 'serving_size'
+          }));
+          const servingButtons: ButtonOption[] = [
+            { id: '1', label: '1', variant: 'outline', action: () => handleServingSizeSelection(1) },
+            { id: '2', label: '2', variant: 'outline', action: () => handleServingSizeSelection(2) },
+            { id: '3', label: '3', variant: 'outline', action: () => handleServingSizeSelection(3) },
+            { id: '4', label: '4', variant: 'outline', action: () => handleServingSizeSelection(4) },
+            { id: 'custom', label: 'Custom', variant: 'outline', action: () => {
+              addAssistantMessage("How many servings do you need?");
+            }},
+          ];
+          addAssistantMessage("How many servings would you like instead?", undefined, servingButtons);
+        } 
+      },
+    ];
+    
+    addAssistantMessage(ingredientsList, undefined, ingredientButtons);
   };
   
   const handleAddToShoppingList = () => {
