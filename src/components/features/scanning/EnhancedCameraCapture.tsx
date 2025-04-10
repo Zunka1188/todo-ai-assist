@@ -73,6 +73,7 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     onCameraReady: handleCameraReady
   });
   
+  
   const handleImageCapture = () => {
     const imageDataURL = captureCameraImage();
     if (imageDataURL) {
