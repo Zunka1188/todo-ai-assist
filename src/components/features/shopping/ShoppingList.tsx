@@ -1,4 +1,3 @@
-
 import React, { useState, memo, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -53,6 +52,7 @@ const ShoppingList = ({
     updateFilterMode(filterMode);
   }, [searchTerm, filterMode, updateSearchTerm, updateFilterMode]);
   
+  // Fix: Properly define handleImagePreview as a useCallback function that accepts an item
   const handleImagePreview = useCallback((item: any) => {
     setSelectedItem(item);
   }, []);
