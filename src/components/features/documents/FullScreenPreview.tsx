@@ -108,7 +108,7 @@ const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({
               fileType={fileType as string}
               fileName={fileName}
               className="w-full h-full object-contain"
-              file={fileUrl || ""} // Ensure file prop is always provided with a non-null value
+              file={fileUrl || ""} // Pass fileUrl as file prop to satisfy the required property
             />
           </div>
           
