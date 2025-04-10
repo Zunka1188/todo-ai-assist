@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -48,7 +49,7 @@ const ShoppingItemCard = ({
     : { backgroundColor: theme === 'dark' ? '#2a2a2a' : '#f0f0f0' };
   
   // Adjusted card dimensions for 3-column mobile layout
-  const cardSize = isMobile ? '105px' : '130px';
+  const cardSize = isMobile ? '100px' : '130px';
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only trigger image preview if clicking on the card background
@@ -77,15 +78,15 @@ const ShoppingItemCard = ({
       tabIndex={0}
     >
       {/* Item actions - only edit button in top right corner */}
-      <div className="absolute top-0 left-0 right-0 flex justify-between p-2 z-10">
+      <div className="absolute top-0 left-0 right-0 flex justify-between p-1 z-10">
         {/* Left side - Repeat Option Badge - Only show if there is a repeat option */}
-        <div className="flex flex-col items-start gap-2">
+        <div className="flex flex-col items-start gap-1">
           {repeatOption && repeatOption !== 'none' && (
             <Badge 
               variant="secondary" 
               className={cn(
-                "bg-black/70 text-white px-2 py-0.5",
-                "text-xs shadow-sm", 
+                "bg-black/70 text-white px-1 py-0.5",
+                "text-[0.6rem] shadow-sm", 
                 "dark:bg-black/80 dark:text-white"
               )}
             >
@@ -102,7 +103,7 @@ const ShoppingItemCard = ({
             className={cn(
               "rounded-full shadow-md",
               "bg-white/80 hover:bg-white text-gray-800",
-              "w-6 h-6", // Smaller button for 3-column layout
+              "w-5 h-5", // Smaller button for 3-column layout
               "transition-all duration-200 hover:scale-110",
               "dark:border dark:border-gray-600"
             )}
@@ -112,7 +113,7 @@ const ShoppingItemCard = ({
             }}
             aria-label={`Edit ${name}`}
           >
-            <Pencil className="h-3 w-3" />
+            <Pencil className="h-2.5 w-2.5" />
           </Button>
         )}
       </div>
@@ -126,11 +127,11 @@ const ShoppingItemCard = ({
         }}
       >
         {completed && (
-          <div className="rounded-full bg-green-500/80 flex items-center justify-center h-10 w-10">
+          <div className="rounded-full bg-green-500/80 flex items-center justify-center h-8 w-8">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              width="20" 
-              height="20" 
+              width="16" 
+              height="16" 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
@@ -147,16 +148,16 @@ const ShoppingItemCard = ({
       </div>
       
       {/* Item Name - positioned at bottom with gradient background */}
-      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-        <h3 className="text-white font-medium text-shadow truncate pt-4" 
+      <div className="absolute bottom-0 left-0 right-0 p-1 bg-gradient-to-t from-black/70 to-transparent">
+        <h3 className="text-white font-medium text-shadow truncate pt-3" 
             style={{ 
               textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
-              lineHeight: 1.2,
-              fontSize: '0.8rem'
+              lineHeight: 1.1,
+              fontSize: '0.65rem'
             }}>
           {name}
         </h3>
@@ -165,7 +166,7 @@ const ShoppingItemCard = ({
             <span className="text-white/90 text-shadow" 
                   style={{ 
                     textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-                    fontSize: '0.7rem'
+                    fontSize: '0.6rem'
                   }}>
               {quantity}
             </span>

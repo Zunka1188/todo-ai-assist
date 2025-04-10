@@ -3,8 +3,8 @@
 .shopping-item-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  padding: 0;
+  gap: 8px;
+  padding: 0 4px;
   width: 100%;
   margin: 0;
 }
@@ -13,19 +13,30 @@
 .shopping-item-wrapper {
   width: 100%;
   display: flex;
+  justify-content: flex-start;
+}
+
+/* Ensure every third item is right-aligned for better spacing */
+.shopping-item-wrapper:nth-child(3n) {
+  justify-content: flex-end;
+}
+
+/* Ensure every first item is left-aligned */
+.shopping-item-wrapper:nth-child(3n+1) {
+  justify-content: flex-start;
+}
+
+/* Center the middle item */
+.shopping-item-wrapper:nth-child(3n+2) {
   justify-content: center;
 }
 
-/* Mobile-specific adjustments - 3 columns on mobile */
+/* Mobile-specific adjustments - maintain 3 columns on mobile */
 @media (max-width: 640px) {
   .shopping-item-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    padding: 0;
-  }
-  
-  .shopping-item-wrapper {
-    justify-content: center;
+    gap: 4px;
+    padding: 0 2px;
   }
 }
 
@@ -34,6 +45,7 @@
   .shopping-item-grid {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 16px;
+    padding: 0;
   }
 }
 

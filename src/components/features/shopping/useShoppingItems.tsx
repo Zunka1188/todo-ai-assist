@@ -39,26 +39,69 @@ const initialItems: ShoppingItem[] = [
     name: 'Dish Soap',
     completed: false,
     dateAdded: new Date('2023-04-01'),
-    repeatOption: 'monthly'
+    repeatOption: 'monthly',
+    imageUrl: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
+    amount: '1 bottle'
   }, {
     id: '2',
     name: 'Apples',
     completed: false,
     dateAdded: new Date('2023-04-02'),
-    repeatOption: 'weekly'
+    repeatOption: 'weekly',
+    imageUrl: 'https://images.unsplash.com/photo-1570913149827-d2ac84ab3f9a?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
+    amount: '1 kg'
   }, {
     id: '3',
     name: 'Bread',
     completed: false,
     dateAdded: new Date('2023-04-02'),
-    repeatOption: 'weekly'
+    repeatOption: 'weekly',
+    imageUrl: 'https://images.unsplash.com/photo-1534620808146-d33bb39128b2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
+    amount: '1 loaf'
   }, {
     id: '4',
     name: 'Toothpaste',
     completed: false,
     dateAdded: new Date('2023-04-03'),
     imageUrl: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
-    repeatOption: 'monthly'
+    repeatOption: 'monthly',
+    amount: '1 tube'
+  },
+  {
+    id: '6',
+    name: 'Milk',
+    completed: false,
+    dateAdded: new Date('2023-04-03'),
+    imageUrl: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
+    repeatOption: 'weekly',
+    amount: '1 gallon'
+  },
+  {
+    id: '7',
+    name: 'Bananas',
+    completed: false,
+    dateAdded: new Date('2023-04-04'),
+    imageUrl: 'https://images.unsplash.com/photo-1603833665858-e61d17a86224?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
+    repeatOption: 'weekly',
+    amount: '1 bunch'
+  },
+  {
+    id: '8',
+    name: 'Paper Towels',
+    completed: false,
+    dateAdded: new Date('2023-04-05'),
+    imageUrl: 'https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
+    repeatOption: 'monthly',
+    amount: '2 rolls'
+  },
+  {
+    id: '9',
+    name: 'Orange Juice',
+    completed: false,
+    dateAdded: new Date('2023-04-06'),
+    imageUrl: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60',
+    repeatOption: 'weekly',
+    amount: '1 carton'
   }
 ];
 
@@ -107,7 +150,13 @@ export type SortOption = 'nameAsc' | 'nameDesc' | 'dateAsc' | 'dateDesc' | 'pric
 
 export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 'all', searchTerm: string = '') => {
   const [items, setItems] = useState<ShoppingItem[]>(() => {
-    return loadFromLocalStorage<ShoppingItem[]>('shoppingItems', initialItems);
+    const loadedItems = loadFromLocalStorage<ShoppingItem[]>('shoppingItems', []);
+    
+    if (loadedItems.length === 0) {
+      return initialItems;
+    }
+    
+    return loadedItems;
   });
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('newest');
@@ -136,6 +185,12 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   useEffect(() => {
     saveToLocalStorage('shoppingItems', items);
     console.log("[DEBUG] useShoppingItems - Items updated, total count:", items.length);
+    
+    try {
+      sessionStorage.setItem('shoppingItems_backup', JSON.stringify(items));
+    } catch (error) {
+      console.error("[ERROR] Failed to create session storage backup:", error);
+    }
   }, [items]);
 
   const getFilteredItems = () => {
