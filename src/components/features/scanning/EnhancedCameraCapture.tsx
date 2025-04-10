@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Camera, X, CameraOff, Settings, Image, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -73,7 +72,6 @@ const EnhancedCameraCapture: React.FC<EnhancedCameraCaptureProps> = ({
     },
     onCameraReady: handleCameraReady
   });
-  
   
   const handleImageCapture = () => {
     const imageDataURL = captureCameraImage();
