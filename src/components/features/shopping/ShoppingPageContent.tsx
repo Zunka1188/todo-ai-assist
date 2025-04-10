@@ -1,7 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
 import { useLayout } from '@/hooks/use-layout';
 import PageHeader from '@/components/ui/page-header';
@@ -17,13 +15,13 @@ const ShoppingPageContent: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { isMobile } = useIsMobile();
   const layout = useLayout();
-  const { handleAddItem, isLoading } = useShoppingItemsContext();
+  const { addItem, isLoading } = useShoppingItemsContext();
   
   // Remove spacing property as it doesn't exist in the OptionsType
   const { containerClass, contentClass } = layout;
   
   const handleSaveItem = (item: any) => {
-    const result = handleAddItem(item);
+    const result = addItem(item);
     if (result) {
       setIsAddDialogOpen(false);
     }
