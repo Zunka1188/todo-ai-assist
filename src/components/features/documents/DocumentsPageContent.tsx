@@ -257,7 +257,7 @@ const DocumentsPageContent: React.FC = () => {
             }}
             onDeleteDocument={confirmDeleteFile}
             onDownload={handleDownload}
-            searchTerm={searchTerm} 
+            // Remove the searchTerm prop as it's not expected by DocumentList
             categories={CATEGORIES} 
             viewMode="table"
             showAddButton={false}
@@ -267,6 +267,7 @@ const DocumentsPageContent: React.FC = () => {
 
       <AddDocumentDialog 
         open={isAddDialogOpen} 
+        // Rename onOpenChange to match the component's expected prop name
         onOpenChange={handleDialogClose} 
         onAdd={handleAddItem} 
         categories={CATEGORIES as string[]} 
