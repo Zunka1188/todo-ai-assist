@@ -52,7 +52,6 @@ const ShoppingList = ({
     updateFilterMode(filterMode);
   }, [searchTerm, filterMode, updateSearchTerm, updateFilterMode]);
   
-  // Fix: Properly define handleImagePreview as a useCallback function that accepts an item
   const handleImagePreview = useCallback((item: any) => {
     setSelectedItem(item);
   }, []);
