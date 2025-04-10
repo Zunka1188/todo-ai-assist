@@ -42,7 +42,7 @@ const DirectAddItem = ({ onSave, readOnly }: DirectAddItemProps) => {
         imageUrl: null, 
         notes: `Test note for ${repeatOption} item`,
         repeatOption: repeatOption,
-        completed: false
+        completed: false // Added the missing 'completed' property
       };
       
       console.log("[DEBUG] DirectAddItem - Adding test item:", JSON.stringify(newItem, null, 2));
