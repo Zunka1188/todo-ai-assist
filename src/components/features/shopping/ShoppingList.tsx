@@ -1,4 +1,3 @@
-
 import React, { useState, memo, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -29,6 +28,7 @@ const ShoppingList = ({
   onEditItem,
   readOnly = false
 }: ShoppingListProps) => {
+  
   const { 
     notPurchasedItems, 
     purchasedItems, 
