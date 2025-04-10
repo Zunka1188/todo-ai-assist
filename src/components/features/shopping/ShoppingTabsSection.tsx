@@ -1,86 +1,70 @@
 
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import ShoppingList from './ShoppingList';
 
 interface ShoppingTabsSectionProps {
   activeTab: string;
   handleTabChange: (value: string) => void;
   searchTerm: string;
-  onEditItem: (id: string, name?: string, item?: any) => void;
-  readOnly: boolean;
+  onEditItem?: (id: string, name?: string, item?: any) => void;
+  readOnly?: boolean;
 }
 
-const ShoppingTabsSection: React.FC<ShoppingTabsSectionProps> = ({
-  activeTab,
+const ShoppingTabsSection: React.FC<ShoppingTabsSectionProps> = ({ 
+  activeTab, 
   handleTabChange,
   searchTerm,
   onEditItem,
-  readOnly
+  readOnly = false
 }) => {
   return (
-    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full shopping-tabs-container">
-      <div className="mb-2">
-        <TabsList className="w-full flex justify-around gap-1 px-0">
-          <TabsTrigger value="one-off" className="flex-1 text-sm px-1 py-1.5 h-10">
-            One-off
-          </TabsTrigger>
-          <TabsTrigger value="weekly" className="flex-1 text-sm px-1 py-1.5 h-10">
-            Weekly
-          </TabsTrigger>
-          <TabsTrigger value="monthly" className="flex-1 text-sm px-1 py-1.5 h-10">
-            Monthly
-          </TabsTrigger>
-          <TabsTrigger value="all" className="flex-1 text-sm px-1 py-1.5 h-10">
-            All Items
-          </TabsTrigger>
+    <div className="flex-grow flex flex-col">
+      <Tabs defaultValue={activeTab} value={activeTab} onValueChange={handleTabChange} className="flex-grow flex flex-col">
+        <TabsList className="grid grid-cols-4 mb-4">
+          <TabsTrigger value="one-off">One-off</TabsTrigger>
+          <TabsTrigger value="weekly">Weekly</TabsTrigger>
+          <TabsTrigger value="monthly">Monthly</TabsTrigger>
+          <TabsTrigger value="all">All</TabsTrigger>
         </TabsList>
-      </div>
-      
-      <TabsContent value="one-off" className="mt-0 p-0">
-        <div className="shopping-list-container">
+        
+        <TabsContent value="one-off" className="flex-grow">
           <ShoppingList 
-            searchTerm={searchTerm}
+            searchTerm={searchTerm} 
             filterMode="one-off"
             onEditItem={onEditItem}
             readOnly={readOnly}
           />
-        </div>
-      </TabsContent>
-      
-      <TabsContent value="weekly" className="mt-0 p-0">
-        <div className="shopping-list-container">
+        </TabsContent>
+        
+        <TabsContent value="weekly" className="flex-grow">
           <ShoppingList 
-            searchTerm={searchTerm}
+            searchTerm={searchTerm} 
             filterMode="weekly"
             onEditItem={onEditItem}
             readOnly={readOnly}
           />
-        </div>
-      </TabsContent>
-      
-      <TabsContent value="monthly" className="mt-0 p-0">
-        <div className="shopping-list-container">
+        </TabsContent>
+        
+        <TabsContent value="monthly" className="flex-grow">
           <ShoppingList 
-            searchTerm={searchTerm}
+            searchTerm={searchTerm} 
             filterMode="monthly"
             onEditItem={onEditItem}
             readOnly={readOnly}
           />
-        </div>
-      </TabsContent>
-      
-      <TabsContent value="all" className="mt-0 p-0">
-        <div className="shopping-list-container">
+        </TabsContent>
+        
+        <TabsContent value="all" className="flex-grow">
           <ShoppingList 
-            searchTerm={searchTerm}
+            searchTerm={searchTerm} 
             filterMode="all"
             onEditItem={onEditItem}
             readOnly={readOnly}
           />
-        </div>
-      </TabsContent>
-    </Tabs>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
