@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday } from 'date-fns';
@@ -509,41 +508,44 @@ const WeekView: React.FC<WeekViewProps> = ({
                   />
                 ))}
                 
-                {daysEventGroups.map((eventGroups, dayIdx) => (
-                  dayIdx === dayIndex && (
-                    <React.Fragment key={`day-events-${dayIdx}`}>
-                      {eventGroups.map((group, groupIndex) => (
-                        <React.Fragment key={`group-${dayIdx}-${groupIndex}`}>
-                          {group.map((event, eventIndex) => (
-                            <div 
-                              key={`multi-${event.id}-${dayIdx}`} 
-                              className={cn(
-                                "absolute text-xs p-2 rounded cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto",
-                                isMobile ? "left-0 right-0 mx-1" : ""
-                              )}
-                              style={getMultiHourEventStyle(event, daysInWeek[dayIdx], group.length, eventIndex)}
-                              onClick={() => handleViewEvent(event)}
-                            >
-                              <div className="flex items-center">
-                                <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
-                                <span className="text-white truncate">{event.title}</span>
-                              </div>
-                              <div className="text-white/90 text-[10px] truncate">
-                                {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
-                              </div>
-                              {event.location && (
-                                <div className="text-white/90 text-[10px] flex items-center truncate">
-                                  <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80 flex-shrink-0" />
-                                  <span className="truncate">{event.location}</span>
+                {daysEventGroups.map((eventGroups, dayIdx) => {
+                  if (dayIdx === dayIndex) {
+                    return (
+                      <React.Fragment key={`day-events-${dayIdx}`}>
+                        {eventGroups.map((group, groupIndex) => (
+                          <React.Fragment key={`group-${dayIdx}-${groupIndex}`}>
+                            {group.map((event, eventIndex) => (
+                              <div 
+                                key={`multi-${event.id}-${dayIdx}`} 
+                                className={cn(
+                                  "absolute text-xs p-2 rounded cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto",
+                                  isMobile ? "left-0 right-0 mx-1" : ""
+                                )}
+                                style={getMultiHourEventStyle(event, daysInWeek[dayIdx], group.length, eventIndex)}
+                                onClick={() => handleViewEvent(event)}
+                              >
+                                <div className="flex items-center">
+                                  <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
+                                  <span className="text-white truncate">{event.title}</span>
                                 </div>
-                              )}
-                            </div>
-                          ))}
-                        </React.Fragment>
-                      ))}
-                    </React.Fragment>
-                  )
-                ))}
+                                <div className="text-white/90 text-[10px] truncate">
+                                  {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
+                                </div>
+                                {event.location && (
+                                  <div className="text-white/90 text-[10px] flex items-center truncate">
+                                    <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80 flex-shrink-0" />
+                                    <span className="truncate">{event.location}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </React.Fragment>
+                        ))}
+                      </React.Fragment>
+                    );
+                  }
+                  return null;
+                })}
               </div>
             ))}
           </div>
