@@ -6,6 +6,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { AlertCircle, Loader2, Check, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
 
 import MonthView from './views/MonthView';
 import WeekView from './views/WeekView';
