@@ -514,6 +514,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                   />
                 ))}
                 
+                {/* This is where the error is happening, the map function needs to return React elements */}
                 {daysEventGroups.map((eventGroups, dayIdx) => {
                   if (dayIdx === dayIndex) {
                     return (
@@ -550,7 +551,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                       </React.Fragment>
                     );
                   }
-                  return null;
+                  return null; // Explicitly return null for non-matching days
                 })}
               </div>
             ))}
