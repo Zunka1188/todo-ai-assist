@@ -107,9 +107,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         const attachment: AttachmentType = {
           id: `attachment-${Date.now()}`,
           name: data.title || 'Uploaded file',
-          type: 'image', // Ensuring this is explicitly set as a required field
-          url: data.file || data.content || '', // Ensuring non-empty string for url
-          thumbnailUrl: data.thumbnailUrl // Optional property
+          type: 'image', // This is a required field
+          url: data.file || data.content || '', // This is a required field
+          thumbnailUrl: data.thumbnailUrl // This remains optional
         };
         
         attachments.push(attachment);
