@@ -509,37 +509,35 @@ const WeekView: React.FC<WeekViewProps> = ({
                   />
                 ))}
                 
-                {daysEventGroups[dayIndex].map((group, groupIndex) => {
-                  return (
-                    <div key={`group-${dayIndex}-${groupIndex}`} className="relative">
-                      {group.map((event, eventIndex) => (
-                        <div 
-                          key={`multi-${event.id}-${dayIndex}`} 
-                          className={cn(
-                            "absolute text-xs p-2 rounded cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto",
-                            isMobile ? "left-0 right-0 mx-1" : ""
-                          )}
-                          style={getMultiHourEventStyle(event, daysInWeek[dayIndex], group.length, eventIndex)}
-                          onClick={() => handleViewEvent(event)}
-                        >
-                          <div className="flex items-center">
-                            <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
-                            <span className="text-white truncate">{event.title}</span>
-                          </div>
-                          <div className="text-white/90 text-[10px] truncate">
-                            {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
-                          </div>
-                          {event.location && (
-                            <div className="text-white/90 text-[10px] flex items-center truncate">
-                              <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80 flex-shrink-0" />
-                              <span className="truncate">{event.location}</span>
-                            </div>
-                          )}
+                {daysEventGroups[dayIndex].map((group, groupIndex) => (
+                  <div key={`group-${dayIndex}-${groupIndex}`} className="relative">
+                    {group.map((event, eventIndex) => (
+                      <div 
+                        key={`multi-${event.id}-${dayIndex}`} 
+                        className={cn(
+                          "absolute text-xs p-2 rounded cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto",
+                          isMobile ? "left-0 right-0 mx-1" : ""
+                        )}
+                        style={getMultiHourEventStyle(event, day, group.length, eventIndex)}
+                        onClick={() => handleViewEvent(event)}
+                      >
+                        <div className="flex items-center">
+                          <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
+                          <span className="text-white truncate">{event.title}</span>
                         </div>
-                      ))}
-                    </div>
-                  );
-                })}
+                        <div className="text-white/90 text-[10px] truncate">
+                          {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
+                        </div>
+                        {event.location && (
+                          <div className="text-white/90 text-[10px] flex items-center truncate">
+                            <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80 flex-shrink-0" />
+                            <span className="truncate">{event.location}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ))}
               </div>
             ))}
           </div>
