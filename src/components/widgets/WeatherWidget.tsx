@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
-import { SunMedium, Cloud, CloudRain, CloudSnow, CloudLightning } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { SunMedium, Cloud, CloudRain, CloudSnow, CloudLightning, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
 import { WidgetWrapper } from './shared/WidgetWrapper';
+import { useToast } from '@/hooks/use-toast';
 
 export interface WeatherWidgetProps {
   className?: string;
@@ -12,7 +13,11 @@ export interface WeatherWidgetProps {
 
 const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className }) => {
   const { theme } = useTheme();
-  const [currentWeather] = useState({
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  
+  const [currentWeather, setCurrentWeather] = useState({
     temp: 72,
     condition: 'Partly Cloudy',
     high: 78,
@@ -22,30 +27,99 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className }) => {
     precipitation: 15,
   });
   
-  const [forecast] = useState([
+  const [forecast, setForecast] = useState([
     { day: 'Mon', temp: 74, condition: 'sunny' },
     { day: 'Tue', temp: 70, condition: 'cloudy' },
     { day: 'Wed', temp: 68, condition: 'rainy' },
     { day: 'Thu', temp: 72, condition: 'sunny' },
     { day: 'Fri', temp: 75, condition: 'sunny' },
   ]);
+  
+  useEffect(() => {
+    // Simulate fetching weather data
+    const fetchWeatherData = async () => {
+      setIsLoading(true);
+      setHasError(false);
+      
+      try {
+        // Mock API call delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // In a real app, we would fetch real weather data here
+        // For now, we'll use our static data
+        
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching weather data:', error);
+        setHasError(true);
+        setIsLoading(false);
+        
+        toast({
+          title: "Weather Data Error",
+          description: "Unable to retrieve weather information. Please try again later.",
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
+    };
+    
+    fetchWeatherData();
+  }, [toast]);
 
   const getWeatherIcon = (condition: string) => {
     switch(condition.toLowerCase()) {
       case 'sunny':
-        return <SunMedium className="h-5 w-5 text-yellow-500" />;
+        return <SunMedium className="h-5 w-5 text-yellow-500" aria-hidden="true" />;
       case 'cloudy':
-        return <Cloud className="h-5 w-5 text-gray-400" />;
+        return <Cloud className="h-5 w-5 text-gray-400" aria-hidden="true" />;
       case 'rainy':
-        return <CloudRain className="h-5 w-5 text-blue-400" />;
+        return <CloudRain className="h-5 w-5 text-blue-400" aria-hidden="true" />;
       case 'snowy':
-        return <CloudSnow className="h-5 w-5 text-blue-200" />;
+        return <CloudSnow className="h-5 w-5 text-blue-200" aria-hidden="true" />;
       case 'stormy':
-        return <CloudLightning className="h-5 w-5 text-purple-500" />;
+        return <CloudLightning className="h-5 w-5 text-purple-500" aria-hidden="true" />;
       default:
-        return <SunMedium className="h-5 w-5 text-yellow-500" />;
+        return <SunMedium className="h-5 w-5 text-yellow-500" aria-hidden="true" />;
     }
   };
+  
+  if (isLoading) {
+    return (
+      <WidgetWrapper className={cn("w-full", className)}>
+        <div className="flex flex-col items-center justify-center p-6">
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-10 w-20 bg-gray-200 rounded mb-4"></div>
+            <div className="h-4 w-32 bg-gray-200 rounded mb-6"></div>
+            <div className="grid grid-cols-3 gap-4 w-full">
+              <div className="h-12 bg-gray-200 rounded"></div>
+              <div className="h-12 bg-gray-200 rounded"></div>
+              <div className="h-12 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </WidgetWrapper>
+    );
+  }
+  
+  if (hasError) {
+    return (
+      <WidgetWrapper className={cn("w-full", className)}>
+        <div className="flex flex-col items-center justify-center p-6 text-center">
+          <AlertCircle className="h-10 w-10 text-destructive mb-3" aria-hidden="true" />
+          <h3 className="font-medium mb-1">Unable to load weather</h3>
+          <p className="text-sm text-muted-foreground mb-3">
+            Please check your connection and try again
+          </p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="text-sm px-3 py-1 bg-primary text-white rounded-md hover:bg-primary/90"
+          >
+            Refresh
+          </button>
+        </div>
+      </WidgetWrapper>
+    );
+  }
   
   return (
     <WidgetWrapper className={cn("w-full", className)}>
@@ -53,12 +127,13 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className }) => {
         {/* Current Weather */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className={cn("text-2xl font-semibold", theme === 'dark' ? "text-white" : "text-foreground")}>
+            <h2 className={cn("text-2xl font-semibold", theme === 'dark' ? "text-white" : "text-foreground")}
+                aria-label={`Current temperature ${currentWeather.temp} degrees Fahrenheit`}>
               {currentWeather.temp}°F
             </h2>
             <p className="text-muted-foreground">{currentWeather.condition}</p>
           </div>
-          <div>
+          <div aria-hidden="true">
             {getWeatherIcon(currentWeather.condition)}
           </div>
         </div>
@@ -84,11 +159,11 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className }) => {
           <h3 className={cn("text-sm font-medium mb-2", theme === 'dark' ? "text-gray-300" : "text-gray-700")}>
             5-Day Forecast
           </h3>
-          <div className="flex justify-between">
+          <div className="flex justify-between" role="list" aria-label="Five-day weather forecast">
             {forecast.map((day) => (
-              <div key={day.day} className="text-center">
+              <div key={day.day} className="text-center" role="listitem" aria-label={`${day.day}: ${day.temp} degrees, ${day.condition}`}>
                 <p className="text-xs text-muted-foreground">{day.day}</p>
-                <div className="my-1">{getWeatherIcon(day.condition)}</div>
+                <div className="my-1" aria-hidden="true">{getWeatherIcon(day.condition)}</div>
                 <p className="text-xs font-medium">{day.temp}°</p>
               </div>
             ))}

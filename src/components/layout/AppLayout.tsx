@@ -29,12 +29,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
   const [chatOpen, setChatOpen] = useState(false);
   
   useEffect(() => {
+    // Check theme once on initial render
     if (localStorage.getItem('theme') === null) {
       setTheme('dark');
     }
   }, [setTheme]);
   
   useEffect(() => {
+    // Apply mobile device optimizations
     if (isIOS) {
       const viewportMeta = document.querySelector('meta[name="viewport"]');
       if (viewportMeta) {
@@ -49,6 +51,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
       document.body.classList.add('android-device');
     }
     
+    // Handle splash screen fading
     const splashScreen = document.getElementById('app-splash-screen');
     if (splashScreen) {
       setTimeout(() => {
@@ -60,6 +63,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
     }
   }, [isIOS, isAndroid]);
 
+  // Ensure consistent text styling across themes
   const textColorClass = theme === 'light' ? "text-foreground" : "text-white";
   
   // Updated mobile text classes based on LinkedIn benchmarks
@@ -76,10 +80,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
         isIOS && "pt-safe-top"
       )}>
         <div className="flex items-center">
-          {/* Restore the chat button */}
           <button
             onClick={() => setChatOpen(true)}
             className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
+            aria-label="Open chat assistant"
           >
             <MessageSquare className={cn("h-5 w-5", textColorClass)} />
           </button>
@@ -87,7 +91,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
         
         <div className="flex items-center gap-2">
           <DropdownMenu>
-            <DropdownMenuTrigger className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation">
+            <DropdownMenuTrigger className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation" aria-label="Menu">
               <Menu className={cn("h-5 w-5", textColorClass)} />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-background border border-border w-56 z-50">
@@ -135,7 +139,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link to="/settings" className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation">
+          <Link to="/settings" 
+            className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
+            aria-label="Settings"
+          >
             <Settings className={cn("h-5 w-5", textColorClass)} />
           </Link>
           <ThemeToggle />
@@ -146,12 +153,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
         isMobile ? "pb-24 pt-1" : "py-4",
         isIOS && "pb-safe-bottom",
         className
-      )}>
+      )}
+      role="main"
+      >
         {children}
       </main>
       <BottomNavigation />
       
-      {/* Re-enable the AIFoodAssistant component */}
       <AIFoodAssistant isOpen={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   );

@@ -3,8 +3,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Event {
   id: string;
@@ -159,6 +158,9 @@ const MonthView: React.FC<MonthViewProps> = ({
                   isSelectedDate && "bg-primary/10"
                 )}
                 onClick={() => setDate(day)}
+                role="button"
+                aria-pressed={isSelectedDate}
+                aria-label={`${format(day, 'PPPP')}${dayEvents.length > 0 ? `, ${dayEvents.length} events` : ''}`}
               >
                 <div className="flex justify-between items-center">
                   <span 
@@ -172,29 +174,37 @@ const MonthView: React.FC<MonthViewProps> = ({
                   </span>
                 </div>
                 
-                <div className="mt-1 space-y-1 max-h-[80px] overflow-y-auto">
+                <div className="space-y-1 mt-1 max-h-[80px] overflow-y-auto">
                   {dayEvents.slice(0, 3).map(event => (
                     <div 
                       key={event.id}
-                      className="text-xs p-1 rounded truncate cursor-pointer hover:opacity-80"
-                      style={{ backgroundColor: event.color || '#4285F4' }}
+                      className={cn(
+                        "px-1 py-0.5 rounded text-xs truncate cursor-pointer",
+                        event.color ? `bg-${event.color}-100 text-${event.color}-800` : "bg-blue-100 text-blue-800",
+                        "dark:bg-opacity-20 hover:bg-opacity-70"
+                      )}
+                      style={{
+                        backgroundColor: event.color || '#4285F4',
+                        color: '#ffffff'
+                      }}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleViewEvent(event);
                       }}
+                      title={event.title}
+                      role="button"
+                      aria-label={`Event: ${event.title}`}
                     >
-                      <div className="flex items-center text-white">
-                        {!event.allDay && (
-                          <Clock className="h-2.5 w-2.5 mr-1 flex-shrink-0" />
-                        )}
-                        <span className="truncate">{event.title}</span>
-                      </div>
+                      {event.allDay ? (
+                        <span>{event.title}</span>
+                      ) : (
+                        <span>{getFormattedTime(event.startDate)} - {event.title}</span>
+                      )}
                     </div>
                   ))}
-                  
                   {dayEvents.length > 3 && (
-                    <div className="text-xs text-muted-foreground text-center">
-                      + {dayEvents.length - 3} more
+                    <div className="text-xs text-center text-muted-foreground pt-1">
+                      +{dayEvents.length - 3} more
                     </div>
                   )}
                 </div>

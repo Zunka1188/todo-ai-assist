@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Calendar, ShoppingBag, FileText, Cpu } from 'lucide-react';
@@ -13,11 +14,11 @@ const BottomNavigation: React.FC = () => {
   const textColorClass = theme === 'light' ? "text-foreground" : "text-white";
 
   const navItems = [
-    { to: '/', icon: <Home className="h-5 w-5" />, label: 'Home' },
-    { to: '/calendar', icon: <Calendar className="h-5 w-5" />, label: 'Calendar' },
-    { to: '/shopping', icon: <ShoppingBag className="h-5 w-5" />, label: 'Shopping' },
-    { to: '/documents', icon: <FileText className="h-5 w-5" />, label: 'Documents' },
-    { to: '/produce-recognition', icon: <Cpu className="h-5 w-5" />, label: 'Produce' },
+    { to: '/', icon: <Home className="h-5 w-5" />, label: 'Home', ariaLabel: 'Navigate to home page' },
+    { to: '/calendar', icon: <Calendar className="h-5 w-5" />, label: 'Calendar', ariaLabel: 'Navigate to calendar' },
+    { to: '/shopping', icon: <ShoppingBag className="h-5 w-5" />, label: 'Shopping', ariaLabel: 'Navigate to shopping list' },
+    { to: '/documents', icon: <FileText className="h-5 w-5" />, label: 'Documents', ariaLabel: 'Navigate to documents' },
+    { to: '/produce-recognition', icon: <Cpu className="h-5 w-5" />, label: 'Produce', ariaLabel: 'Navigate to produce recognition' },
   ];
 
   if (!isMobile) {
@@ -30,6 +31,8 @@ const BottomNavigation: React.FC = () => {
         "fixed z-50 w-full bottom-0 border-t border-border bg-secondary",
         isIOS ? "pb-safe-bottom" : "pb-2"
       )}
+      aria-label="Bottom navigation"
+      role="navigation"
     >
       <div className="container mx-auto flex items-center justify-between p-2">
         {navItems.map((item) => (
@@ -42,6 +45,8 @@ const BottomNavigation: React.FC = () => {
                 ? "text-accent-foreground"
                 : textColorClass
             )}
+            aria-label={item.ariaLabel}
+            aria-current={location.pathname === item.to ? "page" : undefined}
           >
             {item.icon}
             <span className="text-xs">{item.label}</span>
