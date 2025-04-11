@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -165,7 +166,7 @@ const DocumentsPageContent: React.FC = () => {
       {CATEGORIES.map((category) => (
         <TabsContent key={category} value={category} className="space-y-4">
           <DocumentList
-            documents={filteredFiles.filter(file => file.category === category || category === 'all')}
+            documents={filteredFiles.filter(file => file.category === category || (category === 'all' && filteredFiles.length > 0))}
             onAddDocument={handleAddDocument}
             onEditDocument={handleAddOrUpdateFile}
             onDeleteDocument={handleDeleteFile}
