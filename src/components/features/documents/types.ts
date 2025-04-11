@@ -1,3 +1,4 @@
+
 export type DocumentCategory = 'style' | 'recipes' | 'travel' | 'fitness' | 'events' | 'other' | 'files';
 
 export interface DocumentItem {

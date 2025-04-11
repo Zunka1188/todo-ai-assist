@@ -21,10 +21,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 
+// Define the extended category type that includes 'all'
+type ExtendedCategory = DocumentCategory | 'all';
+
 const DocumentsPageContent: React.FC = () => {
   const navigate = useNavigate();
   const { isMobile } = useIsMobile();
-  const [activeTab, setActiveTab] = useState<DocumentCategory>('style');
+  const [activeTab, setActiveTab] = useState<ExtendedCategory>('style');
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -48,11 +51,18 @@ const DocumentsPageContent: React.FC = () => {
     handleDownloadFile
   } = useDocumentActions({ setIsLoading });
 
-  const filteredItems = filterDocuments(categoryItems, activeTab, searchTerm);
-  const filteredFiles = filterFiles(files, searchTerm, [activeTab]);
+  // Extend the categories to include 'all'
+  const extendedCategories: ExtendedCategory[] = ['all', ...CATEGORIES];
+
+  // Modify the filtering logic to handle the 'all' category correctly
+  const filteredItems = activeTab === 'all' 
+    ? categoryItems 
+    : filterDocuments(categoryItems, activeTab as DocumentCategory, searchTerm);
+    
+  const filteredFiles = filterFiles(files, searchTerm, activeTab === 'all' ? undefined : [activeTab as DocumentCategory]);
   
   const handleTabChange = (value: string) => {
-    setActiveTab(value as DocumentCategory);
+    setActiveTab(value as ExtendedCategory);
   };
   
   const handleAddDocument = (item: any) => {
@@ -151,11 +161,11 @@ const DocumentsPageContent: React.FC = () => {
       </div>
       
       <TabsList className="grid grid-cols-5 h-auto">
-        {CATEGORIES.map((category) => (
+        {extendedCategories.map((category) => (
           <TabsTrigger
             key={category}
             value={category}
-            onClick={() => setActiveTab(category as DocumentCategory)}
+            onClick={() => setActiveTab(category)}
             className="capitalize py-2"
           >
             {category}
@@ -163,16 +173,12 @@ const DocumentsPageContent: React.FC = () => {
         ))}
       </TabsList>
       
-      {CATEGORIES.map((category) => (
+      {extendedCategories.map((category) => (
         <TabsContent key={category} value={category} className="space-y-4">
           <DocumentList
             documents={filteredFiles.filter(file => {
-              // Check if the current category is the file's category
-              const matchesCategory = file.category === category;
-              // Since 'all' is not in DocumentCategory, we need to check it separately
-              const isAllCategory = String(category) === 'all';
-              
-              return matchesCategory || (isAllCategory && filteredFiles.length > 0);
+              if (category === 'all') return true;
+              return file.category === category;
             })}
             onAddDocument={handleAddDocument}
             onEditDocument={handleAddOrUpdateFile}
@@ -190,7 +196,7 @@ const DocumentsPageContent: React.FC = () => {
         onOpenChange={setIsAddDialogOpen}
         onAdd={handleAddDocument}
         categories={CATEGORIES}
-        currentCategory={activeTab}
+        currentCategory={activeTab === 'all' ? 'style' : activeTab as DocumentCategory}
       />
     </div>
   );
