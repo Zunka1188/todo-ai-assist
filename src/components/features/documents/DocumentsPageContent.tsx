@@ -166,7 +166,14 @@ const DocumentsPageContent: React.FC = () => {
       {CATEGORIES.map((category) => (
         <TabsContent key={category} value={category} className="space-y-4">
           <DocumentList
-            documents={filteredFiles.filter(file => file.category === category || (category === 'all' && filteredFiles.length > 0))}
+            documents={filteredFiles.filter(file => {
+              // Check if the current category is the file's category
+              const matchesCategory = file.category === category;
+              // Since 'all' is not in DocumentCategory, we need to check it separately
+              const isAllCategory = String(category) === 'all';
+              
+              return matchesCategory || (isAllCategory && filteredFiles.length > 0);
+            })}
             onAddDocument={handleAddDocument}
             onEditDocument={handleAddOrUpdateFile}
             onDeleteDocument={handleDeleteFile}
