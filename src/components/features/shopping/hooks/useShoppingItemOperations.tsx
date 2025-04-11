@@ -7,6 +7,11 @@ interface ShoppingItemOperationsProps {
   onEditItem?: (id: string, name?: string, item?: any) => void;
 }
 
+interface SaveItemFromCaptureParams {
+  id: string;
+  capturedText: string;
+}
+
 export const useShoppingItemOperations = ({ readOnly, onEditItem }: ShoppingItemOperationsProps) => {
   const { toggleItem, updateItem, removeItem } = useShoppingItemsContext();
   
@@ -42,7 +47,7 @@ export const useShoppingItemOperations = ({ readOnly, onEditItem }: ShoppingItem
   }, [readOnly, updateItem, onEditItem]);
   
   // This function now accepts a single object parameter with id and capturedText properties
-  const handleSaveItemFromCapture = useCallback((params: { id: string; capturedText: string }) => {
+  const handleSaveItemFromCapture = useCallback((params: SaveItemFromCaptureParams) => {
     if (readOnly) return false;
     
     try {
