@@ -548,6 +548,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                       </div>
                     );
                   }
+                  // This explicit null return is crucial for TypeScript
                   return null; // Explicitly return null for non-matching days
                 })}
               </div>
