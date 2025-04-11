@@ -68,6 +68,11 @@ const ShoppingList = ({
     console.log("File change detected");
   };
   
+  const clearEditImage = () => {
+    // Implementation for clearing edit image
+    console.log("Clearing edit image");
+  };
+  
   const clearImage = () => {
     // Implementation for clearing image
     console.log("Clearing image");
