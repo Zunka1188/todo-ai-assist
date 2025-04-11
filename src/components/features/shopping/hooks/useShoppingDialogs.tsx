@@ -1,51 +1,40 @@
 
 import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 
-export const useShoppingDialogs = (filterMode: string) => {
-  const [selectedItem, setSelectedItem] = useState<any | null>(null);
-  const [itemToEdit, setItemToEdit] = useState<any | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
-  const navigate = useNavigate();
-
+export const useShoppingDialogs = (filterMode: 'all' | 'one-off' | 'weekly' | 'monthly') => {
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [itemToEdit, setItemToEdit] = useState<any>(null);
+  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState<boolean>(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
+  
   const handleImagePreview = useCallback((item: any) => {
     setSelectedItem(item);
     setIsImagePreviewOpen(true);
   }, []);
   
   const handleCloseImageDialog = useCallback(() => {
-    setSelectedItem(null);
     setIsImagePreviewOpen(false);
+    setSelectedItem(null);
   }, []);
-
-  const handleOpenEditDialog = useCallback((itemId: string, item: any) => {
-    setItemToEdit(item);
+  
+  const handleOpenEditDialog = useCallback((itemId: string, item?: any) => {
+    setItemToEdit(item || { id: itemId });
     setIsEditDialogOpen(true);
   }, []);
-
+  
   const handleCloseEditDialog = useCallback(() => {
-    setItemToEdit(null);
     setIsEditDialogOpen(false);
+    setTimeout(() => setItemToEdit(null), 300); // Clear after animation
   }, []);
-
-  const handleTabChange = useCallback((newTab: string) => {
-    navigate(`/shopping?tab=${newTab}`, { replace: true });
-  }, [navigate]);
-
+  
   return {
     selectedItem,
-    setSelectedItem,
     itemToEdit,
-    setItemToEdit,
-    isEditDialogOpen,
-    setIsEditDialogOpen,
     isImagePreviewOpen,
-    setIsImagePreviewOpen,
+    isEditDialogOpen,
     handleImagePreview,
     handleCloseImageDialog,
     handleOpenEditDialog,
-    handleCloseEditDialog,
-    handleTabChange
+    handleCloseEditDialog
   };
 };
