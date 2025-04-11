@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, subMonths, addWeeks, subWeeks, isSameMonth, isSameDay, isToday } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Clock, AlertCircle, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,7 @@ const WeekView: React.FC<WeekViewProps> = ({
   theme,
   weekStartsOn = 1 // Default to Monday
 }) => {
+  
   const [startHour, setStartHour] = useState(0);
   const [endHour, setEndHour] = useState(23);
   const [showFullDay, setShowFullDay] = useState(true);
@@ -117,6 +118,8 @@ const WeekView: React.FC<WeekViewProps> = ({
     return groups;
   };
 
+  
+
   const getMultiHourEventsForDay = (day: Date) => {
     return events.filter(event => {
       if (event.allDay) return false;
@@ -191,6 +194,8 @@ const WeekView: React.FC<WeekViewProps> = ({
   const daysEventGroups = daysInWeek.map(day => {
     return getVisibleMultiHourEventGroups(day);
   });
+
+  
 
   const handleTimeRangeToggle = (preset: string) => {
     switch (preset) {
