@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
@@ -153,7 +152,6 @@ const CalendarPage = () => {
       className="flex flex-col h-[calc(100vh-4rem)] pb-0"
       noPadding
     >
-      {/* Fixed header section with consistent padding */}
       <div className="px-4 pt-4 pb-2 sticky top-0 z-30 bg-background border-b">
         <PageHeader 
           title="Calendar"
@@ -188,7 +186,6 @@ const CalendarPage = () => {
           }
         />
 
-        {/* View selector tabs with consistent grid */}
         <div className="flex w-full">
           <Tabs 
             defaultValue="day" 
@@ -242,7 +239,6 @@ const CalendarPage = () => {
         </div>
       </div>
       
-      {/* Main content area with proper overflow handling */}
       <div className={cn(
         "flex-1 overflow-hidden w-full",
         "bg-muted/10",
