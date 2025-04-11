@@ -78,7 +78,16 @@ const ShoppingList = ({
         imageUrl={selectedItem?.imageUrl || null}
         item={selectedItem}
         onClose={handleCloseImageDialog}
-        onSaveItem={handleSaveItemFromCapture}
+        onSaveItem={(item) => {
+          // Adapt the call to match the new function signature
+          if (selectedItem) {
+            return handleSaveItemFromCapture({
+              id: selectedItem.id,
+              capturedText: item
+            });
+          }
+          return false;
+        }}
         onEdit={() => {
           handleCloseImageDialog();
           if (selectedItem) {

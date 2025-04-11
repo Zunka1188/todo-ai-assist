@@ -41,12 +41,19 @@ export const useShoppingItemOperations = ({ readOnly, onEditItem }: ShoppingItem
     }
   }, [readOnly, updateItem, onEditItem]);
   
-  const handleSaveItemFromCapture = useCallback((itemId: string, capturedText: string) => {
-    if (readOnly) return;
+  // Modify this function to match the signature expected by ImagePreviewDialog
+  const handleSaveItemFromCapture = useCallback((item: any) => {
+    if (readOnly) return false;
     
     try {
-      updateItem(itemId, { notes: capturedText });
-      return true;
+      // Extract the necessary fields from the item
+      const { id: itemId, capturedText } = item;
+      
+      if (itemId && capturedText) {
+        updateItem(itemId, { notes: capturedText });
+        return true;
+      }
+      return false;
     } catch (error) {
       console.error("Error saving captured text:", error);
       return false;
