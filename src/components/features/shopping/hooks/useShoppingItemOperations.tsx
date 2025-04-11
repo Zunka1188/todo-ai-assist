@@ -41,7 +41,7 @@ export const useShoppingItemOperations = ({ readOnly, onEditItem }: ShoppingItem
     }
   }, [readOnly, updateItem, onEditItem]);
   
-  // Modify this function to match the signature expected by ImagePreviewDialog
+  // Change signature to accept a single item parameter
   const handleSaveItemFromCapture = useCallback((item: any) => {
     if (readOnly) return false;
     
