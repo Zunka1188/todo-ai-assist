@@ -333,7 +333,8 @@ const TroubleshootPage = () => {
         />
       </div>
 
-      <style>{`
+      <style>
+        {`
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
         }
@@ -341,7 +342,8 @@ const TroubleshootPage = () => {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
