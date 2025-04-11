@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Camera, FileText, Calendar, ShoppingBag, Upload } from 'lucide-react';
+import { Camera, FileText, Calendar, ShoppingBag, Upload, Brain } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,6 +14,7 @@ interface ScanButtonProps {
   scanMode?: 'product' | 'receipt' | 'invitation' | 'document' | 'shopping' | 'smart' | 'upload';
   size?: 'default' | 'lg' | 'sm';
   variant?: 'default' | 'primary' | 'outline';
+  'aria-label'?: string;
 }
 
 const ScanButton: React.FC<ScanButtonProps> = ({ 
@@ -23,7 +24,8 @@ const ScanButton: React.FC<ScanButtonProps> = ({
   label,
   scanMode = 'smart',
   size = 'default',
-  variant = 'default'
+  variant = 'default',
+  'aria-label': ariaLabel
 }) => {
   const { toast } = useToast();
   const { isMobile } = useIsMobile();
@@ -32,8 +34,10 @@ const ScanButton: React.FC<ScanButtonProps> = ({
   const handleScan = () => {
     if (isProcessing) return;
     
-    // Store the scan mode and return path
-    sessionStorage.setItem('preferredScanMode', scanMode);
+    // Store the scan mode for the scan page to use
+    if (scanMode) {
+      sessionStorage.setItem('preferredScanMode', scanMode);
+    }
       
     let toastTitle = "Smart Scanner";
     let toastDescription = "Choose your scanning method";
@@ -72,6 +76,7 @@ const ScanButton: React.FC<ScanButtonProps> = ({
     toast({
       title: toastTitle,
       description: toastDescription,
+      duration: 3000,
     });
     
     if (onScan) {
@@ -97,6 +102,7 @@ const ScanButton: React.FC<ScanButtonProps> = ({
       case 'upload':
         return <Upload size={isMobile ? 22 : 28} />;
       case 'smart':
+        return <Brain size={isMobile ? 24 : 32} />;
       default:
         return <Camera size={isMobile ? 24 : 32} />;
     }
@@ -138,7 +144,7 @@ const ScanButton: React.FC<ScanButtonProps> = ({
         getVariantClasses(),
         className
       )}
-      aria-label={label || "Scan with camera"}
+      aria-label={ariaLabel || label || "Scan with camera"}
     >
       {scanMode && label ? (
         <div className="flex items-center">

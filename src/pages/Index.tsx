@@ -28,6 +28,7 @@ const Index = () => {
         // Simulate prefetching by touching the cache for these routes
         const routes = ['/scan', '/upload', '/shopping', '/calendar', '/documents'];
         // We don't need to actually do anything here, just simulate the prefetch
+        console.log('Routes prefetched:', routes);
       } catch (error) {
         console.error('Error prefetching routes:', error);
       }
@@ -51,6 +52,7 @@ const Index = () => {
         <ScanButton 
           className="transform hover:scale-105 transition-transform active:scale-95 touch-manipulation" 
           onScan={handleScan}
+          aria-label="Open scanner"
         />
       </div>
 

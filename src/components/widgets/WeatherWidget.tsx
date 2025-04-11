@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { SunMedium, Cloud, CloudRain, CloudSnow, CloudLightning, AlertCircle } from 'lucide-react';
+import { SunMedium, Cloud, CloudRain, CloudSnow, CloudLightning, AlertCircle, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
 import { WidgetWrapper } from './shared/WidgetWrapper';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 export interface WeatherWidgetProps {
   className?: string;
@@ -14,8 +15,9 @@ export interface WeatherWidgetProps {
 const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className }) => {
   const { theme } = useTheme();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   const [currentWeather, setCurrentWeather] = useState({
     temp: 72,
@@ -34,43 +36,61 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className }) => {
     { day: 'Thu', temp: 72, condition: 'sunny' },
     { day: 'Fri', temp: 75, condition: 'sunny' },
   ]);
+
+  const fetchWeatherData = async (showRefreshing = false) => {
+    if (showRefreshing) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
+    setHasError(false);
+    
+    try {
+      // Mock API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // In a real app, we would fetch real weather data here
+      // For now, we'll use our static data
+      
+      if (showRefreshing) {
+        toast({
+          title: "Weather Updated",
+          description: "Latest weather information loaded.",
+          duration: 3000,
+        });
+        setIsRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+      setHasError(true);
+      
+      if (showRefreshing) {
+        setIsRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
+      
+      toast({
+        title: "Weather Data Error",
+        description: "Unable to retrieve weather information. Please try again later.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  };
   
   useEffect(() => {
-    // Simulate fetching weather data
-    const fetchWeatherData = async () => {
-      setIsLoading(true);
-      setHasError(false);
-      
-      try {
-        // Mock API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // In a real app, we would fetch real weather data here
-        // For now, we'll use our static data
-        
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error fetching weather data:', error);
-        setHasError(true);
-        setIsLoading(false);
-        
-        toast({
-          title: "Weather Data Error",
-          description: "Unable to retrieve weather information. Please try again later.",
-          variant: "destructive",
-          duration: 5000,
-        });
-      }
-    };
-    
     fetchWeatherData();
-  }, [toast]);
+  }, []);
 
   const getWeatherIcon = (condition: string) => {
     switch(condition.toLowerCase()) {
       case 'sunny':
         return <SunMedium className="h-5 w-5 text-yellow-500" aria-hidden="true" />;
       case 'cloudy':
+      case 'partly cloudy':
         return <Cloud className="h-5 w-5 text-gray-400" aria-hidden="true" />;
       case 'rainy':
         return <CloudRain className="h-5 w-5 text-blue-400" aria-hidden="true" />;
@@ -81,6 +101,10 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className }) => {
       default:
         return <SunMedium className="h-5 w-5 text-yellow-500" aria-hidden="true" />;
     }
+  };
+  
+  const handleRefresh = () => {
+    fetchWeatherData(true);
   };
   
   if (isLoading) {
@@ -110,12 +134,12 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className }) => {
           <p className="text-sm text-muted-foreground mb-3">
             Please check your connection and try again
           </p>
-          <button 
-            onClick={() => window.location.reload()}
+          <Button 
+            onClick={handleRefresh}
             className="text-sm px-3 py-1 bg-primary text-white rounded-md hover:bg-primary/90"
           >
             Refresh
-          </button>
+          </Button>
         </div>
       </WidgetWrapper>
     );
@@ -124,6 +148,20 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className }) => {
   return (
     <WidgetWrapper className={cn("w-full", className)}>
       <div className="space-y-4">
+        {/* Top bar with refresh button */}
+        <div className="flex justify-end">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            onClick={handleRefresh} 
+            disabled={isRefreshing}
+            className="h-8 w-8 p-0"
+            aria-label="Refresh weather data"
+          >
+            <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+          </Button>
+        </div>
+        
         {/* Current Weather */}
         <div className="flex items-center justify-between">
           <div>
