@@ -93,6 +93,12 @@ const ShoppingList = ({
             handleOpenEditDialog(selectedItem.id, selectedItem);
           }
         }}
+        onDelete={onEditItem ? undefined : () => {
+          if (selectedItem) {
+            handleDeleteItem(selectedItem.id);
+            handleCloseImageDialog();
+          }
+        }}
         readOnly={readOnly}
       />
       
