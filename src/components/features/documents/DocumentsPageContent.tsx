@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -54,7 +53,12 @@ const DocumentsPageContent: React.FC = () => {
     ? categoryItems 
     : filterDocuments(categoryItems, activeTab as DocumentCategory, searchTerm);
     
-  const filteredFiles = filterFiles(files, searchTerm, activeTab === 'all' ? undefined : [activeTab as DocumentCategory]);
+  const isAllTab = activeTab === 'all';
+  const filteredFiles = filterFiles(
+    files, 
+    searchTerm, 
+    isAllTab ? undefined : [activeTab as DocumentCategory]
+  );
   
   const handleTabChange = (value: string) => {
     setActiveTab(value as ExtendedDocumentCategory);
