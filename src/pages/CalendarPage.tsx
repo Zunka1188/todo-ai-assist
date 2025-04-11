@@ -1,4 +1,3 @@
-
 /**
  * Calendar Page Component
  * Displays the user's calendar with various view modes (day, week, month, agenda)
@@ -13,7 +12,7 @@ import PageLayout from '@/components/layout/PageLayout';
 import PageHeader from '@/components/ui/page-header';
 import { useTheme } from '@/hooks/use-theme';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Loader2, Plus, UserPlus } from 'lucide-react';
+import { AlertCircle, Loader2, Plus, UserPlus, CalendarClock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import InviteDialog from '@/components/features/calendar/dialogs/InviteDialog';
 import ErrorBoundary from '@/components/features/calendar/ErrorBoundary';
