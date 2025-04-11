@@ -143,7 +143,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
             dateTime: context.dateTime ? new Date(context.dateTime) : undefined
           });
           
-          // Update dietary options based on loaded restrictions
           if (Array.isArray(context.dietaryRestrictions) && context.dietaryRestrictions.length > 0) {
             setDietaryOptions(prev => 
               prev.map(option => ({
@@ -213,7 +212,7 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     setInput('');
     setActiveScanOption(null);
     setIsProcessing(false);
-    setDietaryOptions(DIETARY_OPTIONS); // Reset dietary options
+    setDietaryOptions(DIETARY_OPTIONS);
     
     startConversation();
   };
@@ -317,7 +316,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       setIsTyping(false);
       addAssistantMessage("Any dietary needs? (Select all that apply)");
       
-      // Show the dietary selector message separately
       const dietaryMessage: ChatMessage = {
         id: Date.now().toString(),
         role: 'assistant',
@@ -955,7 +953,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
             </div>
           )}
           
-          {/* Calendar and notes inputs */}
           {foodContext.conversationState === 'schedule_event' && (
             <>
               <div className="flex items-start">
@@ -994,7 +991,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
             </>
           )}
           
-          {/* Dietary restrictions checkboxes */}
           {foodContext.conversationState === 'dietary_restrictions' && (
             <DietaryCheckboxes />
           )}
@@ -1002,7 +998,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Message input bar - fixed at bottom */}
         <div className="fixed bottom-0 left-0 right-0 py-3 px-4 bg-background border-t z-10 w-full">
           <form 
             className="flex items-center space-x-2"
@@ -1023,7 +1018,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
                     break;
                   default:
                     addUserMessage(input);
-                    // Handle general message - could add AI response here
                     break;
                 }
               }
