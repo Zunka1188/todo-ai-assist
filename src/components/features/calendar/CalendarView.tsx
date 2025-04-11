@@ -132,7 +132,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       setViewLoadError("Failed to process uploaded file. Please try again.");
     }
   }, [setIsFileUploaderOpen, handleSaveEvent]);
-  
+
   const handleOpenImagePreview = useCallback((event: any) => {
     try {
       if (event.image) {
