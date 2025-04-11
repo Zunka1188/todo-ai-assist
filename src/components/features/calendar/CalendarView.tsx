@@ -103,13 +103,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       const attachments: AttachmentType[] = [];
       
       if (data.file || data.content) {
-        // Ensure all required properties are provided
         const attachment: AttachmentType = {
           id: `attachment-${Date.now()}`,
           name: data.title || 'Uploaded file',
           type: 'image',
           url: data.file || data.content || '',
-          thumbnailUrl: undefined
+          thumbnailUrl: data.thumbnailUrl
         };
         
         attachments.push(attachment);
