@@ -146,7 +146,9 @@ const ScanButton: React.FC<ScanButtonProps> = ({
       )}
       aria-label={ariaLabel || label || "Scan with camera"}
     >
-      {scanMode && label ? (
+      {isProcessing ? (
+        <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+      ) : scanMode && label ? (
         <div className="flex items-center">
           {getScanIcon()}
           <span className="ml-2">{label}</span>

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Upload, Camera } from 'lucide-react';
+import { ArrowLeft, Upload, Camera, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AppHeader from '@/components/layout/AppHeader';
 import { Button } from '@/components/ui/button';
@@ -17,17 +17,24 @@ const ScanPage = () => {
   const [showFileUploader, setShowFileUploader] = useState(false);
   const [showScanningOptions, setShowScanningOptions] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Get return destination from session storage if available
   const returnDestination = sessionStorage.getItem('returnToAfterScan');
   const preferredScanMode = sessionStorage.getItem('preferredScanMode');
   
   useEffect(() => {
-    // Auto activate scanning options if we're directly navigating to this page
-    if (!showFileUploader) {
-      setShowScanningOptions(true);
-    }
-  }, []);
+    // Simulate a brief loading state for better UX
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      // Auto activate scanning options if we're directly navigating to this page
+      if (!showFileUploader) {
+        setShowScanningOptions(true);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [showFileUploader]);
 
   const goBack = () => {
     if (showFileUploader || showScanningOptions) {
@@ -101,6 +108,25 @@ const ScanPage = () => {
     }, 500);
   };
 
+  const handleUploadClick = () => {
+    setShowScanningOptions(false);
+    setShowFileUploader(true);
+  };
+
+  const handleScanOptionsClick = () => {
+    setShowFileUploader(false);
+    setShowScanningOptions(true);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Preparing scanner...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center mb-4">
@@ -131,7 +157,7 @@ const ScanPage = () => {
             onScreenSelectionClick={() => {}}
             preferredMode={preferredScanMode || undefined}
             noAutomaticActivation={false}
-            onFileUpload={() => setShowFileUploader(true)}
+            onFileUpload={handleUploadClick}
           />
         ) : (
           <div className="flex flex-col items-center justify-center h-full p-4">
@@ -144,19 +170,25 @@ const ScanPage = () => {
 
             <div className="flex flex-col gap-4 w-full max-w-xs">
               <Button 
-                onClick={() => setShowScanningOptions(true)} 
+                onClick={handleScanOptionsClick}
                 size="lg"
                 className="flex items-center gap-2 px-8 py-6 h-auto bg-primary"
+                disabled={isProcessing}
               >
-                <Camera className="h-5 w-5" />
+                {isProcessing ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Camera className="h-5 w-5" />
+                )}
                 Smart Scan
               </Button>
 
               <Button 
-                onClick={() => setShowFileUploader(true)} 
+                onClick={handleUploadClick}
                 size="lg"
                 variant="outline"
                 className="flex items-center gap-2 px-8 py-6 h-auto"
+                disabled={isProcessing}
               >
                 <Upload className="h-5 w-5" />
                 Upload File

@@ -26,7 +26,7 @@ const Index = () => {
     const prefetchRoutes = async () => {
       try {
         // Simulate prefetching by touching the cache for these routes
-        const routes = ['/scan', '/upload', '/shopping', '/calendar', '/documents'];
+        const routes = ['/scan', '/upload', '/shopping', '/calendar', '/documents', '/weather'];
         // We don't need to actually do anything here, just simulate the prefetch
         console.log('Routes prefetched:', routes);
       } catch (error) {

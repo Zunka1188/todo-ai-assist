@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { SunMedium, Cloud, CloudRain, CloudSnow, CloudLightning, AlertCircle, RefreshCw } from 'lucide-react';
+import { SunMedium, Cloud, CloudRain, CloudSnow, CloudLightning, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
@@ -112,13 +112,8 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className }) => {
       <WidgetWrapper className={cn("w-full", className)}>
         <div className="flex flex-col items-center justify-center p-6">
           <div className="animate-pulse flex flex-col items-center">
-            <div className="h-10 w-20 bg-gray-200 rounded mb-4"></div>
-            <div className="h-4 w-32 bg-gray-200 rounded mb-6"></div>
-            <div className="grid grid-cols-3 gap-4 w-full">
-              <div className="h-12 bg-gray-200 rounded"></div>
-              <div className="h-12 bg-gray-200 rounded"></div>
-              <div className="h-12 bg-gray-200 rounded"></div>
-            </div>
+            <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
+            <p className="text-sm text-muted-foreground">Loading weather data...</p>
           </div>
         </div>
       </WidgetWrapper>
@@ -136,8 +131,11 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ className }) => {
           </p>
           <Button 
             onClick={handleRefresh}
-            className="text-sm px-3 py-1 bg-primary text-white rounded-md hover:bg-primary/90"
+            variant="secondary"
+            size="sm"
+            className="flex items-center gap-2"
           >
+            <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
         </div>
