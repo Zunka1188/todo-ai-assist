@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Upload, ScanBarcode, Send, X, RotateCcw, Calendar, ShoppingCart, Receipt, Clock, CheckSquare } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -852,3 +853,204 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
           <div className="flex justify-between items-center">
             <SheetTitle className="flex items-center gap-2">
               <span className="text-base md:text-lg font-semibold">Mr. Todoodle</span>
+              <Badge className="bg-green-500 text-white text-xs">Food Assistant</Badge>
+            </SheetTitle>
+            <div className="flex items-center">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={resetConversation} 
+                className="mr-1"
+                aria-label="Reset conversation"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleClose}
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </SheetHeader>
+        
+        <div className="flex flex-col space-y-4 pb-24 md:pb-28 overflow-y-auto max-h-[calc(100vh-8rem)]">
+          {messages.map((message) => (
+            <div 
+              key={message.id}
+              className={cn(
+                "flex flex-col",
+                message.role === 'user' ? "items-end" : "items-start"
+              )}
+            >
+              <div 
+                className={cn(
+                  "px-3 py-2 rounded-lg max-w-[85%] whitespace-pre-wrap",
+                  message.role === 'user' 
+                    ? "bg-primary text-primary-foreground" 
+                    : "bg-secondary"
+                )}
+              >
+                {message.content}
+                
+                {message.imageUrl && (
+                  <div className="mt-2">
+                    <img 
+                      src={message.imageUrl} 
+                      alt="Food" 
+                      className="max-w-full rounded-md" 
+                    />
+                  </div>
+                )}
+                
+                {message.options && message.options.length > 0 && (
+                  <div className="flex flex-col space-y-2 mt-2">
+                    {message.options.map((option) => (
+                      <Button 
+                        key={option.id} 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={option.action}
+                        className="justify-start h-auto py-1.5 px-2 text-left text-sm"
+                      >
+                        {option.label}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                
+                {message.buttons && message.buttons.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {message.buttons.map((button) => (
+                      <Button 
+                        key={button.id} 
+                        variant={button.variant || "default"} 
+                        size="sm" 
+                        onClick={button.action}
+                        className="flex items-center"
+                      >
+                        {button.icon}{button.label}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <span className="text-xs text-muted-foreground mt-1">
+                {format(message.timestamp, 'p')}
+              </span>
+            </div>
+          ))}
+          
+          {isTyping && (
+            <div className="flex items-start">
+              <div className="bg-secondary px-3 py-2 rounded-lg">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"></div>
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Calendar and notes inputs */}
+          {foodContext.conversationState === 'schedule_event' && (
+            <>
+              <div className="flex items-start">
+                <div className="bg-secondary px-3 py-2 rounded-lg w-full">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "justify-start text-left font-normal w-full",
+                          !selectedDate && "text-muted-foreground"
+                        )}
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  
+                  <Textarea
+                    placeholder="Add notes about this cooking event..."
+                    className="mt-2"
+                    value={eventNotes}
+                    onChange={(e) => setEventNotes(e.target.value)}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+          
+          {/* Dietary restrictions checkboxes */}
+          {foodContext.conversationState === 'dietary_restrictions' && (
+            <DietaryCheckboxes />
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Message input bar - fixed at bottom */}
+        <div className="fixed bottom-0 left-0 right-0 py-3 px-4 bg-background border-t z-10 w-full">
+          <form 
+            className="flex items-center space-x-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (input.trim()) {
+                switch (foodContext.conversationState) {
+                  case 'dish_selection':
+                    handleDishNameInput(input);
+                    break;
+                  case 'serving_size':
+                    const servingSize = parseInt(input);
+                    if (!isNaN(servingSize) && servingSize > 0) {
+                      handleServingSizeSelection(servingSize);
+                    } else {
+                      addAssistantMessage("Please enter a valid number of servings.");
+                    }
+                    break;
+                  default:
+                    addUserMessage(input);
+                    // Handle general message - could add AI response here
+                    break;
+                }
+              }
+            }}
+          >
+            <Input
+              placeholder="Type a message..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              className="flex-grow"
+              disabled={isProcessing || activeScanOption !== null || ['dietary_restrictions', 'schedule_event'].includes(foodContext.conversationState)}
+            />
+            <Button 
+              type="submit" 
+              size="icon"
+              disabled={!input.trim() || isProcessing || activeScanOption !== null || ['dietary_restrictions', 'schedule_event'].includes(foodContext.conversationState)}
+            >
+              <Send className="h-4 w-4" />
+              <span className="sr-only">Send message</span>
+            </Button>
+          </form>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+};
+
+export default AIFoodAssistant;
