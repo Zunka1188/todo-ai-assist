@@ -41,16 +41,16 @@ export const useShoppingItemOperations = ({ readOnly, onEditItem }: ShoppingItem
     }
   }, [readOnly, updateItem, onEditItem]);
   
-  // Updated to accept a single item parameter with a consistent signature
-  const handleSaveItemFromCapture = useCallback((item: any) => {
+  // Updated to accept a single object parameter with id and capturedText properties
+  const handleSaveItemFromCapture = useCallback((params: { id: string; capturedText: string }) => {
     if (readOnly) return false;
     
     try {
-      // Extract the necessary fields from the item
-      const { id: itemId, capturedText } = item;
+      // Extract the necessary fields from the params
+      const { id, capturedText } = params;
       
-      if (itemId && capturedText) {
-        updateItem(itemId, { notes: capturedText });
+      if (id && capturedText) {
+        updateItem(id, { notes: capturedText });
         return true;
       }
       return false;
