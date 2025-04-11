@@ -107,7 +107,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           id: `attachment-${Date.now()}`,
           name: data.title || 'Uploaded file',
           type: 'image',
-          url: data.file || data.content || ''
+          url: data.file || data.content || '',
+          thumbnailUrl: undefined
         };
         
         attachments.push(attachment);
