@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -21,7 +20,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 
-// Define the extended category type that includes 'all'
 type ExtendedCategory = DocumentCategory | 'all';
 
 const DocumentsPageContent: React.FC = () => {
@@ -51,10 +49,8 @@ const DocumentsPageContent: React.FC = () => {
     handleDownloadFile
   } = useDocumentActions({ setIsLoading });
 
-  // Extend the categories to include 'all'
   const extendedCategories: ExtendedCategory[] = ['all', ...CATEGORIES];
 
-  // Modify the filtering logic to handle the 'all' category correctly
   const filteredItems = activeTab === 'all' 
     ? categoryItems 
     : filterDocuments(categoryItems, activeTab as DocumentCategory, searchTerm);
