@@ -124,7 +124,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         color: data.color || '#4285F4',
         allDay: false,
         reminder: '30',
-        attachments: attachments.length > 0 ? attachments : undefined
+        attachments: attachments
       };
       
       handleSaveEvent(newEvent);
