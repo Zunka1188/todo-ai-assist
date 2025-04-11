@@ -5,7 +5,6 @@ import { useTheme } from './use-theme';
 import { cn } from '@/lib/utils';
 
 export interface LayoutConfig {
-  spacing: string;
   containerClass: string;
   contentClass: string;
   isMobile: boolean;
@@ -19,7 +18,6 @@ export function useLayout() {
   const { isMobile, windowWidth } = useIsMobile();
   const { theme } = useTheme();
   const [layout, setLayout] = useState<LayoutConfig>({
-    spacing: 'space-y-4',
     containerClass: '',
     contentClass: '',
     isMobile: false,
@@ -35,7 +33,6 @@ export function useLayout() {
     const isDarkMode = theme === 'dark';
 
     setLayout({
-      spacing: isMobile ? 'space-y-3' : isTablet ? 'space-y-4' : 'space-y-6',
       containerClass: cn(
         'w-full h-full',
         isMobile ? 'px-2' : isTablet ? 'px-4' : 'px-6',

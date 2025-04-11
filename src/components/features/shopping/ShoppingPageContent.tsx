@@ -17,7 +17,7 @@ const ShoppingPageContent: React.FC = () => {
   const layout = useLayout();
   const { addItem, isLoading } = useShoppingItemsContext();
   
-  // Remove spacing property as it doesn't exist in the OptionsType
+  // Use only the properties that actually exist in the layout object
   const { containerClass, contentClass } = layout;
   
   const handleSaveItem = (item: any): boolean => {
