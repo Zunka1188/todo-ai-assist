@@ -11,7 +11,7 @@ interface ImagePreviewDialogProps {
   imageUrl: string | null;
   item: any;
   onClose: () => void;
-  onSaveItem?: (item: any) => boolean | void;
+  onSaveItem?: (capturedText: string) => boolean | void;
   onEdit?: () => void;
   onDelete?: () => void;
   readOnly?: boolean;

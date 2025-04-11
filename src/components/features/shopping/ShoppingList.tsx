@@ -1,3 +1,4 @@
+
 import React, { memo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
@@ -77,11 +78,11 @@ const ShoppingList = ({
         imageUrl={selectedItem?.imageUrl || null}
         item={selectedItem}
         onClose={handleCloseImageDialog}
-        onSaveItem={(item) => {
+        onSaveItem={(capturedText) => {
           if (selectedItem) {
             return handleSaveItemFromCapture({
               id: selectedItem.id,
-              capturedText: item
+              capturedText
             });
           }
           return false;
