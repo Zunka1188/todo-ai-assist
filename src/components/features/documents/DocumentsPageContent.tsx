@@ -192,6 +192,7 @@ const DocumentsPageContent: React.FC = () => {
         onAdd={handleAddDocument}
         categories={CATEGORIES}
         currentCategory={activeTab === 'all' ? 'style' : activeTab as DocumentCategory}
+        isEditing={false}
       />
     </div>
   );
