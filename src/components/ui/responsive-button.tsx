@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { EllipsisVertical, Repeat } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -68,7 +67,7 @@ const ResponsiveButton = React.forwardRef<HTMLButtonElement, ResponsiveButtonPro
         onClick(e);
       }
     };
-
+    
     // Determine if we have details to show
     const hasDetails = quantity || (repeatOption && repeatOption !== 'none');
     
