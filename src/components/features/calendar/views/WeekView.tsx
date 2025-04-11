@@ -512,10 +512,10 @@ const WeekView: React.FC<WeekViewProps> = ({
                 {daysEventGroups.map((eventGroups, dayIdx) => {
                   if (dayIdx === dayIndex) {
                     return (
-                      <React.Fragment key={`day-events-${dayIdx}`}>
+                      <div key={`day-events-${dayIdx}`} className="relative">
                         {eventGroups.map((group, groupIndex) => {
                           return (
-                            <React.Fragment key={`group-${dayIdx}-${groupIndex}`}>
+                            <div key={`group-${dayIdx}-${groupIndex}`} className="relative">
                               {group.map((event, eventIndex) => (
                                 <div 
                                   key={`multi-${event.id}-${dayIdx}`} 
@@ -541,10 +541,10 @@ const WeekView: React.FC<WeekViewProps> = ({
                                   )}
                                 </div>
                               ))}
-                            </React.Fragment>
+                            </div>
                           );
                         })}
-                      </React.Fragment>
+                      </div>
                     );
                   }
                   return null; // Explicitly return null for non-matching days
