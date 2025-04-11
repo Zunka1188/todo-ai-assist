@@ -1,5 +1,5 @@
 
-import React, { memo, useEffect } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
 import { useShoppingItemOperations } from './hooks/useShoppingItemOperations';
@@ -8,6 +8,7 @@ import LoadingState from './LoadingState';
 import ShoppingListContent from './ShoppingListContent';
 import ImagePreviewDialog from './ImagePreviewDialog';
 import EditItemDialog from './EditItemDialog';
+import { SortOption } from './useShoppingItems';
 
 import './shoppingList.css';
 
@@ -32,7 +33,9 @@ const ShoppingList = ({
     purchasedItems, 
     updateSearchTerm,
     updateFilterMode,
-    isLoading 
+    isLoading,
+    sortOption,
+    setSortOption
   } = useShoppingItemsContext();
   
   const {
@@ -53,10 +56,31 @@ const ShoppingList = ({
     handleSaveItemFromCapture
   } = useShoppingItemOperations({ readOnly, onEditItem });
   
+  // File input references
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const newItemFileInputRef = useRef<HTMLInputElement>(null);
+  
+  // State for image options
+  const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Implementation for file change handling
+    console.log("File change detected");
+  };
+  
+  const clearImage = () => {
+    // Implementation for clearing image
+    console.log("Clearing image");
+  };
+  
   useEffect(() => {
     updateSearchTerm(searchTerm);
     updateFilterMode(filterMode);
   }, [searchTerm, filterMode, updateSearchTerm, updateFilterMode]);
+  
+  const handleSortChange = (newSortOption: SortOption) => {
+    setSortOption(newSortOption);
+  };
   
   if (isLoading) {
     return <LoadingState />;
