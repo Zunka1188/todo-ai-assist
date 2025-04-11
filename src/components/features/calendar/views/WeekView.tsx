@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, subMonths, addWeeks, subWeeks, isSameMonth, isSameDay, isToday } from 'date-fns';
@@ -119,8 +118,6 @@ const WeekView: React.FC<WeekViewProps> = ({
     return groups;
   };
 
-  
-
   const getMultiHourEventsForDay = (day: Date) => {
     return events.filter(event => {
       if (event.allDay) return false;
@@ -195,8 +192,6 @@ const WeekView: React.FC<WeekViewProps> = ({
   const daysEventGroups = daysInWeek.map(day => {
     return getVisibleMultiHourEventGroups(day);
   });
-
-  
 
   const handleTimeRangeToggle = (preset: string) => {
     switch (preset) {
@@ -421,7 +416,7 @@ const WeekView: React.FC<WeekViewProps> = ({
           >
             <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
             <AlertDescription className={cn("text-sm", isMobile ? "text-[0.8rem]" : "")}>
-              Warning: {hiddenEvents.length} event{hiddenEvents.length > 1 ? 's' : ''} {hiddenEvents.length > 1 ? 'are' : 'is'} outside the selected time range and {hiddenEvents.length > 1 ? 'are' : 'is'} not visible.
+              Warning: {hiddenEvents.length} event{hiddenEvents.length === 1 ? '' : 's'} {hiddenEvents.length > 1 ? 'are' : 'is'} outside the selected time range and {hiddenEvents.length > 1 ? 'are' : 'is'} not visible.
             </AlertDescription>
           </Alert>
         )}
@@ -514,7 +509,6 @@ const WeekView: React.FC<WeekViewProps> = ({
                   />
                 ))}
                 
-                {/* This is where the error is happening, the map function needs to return React elements */}
                 {daysEventGroups.map((eventGroups, dayIdx) => {
                   if (dayIdx === dayIndex) {
                     return (
