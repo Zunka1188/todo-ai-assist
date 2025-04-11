@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
@@ -104,6 +103,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       const attachments: AttachmentType[] = [];
       
       if (data.file || data.content) {
+        // Ensure all required properties are provided
         const attachment: AttachmentType = {
           id: `attachment-${Date.now()}`,
           name: data.title || 'Uploaded file',
