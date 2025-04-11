@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -83,6 +84,11 @@ const DocumentsPageContent: React.FC = () => {
   
   const handleNavigateToSubtab = (subtab: string) => {
     navigate(`/documents/${subtab}`);
+  };
+  
+  // Helper function to safely get a valid DocumentCategory
+  const getValidCategory = (tab: ExtendedDocumentCategory): DocumentCategory => {
+    return tab === 'all' ? 'style' : tab;
   };
   
   return (
@@ -195,7 +201,7 @@ const DocumentsPageContent: React.FC = () => {
         onOpenChange={setIsAddDialogOpen}
         onAdd={handleAddDocument}
         categories={CATEGORIES as string[]}
-        currentCategory={activeTab === 'all' ? 'style' : activeTab as DocumentCategory}
+        currentCategory={getValidCategory(activeTab)}
         isEditing={false}
       />
     </div>
