@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Search, Plus, Grid, List, Filter, X } from 'lucide-react';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useDocumentActions } from '@/hooks/useDocumentActions';
-import { DocumentCategory, DocumentFile, DocumentItem } from './types';
+import { DocumentCategory, DocumentFile, DocumentItem, ExtendedDocumentCategory } from './types';
 import DocumentList from './DocumentList';
 import AddDocumentDialog from './AddDocumentDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -20,12 +21,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 
-type ExtendedCategory = DocumentCategory | 'all';
-
 const DocumentsPageContent: React.FC = () => {
   const navigate = useNavigate();
   const { isMobile } = useIsMobile();
-  const [activeTab, setActiveTab] = useState<ExtendedCategory>('style');
+  const [activeTab, setActiveTab] = useState<ExtendedDocumentCategory>('style');
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -49,7 +48,7 @@ const DocumentsPageContent: React.FC = () => {
     handleDownloadFile
   } = useDocumentActions({ setIsLoading });
 
-  const extendedCategories: ExtendedCategory[] = ['all', ...CATEGORIES];
+  const extendedCategories: ExtendedDocumentCategory[] = ['all', ...CATEGORIES];
 
   const filteredItems = activeTab === 'all' 
     ? categoryItems 
@@ -58,7 +57,7 @@ const DocumentsPageContent: React.FC = () => {
   const filteredFiles = filterFiles(files, searchTerm, activeTab === 'all' ? undefined : [activeTab as DocumentCategory]);
   
   const handleTabChange = (value: string) => {
-    setActiveTab(value as ExtendedCategory);
+    setActiveTab(value as ExtendedDocumentCategory);
   };
   
   const handleAddDocument = (item: any) => {

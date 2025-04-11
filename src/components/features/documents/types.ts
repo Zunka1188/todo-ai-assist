@@ -1,5 +1,6 @@
 
 export type DocumentCategory = 'style' | 'recipes' | 'travel' | 'fitness' | 'events' | 'other' | 'files';
+export type ExtendedDocumentCategory = DocumentCategory | 'all';
 
 export interface DocumentItem {
   id: string;
