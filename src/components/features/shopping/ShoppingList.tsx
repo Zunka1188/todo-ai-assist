@@ -1,4 +1,3 @@
-
 import React, { memo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
@@ -79,7 +78,6 @@ const ShoppingList = ({
         item={selectedItem}
         onClose={handleCloseImageDialog}
         onSaveItem={(item) => {
-          // Adapt the call to match the new function signature
           if (selectedItem) {
             return handleSaveItemFromCapture({
               id: selectedItem.id,

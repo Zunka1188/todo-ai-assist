@@ -41,7 +41,7 @@ export const useShoppingItemOperations = ({ readOnly, onEditItem }: ShoppingItem
     }
   }, [readOnly, updateItem, onEditItem]);
   
-  // Change signature to accept a single item parameter
+  // Updated to accept a single item parameter with a consistent signature
   const handleSaveItemFromCapture = useCallback((item: any) => {
     if (readOnly) return false;
     
