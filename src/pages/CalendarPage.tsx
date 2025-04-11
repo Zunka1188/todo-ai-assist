@@ -1,3 +1,9 @@
+
+/**
+ * Calendar Page Component
+ * Displays the user's calendar with various view modes (day, week, month, agenda)
+ * and allows for event management.
+ */
 import React, { useState, useCallback, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
