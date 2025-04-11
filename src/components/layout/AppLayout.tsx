@@ -1,5 +1,6 @@
+
 import React, { useEffect, useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import BottomNavigation from './BottomNavigation';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -17,9 +18,10 @@ import AIFoodAssistant from '@/components/features/ai/AIFoodAssistant';
 
 interface AppLayoutProps {
   className?: string;
+  children?: React.ReactNode;
 }
 
-const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
+const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
   const { toast } = useToast();
   const { isMobile, isIOS, isAndroid, windowWidth } = useIsMobile();
   const { theme, setTheme } = useTheme();
@@ -30,7 +32,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
     if (localStorage.getItem('theme') === null) {
       setTheme('dark');
     }
-  }, []);
+  }, [setTheme]);
   
   useEffect(() => {
     if (isIOS) {
@@ -88,7 +90,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
             <DropdownMenuTrigger className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation">
               <Menu className={cn("h-5 w-5", textColorClass)} />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-background border border-border w-56">
+            <DropdownMenuContent align="end" className="bg-background border border-border w-56 z-50">
               <DropdownMenuItem asChild>
                 <Link to="/" className={cn("cursor-pointer flex items-center gap-2 h-10", isMobile ? mobileBodyTextClass : "")}>
                   <Home className="h-4 w-4" />
@@ -145,7 +147,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className }) => {
         isIOS && "pb-safe-bottom",
         className
       )}>
-        <Outlet />
+        {children}
       </main>
       <BottomNavigation />
       

@@ -36,8 +36,8 @@ const Router = () => {
       <Route path="/troubleshoot" element={<TroubleshootPage />} />
       <Route path="/ai-models" element={<AIModelsPage />} />
       <Route path="/weather" element={<WeatherPage />} />
+      <Route path="/produce-recognition" element={<ProduceRecognitionPage />} />
       <Route path="*" element={<NotFound />} />
-      <Route path="produce-recognition" element={<ProduceRecognitionPage />} />
     </Routes>
   );
 };
