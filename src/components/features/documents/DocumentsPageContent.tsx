@@ -195,7 +195,7 @@ const DocumentsPageContent: React.FC = () => {
         onOpenChange={setIsAddDialogOpen}
         onAdd={handleAddDocument}
         categories={CATEGORIES as string[]}
-        currentCategory={(activeTab === 'all' ? 'style' : activeTab) as DocumentCategory}
+        currentCategory={activeTab === 'all' ? 'style' : activeTab as DocumentCategory}
         isEditing={false}
       />
     </div>
