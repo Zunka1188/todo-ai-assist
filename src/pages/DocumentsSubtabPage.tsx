@@ -30,7 +30,6 @@ import ResponsiveContainer from '@/components/ui/responsive-container';
 
 export type DocumentTab = 'all' | 'receipts' | 'images' | 'forms' | 'other';
 
-// Define document categories with icons
 const documentCategories = [
   { id: 'all', label: 'All', icon: FileBox },
   { id: 'receipts', label: 'Receipts', icon: Receipt },
@@ -39,7 +38,6 @@ const documentCategories = [
   { id: 'other', label: 'Other', icon: File },
 ];
 
-// Interface for the AddDocumentDialog's expected document item format
 interface AddDocDialogItem {
   id: string;
   title: string;
@@ -201,7 +199,6 @@ const DocumentsSubtabPage = () => {
     navigate('/documents');
   }, [navigate]);
   
-  // Fixed the document handling function to ensure all required properties are present
   const handleAddDocumentWrapper = useCallback((item: AddDocDialogItem) => {
     console.log("Document item received:", item);
     
@@ -209,7 +206,6 @@ const DocumentsSubtabPage = () => {
       id: item.id,
       title: item.title,
       category: item.category as DocumentCategory,
-      // Ensure these required properties are always defined
       type: (item.type as 'image' | 'note') || 'note',
       content: item.content || item.description || '',
       tags: item.tags || [],
