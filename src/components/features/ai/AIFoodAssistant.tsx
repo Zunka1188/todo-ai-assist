@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, ScanBarcode, Send, X, RotateCcw, Calendar, ShoppingCart, Receipt, Clock } from 'lucide-react';
+import { Camera, Upload, ScanBarcode, Send, X, RotateCcw, Calendar, ShoppingCart, Receipt, Clock, CheckSquare } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 interface AIFoodAssistantProps {
   isOpen: boolean;
@@ -42,6 +43,12 @@ type ButtonOption = {
   action: () => void;
 };
 
+type DietaryRestriction = {
+  id: string;
+  label: string;
+  checked: boolean;
+};
+
 type FoodContext = {
   conversationState: 'initial' | 'dish_selection' | 'serving_size' | 'dietary_restrictions' | 'ingredient_list' | 'decision_point' | 'recipe_generation' | 'schedule_event' | 'closing';
   dishName?: string;
@@ -57,6 +64,15 @@ type FoodContext = {
 const STORAGE_KEY = 'ai-food-assistant-session';
 const SESSION_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
+const DIETARY_OPTIONS: DietaryRestriction[] = [
+  { id: 'vegan', label: 'Vegan', checked: false },
+  { id: 'vegetarian', label: 'Vegetarian', checked: false },
+  { id: 'nut-free', label: 'Nut-Free', checked: false },
+  { id: 'lactose-free', label: 'Lactose-Free', checked: false },
+  { id: 'low-carb', label: 'Low-Carb', checked: false },
+  { id: 'gluten-free', label: 'Gluten-Free', checked: false },
+];
+
 const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) => {
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
@@ -67,6 +83,7 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   const [isTyping, setIsTyping] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [eventNotes, setEventNotes] = useState('');
+  const [dietaryOptions, setDietaryOptions] = useState<DietaryRestriction[]>(DIETARY_OPTIONS);
   
   const [foodContext, setFoodContext] = useState<FoodContext>({
     conversationState: 'initial',
@@ -125,6 +142,16 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
             dietaryRestrictions: Array.isArray(context.dietaryRestrictions) ? context.dietaryRestrictions : [],
             dateTime: context.dateTime ? new Date(context.dateTime) : undefined
           });
+          
+          // Update dietary options based on loaded restrictions
+          if (Array.isArray(context.dietaryRestrictions) && context.dietaryRestrictions.length > 0) {
+            setDietaryOptions(prev => 
+              prev.map(option => ({
+                ...option, 
+                checked: context.dietaryRestrictions.includes(option.label)
+              }))
+            );
+          }
         } else {
           localStorage.removeItem(STORAGE_KEY);
           startConversation();
@@ -186,6 +213,7 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     setInput('');
     setActiveScanOption(null);
     setIsProcessing(false);
+    setDietaryOptions(DIETARY_OPTIONS); // Reset dietary options
     
     startConversation();
   };
@@ -287,94 +315,57 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     
     setTimeout(() => {
       setIsTyping(false);
+      addAssistantMessage("Any dietary needs? (Select all that apply)");
       
-      const dietaryButtons: ButtonOption[] = [
-        { 
-          id: 'vegan', 
-          label: 'Vegan', 
-          variant: 'outline', 
-          action: () => toggleDietaryRestriction('Vegan') 
-        },
-        { 
-          id: 'vegetarian', 
-          label: 'Vegetarian', 
-          variant: 'outline', 
-          action: () => toggleDietaryRestriction('Vegetarian') 
-        },
-        { 
-          id: 'nut-free', 
-          label: 'Nut-Free', 
-          variant: 'outline', 
-          action: () => toggleDietaryRestriction('Nut-Free') 
-        },
-        { 
-          id: 'lactose-free', 
-          label: 'Lactose-Free', 
-          variant: 'outline', 
-          action: () => toggleDietaryRestriction('Lactose-Free') 
-        },
-        { 
-          id: 'low-carb', 
-          label: 'Low-Carb', 
-          variant: 'outline', 
-          action: () => toggleDietaryRestriction('Low-Carb') 
-        },
-        { 
-          id: 'none', 
-          label: 'None', 
-          variant: 'outline', 
-          action: () => handleDietaryComplete(['None']) 
-        },
-        { 
-          id: 'continue', 
-          label: 'Continue', 
-          action: () => handleDietaryComplete(foodContext.dietaryRestrictions) 
-        },
-      ];
+      // Show the dietary selector message separately
+      const dietaryMessage: ChatMessage = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: "Select your dietary preferences:",
+        timestamp: new Date(),
+      };
       
-      addAssistantMessage("Any dietary needs? (Select all that apply)", undefined, dietaryButtons);
+      setMessages(prev => [...prev, dietaryMessage]);
+      
+      const continueButton: ButtonOption = { 
+        id: 'continue', 
+        label: 'Continue', 
+        icon: <CheckSquare className="w-4 h-4 mr-1" />,
+        action: () => handleDietaryComplete() 
+      };
+      
+      addAssistantMessage("Click Continue when you're done selecting", undefined, [continueButton]);
     }, 500);
   };
   
-  const toggleDietaryRestriction = (restriction: string) => {
-    setFoodContext(prev => {
-      const currentRestrictions = Array.isArray(prev.dietaryRestrictions) ? prev.dietaryRestrictions : [];
-      
-      if (restriction === 'None') {
-        return {
-          ...prev,
-          dietaryRestrictions: ['None']
-        };
-      }
-      
-      let updatedRestrictions = currentRestrictions.filter(r => r !== 'None');
-      
-      if (updatedRestrictions.includes(restriction)) {
-        updatedRestrictions = updatedRestrictions.filter(r => r !== restriction);
-      } else {
-        updatedRestrictions = [...updatedRestrictions, restriction];
-      }
-      
-      return {
-        ...prev,
-        dietaryRestrictions: updatedRestrictions
-      };
-    });
+  const toggleDietaryRestriction = (restrictionId: string) => {
+    setDietaryOptions(prev => 
+      prev.map(option => 
+        option.id === restrictionId 
+          ? { ...option, checked: !option.checked } 
+          : option
+      )
+    );
   };
   
-  const handleDietaryComplete = (restrictions: string[]) => {
+  const handleDietaryComplete = () => {
+    const selectedRestrictions = dietaryOptions
+      .filter(option => option.checked)
+      .map(option => option.label);
+    
     let userMessage = "Selected: ";
-    if (restrictions.length === 0 || (restrictions.length === 1 && restrictions[0] === 'None')) {
+    if (selectedRestrictions.length === 0) {
       userMessage = "No dietary restrictions";
+      selectedRestrictions.push("None");
     } else {
-      userMessage += restrictions.join(', ');
+      userMessage += selectedRestrictions.join(', ');
     }
     
     addUserMessage(userMessage);
     
     setFoodContext(prev => ({
       ...prev,
-      dietaryRestrictions: restrictions,
+      dietaryRestrictions: selectedRestrictions,
       conversationState: 'ingredient_list'
     }));
     
@@ -437,6 +428,10 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       
       if (dietaryRestrictions.includes('Low-Carb')) {
         ingredientsList = ingredientsList.replace('lasagna sheets', 'sliced zucchini (as pasta replacement)');
+      }
+
+      if (dietaryRestrictions.includes('Gluten-Free')) {
+        ingredientsList = ingredientsList.replace('lasagna sheets', 'gluten-free lasagna sheets');
       }
     } else {
       ingredientsList = `Ingredients for ${dishName || "your dish"} (${servingSize || 2} servings):\n\n`;
@@ -621,6 +616,10 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         if (dietaryRestrictions.includes('Low-Carb')) {
           recipe = recipe.replace(/lasagna sheets/g, 'sliced zucchini (as pasta replacement)');
           recipe = recipe.replace(/Preheat oven to 180°C \(350°F\)/g, 'Preheat oven to 180°C (350°F). Slice zucchini thinly lengthwise and salt it to draw out moisture. Let sit for 15 minutes, then pat dry.');
+        }
+        
+        if (dietaryRestrictions.includes('Gluten-Free')) {
+          recipe = recipe.replace(/lasagna sheets/g, 'gluten-free lasagna sheets');
         }
         
         if (dietaryRestrictions.includes('Nut-Free')) {
@@ -810,12 +809,41 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     }, 800);
   };
   
+  // Render dietary checkboxes component
+  const DietaryCheckboxes = () => {
+    if (foodContext.conversationState !== 'dietary_restrictions') {
+      return null;
+    }
+    
+    return (
+      <div className="flex flex-col items-start bg-gray-100 dark:bg-gray-800 rounded-lg p-3 my-2">
+        <div className="w-full grid grid-cols-2 gap-2">
+          {dietaryOptions.map((restriction) => (
+            <div key={restriction.id} className="flex items-center space-x-2">
+              <Checkbox 
+                id={`restriction-${restriction.id}`} 
+                checked={restriction.checked}
+                onCheckedChange={() => toggleDietaryRestriction(restriction.id)}
+              />
+              <Label 
+                htmlFor={`restriction-${restriction.id}`}
+                className="text-sm cursor-pointer"
+              >
+                {restriction.label}
+              </Label>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+  
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
       <SheetContent 
         side="right"
         className={cn(
-          "sm:max-w-md md:max-w-lg w-full overflow-y-auto",
+          "sm:max-w-md md:max-w-lg w-full overflow-y-auto pb-20",
           theme === 'dark' ? 'bg-gray-950' : 'bg-white'
         )}
         hideCloseButton
@@ -824,178 +852,3 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
           <div className="flex justify-between items-center">
             <SheetTitle className="flex items-center gap-2">
               <span className="text-base md:text-lg font-semibold">Mr. Todoodle</span>
-              <Badge variant="outline" className="font-normal">Food Assistant</Badge>
-            </SheetTitle>
-            <div className="flex gap-2">
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={resetConversation}
-                title="Start over"
-              >
-                <RotateCcw className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={handleClose}
-                title="Close"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </SheetHeader>
-        
-        <div className="flex flex-col space-y-4 pb-20">
-          {messages.map((message, index) => (
-            <div
-              key={message.id}
-              className={cn(
-                "flex flex-col",
-                message.role === "user" ? "items-end" : "items-start"
-              )}
-            >
-              <div
-                className={cn(
-                  "max-w-[85%] rounded-lg px-4 py-2 text-sm",
-                  message.role === "user"
-                    ? "bg-purple-600 text-white"
-                    : theme === "dark"
-                    ? "bg-gray-800"
-                    : "bg-gray-100"
-                )}
-              >
-                <div className="whitespace-pre-wrap">{message.content}</div>
-                
-                {message.options && message.options.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {message.options.map(option => (
-                      <Button
-                        key={option.id}
-                        variant="secondary"
-                        size="sm"
-                        onClick={option.action}
-                        className="text-xs"
-                      >
-                        {option.label}
-                      </Button>
-                    ))}
-                  </div>
-                )}
-                
-                {message.buttons && message.buttons.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {message.buttons.map(button => (
-                      <Button
-                        key={button.id}
-                        variant={button.variant || "default"}
-                        size="sm"
-                        onClick={button.action}
-                        className="text-xs"
-                      >
-                        {button.icon}
-                        {button.label}
-                      </Button>
-                    ))}
-                  </div>
-                )}
-                
-                {message.imageUrl && (
-                  <img 
-                    src={message.imageUrl} 
-                    alt="Assistant provided image" 
-                    className="mt-2 rounded-md max-w-full" 
-                  />
-                )}
-              </div>
-              
-              <div className="text-xs text-gray-500 mt-1 px-1">
-                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </div>
-            </div>
-          ))}
-          
-          {foodContext.conversationState === 'schedule_event' && (
-            <div className="flex flex-col items-start">
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-2 mb-2">
-                <CalendarComponent
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  className="border rounded-md"
-                />
-              </div>
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 w-full">
-                <Textarea
-                  placeholder="Event notes (optional)"
-                  value={eventNotes}
-                  onChange={(e) => setEventNotes(e.target.value)}
-                  className="resize-none"
-                  rows={2}
-                />
-              </div>
-            </div>
-          )}
-          
-          {isTyping && (
-            <div className="flex items-center space-x-2 text-gray-500 text-sm">
-              <div className="flex space-x-1">
-                <span className="animate-bounce delay-0">•</span>
-                <span className="animate-bounce delay-150">•</span>
-                <span className="animate-bounce delay-300">•</span>
-              </div>
-              <span>Mr. Todoodle is typing</span>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
-        
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white dark:bg-gray-950 border-t">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (input.trim()) {
-                const userInput = input.trim();
-                
-                if (foodContext.conversationState === 'dish_selection') {
-                  handleDishNameInput(userInput);
-                } else if (foodContext.conversationState === 'serving_size') {
-                  const servingSize = parseInt(userInput);
-                  if (!isNaN(servingSize) && servingSize > 0) {
-                    handleServingSizeSelection(servingSize);
-                  } else {
-                    addAssistantMessage("Please enter a valid number of servings.");
-                  }
-                } else {
-                  addUserMessage(userInput);
-                  addAssistantMessage("I've noted your input. Let's continue with the current step.");
-                }
-              }
-            }}
-            className="flex items-center space-x-2"
-          >
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message..."
-              className="flex-grow"
-            />
-            <Button 
-              type="submit" 
-              size="icon" 
-              disabled={!input.trim() || isProcessing}
-              className="shrink-0"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-};
-
-export default AIFoodAssistant;
-
