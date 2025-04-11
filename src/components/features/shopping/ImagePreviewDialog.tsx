@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -92,7 +91,6 @@ const ImagePreviewDialog = ({
     </>
   );
 
-  // Use either Dialog or Drawer based on device
   return isMobile ? (
     <Drawer open={!!imageUrl} onOpenChange={() => onClose()}>
       <DrawerContent>

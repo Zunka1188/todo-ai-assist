@@ -41,7 +41,7 @@ export const useShoppingItemOperations = ({ readOnly, onEditItem }: ShoppingItem
     }
   }, [readOnly, updateItem, onEditItem]);
   
-  // Updated to accept a single object parameter with id and capturedText properties
+  // This function now accepts a single object parameter with id and capturedText properties
   const handleSaveItemFromCapture = useCallback((params: { id: string; capturedText: string }) => {
     if (readOnly) return false;
     
