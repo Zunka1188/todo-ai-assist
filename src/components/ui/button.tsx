@@ -19,6 +19,7 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 active:scale-[0.98]",
         ghost: "hover:bg-accent hover:text-accent-foreground active:bg-accent/80",
         link: "text-primary underline-offset-4 hover:underline",
+        primary: "bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98]", // Added primary variant
         
         // Semantic variants for better naming consistency
         active: "bg-green-500 text-white hover:bg-green-600 active:bg-green-700 active:scale-[0.98]",

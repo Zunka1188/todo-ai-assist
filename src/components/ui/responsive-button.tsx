@@ -9,7 +9,7 @@ interface ResponsiveButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEle
   text: string;
   onClick?: (e: React.MouseEvent) => void;
   onIconClick?: (e: React.MouseEvent) => void;
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'primary';
   iconSize?: number;
   className?: string;
   iconClassName?: string;
