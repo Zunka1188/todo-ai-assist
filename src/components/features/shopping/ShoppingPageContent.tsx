@@ -5,7 +5,7 @@ import { useLayout } from '@/hooks/use-layout';
 import PageHeader from '@/components/ui/page-header';
 import ShoppingList from './ShoppingList';
 import AddItemDialog from './AddItemDialog';
-import FilterButtons from './FilterButtons';  // Corrected import path
+import FilterButtons from './FilterButtons';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -21,7 +21,7 @@ const ShoppingPageContent: React.FC = () => {
   const { containerClass, contentClass } = layout;
   
   const handleSaveItem = (item: any): boolean => {
-    const result = addItem(item);  // Changed from handleAddItem to addItem
+    const result = addItem(item);
     if (result) {
       setIsAddDialogOpen(false);
       return true;
