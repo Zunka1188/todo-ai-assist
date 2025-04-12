@@ -13,7 +13,7 @@ import AppHeader from '@/components/layout/AppHeader';
 import DocumentList from '@/components/features/documents/components/DocumentList';
 import AddDocumentDialog from '@/components/features/documents/AddDocumentDialog';
 import ImageAnalysisModal from '@/components/features/documents/ImageAnalysisModal';
-import { DocumentCategory } from '@/components/features/documents/types';
+import { DocumentCategory, DocumentTabsProps } from '@/components/features/documents/types';
 import ResponsiveContainer from '@/components/ui/responsive-container';
 import { useDocumentManagement } from '@/components/features/documents/hooks/useDocumentManagement';
 import DocumentErrorBoundary from '@/components/features/documents/components/DocumentErrorBoundary';

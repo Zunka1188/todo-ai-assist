@@ -79,3 +79,9 @@ export function isDocumentCategory(value: string): value is DocumentCategory {
 export function isViewMode(value: string): value is ViewMode {
   return ['grid', 'list', 'table'].includes(value);
 }
+
+// Add the DocumentTabsProps interface that's missing in DocumentsSubtabPage.tsx
+export interface DocumentTabsProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
