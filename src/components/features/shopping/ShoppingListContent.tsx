@@ -35,6 +35,7 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = ({
         icon={<ShoppingBag />}
         title={searchTerm ? "No matching items found" : "Your shopping list is empty"}
         description={searchTerm ? "Try a different search term" : "Add an item to get started"}
+        centered={true}
       />
     );
   }

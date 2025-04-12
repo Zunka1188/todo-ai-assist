@@ -81,6 +81,7 @@ const ShoppingPageContent: React.FC = () => {
           description="Add items to your shopping list to get started"
           actionLabel="Add Item"
           onAction={() => setIsAddDialogOpen(true)}
+          centered={true}
         />
         
         <AddItemDialog
