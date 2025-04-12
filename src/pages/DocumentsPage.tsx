@@ -4,7 +4,7 @@ import { FileText } from 'lucide-react';
 import AppPage from '@/components/ui/app-page';
 import AppTabs from '@/components/ui/app-tabs';
 import DocumentsPageContent from '@/components/features/documents/DocumentsPageContent';
-import DocumentErrorBoundary from '@/components/features/documents/components/DocumentErrorBoundary';
+import ErrorBoundary from '@/components/ui/error-boundary';
 import { useSearchParams } from 'react-router-dom';
 
 const DocumentsPage: React.FC = () => {
@@ -19,7 +19,7 @@ const DocumentsPage: React.FC = () => {
   ];
   
   return (
-    <DocumentErrorBoundary context="DocumentsPage">
+    <ErrorBoundary>
       <AppPage
         title="Documents"
         icon={<FileText className="h-5 w-5" />}
@@ -34,7 +34,7 @@ const DocumentsPage: React.FC = () => {
         />
         <DocumentsPageContent activeTab={activeTab} initialSearch={initialSearch} />
       </AppPage>
-    </DocumentErrorBoundary>
+    </ErrorBoundary>
   );
 };
 
