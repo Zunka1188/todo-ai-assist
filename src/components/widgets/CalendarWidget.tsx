@@ -14,7 +14,7 @@ const CalendarWidget = () => {
     open,
     setOpen,
     selectedEvent,
-    setSelectedEvent,  // Make sure this is properly destructured from the hook
+    setSelectedEvent,
     isViewDialogOpen,
     setIsViewDialogOpen,
     isEditMode,

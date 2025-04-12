@@ -1,11 +1,12 @@
 
 import React from 'react';
+import { ShoppingBag } from 'lucide-react';
+import AppPage from '@/components/ui/app-page';
 import { ShoppingItemsProvider } from '@/components/features/shopping/ShoppingItemsContext';
 import ShoppingPageContent from '@/components/features/shopping/ShoppingPageContent';
 import ErrorBoundary from '@/components/ui/error-boundary';
 import { DataRecoveryHandler } from '@/components/features/shopping/DataRecoveryHandler';
 import { logger } from '@/utils/logger';
-import { TOAST_DURATIONS } from '@/utils/errorHandling';
 import { useDataRecovery } from '@/hooks/useDataRecovery';
 import { useVisibilityChange } from '@/hooks/useVisibilityChange';
 import { usePersistenceSetup } from '@/hooks/usePersistenceSetup';
@@ -16,7 +17,7 @@ import { usePersistenceSetup } from '@/hooks/usePersistenceSetup';
  */
 const ShoppingPage: React.FC = () => {
   // Set up data recovery and persistence with custom hooks
-  const { isRecovering } = useDataRecovery();
+  const { isRecovering, error } = useDataRecovery();
   useVisibilityChange();
   usePersistenceSetup();
 
@@ -25,9 +26,18 @@ const ShoppingPage: React.FC = () => {
       fallback={<DataRecoveryHandler isLoading={isRecovering} />}
       onError={(error: Error, errorInfo) => logger.error('[ShoppingPage] Error boundary caught error:', error, errorInfo)}
     >
-      <ShoppingItemsProvider>
-        <ShoppingPageContent />
-      </ShoppingItemsProvider>
+      <AppPage
+        title="Shopping List"
+        icon={<ShoppingBag className="h-5 w-5" />}
+        subtitle="Manage your shopping items"
+        isLoading={isRecovering}
+        error={error}
+        fullHeight
+      >
+        <ShoppingItemsProvider>
+          <ShoppingPageContent />
+        </ShoppingItemsProvider>
+      </AppPage>
     </ErrorBoundary>
   );
 };

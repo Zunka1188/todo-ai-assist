@@ -1,24 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
+import { Plus } from 'lucide-react';
+import HeaderActions from '@/components/ui/header-actions';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
-import { useLayout } from '@/hooks/use-layout';
-import PageHeader from '@/components/ui/page-header';
 import ShoppingList from './ShoppingList';
 import AddItemDialog from './AddItemDialog';
 import FilterButtons from './FilterButtons';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
+import SearchInput from '@/components/ui/search-input';
 
 const ShoppingPageContent: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMode, setFilterMode] = useState<'all' | 'one-off' | 'weekly' | 'monthly'>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { isMobile } = useIsMobile();
-  const layout = useLayout();
   const { addItem, isLoading, updateSearchTerm, updateFilterMode } = useShoppingItemsContext();
-  
-  // Use only the properties that actually exist in the layout object
-  const { containerClass, contentClass } = layout;
   
   // Update context when filter changes
   useEffect(() => {
@@ -38,17 +34,28 @@ const ShoppingPageContent: React.FC = () => {
     }
     return false;
   };
+
+  const headerActions = {
+    primaryAction: {
+      icon: Plus,
+      label: "Add Item",
+      shortLabel: "Add",
+      onClick: () => setIsAddDialogOpen(true)
+    }
+  };
   
   return (
-    <div className={containerClass}>
-      <PageHeader
-        title="Shopping List"
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        showAddButton={true}
-        onAddItem={() => setIsAddDialogOpen(true)}
-        addItemLabel="+ Add Item"
-      />
+    <div className="w-full space-y-4">
+      <div className="flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center">
+        <div className="w-full sm:max-w-sm">
+          <SearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Search shopping items..."
+          />
+        </div>
+        <HeaderActions {...headerActions} />
+      </div>
       
       <div className="mb-4">
         <FilterButtons
@@ -57,12 +64,10 @@ const ShoppingPageContent: React.FC = () => {
         />
       </div>
       
-      <div className={contentClass}>
-        <ShoppingList
-          searchTerm={searchTerm}
-          filterMode={filterMode}
-        />
-      </div>
+      <ShoppingList
+        searchTerm={searchTerm}
+        filterMode={filterMode}
+      />
 
       <AddItemDialog
         open={isAddDialogOpen}
