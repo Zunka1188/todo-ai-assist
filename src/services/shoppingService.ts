@@ -4,11 +4,19 @@
  */
 
 import { ShoppingItem } from '@/components/features/shopping/useShoppingItems';
+import { logger } from '@/utils/logger';
 
 // Constants for storage keys
 export const STORAGE_KEY = 'shoppingItems';
 export const LAST_SYNC_KEY = 'shoppingLastSync';
 export const BACKUP_KEY = 'shoppingItems_backup';
+
+// Standard durations for consistency
+export const TOAST_DURATIONS = {
+  SHORT: 2000,
+  NORMAL: 3000,
+  LONG: 5000,
+};
 
 /**
  * Load items from storage with error handling
@@ -20,6 +28,12 @@ export const loadItems = (): ShoppingItem[] => {
 
     const parsedItems = JSON.parse(items);
     
+    // Input validation - ensure we have an array
+    if (!Array.isArray(parsedItems)) {
+      logger.error("[ERROR] Loaded items is not an array");
+      return [];
+    }
+    
     // Convert date strings back to Date objects
     return parsedItems.map((item: any) => ({
       ...item,
@@ -27,7 +41,7 @@ export const loadItems = (): ShoppingItem[] => {
       lastPurchased: item.lastPurchased ? new Date(item.lastPurchased) : undefined
     }));
   } catch (error) {
-    console.error("[ERROR] Failed to load items from storage:", error);
+    logger.error("[ERROR] Failed to load items from storage:", error);
     return [];
   }
 };
@@ -37,6 +51,12 @@ export const loadItems = (): ShoppingItem[] => {
  */
 export const saveItems = (items: ShoppingItem[]): boolean => {
   try {
+    // Input validation - ensure we have valid items
+    if (!Array.isArray(items)) {
+      logger.error("[ERROR] Items to save is not an array");
+      return false;
+    }
+    
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
     
@@ -52,13 +72,49 @@ export const saveItems = (items: ShoppingItem[]): boolean => {
         window.dispatchEvent(storageEvent);
       }
     } catch (e) {
-      console.error("[ERROR] Failed to dispatch storage event:", e);
+      logger.error("[ERROR] Failed to dispatch storage event:", e);
     }
     
     return true;
   } catch (error) {
-    console.error("[ERROR] Failed to save items to storage:", error);
+    logger.error("[ERROR] Failed to save items to storage:", error);
     return false;
+  }
+};
+
+/**
+ * Attempt to recover data from various sources
+ */
+export const attemptDataRecovery = (): { items: ShoppingItem[] | null, source: string } => {
+  try {
+    // First try to load from localStorage
+    const items = loadItems();
+    if (items && items.length > 0) {
+      return { items, source: 'localStorage' };
+    }
+    
+    // Then try session storage backup
+    try {
+      const backup = sessionStorage.getItem(BACKUP_KEY);
+      if (backup) {
+        const parsedBackup = JSON.parse(backup);
+        if (Array.isArray(parsedBackup) && parsedBackup.length > 0) {
+          const restoredItems = parsedBackup.map((item: any) => ({
+            ...item,
+            dateAdded: new Date(item.dateAdded),
+            lastPurchased: item.lastPurchased ? new Date(item.lastPurchased) : undefined
+          }));
+          return { items: restoredItems, source: 'sessionStorage' };
+        }
+      }
+    } catch (e) {
+      logger.error("[ERROR] Failed to check session storage backup:", e);
+    }
+    
+    return { items: null, source: 'none' };
+  } catch (error) {
+    logger.error("[ERROR] Data recovery attempt failed:", error);
+    return { items: null, source: 'error' };
   }
 };
 
@@ -73,13 +129,13 @@ export const setupMobilePersistence = () => {
       const items = loadItems();
       if (items.length > 0) {
         saveItems(items);
-        console.log("[DEBUG] Force synced items on visibility change");
+        logger.log("[DEBUG] Force synced items on visibility change");
         
         // Also save to sessionStorage as backup
         try {
           sessionStorage.setItem(BACKUP_KEY, JSON.stringify(items));
         } catch (e) {
-          console.error("[ERROR] Failed to save backup:", e);
+          logger.error("[ERROR] Failed to save backup:", e);
         }
       }
     } else if (document.visibilityState === 'visible') {
@@ -87,13 +143,17 @@ export const setupMobilePersistence = () => {
       const items = loadItems();
       if (items && items.length > 0) {
         // Dispatch a storage event to update any components listening
-        const storageEvent = new StorageEvent('storage', {
-          key: STORAGE_KEY,
-          newValue: JSON.stringify(items),
-          url: window.location.href
-        });
-        window.dispatchEvent(storageEvent);
-        console.log("[DEBUG] Reloaded items when app returned to foreground");
+        try {
+          const storageEvent = new StorageEvent('storage', {
+            key: STORAGE_KEY,
+            newValue: JSON.stringify(items),
+            url: window.location.href
+          });
+          window.dispatchEvent(storageEvent);
+          logger.log("[DEBUG] Reloaded items when app returned to foreground");
+        } catch (e) {
+          logger.error("[ERROR] Failed to dispatch storage event:", e);
+        }
       }
     }
   };
@@ -103,13 +163,13 @@ export const setupMobilePersistence = () => {
     const items = loadItems();
     if (items.length > 0) {
       saveItems(items);
-      console.log("[DEBUG] Force synced items before unload");
+      logger.log("[DEBUG] Force synced items before unload");
       
       // Create a backup copy in sessionStorage for extra reliability
       try {
         sessionStorage.setItem(BACKUP_KEY, JSON.stringify(items));
       } catch (e) {
-        console.error("[ERROR] Failed to create backup in sessionStorage:", e);
+        logger.error("[ERROR] Failed to create backup in sessionStorage:", e);
       }
     }
   };
@@ -133,7 +193,7 @@ export const setupCrossBrowserSync = () => {
   // Listen for storage events from other tabs
   const handleStorageChange = (event: StorageEvent) => {
     if (event.key === STORAGE_KEY && event.newValue) {
-      console.log("[DEBUG] Detected shopping list change in another tab");
+      logger.log("[DEBUG] Detected shopping list change in another tab");
       // Processing could be done here in the future
     }
   };
@@ -152,6 +212,12 @@ export const setupCrossBrowserSync = () => {
  * and ensure data is saved even when the app is in the background
  */
 export const enhancedMobileSave = (items: ShoppingItem[]): boolean => {
+  // Input validation
+  if (!Array.isArray(items)) {
+    logger.error("[ERROR] Items to save is not an array");
+    return false;
+  }
+  
   // First try - normal save
   const result = saveItems(items);
   
@@ -159,41 +225,38 @@ export const enhancedMobileSave = (items: ShoppingItem[]): boolean => {
   try {
     sessionStorage.setItem(BACKUP_KEY, JSON.stringify(items));
   } catch (err) {
-    console.error("[ERROR] Failed to save backup to sessionStorage:", err);
+    logger.error("[ERROR] Failed to save backup to sessionStorage:", err);
   }
   
-  // Fallback with multiple save attempts (helps with mobile browsers)
-  setTimeout(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-      console.log("[DEBUG] Mobile fallback save 1 completed");
-      
-      // Also save to sessionStorage as an additional backup
-      sessionStorage.setItem(BACKUP_KEY, JSON.stringify(items));
-    } catch (error) {
-      console.error('[ERROR] Enhanced save fallback 1 failed:', error);
-    }
-  }, 100);
+  // Implement a more efficient retry mechanism with exponential backoff
+  const retryWithBackoff = (attempt: number, maxAttempts: number, baseDelay: number) => {
+    if (attempt >= maxAttempts) return;
+    
+    const delay = baseDelay * Math.pow(2, attempt);
+    
+    setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        logger.log(`[DEBUG] Mobile fallback save attempt ${attempt + 1} completed`);
+        
+        if (attempt === 0) {
+          // Also save to sessionStorage as an additional backup on first retry
+          try {
+            sessionStorage.setItem(BACKUP_KEY, JSON.stringify(items));
+          } catch (error) {
+            logger.error('[ERROR] Failed to save backup on retry:', error);
+          }
+        }
+      } catch (error) {
+        logger.error(`[ERROR] Enhanced save fallback attempt ${attempt + 1} failed:`, error);
+        // Retry with increased delay
+        retryWithBackoff(attempt + 1, maxAttempts, baseDelay);
+      }
+    }, delay);
+  };
   
-  // Second fallback after longer delay
-  setTimeout(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-      console.log("[DEBUG] Mobile fallback save 2 completed");
-    } catch (error) {
-      console.error('[ERROR] Enhanced save fallback 2 failed:', error);
-    }
-  }, 500);
-  
-  // Third fallback after even longer delay
-  setTimeout(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-      console.log("[DEBUG] Mobile fallback save 3 completed");
-    } catch (error) {
-      console.error('[ERROR] Enhanced save fallback 3 failed:', error);
-    }
-  }, 1500);
+  // Start retry mechanism with 3 attempts, starting with 100ms delay
+  retryWithBackoff(0, 3, 100);
   
   return result;
 };
@@ -202,31 +265,16 @@ export const enhancedMobileSave = (items: ShoppingItem[]): boolean => {
  * Function to check if there's a backup and restore it if needed
  */
 export const checkAndRestoreBackup = (): ShoppingItem[] | null => {
-  try {
-    // First check localStorage
-    const items = loadItems();
-    if (items && items.length > 0) {
-      return items;
+  const recovery = attemptDataRecovery();
+  
+  if (recovery.items && recovery.items.length > 0) {
+    // If we recovered from backup, save to localStorage
+    if (recovery.source !== 'localStorage') {
+      saveItems(recovery.items);
+      logger.log(`[DEBUG] Restored shopping items from ${recovery.source}`);
     }
-    
-    // If nothing in localStorage, try the backup
-    const backup = sessionStorage.getItem(BACKUP_KEY);
-    if (backup) {
-      const parsedBackup = JSON.parse(backup);
-      if (Array.isArray(parsedBackup) && parsedBackup.length > 0) {
-        // Restore the backup
-        saveItems(parsedBackup.map((item: any) => ({
-          ...item,
-          dateAdded: new Date(item.dateAdded),
-          lastPurchased: item.lastPurchased ? new Date(item.lastPurchased) : undefined
-        })));
-        console.log("[DEBUG] Restored shopping items from backup");
-        return parsedBackup;
-      }
-    }
-    return null;
-  } catch (error) {
-    console.error("[ERROR] Failed to check or restore backup:", error);
-    return null;
+    return recovery.items;
   }
+  
+  return null;
 };

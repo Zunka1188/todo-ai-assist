@@ -15,10 +15,20 @@ const ShoppingPageContent: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { isMobile } = useIsMobile();
   const layout = useLayout();
-  const { addItem, isLoading } = useShoppingItemsContext();
+  const { addItem, isLoading, updateSearchTerm, updateFilterMode } = useShoppingItemsContext();
   
   // Use only the properties that actually exist in the layout object
   const { containerClass, contentClass } = layout;
+  
+  // Update context when filter changes
+  useEffect(() => {
+    updateFilterMode(filterMode);
+  }, [filterMode, updateFilterMode]);
+  
+  // Update context when search changes
+  useEffect(() => {
+    updateSearchTerm(searchTerm);
+  }, [searchTerm, updateSearchTerm]);
   
   const handleSaveItem = (item: any): boolean => {
     const result = addItem(item);

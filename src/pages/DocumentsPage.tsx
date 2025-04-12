@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Tabs } from '@/components/ui/tabs';
 import DocumentsPageContent from '@/components/features/documents/DocumentsPageContent';
 import ErrorBoundary from '@/components/ui/error-boundary';

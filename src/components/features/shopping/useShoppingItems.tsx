@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import DOMPurify from 'isomorphic-dompurify';
 import { z } from 'zod';
+import { logger } from '@/utils/logger';
 
 const ShoppingItemSchema = z.object({
   id: z.string(),
@@ -106,24 +107,37 @@ const initialItems: ShoppingItem[] = [
 ];
 
 const parseStoredItems = (items: any[]): ShoppingItem[] => {
-  return items.map(item => ({
-    ...item,
-    dateAdded: new Date(item.dateAdded),
-    lastPurchased: item.lastPurchased ? new Date(item.lastPurchased) : undefined
-  }));
+  try {
+    if (!Array.isArray(items)) {
+      logger.error("[ERROR] parseStoredItems: items is not an array");
+      return [];
+    }
+    
+    return items.map(item => ({
+      ...item,
+      dateAdded: new Date(item.dateAdded),
+      lastPurchased: item.lastPurchased ? new Date(item.lastPurchased) : undefined
+    }));
+  } catch (error) {
+    logger.error("[ERROR] Failed to parse stored items:", error);
+    return [];
+  }
 };
 
 const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
   try {
     const storedValue = localStorage.getItem(key);
     if (!storedValue) return defaultValue;
+    
     const parsedValue = JSON.parse(storedValue);
+    
     if (key === 'shoppingItems' && Array.isArray(parsedValue)) {
       return parseStoredItems(parsedValue) as unknown as T;
     }
+    
     return parsedValue;
   } catch (error) {
-    console.error("Error loading from localStorage:", error);
+    logger.error("Error loading from localStorage:", error);
     return defaultValue;
   }
 };
@@ -131,18 +145,22 @@ const loadFromLocalStorage = <T,>(key: string, defaultValue: T): T => {
 const saveToLocalStorage = (key: string, value: any): void => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
-    console.log(`[DEBUG] useShoppingItems - Saved ${key} to localStorage`, value.length ? `(${value.length} items)` : '');
+    logger.log(`[DEBUG] useShoppingItems - Saved ${key} to localStorage`, value.length ? `(${value.length} items)` : '');
     
     if (typeof window !== 'undefined') {
-      const storageEvent = new StorageEvent('storage', {
-        key,
-        newValue: JSON.stringify(value),
-        url: window.location.href
-      });
-      window.dispatchEvent(storageEvent);
+      try {
+        const storageEvent = new StorageEvent('storage', {
+          key,
+          newValue: JSON.stringify(value),
+          url: window.location.href
+        });
+        window.dispatchEvent(storageEvent);
+      } catch (e) {
+        logger.error("[ERROR] Failed to dispatch storage event:", e);
+      }
     }
   } catch (error) {
-    console.error("Error saving to localStorage:", error);
+    logger.error("Error saving to localStorage:", error);
   }
 };
 
@@ -170,9 +188,9 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
             const newItems = parseStoredItems(JSON.parse(e.newValue));
             setItems(newItems);
             setLastStorageUpdate(e.newValue);
-            console.log('[DEBUG] Storage event received - updating items from another tab');
+            logger.log('[DEBUG] Storage event received - updating items from another tab');
           } catch (error) {
-            console.error('[ERROR] Failed to parse items from storage event:', error);
+            logger.error('[ERROR] Failed to parse items from storage event:', error);
           }
         }
       }
@@ -183,17 +201,21 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   }, [lastStorageUpdate]);
   
   useEffect(() => {
-    saveToLocalStorage('shoppingItems', items);
-    console.log("[DEBUG] useShoppingItems - Items updated, total count:", items.length);
-    
     try {
-      sessionStorage.setItem('shoppingItems_backup', JSON.stringify(items));
+      saveToLocalStorage('shoppingItems', items);
+      logger.log("[DEBUG] useShoppingItems - Items updated, total count:", items.length);
+      
+      try {
+        sessionStorage.setItem('shoppingItems_backup', JSON.stringify(items));
+      } catch (error) {
+        logger.error("[ERROR] Failed to create session storage backup:", error);
+      }
     } catch (error) {
-      console.error("[ERROR] Failed to create session storage backup:", error);
+      logger.error("[ERROR] Failed to save items to localStorage:", error);
     }
   }, [items]);
 
-  const getFilteredItems = () => {
+  const getFilteredItems = useCallback(() => {
     let filtered = items;
     
     switch (filterMode) {
@@ -220,10 +242,10 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     }
     
     return filtered;
-  };
+  }, [items, filterMode, searchTerm]);
 
-  const getSortedItems = (filteredItems: ShoppingItem[]) => {
-    return filteredItems.sort((a, b) => {
+  const getSortedItems = useCallback((filteredItems: ShoppingItem[]) => {
+    return [...filteredItems].sort((a, b) => {
       switch (sortOption) {
         case 'nameAsc':
           return a.name.localeCompare(b.name);
@@ -250,13 +272,16 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
           return 0;
       }
     });
-  };
+  }, [sortOption]);
 
-  const sanitizeInput = (input: string): string => {
+  const sanitizeInput = useCallback((input: string): string => {
+    if (typeof input !== 'string') {
+      return '';
+    }
     return DOMPurify.sanitize(input);
-  };
+  }, []);
 
-  const validateItemData = (data: Partial<ShoppingItem>): { valid: boolean; errors?: string[] } => {
+  const validateItemData = useCallback((data: Partial<ShoppingItem>): { valid: boolean; errors?: string[] } => {
     try {
       const partialSchema = ShoppingItemSchema.partial();
       partialSchema.parse(data);
@@ -270,19 +295,19 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       }
       return { valid: false, errors: ['Unknown validation error'] };
     }
-  };
+  }, []);
 
   const addItem = useCallback((newItem: Omit<ShoppingItem, 'id' | 'dateAdded'> & {dateAdded?: Date, id?: string, file?: string | null}) => {
     try {
-      console.log("[DEBUG] useShoppingItems - Adding new item:", JSON.stringify(newItem, null, 2));
+      logger.log("[DEBUG] useShoppingItems - Adding new item:", JSON.stringify(newItem, null, 2));
       
       if (!newItem || typeof newItem !== 'object') {
-        console.error("[ERROR] useShoppingItems - Invalid item data:", newItem);
+        logger.error("[ERROR] useShoppingItems - Invalid item data:", newItem);
         return null;
       }
       
       if (!newItem.name) {
-        console.error("[ERROR] useShoppingItems - Item name is required");
+        logger.error("[ERROR] useShoppingItems - Item name is required");
         return null;
       }
       
@@ -316,41 +341,41 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       
       const validation = validateItemData(item);
       if (!validation.valid) {
-        console.error("[ERROR] useShoppingItems - Invalid item data:", validation.errors);
+        logger.error("[ERROR] useShoppingItems - Invalid item data:", validation.errors);
         return null;
       }
       
-      console.log("[DEBUG] useShoppingItems - Structured item to add/update:", JSON.stringify(item, null, 2));
+      logger.log("[DEBUG] useShoppingItems - Structured item to add/update:", JSON.stringify(item, null, 2));
       
       setItems(prevItems => {
         if (isUpdate) {
-          console.log(`[DEBUG] useShoppingItems - Updating existing item with ID: ${item.id}`);
+          logger.log(`[DEBUG] useShoppingItems - Updating existing item with ID: ${item.id}`);
           return prevItems.map(existingItem => 
             existingItem.id === item.id ? item : existingItem
           );
         }
         
-        console.log(`[DEBUG] useShoppingItems - Adding new item with ID: ${item.id}`);
+        logger.log(`[DEBUG] useShoppingItems - Adding new item with ID: ${item.id}`);
         return [...prevItems, item];
       });
       
-      console.log("[DEBUG] useShoppingItems - Item successfully added/updated");
+      logger.log("[DEBUG] useShoppingItems - Item successfully added/updated");
       return item;
     } catch (error) {
-      console.error("[ERROR] useShoppingItems - Error in addItem:", error);
+      logger.error("[ERROR] useShoppingItems - Error in addItem:", error);
       return null;
     }
-  }, [items]);
+  }, [items, sanitizeInput, validateItemData]);
 
   const toggleItem = useCallback((id: string) => {
     const item = items.find(item => item.id === id);
     if (!item) {
-      console.error("[ERROR] useShoppingItems - Item not found for toggle:", id);
+      logger.error("[ERROR] useShoppingItems - Item not found for toggle:", id);
       return null;
     }
     
     if (!item.completed) {
-      console.log("[DEBUG] useShoppingItems - Marking item as completed:", id);
+      logger.log("[DEBUG] useShoppingItems - Marking item as completed:", id);
       setItems(prevItems => prevItems.map(i => i.id === id ? {
         ...i,
         completed: true,
@@ -359,7 +384,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
       
       return { completed: true, item };
     } else {
-      console.log("[DEBUG] useShoppingItems - Marking item as not completed:", id);
+      logger.log("[DEBUG] useShoppingItems - Marking item as not completed:", id);
       setItems(prevItems => prevItems.map(i => i.id === id ? {
         ...i,
         completed: false
@@ -370,10 +395,10 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   }, [items]);
 
   const removeItem = useCallback((id: string) => {
-    console.log("[DEBUG] useShoppingItems - Removing item:", id);
+    logger.log("[DEBUG] useShoppingItems - Removing item:", id);
     const itemToRemove = items.find(item => item.id === id);
     if (!itemToRemove) {
-      console.error("[ERROR] useShoppingItems - Item not found for removal:", id);
+      logger.error("[ERROR] useShoppingItems - Item not found for removal:", id);
       return null;
     }
     
@@ -382,11 +407,11 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
   }, [items]);
 
   const updateItem = useCallback((id: string, updatedData: Partial<ShoppingItem>) => {
-    console.log("[DEBUG] useShoppingItems - Updating item:", id, updatedData);
+    logger.log("[DEBUG] useShoppingItems - Updating item:", id, updatedData);
     const itemExists = items.some(item => item.id === id);
     
     if (!itemExists) {
-      console.error("[ERROR] useShoppingItems - Item not found for update:", id);
+      logger.error("[ERROR] useShoppingItems - Item not found for update:", id);
       return null;
     }
     
@@ -397,7 +422,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     
     const validation = validateItemData(sanitizedData);
     if (!validation.valid) {
-      console.error("[ERROR] useShoppingItems - Invalid update data:", validation.errors);
+      logger.error("[ERROR] useShoppingItems - Invalid update data:", validation.errors);
       return null;
     }
     
@@ -406,7 +431,7 @@ export const useShoppingItems = (filterMode: 'one-off' | 'weekly' | 'monthly' | 
     ));
     
     const updated = items.find(item => item.id === id);
-    console.log("[DEBUG] useShoppingItems - Updated item result:", updated);
+    logger.log("[DEBUG] useShoppingItems - Updated item result:", updated);
     return updated ? { ...updated, ...sanitizedData } : null;
   }, [items]);
 
