@@ -13,6 +13,7 @@ const CalendarContent: React.FC = () => {
     viewMode,
     dimensions,
     currentDate, 
+    setCurrentDate,
     searchTerm,
     createDialogOpen,
     showFileUploader,
