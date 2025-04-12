@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
@@ -8,7 +7,7 @@ import { AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import MonthView from './views/MonthView';
-import WeekView from './views/week-view/index'; // Fixed import path
+import WeekView from './views/week-view/index';
 import DayView from './views/day-view';
 import EnhancedAgendaView from './views/EnhancedAgendaView';
 import AgendaView from './views/AgendaView';

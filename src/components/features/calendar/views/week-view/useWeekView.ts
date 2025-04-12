@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { startOfWeek, endOfWeek, eachDayOfInterval, subWeeks, addWeeks, isToday, isWeekend, isSameDay } from 'date-fns'; // Added isSameDay import
+import { startOfWeek, endOfWeek, eachDayOfInterval, subWeeks, addWeeks, isToday, isWeekend, isSameDay } from 'date-fns'; 
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Event } from '../../types/event';

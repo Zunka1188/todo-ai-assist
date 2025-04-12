@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useCallback, ReactNode, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { format, startOfWeek, endOfWeek, addDays, subDays, addMonths, subMonths } from 'date-fns';

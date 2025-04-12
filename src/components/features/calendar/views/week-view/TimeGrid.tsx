@@ -1,9 +1,9 @@
 
-import React, { useRef } from 'react';
+import React from 'react';
 import { cn } from '@/lib/utils';
 import { isToday, isWeekend } from 'date-fns';
 import { format } from 'date-fns';
-import { Clock, MapPin } from 'lucide-react'; // Fixed MapPin import
+import { Clock, MapPin } from 'lucide-react'; 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Event } from '../../types/event';
 import { getFormattedTime } from '../../utils/dateUtils';
@@ -11,7 +11,7 @@ import { getFormattedTime } from '../../utils/dateUtils';
 interface TimeGridProps {
   daysInWeek: Date[];
   hours: number[];
-  events: Event[][][]; // Fixed type to Event[][][]
+  events: Event[][][]; // Array of event groups for each day
   handleViewEvent: (event: Event) => void;
   scrollRef: React.RefObject<HTMLDivElement>;
   currentTimePosition: number;
@@ -84,34 +84,32 @@ const TimeGrid: React.FC<TimeGridProps> = ({
                 </div>
               )}
               
-              {daysEventGroups[dayIndex].map((group, groupIndex) => (
-                <React.Fragment key={`group-${dayIndex}-${groupIndex}`}>
-                  {group.map((event, eventIndex) => (
-                    <div
-                      key={`event-${dayIndex}-${groupIndex}-${eventIndex}`}
-                      className={cn("absolute rounded-sm text-xs p-1 overflow-hidden cursor-pointer",
-                        "hover:opacity-90 transition-opacity touch-manipulation"
-                      )}
-                      style={getMultiHourEventStyle(event, day, group.length, eventIndex)}
-                      onClick={() => handleViewEvent(event)}
-                    >
-                      <div className="font-medium text-white mb-0.5 truncate">{event.title}</div>
-                      <div className="flex items-center text-white/90 text-[10px] mb-0.5">
-                        <Clock className="h-2.5 w-2.5 mr-1 shrink-0" />
-                        <span className="truncate">
-                          {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
-                        </span>
-                      </div>
-                      {event.location && (
-                        <div className="flex items-center text-white/90 text-[10px]">
-                          <MapPin className="h-2.5 w-2.5 mr-1 shrink-0" />
-                          <span className="truncate">{event.location}</span>
-                        </div>
-                      )}
+              {daysEventGroups[dayIndex].map((group, groupIndex) => {
+                return group.map((event, eventIndex) => (
+                  <div
+                    key={`event-${dayIndex}-${groupIndex}-${eventIndex}`}
+                    className={cn("absolute rounded-sm text-xs p-1 overflow-hidden cursor-pointer",
+                      "hover:opacity-90 transition-opacity touch-manipulation"
+                    )}
+                    style={getMultiHourEventStyle(event, day, group.length, eventIndex)}
+                    onClick={() => handleViewEvent(event)}
+                  >
+                    <div className="font-medium text-white mb-0.5 truncate">{event.title}</div>
+                    <div className="flex items-center text-white/90 text-[10px] mb-0.5">
+                      <Clock className="h-2.5 w-2.5 mr-1 shrink-0" />
+                      <span className="truncate">
+                        {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
+                      </span>
                     </div>
-                  ))}
-                </React.Fragment>
-              ))}
+                    {event.location && (
+                      <div className="flex items-center text-white/90 text-[10px]">
+                        <MapPin className="h-2.5 w-2.5 mr-1 shrink-0" />
+                        <span className="truncate">{event.location}</span>
+                      </div>
+                    )}
+                  </div>
+                ));
+              })}
             </div>
           ))}
         </div>
