@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, subMonths, addWeeks, subWeeks, isSameMonth, isSameDay, isToday, isWeekend } from 'date-fns';
@@ -49,6 +50,19 @@ const WeekView: React.FC<WeekViewProps> = ({
   const {
     isMobile
   } = useIsMobile();
+
+  // Generate hours array for time display
+  const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i);
+
+  // Navigate to previous week
+  const prevWeek = () => {
+    setDate(subWeeks(date, 1));
+  };
+
+  // Navigate to next week
+  const nextWeek = () => {
+    setDate(addWeeks(date, 1));
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
