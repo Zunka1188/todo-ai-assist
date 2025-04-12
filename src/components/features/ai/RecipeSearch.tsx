@@ -208,62 +208,6 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
     }
   };
 
-  useEffect(() => {
-    // First, grab all recipes
-    let filtered = recipes;
-    
-    // Then apply search term filter if present
-    if (searchTerm) {
-      filtered = filtered.filter(recipe => 
-        recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        recipe.cuisine.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    // Then apply dietary restrictions if any are selected
-    if (activeFilters.dietary.length > 0) {
-      filtered = filtered.filter(recipe => 
-        activeFilters.dietary.every(restriction => 
-          recipe.dietaryRestrictions.includes(restriction)
-        )
-      );
-    }
-    
-    // Then apply cuisine filter if any are selected
-    if (activeFilters.cuisines.length > 0) {
-      filtered = filtered.filter(recipe => 
-        activeFilters.cuisines.includes(recipe.cuisine)
-      );
-    }
-    
-    // Apply sorting
-    filtered = [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'prepTime':
-          return a.prepTime - b.prepTime;
-        case 'cookTime':
-          return a.cookTime - b.cookTime;
-        case 'totalTime':
-          return (a.prepTime + a.cookTime) - (b.prepTime + b.cookTime);
-        default:
-          return 0;
-      }
-    });
-    
-    setFilteredRecipes(filtered);
-  }, [searchTerm, activeFilters, sortBy]);
-
-  // Check if we need to show the scroll indicator
-  useEffect(() => {
-    if (filteredRecipes.length > 4) {
-      setShowScrollIndicator(true);
-    } else {
-      setShowScrollIndicator(false);
-    }
-  }, [filteredRecipes]);
-
   return (
     <div className="mb-4 w-full">
       <div className="flex flex-col space-y-3">
