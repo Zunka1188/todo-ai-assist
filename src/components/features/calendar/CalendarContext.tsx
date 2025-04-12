@@ -17,6 +17,8 @@ interface CalendarContextType {
   createDialogOpen: boolean;
   showFileUploader: boolean;
   inviteDialogOpen: boolean;
+  isAddingEvent: boolean;
+  isInviting: boolean;
   
   // Event handlers
   setViewMode: (mode: ViewMode) => void;
@@ -26,6 +28,10 @@ interface CalendarContextType {
   handleFileUploaderChange: (open: boolean) => void;
   handleShareCalendar: () => void;
   handleInviteSent: (link: string) => void;
+  setInviteDialogOpen: (open: boolean) => void;
+  setAddingEvent: (adding: boolean) => void;
+  setIsInviting: (inviting: boolean) => void;
+  retryDataFetch: () => void;
   
   // Calendar events functionality
   eventsState: ReturnType<typeof useCalendarEvents>;
@@ -35,17 +41,23 @@ const CalendarContext = createContext<CalendarContextType | null>(null);
 
 interface CalendarProviderProps {
   children: ReactNode;
+  initialView?: ViewMode;
 }
 
-export const CalendarProvider: React.FC<CalendarProviderProps> = ({ children }) => {
+export const CalendarProvider: React.FC<CalendarProviderProps> = ({ 
+  children, 
+  initialView = 'day' 
+}) => {
   // State declarations
   const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState<ViewMode>('day');
+  const [viewMode, setViewMode] = useState<ViewMode>(initialView);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [showFileUploader, setShowFileUploader] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
+  const [isAddingEvent, setIsAddingEvent] = useState(false);
+  const [isInviting, setIsInviting] = useState(false);
 
   // Get toast functionality
   const { toast } = useToast();
@@ -91,16 +103,36 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({ children }) 
     };
   }, [toast]);
 
+  // Retry function for error handling
+  const retryDataFetch = useCallback(() => {
+    setPageError(null);
+    setIsLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+      
+      toast({
+        title: "Success",
+        description: "Calendar data refreshed successfully",
+        role: "status",
+        "aria-live": "polite"
+      });
+    }, 1000);
+  }, [toast]);
+
   // Event handlers without unnecessary try/catch blocks
   const handleAddItem = useCallback(() => {
     setCreateDialogOpen(true);
     setShowFileUploader(false);
+    setIsAddingEvent(true);
   }, []);
 
   const handleDialogClose = useCallback((open: boolean) => {
     setCreateDialogOpen(open);
-    // Improve focus management for accessibility
     if (!open) {
+      setIsAddingEvent(false);
+      // Improve focus management for accessibility
       setTimeout(() => {
         document.getElementById('add-event-button')?.focus();
       }, 0);
@@ -125,9 +157,13 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({ children }) 
 
   const handleShareCalendar = useCallback(() => {
     setInviteDialogOpen(true);
+    setIsInviting(true);
   }, []);
 
   const handleInviteSent = useCallback((link: string) => {
+    setInviteDialogOpen(false);
+    setIsInviting(false);
+    
     toast({
       title: "Invitation Link Generated",
       description: "The link has been created and is ready to share",
@@ -146,6 +182,8 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({ children }) 
     createDialogOpen,
     showFileUploader,
     inviteDialogOpen,
+    isAddingEvent,
+    isInviting,
     
     // Setters and handlers
     setViewMode: handleViewModeChange,
@@ -155,6 +193,10 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({ children }) 
     handleFileUploaderChange,
     handleShareCalendar,
     handleInviteSent,
+    setInviteDialogOpen,
+    setAddingEvent: setIsAddingEvent,
+    setIsInviting,
+    retryDataFetch,
     
     // Calendar events functionality
     eventsState

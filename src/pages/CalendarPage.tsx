@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import AppPage from '@/components/ui/app-page';
 import InviteDialog from '@/components/features/calendar/dialogs/InviteDialog';
@@ -8,19 +8,20 @@ import CalendarHeader from '@/components/features/calendar/ui/CalendarHeader';
 import CalendarContent from '@/components/features/calendar/ui/CalendarContent';
 
 /**
- * Calendar Page Component
- * Displays the user's calendar with various view modes (day, week, month, agenda)
- * and allows for event management.
+ * Calendar Page Content Component
+ * Uses the CalendarContext for state management and displays the user's calendar
+ * with various view modes (day, week, month, agenda).
  */
 const CalendarPageContent: React.FC = () => {
-  const [isInviting, setIsInviting] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
-  
   const { 
     isLoading, 
     pageError, 
     inviteDialogOpen, 
-    handleInviteSent 
+    handleInviteSent,
+    retryDataFetch,
+    isAddingEvent,
+    isInviting,
+    setInviteDialogOpen
   } = useCalendar();
 
   return (
@@ -30,11 +31,12 @@ const CalendarPageContent: React.FC = () => {
       subtitle="Manage your events and appointments"
       isLoading={isLoading}
       error={pageError}
+      onRetry={retryDataFetch}
       fullHeight
       noPadding
     >
       <div className="flex flex-col h-full">
-        <CalendarHeader isInviting={isInviting} isAdding={isAdding} />
+        <CalendarHeader isInviting={isInviting} isAdding={isAddingEvent} />
         <div className="flex-1 overflow-auto">
           <CalendarContent />
         </div>
@@ -42,23 +44,24 @@ const CalendarPageContent: React.FC = () => {
       
       <InviteDialog 
         isOpen={inviteDialogOpen}
-        setIsOpen={(open) => {
-          setIsInviting(false);
-          // The actual state is managed in the context
-        }}
-        onShareLink={(link) => {
-          handleInviteSent(link);
-          setIsInviting(false);
-        }}
+        setIsOpen={setInviteDialogOpen}
+        onShareLink={handleInviteSent}
       />
     </AppPage>
   );
 };
 
-// The wrapper component that provides the calendar context
-const CalendarPage: React.FC = () => {
+interface CalendarPageProps {
+  initialView?: 'day' | 'week' | 'month' | 'agenda';
+}
+
+/**
+ * Calendar Page Component
+ * Wrapper component that provides the calendar context
+ */
+const CalendarPage: React.FC<CalendarPageProps> = ({ initialView }) => {
   return (
-    <CalendarProvider>
+    <CalendarProvider initialView={initialView}>
       <CalendarPageContent />
     </CalendarProvider>
   );
