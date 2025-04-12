@@ -5,6 +5,7 @@ import { AlertTriangle } from "lucide-react";
 interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface ErrorBoundaryState {
@@ -29,6 +30,11 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // You can log the error to an error reporting service
     console.error("ErrorBoundary caught an error:", error, errorInfo);
+    
+    // Call the onError callback if provided
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
     
     // Here you could send the error to an analytics service
     // logErrorToAnalyticsService(error, errorInfo);
