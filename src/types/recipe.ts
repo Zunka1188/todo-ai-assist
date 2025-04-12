@@ -5,6 +5,15 @@ export interface Ingredient {
   name: string;
 }
 
+export interface NutritionInfo {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  sugar: number;
+}
+
 export interface Recipe {
   id: string;
   name: string;
@@ -16,6 +25,7 @@ export interface Recipe {
   ingredients: Ingredient[];
   instructions: string[];
   image: string;
+  nutrition?: NutritionInfo;
 }
 
 export type DietaryRestriction = 
