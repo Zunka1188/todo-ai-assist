@@ -26,7 +26,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const {
     isMobile
   } = useIsMobile();
-  return <header className="my-0 mx-[21px]">
+  return <header className="my-0 mx-0">
       <div className="flex items-center justify-between mx-[9px]">
         <div className="flex items-center gap-2 mx-0">
           {backTo && <Link to={backTo} className="mr-2 text-muted-foreground hover:text-foreground transition-colors">
