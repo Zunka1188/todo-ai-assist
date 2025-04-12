@@ -106,20 +106,21 @@ const DayView: React.FC<DayViewProps> = ({
     
   // Handle event view clicks with proper typing
   useEffect(() => {
-    // Create a properly typed event handler that handles CustomEvent<Event>
-    const handleViewEventClick = (event: Event) => {
-      // Type assertion to tell TypeScript this is our custom event type
-      const customEvent = event as unknown as CustomEvent<Event>;
-      if (customEvent.detail) {
-        handleViewEvent(customEvent.detail);
+    // Create a strongly typed event handler for CustomEvent<Event>
+    const handleViewEventClick = (e: Event) => {
+      // More explicit type assertion with intermediate step for clarity
+      const eventWithDetail = e as unknown as { detail: Event };
+      if (eventWithDetail?.detail) {
+        handleViewEvent(eventWithDetail.detail);
       }
     };
     
-    // Add event listener with proper type casting
-    window.addEventListener('view-event', handleViewEventClick as unknown as EventListener);
+    // Type assertion to EventListenerOrEventListenerObject which is what addEventListener expects
+    const typedHandler = handleViewEventClick as EventListenerOrEventListenerObject;
+    window.addEventListener('view-event', typedHandler);
     
     return () => {
-      window.removeEventListener('view-event', handleViewEventClick as unknown as EventListener);
+      window.removeEventListener('view-event', typedHandler);
     };
   }, [handleViewEvent]);
 
