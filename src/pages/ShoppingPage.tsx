@@ -23,7 +23,7 @@ const ShoppingPage: React.FC = () => {
   return (
     <ErrorBoundary 
       fallback={<DataRecoveryHandler isLoading={isRecovering} />}
-      onError={(error) => logger.error('[ShoppingPage] Error boundary caught error:', error)}
+      onError={(error: Error, errorInfo) => logger.error('[ShoppingPage] Error boundary caught error:', error, errorInfo)}
     >
       <ShoppingItemsProvider>
         <ShoppingPageContent />
