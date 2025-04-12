@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { CalendarIcon } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { WidgetWrapper } from './shared/WidgetWrapper';
 import CalendarDatePicker from './calendar/CalendarDatePicker';
 import CalendarWidgetContent from './calendar/CalendarWidgetContent';
@@ -15,6 +14,7 @@ const CalendarWidget = () => {
     open,
     setOpen,
     selectedEvent,
+    setSelectedEvent,
     isViewDialogOpen,
     setIsViewDialogOpen,
     isEditMode,

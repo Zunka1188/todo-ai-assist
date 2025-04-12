@@ -93,6 +93,7 @@ export const useCalendarWidget = () => {
     open,
     setOpen,
     selectedEvent,
+    setSelectedEvent,
     isViewDialogOpen,
     setIsViewDialogOpen,
     isEditMode,
