@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
@@ -30,7 +31,7 @@ interface MonthViewProps {
   handleViewEvent: (event: Event) => void;
   theme: string;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  minCellHeight?: number; // Now included in the interface
+  minCellHeight?: number;
 }
 
 const MonthView: React.FC<MonthViewProps> = ({
@@ -103,7 +104,7 @@ const MonthView: React.FC<MonthViewProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center px-4 py-2">
         <h2 className={cn(
           "text-xl font-semibold",
           theme === 'light' ? "text-foreground" : "text-white"
@@ -130,7 +131,7 @@ const MonthView: React.FC<MonthViewProps> = ({
         </div>
       </div>
       
-      <div className="bg-card border rounded-lg overflow-hidden">
+      <div className="bg-card border rounded-lg overflow-hidden shadow-sm">
         <div className="grid grid-cols-7 text-center">
           {daysOfWeek.map(day => (
             <div 
@@ -154,7 +155,7 @@ const MonthView: React.FC<MonthViewProps> = ({
                 key={i} 
                 className={cn(
                   "min-h-[100px] p-1 border",
-                  !isCurrentMonth && "bg-muted/30",
+                  !isCurrentMonth && "bg-muted/30 text-muted-foreground",
                   isCurrentDate && "bg-accent/30",
                   isSelectedDate && "bg-primary/10"
                 )}
@@ -180,14 +181,11 @@ const MonthView: React.FC<MonthViewProps> = ({
                   {dayEvents.slice(0, 3).map(event => (
                     <div 
                       key={event.id}
-                      className={cn(
-                        "px-1 py-0.5 rounded text-xs truncate cursor-pointer",
-                        event.color ? `bg-${event.color}-100 text-${event.color}-800` : "bg-blue-100 text-blue-800",
-                        "dark:bg-opacity-20 hover:bg-opacity-70"
-                      )}
+                      className="px-1 py-0.5 rounded text-xs truncate cursor-pointer hover:bg-opacity-90 transition shadow-sm border-l-4"
                       style={{
-                        backgroundColor: event.color || '#4285F4',
-                        color: '#ffffff'
+                        backgroundColor: event.color ? `${event.color}20` : '#4285F420', // Lighter background
+                        color: event.color || '#4285F4',
+                        borderLeftColor: event.color || '#4285F4'
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -198,14 +196,14 @@ const MonthView: React.FC<MonthViewProps> = ({
                       aria-label={`Event: ${event.title}`}
                     >
                       {event.allDay ? (
-                        <span>{event.title}</span>
+                        <span className="font-medium">{event.title}</span>
                       ) : (
                         <span>{getFormattedTime(event.startDate)} - {event.title}</span>
                       )}
                     </div>
                   ))}
                   {dayEvents.length > 3 && (
-                    <div className="text-xs text-center text-muted-foreground pt-1">
+                    <div className="text-xs text-center text-muted-foreground pt-1 bg-muted/20 rounded">
                       +{dayEvents.length - 3} more
                     </div>
                   )}

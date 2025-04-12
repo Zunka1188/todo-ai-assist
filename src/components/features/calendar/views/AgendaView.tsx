@@ -1,8 +1,11 @@
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { format, isSameDay, isToday, compareAsc } from 'date-fns';
 import { Clock, MapPin, Calendar as CalendarIcon, Paperclip, FileText, Image } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Card } from '@/components/ui/card';
 
 interface Event {
   id: string;
@@ -36,7 +39,7 @@ interface AgendaViewProps {
   events: Event[];
   handleViewEvent: (event: Event) => void;
   theme: string;
-  itemHeight?: number; // Now properly included in the interface
+  itemHeight?: number;
 }
 
 const AgendaView: React.FC<AgendaViewProps> = ({
@@ -45,7 +48,7 @@ const AgendaView: React.FC<AgendaViewProps> = ({
   events,
   handleViewEvent,
   theme,
-  itemHeight = 64 // Default value
+  itemHeight = 64
 }) => {
   // Sort events by start date
   const sortedEvents = [...events].sort((a, b) => compareAsc(a.startDate, b.endDate));
@@ -70,7 +73,7 @@ const AgendaView: React.FC<AgendaViewProps> = ({
   
   return (
     <ScrollArea className="h-[calc(100vh-220px)]">
-      <div className="space-y-6 pr-4">
+      <div className="space-y-6 px-4 py-4">
         <h2 className={cn(
           "text-xl font-semibold",
           theme === 'light' ? "text-foreground" : "text-white"
@@ -79,10 +82,10 @@ const AgendaView: React.FC<AgendaViewProps> = ({
         </h2>
         
         {datesWithEvents.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-40" />
-            <p>No events scheduled</p>
-          </div>
+          <Card className="flex flex-col items-center justify-center py-12 bg-card/50">
+            <CalendarIcon className="h-12 w-12 mb-4 text-muted-foreground opacity-40" />
+            <p className="text-muted-foreground">No events scheduled</p>
+          </Card>
         ) : (
           datesWithEvents.map(dateKey => {
             const eventsForDate = eventsByDate[dateKey];
@@ -90,7 +93,7 @@ const AgendaView: React.FC<AgendaViewProps> = ({
             const isCurrentDate = isToday(eventDate);
             
             return (
-              <div key={dateKey} className="border rounded-lg overflow-hidden">
+              <Card key={dateKey} className="overflow-hidden shadow-sm">
                 <div 
                   className={cn(
                     "p-3 font-medium flex items-center",
@@ -107,77 +110,75 @@ const AgendaView: React.FC<AgendaViewProps> = ({
                   )}
                 </div>
                 
-                <div className="divide-y">
+                <div className="divide-y divide-border">
                   {eventsForDate.map(event => (
                     <div 
                       key={event.id}
-                      className="p-4 cursor-pointer hover:bg-muted/40 transition-colors"
+                      className="p-4 cursor-pointer hover:bg-muted/40 transition-colors flex items-start gap-3"
                       style={{minHeight: `${itemHeight}px`}}
                       onClick={() => handleViewEvent(event)}
                     >
-                      <div className="flex items-start gap-3">
-                        <div 
-                          className="w-4 h-4 rounded-full mt-1 flex-shrink-0" 
-                          style={{ backgroundColor: event.color || '#4285F4' }}
-                        />
+                      <div 
+                        className="w-4 h-4 rounded-full mt-1 flex-shrink-0" 
+                        style={{ backgroundColor: event.color || '#4285F4' }}
+                      />
+                      
+                      <div className="flex-1">
+                        <h3 className={cn(
+                          "font-medium text-base",
+                          theme === 'light' ? "text-foreground" : "text-white"
+                        )}>
+                          {event.title}
+                        </h3>
                         
-                        <div className="flex-1">
-                          <h3 className={cn(
-                            "font-medium text-base",
-                            theme === 'light' ? "text-foreground" : "text-white"
-                          )}>
-                            {event.title}
-                          </h3>
+                        <div className="mt-2 space-y-1">
+                          <p className="text-sm flex items-center text-muted-foreground">
+                            <Clock className="h-3.5 w-3.5 mr-2" />
+                            {event.allDay 
+                              ? 'All day' 
+                              : `${getFormattedTime(event.startDate)} - ${getFormattedTime(event.endDate)}`}
+                          </p>
                           
-                          <div className="mt-2 space-y-1">
+                          {event.location && (
                             <p className="text-sm flex items-center text-muted-foreground">
-                              <Clock className="h-3.5 w-3.5 mr-2" />
-                              {event.allDay 
-                                ? 'All day' 
-                                : `${getFormattedTime(event.startDate)} - ${getFormattedTime(event.endDate)}`}
+                              <MapPin className="h-3.5 w-3.5 mr-2" />
+                              {event.location}
                             </p>
-                            
-                            {event.location && (
-                              <p className="text-sm flex items-center text-muted-foreground">
-                                <MapPin className="h-3.5 w-3.5 mr-2" />
-                                {event.location}
-                              </p>
-                            )}
-                            
-                            {event.attachments && event.attachments.length > 0 && (
-                              <p className="text-sm flex items-center text-muted-foreground">
-                                <Paperclip className="h-3.5 w-3.5 mr-2" />
-                                {event.attachments.length} attachment{event.attachments.length !== 1 ? 's' : ''}
-                                
-                                <span className="flex ml-2">
-                                  {event.attachments.slice(0, 3).map((attachment) => (
-                                    <span key={attachment.id} className="mr-1" title={attachment.name}>
-                                      {attachment.type === 'image' ? (
-                                        <Image className="h-3.5 w-3.5" />
-                                      ) : (
-                                        <FileText className="h-3.5 w-3.5" />
-                                      )}
-                                    </span>
-                                  ))}
-                                  {event.attachments.length > 3 && (
-                                    <span className="text-xs">+{event.attachments.length - 3}</span>
-                                  )}
-                                </span>
-                              </p>
-                            )}
-                          </div>
+                          )}
                           
-                          {event.description && (
-                            <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
-                              {event.description}
+                          {event.attachments && event.attachments.length > 0 && (
+                            <p className="text-sm flex items-center text-muted-foreground">
+                              <Paperclip className="h-3.5 w-3.5 mr-2" />
+                              {event.attachments.length} attachment{event.attachments.length !== 1 ? 's' : ''}
+                              
+                              <span className="flex ml-2">
+                                {event.attachments.slice(0, 3).map((attachment) => (
+                                  <span key={attachment.id} className="mr-1" title={attachment.name}>
+                                    {attachment.type === 'image' ? (
+                                      <Image className="h-3.5 w-3.5" />
+                                    ) : (
+                                      <FileText className="h-3.5 w-3.5" />
+                                    )}
+                                  </span>
+                                ))}
+                                {event.attachments.length > 3 && (
+                                  <span className="text-xs">+{event.attachments.length - 3}</span>
+                                )}
+                              </span>
                             </p>
                           )}
                         </div>
+                        
+                        {event.description && (
+                          <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+                            {event.description}
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
+              </Card>
             );
           })
         )}

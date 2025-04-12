@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { addDays, subDays, isSameDay, format } from 'date-fns';
 import { Event } from '../../types/event';
@@ -22,7 +23,7 @@ interface DayViewProps {
   timeColumnWidth?: number;
 }
 
-// Define custom event interface to fix type errors
+// Define custom event interface for proper typing
 interface CalendarViewEventDetail {
   detail: Event;
 }
@@ -106,17 +107,19 @@ const DayView: React.FC<DayViewProps> = ({
   // Handle event view clicks with proper typing
   useEffect(() => {
     // Create a properly typed event handler
-    const handleViewEventClick = (e: CustomEvent<Event>) => {
-      if (e.detail) {
-        handleViewEvent(e.detail);
+    const handleViewEventClick = (e: Event) => {
+      // Use type assertion to safely access the detail property
+      const customEvent = e as unknown as CustomEvent<Event>;
+      if (customEvent.detail) {
+        handleViewEvent(customEvent.detail);
       }
     };
     
-    // Use type assertion to bypass TypeScript's strict event typing
-    window.addEventListener('view-event', handleViewEventClick as unknown as EventListener);
+    // Add event listener with the correct type
+    window.addEventListener('view-event', handleViewEventClick as EventListener);
     
     return () => {
-      window.removeEventListener('view-event', handleViewEventClick as unknown as EventListener);
+      window.removeEventListener('view-event', handleViewEventClick as EventListener);
     };
   }, [handleViewEvent]);
 
@@ -163,10 +166,10 @@ const DayView: React.FC<DayViewProps> = ({
         handleViewEvent={handleViewEvent}
       />
       
-      <div className="border rounded-lg overflow-hidden w-full">
-        {/* Fixed headers with sticky positioning - improved z-index and styling */}
+      <div className="border rounded-lg overflow-hidden w-full shadow-sm">
+        {/* Fixed headers with sticky positioning */}
         <div className="grid grid-cols-[3.5rem_1fr] bg-background p-2 border-b sticky top-0 z-20">
-          <div className="text-xs font-medium border-r">Time</div>
+          <div className="text-xs font-medium border-r text-muted-foreground">Time</div>
           <div className="text-xs font-medium pl-2">Events</div>
         </div>
         
@@ -188,7 +191,7 @@ const DayView: React.FC<DayViewProps> = ({
                     {format(new Date().setHours(hour), 'h a')}
                   </div>
                   <div 
-                    className="border-t"
+                    className="border-t hover:bg-accent/5 transition-colors"
                     style={{ height: `${minCellHeight}px` }}
                   />
                 </React.Fragment>
@@ -201,7 +204,7 @@ const DayView: React.FC<DayViewProps> = ({
                 className="absolute left-0 right-0 flex items-center z-30 pointer-events-none"
                 style={{ top: `${currentTimePosition}px` }}
               >
-                <div className="h-3 w-3 rounded-full bg-red-500 ml-2"></div>
+                <div className="h-3 w-3 rounded-full bg-red-500 ml-2 shadow-sm"></div>
                 <div className="flex-1 h-[2px] bg-red-500"></div>
               </div>
             )}
