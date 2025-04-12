@@ -26,8 +26,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const {
     isMobile
   } = useIsMobile();
-  return <header className="mx-[2px] my-0">
-      <div className="flex items-center justify-between">
+  return <header className="my-0 mx-[21px]">
+      <div className="flex items-center justify-between mx-[9px]">
         <div className="flex items-center gap-2">
           {backTo && <Link to={backTo} className="mr-2 text-muted-foreground hover:text-foreground transition-colors">
               <ChevronLeft className="h-5 w-5" />
