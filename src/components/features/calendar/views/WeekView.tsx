@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, subMonths, addWeeks, subWeeks, isSameMonth, isSameDay, isToday, isWeekend } from 'date-fns';
@@ -429,11 +430,11 @@ const WeekView: React.FC<WeekViewProps> = ({
     });
     
     if (hidden.length > 0) {
-      // Consider showing a warning toast
+      // Show warning toast - fixed the variant to "default" since "warning" is not supported
       toast({
         title: `${hidden.length} event${hidden.length > 1 ? 's' : ''} hidden`,
         description: "Some events are outside the selected time range",
-        variant: "warning",
+        variant: "default",
         duration: 3000
       });
     }
@@ -490,9 +491,7 @@ const WeekView: React.FC<WeekViewProps> = ({
     );
   };
 
-  // Calculate current time indicator position
-  const currentTime = new Date();
-  
+  // Calculate current time indicator position - removed the duplicate currentTime declaration
   const getCurrentTimePosition = useCallback(() => {
     const now = currentTime;
     const currentHour = now.getHours();
