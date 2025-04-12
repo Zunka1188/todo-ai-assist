@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { MapPin } from 'lucide-react';
@@ -9,7 +8,6 @@ import TimeControls from './TimeControls';
 import WeekHeader from './WeekHeader';
 import AllDayEvents from './AllDayEvents';
 import TimeGrid from './TimeGrid';
-
 interface WeekViewProps {
   date: Date;
   setDate: (date: Date) => void;
@@ -20,7 +18,6 @@ interface WeekViewProps {
   minCellHeight?: number;
   timeColumnWidth?: number;
 }
-
 const WeekView: React.FC<WeekViewProps> = ({
   date,
   setDate,
@@ -52,57 +49,30 @@ const WeekView: React.FC<WeekViewProps> = ({
     handleTimeRangeToggle,
     handleTimeRangeChange,
     handleInputBlur
-  } = useWeekView({ date, setDate, events, weekStartsOn, minCellHeight });
-  
-  return (
-    <ResponsiveContainer fullWidth noGutters className="space-y-4">
+  } = useWeekView({
+    date,
+    setDate,
+    events,
+    weekStartsOn,
+    minCellHeight
+  });
+  return <ResponsiveContainer fullWidth noGutters className="space-y-4">
       <div className="grid grid-cols-7 gap-2 mb-4">
         <div className="col-span-7">
-          <h2 className={cn(
-            "text-xl font-semibold",
-            theme === 'light' ? "text-foreground" : "text-white"
-          )}>
-            {weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-          </h2>
+          
         </div>
       </div>
 
-      <TimeControls 
-        startHour={startHour}
-        endHour={endHour}
-        showFullDay={showFullDay}
-        startInputValue={startInputValue}
-        endInputValue={endInputValue}
-        hiddenEvents={hiddenEvents}
-        handleTimeRangeToggle={handleTimeRangeToggle}
-        handleTimeRangeChange={handleTimeRangeChange}
-        handleInputBlur={handleInputBlur}
-      />
+      <TimeControls startHour={startHour} endHour={endHour} showFullDay={showFullDay} startInputValue={startInputValue} endInputValue={endInputValue} hiddenEvents={hiddenEvents} handleTimeRangeToggle={handleTimeRangeToggle} handleTimeRangeChange={handleTimeRangeChange} handleInputBlur={handleInputBlur} />
       
       <div className="border rounded-lg overflow-hidden shadow-sm w-full">
         <div className="sticky top-0 z-10 bg-background border-b">
           <WeekHeader daysInWeek={daysInWeek} />
-          <AllDayEvents 
-            daysInWeek={daysInWeek}
-            events={events}
-            handleViewEvent={handleViewEvent}
-          />
+          <AllDayEvents daysInWeek={daysInWeek} events={events} handleViewEvent={handleViewEvent} />
         </div>
         
-        <TimeGrid 
-          daysInWeek={daysInWeek}
-          hours={hours}
-          events={daysEventGroups}
-          handleViewEvent={handleViewEvent}
-          scrollRef={scrollRef}
-          currentTimePosition={currentTimePosition}
-          getMultiHourEventStyle={getMultiHourEventStyle}
-          minCellHeight={minCellHeight}
-          scrollContainerHeight={scrollContainerHeight}
-        />
+        <TimeGrid daysInWeek={daysInWeek} hours={hours} events={daysEventGroups} handleViewEvent={handleViewEvent} scrollRef={scrollRef} currentTimePosition={currentTimePosition} getMultiHourEventStyle={getMultiHourEventStyle} minCellHeight={minCellHeight} scrollContainerHeight={scrollContainerHeight} />
       </div>
-    </ResponsiveContainer>
-  );
+    </ResponsiveContainer>;
 };
-
 export default WeekView;
