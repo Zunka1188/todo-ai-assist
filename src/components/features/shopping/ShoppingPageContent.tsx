@@ -10,7 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import SearchInput from '@/components/ui/search-input';
 import ResponsiveContainer from '@/components/ui/responsive-container';
 import LoadingState from './LoadingState';
-import EmptyState from './EmptyState';
+import EmptyState from '@/components/ui/empty-state';
 import ContentGrid from '@/components/ui/content-grid';
 
 const ShoppingPageContent: React.FC = () => {

@@ -3,7 +3,7 @@ import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import ShoppingItemGrid from './ShoppingItemGrid';
-import EmptyState from './EmptyState';
+import EmptyState from '@/components/ui/empty-state';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ShoppingBag } from 'lucide-react';
 import ContentGrid from '@/components/ui/content-grid';

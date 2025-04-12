@@ -39,8 +39,14 @@ const ShoppingItemGrid: React.FC<ShoppingItemGridProps> = ({
       {items.map(item => (
         <ShoppingItemCard
           key={item.id}
-          item={item}
-          onToggle={() => onToggleItemCompletion(item.id)}
+          id={item.id}
+          name={item.name}
+          completed={item.completed}
+          quantity={item.amount}
+          repeatOption={item.repeatOption}
+          imageUrl={item.imageUrl}
+          notes={item.notes}
+          onClick={() => onToggleItemCompletion(item.id)}
           onEdit={() => onEditItem(item.id, item)}
           onImagePreview={() => onImagePreview(item)}
           readOnly={readOnly}
