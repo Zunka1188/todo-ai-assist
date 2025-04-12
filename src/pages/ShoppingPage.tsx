@@ -1,11 +1,9 @@
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { ShoppingBag } from 'lucide-react';
 import AppPage from '@/components/ui/app-page';
 import { ShoppingItemsProvider } from '@/components/features/shopping/ShoppingItemsContext';
 import ShoppingPageContent from '@/components/features/shopping/ShoppingPageContent';
-import ErrorBoundary from '@/components/ui/error-boundary';
-import { DataRecoveryHandler } from '@/components/features/shopping/DataRecoveryHandler';
 import { logger } from '@/utils/logger';
 import { useDataRecovery } from '@/hooks/useDataRecovery';
 import { useVisibilityChange } from '@/hooks/useVisibilityChange';
@@ -17,32 +15,41 @@ import { usePersistenceSetup } from '@/hooks/usePersistenceSetup';
  */
 const ShoppingPage: React.FC = () => {
   // Set up data recovery and persistence with custom hooks
-  // Define the error state manually since it's not provided by useDataRecovery
   const { isRecovering, retryRecovery } = useDataRecovery();
   useVisibilityChange();
   usePersistenceSetup();
 
-  // Define an error state variable
-  const [error, setError] = React.useState<string | null>(null);
+  // Manage error state locally
+  const [error, setError] = useState<string | null>(null);
+  
+  // Handler for retry actions
+  const handleRetry = useCallback(() => {
+    setError(null);
+    retryRecovery();
+    logger.log('[ShoppingPage] Retry recovery initiated');
+  }, [retryRecovery]);
+  
+  // Handler for errors coming from ShoppingItemsContext
+  const handleError = useCallback((err: Error | string) => {
+    const errorMessage = typeof err === 'string' ? err : err.message || 'Something went wrong';
+    setError(errorMessage);
+    logger.error('[ShoppingPage] Error in shopping items context:', errorMessage);
+  }, []);
 
   return (
-    <ErrorBoundary 
-      fallback={<DataRecoveryHandler isLoading={isRecovering} />}
-      onError={(error: Error, errorInfo) => logger.error('[ShoppingPage] Error boundary caught error:', error, errorInfo)}
+    <AppPage
+      title="Shopping List"
+      icon={<ShoppingBag className="h-5 w-5" />}
+      subtitle="Manage your shopping items"
+      isLoading={isRecovering}
+      error={error}
+      onRetry={handleRetry}
+      fullHeight
     >
-      <AppPage
-        title="Shopping List"
-        icon={<ShoppingBag className="h-5 w-5" />}
-        subtitle="Manage your shopping items"
-        isLoading={isRecovering}
-        error={error}
-        fullHeight
-      >
-        <ShoppingItemsProvider>
-          <ShoppingPageContent />
-        </ShoppingItemsProvider>
-      </AppPage>
-    </ErrorBoundary>
+      <ShoppingItemsProvider onError={handleError}>
+        <ShoppingPageContent />
+      </ShoppingItemsProvider>
+    </AppPage>
   );
 };
 

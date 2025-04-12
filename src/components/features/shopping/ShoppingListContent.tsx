@@ -5,6 +5,8 @@ import { Separator } from '@/components/ui/separator';
 import ShoppingItemGrid from './ShoppingItemGrid';
 import EmptyState from './EmptyState';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ShoppingBag } from 'lucide-react';
+import ContentGrid from '@/components/ui/content-grid';
 
 interface ShoppingListContentProps {
   notPurchasedItems: any[];
@@ -28,7 +30,13 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = ({
   const { isMobile } = useIsMobile();
   
   if (notPurchasedItems.length === 0 && purchasedItems.length === 0) {
-    return <EmptyState searchTerm={searchTerm} />;
+    return (
+      <EmptyState 
+        icon={<ShoppingBag />}
+        title={searchTerm ? "No matching items found" : "Your shopping list is empty"}
+        description={searchTerm ? "Try a different search term" : "Add an item to get started"}
+      />
+    );
   }
 
   return (

@@ -1,48 +1,52 @@
 
 import React from 'react';
 import ShoppingItemCard from './ShoppingItemCard';
+import ContentGrid from '@/components/ui/content-grid';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ShoppingItemGridProps {
   items: any[];
-  onToggleItemCompletion: (itemId: string) => void;
-  onEditItem: (itemId: string, item: any) => void;
+  onToggleItemCompletion: (id: string) => void;
+  onEditItem: (id: string, item: any) => void;
   onImagePreview: (item: any) => void;
-  readOnly: boolean;
+  readOnly?: boolean;
 }
 
-const ShoppingItemGrid: React.FC<ShoppingItemGridProps> = ({
-  items,
-  onToggleItemCompletion,
-  onEditItem,
+const ShoppingItemGrid: React.FC<ShoppingItemGridProps> = ({ 
+  items, 
+  onToggleItemCompletion, 
+  onEditItem, 
   onImagePreview,
-  readOnly
+  readOnly = false
 }) => {
-  if (items.length === 0) return null;
-  
+  const { isMobile } = useIsMobile();
+
   return (
-    <div 
-      className="shopping-item-grid"
-      role="list"
-      aria-label={items[0]?.completed ? "Purchased items" : "Shopping items"}
+    <ContentGrid
+      itemCount={items.length}
+      columns={{
+        default: 1,
+        sm: isMobile ? 1 : 2,
+        md: 3,
+        lg: 4
+      }}
+      gap="md"
+      emptyState={{
+        title: "No items",
+        description: "There are no items in this category"
+      }}
     >
       {items.map(item => (
-        <div key={item.id} className="shopping-item-wrapper">
-          <ShoppingItemCard
-            id={item.id}
-            name={item.name}
-            completed={item.completed}
-            quantity={item.amount}
-            repeatOption={item.repeatOption}
-            imageUrl={item.imageUrl}
-            notes={item.notes}
-            onClick={() => onToggleItemCompletion(item.id)}
-            onEdit={() => onEditItem(item.id, item)}
-            onImagePreview={() => onImagePreview(item)}
-            readOnly={readOnly}
-          />
-        </div>
+        <ShoppingItemCard
+          key={item.id}
+          item={item}
+          onToggle={() => onToggleItemCompletion(item.id)}
+          onEdit={() => onEditItem(item.id, item)}
+          onImagePreview={() => onImagePreview(item)}
+          readOnly={readOnly}
+        />
       ))}
-    </div>
+    </ContentGrid>
   );
 };
 
