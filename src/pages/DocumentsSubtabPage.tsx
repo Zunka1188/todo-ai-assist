@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -52,6 +53,13 @@ interface AddDocDialogItem {
   type?: string;
   content?: string;
 }
+
+// Define the getValidCategory function to convert DocumentTab to a valid DocumentCategory
+const getValidCategory = (tab: DocumentTab): DocumentCategory => {
+  // Map 'all' to a default category ('style'), otherwise use the tab as the category
+  if (tab === 'all') return 'style';
+  return tab as DocumentCategory;
+};
 
 const DocumentsSubtabPage = () => {
   
