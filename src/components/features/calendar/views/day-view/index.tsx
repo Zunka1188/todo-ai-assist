@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { addDays, subDays, isSameDay, format } from 'date-fns';
 import { Event } from '../../types/event';
 import DayHeader from './DayHeader';
@@ -21,6 +21,10 @@ interface DayViewProps {
   theme: string;
   minCellHeight?: number;
   timeColumnWidth?: number;
+  maxTime?: string;
+  hideEmptyRows?: boolean;
+  constrainEvents?: boolean;
+  disablePopups?: boolean;
 }
 
 // Explicitly import DOM Event as DOMEvent to avoid naming collision
@@ -31,13 +35,42 @@ interface CalendarViewEvent extends CustomEvent<Event> {
   detail: Event;
 }
 
+// Function to constrain events to max time
+const constrainEventsToMaxTime = (events: Event[], maxTimeStr: string): Event[] => {
+  const [hours, minutes] = maxTimeStr.split(':').map(Number);
+  const maxTime = new Date();
+  maxTime.setHours(hours || 23, minutes || 0, 0, 0);
+  
+  return events.map(event => {
+    // Clone the event to avoid mutating the original
+    const newEvent = { ...event };
+    
+    // Only constrain if the end time is after max time
+    if (newEvent.endDate.getHours() > maxTime.getHours() || 
+        (newEvent.endDate.getHours() === maxTime.getHours() && 
+         newEvent.endDate.getMinutes() > maxTime.getMinutes())) {
+      
+      // Create a new end date at the max time on the same day
+      const constrainedEnd = new Date(newEvent.endDate);
+      constrainedEnd.setHours(maxTime.getHours(), maxTime.getMinutes(), 0, 0);
+      newEvent.endDate = constrainedEnd;
+    }
+    
+    return newEvent;
+  });
+};
+
 const DayView: React.FC<DayViewProps> = ({
   date,
   events,
   handleViewEvent,
   theme,
   minCellHeight = 60,
-  timeColumnWidth = 60
+  timeColumnWidth = 60,
+  maxTime = "23:00",
+  hideEmptyRows = false,
+  constrainEvents = false,
+  disablePopups = true
 }) => {
   const { isMobile } = useIsMobile();
   const gridRef = useRef<HTMLDivElement>(null);
@@ -67,7 +100,14 @@ const DayView: React.FC<DayViewProps> = ({
     }
   }, [date, events, theme, isMobile, debugEnabled, logProps]);
   
-  // Use custom hook for event management
+  // Process events and constrain them if needed
+  const processedEvents = useMemo(() => {
+    return constrainEvents 
+      ? constrainEventsToMaxTime(events, maxTime)
+      : events;
+  }, [events, constrainEvents, maxTime]);
+  
+  // Use custom hook for event management with processed events
   const {
     startHour,
     endHour,
@@ -80,8 +120,8 @@ const DayView: React.FC<DayViewProps> = ({
     handleTimeRangeToggle,
     handleTimeRangeChange,
     handleInputBlur,
-    processedEvents,
-  } = useEventManagement(events, date);
+    processedEventsGroups,
+  } = useEventManagement(processedEvents, date);
 
   const prevDay = () => {
     // Using a custom event to bubble up navigation
@@ -106,6 +146,9 @@ const DayView: React.FC<DayViewProps> = ({
     
   // Handle event view clicks with proper typing
   useEffect(() => {
+    // Skip if popups are disabled
+    if (disablePopups) return;
+      
     // Create a strongly typed event handler for DOM events
     const handleViewEventClick = (e: DOMEvent) => {
       // Explicitly cast to CustomEvent<Event> to handle our calendar event data
@@ -121,7 +164,7 @@ const DayView: React.FC<DayViewProps> = ({
     return () => {
       window.removeEventListener('view-event', handleViewEventClick as unknown as EventListener);
     };
-  }, [handleViewEvent]);
+  }, [handleViewEvent, disablePopups]);
 
   // Calculate current time indicator position
   const getCurrentTimePosition = () => {
@@ -163,7 +206,7 @@ const DayView: React.FC<DayViewProps> = ({
       
       <AllDayEvents 
         allDayEvents={allDayEvents}
-        handleViewEvent={handleViewEvent}
+        handleViewEvent={disablePopups ? () => {} : handleViewEvent}
       />
       
       <div className="border rounded-lg overflow-hidden w-full shadow-sm">
@@ -211,7 +254,7 @@ const DayView: React.FC<DayViewProps> = ({
             
             {/* Events */}
             <div className="absolute inset-0 pointer-events-none">
-              {processedEvents.map((group, groupIndex) => (
+              {processedEventsGroups.map((group, groupIndex) => (
                 group.events.map((event, eventIndex) => (
                   <CalendarEventItem
                     key={event.id}
@@ -222,6 +265,7 @@ const DayView: React.FC<DayViewProps> = ({
                     timeColumnWidth={timeColumnWidth}
                     position={eventIndex}
                     totalOverlapping={group.maxOverlap}
+                    handleViewEvent={disablePopups ? undefined : handleViewEvent}
                   />
                 ))
               ))}

@@ -7,7 +7,13 @@ import { useCalendar } from '../CalendarContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import CalendarView from '../CalendarView';
 
-const CalendarContent: React.FC = () => {
+interface CalendarContentProps {
+  disablePopups?: boolean;
+}
+
+const CalendarContent: React.FC<CalendarContentProps> = ({ 
+  disablePopups = true // Default to disabled popups
+}) => {
   const { theme } = useTheme();
   const { 
     viewMode,
@@ -35,6 +41,11 @@ const CalendarContent: React.FC = () => {
       isFileUploaderOpen={showFileUploader}
       setIsFileUploaderOpen={handleFileUploaderChange}
       dimensions={dimensions}
+      disablePopups={disablePopups}
+      maxTime="23:00"
+      hideEmptyRows={true}
+      deduplicateAllDay={true}
+      constrainEvents={true}
     />
   ), [
     viewMode,
@@ -44,7 +55,8 @@ const CalendarContent: React.FC = () => {
     createDialogOpen, 
     showFileUploader, 
     handleDialogClose,
-    handleFileUploaderChange
+    handleFileUploaderChange,
+    disablePopups
   ]);
 
   return (
@@ -53,7 +65,7 @@ const CalendarContent: React.FC = () => {
       "bg-background dark:bg-transparent",
       theme === 'dark' ? 'text-white' : ''
     )}>
-      <div className="h-full overflow-y-auto px-4 py-3">
+      <div className="h-full overflow-y-auto px-4 py-3" style={{ padding: '0 16px' }}>
         <ErrorBoundary>
           {memoizedCalendarView}
         </ErrorBoundary>

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { format, isSameDay, isToday, compareAsc, addDays } from 'date-fns';
 import { Clock, MapPin, Calendar as CalendarIcon, Paperclip, FileText, Image, ChevronRight, ChevronLeft } from 'lucide-react';
@@ -41,6 +41,7 @@ interface AgendaViewProps {
   handleViewEvent: (event: Event) => void;
   theme: string;
   itemHeight?: number;
+  disablePopups?: boolean;
 }
 
 const AgendaView: React.FC<AgendaViewProps> = ({
@@ -49,22 +50,29 @@ const AgendaView: React.FC<AgendaViewProps> = ({
   events,
   handleViewEvent,
   theme,
-  itemHeight = 64
+  itemHeight = 64,
+  disablePopups = false
 }) => {
   const { isMobile } = useIsMobile();
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   // Sort events by start date
-  const sortedEvents = [...events].sort((a, b) => compareAsc(a.startDate, b.endDate));
+  const sortedEvents = React.useMemo(() => 
+    [...events].sort((a, b) => compareAsc(a.startDate, b.endDate)), 
+    [events]
+  );
   
   // Group events by date
-  const eventsByDate = sortedEvents.reduce<Record<string, Event[]>>((acc, event) => {
-    const dateKey = format(event.startDate, 'yyyy-MM-dd');
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
-    }
-    acc[dateKey].push(event);
-    return acc;
-  }, {});
+  const eventsByDate = React.useMemo(() => {
+    return sortedEvents.reduce<Record<string, Event[]>>((acc, event) => {
+      const dateKey = format(event.startDate, 'yyyy-MM-dd');
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(event);
+      return acc;
+    }, {});
+  }, [sortedEvents]);
   
   // Get dates with events
   const datesWithEvents = Object.keys(eventsByDate).sort();
@@ -81,6 +89,28 @@ const AgendaView: React.FC<AgendaViewProps> = ({
 
   const nextDay = () => {
     setDate(addDays(date, 1));
+  };
+  
+  // Scroll to today's events if available
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    
+    // Find today's events section
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const todayElement = document.getElementById(`date-${today}`);
+    
+    if (todayElement) {
+      scrollRef.current.scrollTo({
+        top: todayElement.offsetTop - 20,
+        behavior: 'smooth'
+      });
+    }
+  }, [datesWithEvents]);
+
+  // Handle click event with optional popup disabling
+  const handleEventClick = (event: Event) => {
+    if (disablePopups) return;
+    handleViewEvent(event);
   };
 
   return (
@@ -113,8 +143,11 @@ const AgendaView: React.FC<AgendaViewProps> = ({
         </div>
       </div>
       
-      <ScrollArea className="h-[calc(100vh-220px)]">
-        <div className="space-y-6 px-4 py-4">
+      <ScrollArea 
+        className="h-[calc(100vh-220px)]"
+        ref={scrollRef}
+      >
+        <div className="space-y-6 px-4 py-4" role="list" aria-label="Agenda events">
           {datesWithEvents.length === 0 ? (
             <Card className="flex flex-col items-center justify-center py-12 bg-card/50">
               <CalendarIcon className="h-12 w-12 mb-4 text-muted-foreground opacity-40" />
@@ -127,7 +160,13 @@ const AgendaView: React.FC<AgendaViewProps> = ({
               const isCurrentDate = isToday(eventDate);
               
               return (
-                <Card key={dateKey} className="overflow-hidden shadow-sm">
+                <Card 
+                  id={`date-${dateKey}`}
+                  key={dateKey} 
+                  className="overflow-hidden shadow-sm" 
+                  role="group" 
+                  aria-label={`Events for ${format(eventDate, 'EEEE, MMMM d, yyyy')}`}
+                >
                   <div 
                     className={cn(
                       "p-3 font-medium flex items-center",
@@ -148,9 +187,20 @@ const AgendaView: React.FC<AgendaViewProps> = ({
                     {eventsForDate.map(event => (
                       <div 
                         key={event.id}
-                        className="p-4 cursor-pointer hover:bg-muted/40 transition-colors flex items-start gap-3"
+                        className={cn(
+                          "p-4 cursor-pointer hover:bg-muted/40 transition-colors flex items-start gap-3",
+                          disablePopups ? "cursor-default" : "cursor-pointer"
+                        )}
                         style={{minHeight: `${itemHeight}px`}}
-                        onClick={() => handleViewEvent(event)}
+                        onClick={() => handleEventClick(event)}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Event: ${event.title}`}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            handleEventClick(event);
+                          }
+                        }}
                       >
                         <div 
                           className="w-4 h-4 rounded-full mt-1 flex-shrink-0" 

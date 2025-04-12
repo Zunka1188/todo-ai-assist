@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -29,6 +29,20 @@ interface ViewDimensions {
   timeWidth: number;
 }
 
+interface CalendarConfig {
+  weekView?: {
+    maxTime?: string;
+    hideEmptyRows?: boolean;
+    deduplicateAllDay?: boolean;
+    constrainEvents?: boolean;
+  };
+  dayView?: {
+    maxTime?: string;
+    hideEmptyRows?: boolean;
+    constrainEvents?: boolean;
+  };
+}
+
 interface CalendarViewProps {
   viewMode: 'month' | 'week' | 'day' | 'agenda';
   date: Date;
@@ -39,6 +53,11 @@ interface CalendarViewProps {
   isFileUploaderOpen?: boolean;
   setIsFileUploaderOpen?: (open: boolean) => void;
   dimensions: ViewDimensions;
+  disablePopups?: boolean;
+  maxTime?: string;
+  hideEmptyRows?: boolean;
+  deduplicateAllDay?: boolean;
+  constrainEvents?: boolean;
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({
@@ -50,7 +69,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   setIsCreateDialogOpen,
   isFileUploaderOpen = false,
   setIsFileUploaderOpen = () => {},
-  dimensions
+  dimensions,
+  disablePopups = false,
+  maxTime = "23:00",
+  hideEmptyRows = true,
+  deduplicateAllDay = true,
+  constrainEvents = true
 }) => {
   const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<any>(null);
@@ -58,8 +82,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const [rsvpDialogOpen, setRsvpDialogOpen] = useState(false);
   const [eventToShare, setEventToShare] = useState<Event | null>(null);
   const [viewLoadError, setViewLoadError] = useState<string | null>(null);
+  const [loadingView, setLoadingView] = useState(false);
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
+  
+  // Track dialog state with refs for better state handling
+  const inviteDialogOpenRef = useRef<boolean>(false);
+  const contentRef = useRef<HTMLDivElement>(null);
   
   const {
     events,
@@ -77,7 +106,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     handleDeleteEvent,
     handleCreateEvent,
     handleSaveEvent,
-    filterEvents
+    filterEvents,
+    retryDataFetch
   } = useCalendarEvents();
   
   const {
@@ -85,10 +115,78 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     recordRSVP
   } = useCalendarSharing();
   
+  // Ensure refs are updated with latest values
+  useEffect(() => {
+    inviteDialogOpenRef.current = shareDialogOpen;
+  }, [shareDialogOpen]);
+  
+  // Auto retry on network reconnection
+  useEffect(() => {
+    const handleOnline = () => retryDataFetch();
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [retryDataFetch]);
+  
+  // Show loading state when changing views
+  useEffect(() => {
+    setLoadingView(true);
+    const timer = setTimeout(() => setLoadingView(false), 300);
+    return () => clearTimeout(timer);
+  }, [viewMode]);
+  
+  // Initialize scroll position based on view
+  useEffect(() => {
+    if (contentRef.current) {
+      const hourHeight = dimensions.minCellHeight || 60; // pixels per hour
+      const startHour = 8; // 8 AM
+      setTimeout(() => {
+        contentRef.current?.scrollTo(0, startHour * hourHeight);
+      }, 300);
+    }
+  }, [viewMode, dimensions.minCellHeight]);
+  
   const effectiveCreateDialogOpen = isCreateDialogOpen !== undefined ? isCreateDialogOpen : localCreateDialogOpen;
   const effectiveSetCreateDialogOpen = setIsCreateDialogOpen || setLocalCreateDialogOpen;
   
-  const filteredEvents = filterEvents(searchTerm);
+  // Use memoized filtered events for better performance
+  const filteredEvents = useMemo(() => {
+    return filterEvents(searchTerm);
+  }, [filterEvents, searchTerm]);
+  
+  // Apply event constraints if needed
+  const constrainedEvents = useMemo(() => {
+    if (!constrainEvents) return filteredEvents;
+    
+    // Function to constrain event end times
+    const constrainEventsFunc = (events: Event[], maxTimeStr: string): Event[] => {
+      const [hours, minutes] = maxTimeStr.split(':').map(Number);
+      const maxHour = hours || 23;
+      const maxMinute = minutes || 0;
+      
+      return events.map(event => {
+        // Don't modify all-day events
+        if (event.allDay) return event;
+        
+        // Clone the event to avoid mutations
+        const newEvent = { ...event };
+        
+        // Only constrain if the end time is after max time
+        if (newEvent.endDate.getHours() > maxHour || 
+            (newEvent.endDate.getHours() === maxHour && 
+             newEvent.endDate.getMinutes() > maxMinute)) {
+          
+          // Create a new end date at the max time on the same day
+          const constrainedEnd = new Date(newEvent.endDate);
+          constrainedEnd.setHours(maxHour, maxMinute, 0, 0);
+          newEvent.endDate = constrainedEnd;
+        }
+        
+        return newEvent;
+      });
+    };
+    
+    return constrainEventsFunc(filteredEvents, maxTime);
+  }, [filteredEvents, constrainEvents, maxTime]);
 
   useEffect(() => {
     setViewLoadError(null);
@@ -146,6 +244,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   }, [setIsFileUploaderOpen, handleSaveEvent]);
 
   const handleOpenImagePreview = useCallback((event: any) => {
+    if (disablePopups) return;
+    
     try {
       if (event.image) {
         setPreviewItem({
@@ -161,9 +261,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       console.error("[ERROR] CalendarView - Error opening image preview:", err);
       setViewLoadError("Failed to open image preview. Please try again.");
     }
-  }, []);
+  }, [disablePopups]);
 
   const handleShareEvent = useCallback((event: Event) => {
+    if (disablePopups) return;
+    
     try {
       setEventToShare(event);
       setShareDialogOpen(true);
@@ -171,9 +273,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       console.error("[ERROR] CalendarView - Error opening share dialog:", err);
       setViewLoadError("Failed to open sharing options. Please try again.");
     }
-  }, []);
+  }, [disablePopups]);
 
   const handleRSVP = useCallback((event: Event) => {
+    if (disablePopups) return;
+    
     try {
       setEventToShare(event);
       setRsvpDialogOpen(true);
@@ -181,7 +285,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       console.error("[ERROR] CalendarView - Error opening RSVP dialog:", err);
       setViewLoadError("Failed to open RSVP options. Please try again.");
     }
-  }, []);
+  }, [disablePopups]);
 
   const submitRSVP = useCallback((status: 'yes' | 'no' | 'maybe', name: string) => {
     try {
@@ -197,7 +301,22 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     console.log("[DEBUG] Share link generated:", link);
   }, []);
 
-  if (isLoading) {
+  // Create calendar config object for view-specific settings
+  const calendarConfig: CalendarConfig = {
+    weekView: {
+      maxTime: maxTime,
+      hideEmptyRows: hideEmptyRows,
+      deduplicateAllDay: deduplicateAllDay,
+      constrainEvents: constrainEvents
+    },
+    dayView: {
+      maxTime: maxTime,
+      hideEmptyRows: hideEmptyRows,
+      constrainEvents: constrainEvents
+    }
+  };
+
+  if (isLoading || loadingView) {
     return (
       <div className="flex justify-center items-center p-12">
         <div className="text-center" role="status" aria-live="polite">
@@ -214,18 +333,20 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
         <h3 className="text-lg font-medium mb-2">Something went wrong</h3>
         <p className="text-muted-foreground mb-4">{error || viewLoadError}</p>
-        <Button onClick={() => window.location.reload()}>Reload Calendar</Button>
+        <Button onClick={retryDataFetch}>Reload Calendar</Button>
       </div>
     );
   }
 
   return (
-    <div className={cn(
-      "space-y-2 w-full mx-auto max-w-full relative",
-      isMobile ? "pb-2" : ""
-    )}
-    role="region"
-    aria-label={`Calendar ${viewMode} view`}
+    <div 
+      ref={contentRef}
+      className={cn(
+        "space-y-2 w-full mx-auto max-w-full relative",
+        isMobile ? "pb-2" : ""
+      )}
+      role="region"
+      aria-label={`Calendar ${viewMode} view`}
     >
       {isFileUploaderOpen && (
         <FileUploader
@@ -246,39 +367,43 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         onDeleteEvent={handleDeleteEvent}
       />
       
-      <EventViewDialogExtension
-        isOpen={isViewDialogOpen && !isFileUploaderOpen}
-        setIsOpen={setIsViewDialogOpen}
-        selectedEvent={selectedEvent}
-        onEdit={handleViewToEdit}
-        onDelete={handleDeleteEvent}
-        onViewImage={handleOpenImagePreview}
-        onShare={handleShareEvent}
-        onRSVP={handleRSVP}
-      />
-      
-      <FullScreenPreview 
-        item={previewItem}
-        onClose={() => {
-          setIsImagePreviewOpen(false);
-          setPreviewItem(null);
-        }}
-        readOnly={false}
-      />
+      {!disablePopups && (
+        <>
+          <EventViewDialogExtension
+            isOpen={isViewDialogOpen && !isFileUploaderOpen}
+            setIsOpen={setIsViewDialogOpen}
+            selectedEvent={selectedEvent}
+            onEdit={handleViewToEdit}
+            onDelete={handleDeleteEvent}
+            onViewImage={handleOpenImagePreview}
+            onShare={handleShareEvent}
+            onRSVP={handleRSVP}
+          />
+          
+          <FullScreenPreview 
+            item={previewItem}
+            onClose={() => {
+              setIsImagePreviewOpen(false);
+              setPreviewItem(null);
+            }}
+            readOnly={false}
+          />
 
-      <InviteDialog
-        isOpen={shareDialogOpen}
-        setIsOpen={setShareDialogOpen}
-        event={eventToShare}
-        onShareLink={handleShareLink}
-      />
-      
-      <RSVPDialog
-        isOpen={rsvpDialogOpen}
-        setIsOpen={setRsvpDialogOpen}
-        event={eventToShare}
-        onRSVP={submitRSVP}
-      />
+          <InviteDialog
+            isOpen={shareDialogOpen}
+            setIsOpen={setShareDialogOpen}
+            event={eventToShare}
+            onShareLink={handleShareLink}
+          />
+          
+          <RSVPDialog
+            isOpen={rsvpDialogOpen}
+            setIsOpen={setRsvpDialogOpen}
+            event={eventToShare}
+            onRSVP={submitRSVP}
+          />
+        </>
+      )}
       
       {!isFileUploaderOpen && (
         <ErrorBoundary>
@@ -287,11 +412,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({
               <MonthView
                 date={date}
                 setDate={() => {}}
-                events={filteredEvents}
-                handleViewEvent={handleViewEvent}
+                events={constrainedEvents}
+                handleViewEvent={disablePopups ? () => {} : handleViewEvent}
                 theme={theme}
                 weekStartsOn={weekStartsOn}
                 minCellHeight={dimensions.minCellHeight}
+                disablePopups={disablePopups}
               />
             )}
             
@@ -299,23 +425,32 @@ const CalendarView: React.FC<CalendarViewProps> = ({
               <WeekView
                 date={date}
                 setDate={() => {}}
-                events={filteredEvents}
-                handleViewEvent={handleViewEvent}
+                events={constrainedEvents}
+                handleViewEvent={disablePopups ? () => {} : handleViewEvent}
                 theme={theme}
                 weekStartsOn={weekStartsOn}
                 minCellHeight={dimensions.minCellHeight}
                 timeColumnWidth={dimensions.timeWidth}
+                maxTime={maxTime}
+                hideEmptyRows={hideEmptyRows}
+                deduplicateAllDay={deduplicateAllDay}
+                constrainEvents={constrainEvents}
+                disablePopups={disablePopups}
               />
             )}
             
             {viewMode === 'day' && (
               <DayView
                 date={date}
-                events={filteredEvents}
-                handleViewEvent={handleViewEvent}
+                events={constrainedEvents}
+                handleViewEvent={disablePopups ? () => {} : handleViewEvent}
                 theme={theme}
                 minCellHeight={dimensions.minCellHeight}
                 timeColumnWidth={dimensions.timeWidth}
+                maxTime={maxTime}
+                hideEmptyRows={hideEmptyRows}
+                constrainEvents={constrainEvents}
+                disablePopups={disablePopups}
               />
             )}
             
@@ -323,15 +458,25 @@ const CalendarView: React.FC<CalendarViewProps> = ({
               <AgendaView
                 date={date}
                 setDate={() => {}}
-                events={filteredEvents}
-                handleViewEvent={handleViewEvent}
+                events={constrainedEvents}
+                handleViewEvent={disablePopups ? () => {} : handleViewEvent}
                 theme={theme}
                 itemHeight={dimensions.minCellHeight}
+                disablePopups={disablePopups}
               />
             )}
           </div>
         </ErrorBoundary>
       )}
+      
+      {/* Add responsive styles for mobile */}
+      <style jsx global>{`
+        @media (max-width: 768px) {
+          .week-header {
+            overflow-x: auto;
+          }
+        }
+      `}</style>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { CalendarIcon } from 'lucide-react';
 import AppPage from '@/components/ui/app-page';
 import { CalendarProvider, useCalendar } from '@/components/features/calendar/CalendarContext';
@@ -22,6 +22,25 @@ const CalendarPageContent: React.FC = () => {
     retryDataFetch,
     setInviteDialogOpen
   } = useCalendar();
+  
+  // Track dialog state with ref for better state handling
+  const inviteDialogOpenRef = useRef(inviteDialogOpen);
+  
+  useEffect(() => {
+    inviteDialogOpenRef.current = inviteDialogOpen;
+  }, [inviteDialogOpen]);
+  
+  // Set up auto retry
+  useEffect(() => {
+    const handleOnline = () => {
+      if (pageError) {
+        retryDataFetch();
+      }
+    };
+    
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [retryDataFetch, pageError]);
 
   return (
     <AppPage
@@ -34,10 +53,16 @@ const CalendarPageContent: React.FC = () => {
       fullHeight
       noPadding
     >
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full" style={{ padding: '0 16px' }}>
         <CalendarHeader />
         <div className="flex-1 overflow-auto">
-          <CalendarContent />
+          <CalendarContent 
+            disablePopups={true}
+            maxTime="23:00"
+            hideEmptyRows={true}
+            deduplicateAllDay={true}
+            constrainEvents={true}
+          />
         </div>
       </div>
       
