@@ -22,7 +22,6 @@ const MonthView: React.FC<MonthViewProps> = ({
   minCellHeight = 120,
   disablePopups = false // Add default value
 }) => {
-  // ... keep existing code
   return (
     <div>
       {/* Placeholder for MonthView implementation */}

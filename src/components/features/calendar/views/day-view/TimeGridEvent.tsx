@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Event } from '../../types/event';
 import { useIsMobile } from '@/hooks/use-mobile';
