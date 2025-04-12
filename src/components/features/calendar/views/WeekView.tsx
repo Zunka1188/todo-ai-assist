@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, subMonths, addWeeks, subWeeks, isSameMonth, isSameDay, isToday, isWeekend } from 'date-fns';
@@ -14,7 +13,6 @@ import { getFormattedTime } from '../utils/dateUtils';
 import { Event } from '../types/event';
 import ResponsiveContainer from '@/components/ui/responsive-container';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
 interface WeekViewProps {
   date: Date;
   setDate: (date: Date) => void;
@@ -25,7 +23,6 @@ interface WeekViewProps {
   minCellHeight?: number;
   timeColumnWidth?: number;
 }
-
 const WeekView: React.FC<WeekViewProps> = ({
   date,
   setDate,
@@ -43,15 +40,19 @@ const WeekView: React.FC<WeekViewProps> = ({
   const [startInputValue, setStartInputValue] = useState("0");
   const [endInputValue, setEndInputValue] = useState("23");
   const [currentTime, setCurrentTime] = useState(new Date());
-  const { toast } = useToast();
-  const { isMobile } = useIsMobile();
+  const {
+    toast
+  } = useToast();
+  const {
+    isMobile
+  } = useIsMobile();
 
   // Update current time for the time indicator
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000); // Update every minute
-    
+
     return () => clearInterval(timer);
   }, []);
 
@@ -60,82 +61,67 @@ const WeekView: React.FC<WeekViewProps> = ({
     if (scrollRef.current) {
       const now = new Date();
       const currentHour = now.getHours();
-      
+
       // Only scroll if current time is within view range
       if (currentHour >= startHour && currentHour <= endHour) {
         const scrollPosition = (currentHour - startHour) * minCellHeight;
         setTimeout(() => {
-          scrollRef.current?.scrollTo({ top: scrollPosition - 100, behavior: 'smooth' });
+          scrollRef.current?.scrollTo({
+            top: scrollPosition - 100,
+            behavior: 'smooth'
+          });
         }, 300);
       }
     }
   }, [startHour, endHour, minCellHeight]);
-
   const HOUR_HEIGHT = minCellHeight;
   const MINUTES_PER_HOUR = 60;
   const MINUTE_HEIGHT = HOUR_HEIGHT / MINUTES_PER_HOUR;
   const TIME_COLUMN_WIDTH = timeColumnWidth;
   const DAY_COLUMN_WIDTH = (100 - TIME_COLUMN_WIDTH) / 7;
-
-  const weekStart = startOfWeek(date, { weekStartsOn });
-  const weekEnd = endOfWeek(date, { weekStartsOn });
-
+  const weekStart = startOfWeek(date, {
+    weekStartsOn
+  });
+  const weekEnd = endOfWeek(date, {
+    weekStartsOn
+  });
   const daysInWeek = eachDayOfInterval({
     start: weekStart,
     end: weekEnd
   });
-
   const prevWeek = () => {
     setDate(subWeeks(date, 1));
   };
-
   const nextWeek = () => {
     setDate(addWeeks(date, 1));
   };
-
   const getEventsForDay = (day: Date) => {
-    return events.filter(event => 
-      isSameDay(event.startDate, day) || 
-      isSameDay(event.endDate, day) || 
-      (event.startDate <= day && event.endDate >= day)
-    );
+    return events.filter(event => isSameDay(event.startDate, day) || isSameDay(event.endDate, day) || event.startDate <= day && event.endDate >= day);
   };
-
   const hours = Array.from({
     length: endHour - startHour + 1
   }, (_, i) => startHour + i);
-
   const isEventVisible = (event: Event): boolean => {
     if (event.allDay) return true;
-    
     const eventStartHour = event.startDate.getHours();
     const eventEndHour = event.endDate.getHours();
     const eventStartMinute = event.startDate.getMinutes();
     const eventEndMinute = event.endDate.getMinutes();
-    
-    const eventStart = eventStartHour + (eventStartMinute / MINUTES_PER_HOUR);
-    const eventEnd = eventEndHour + (eventEndMinute / MINUTES_PER_HOUR);
-    
+    const eventStart = eventStartHour + eventStartMinute / MINUTES_PER_HOUR;
+    const eventEnd = eventEndHour + eventEndMinute / MINUTES_PER_HOUR;
+
     // Check if the event falls within the visible time range
-    return (eventStart <= endHour && eventEnd >= startHour);
+    return eventStart <= endHour && eventEnd >= startHour;
   };
-
-  const hiddenEvents = events.filter(event => 
-    !event.allDay && !isEventVisible(event)
-  );
-
+  const hiddenEvents = events.filter(event => !event.allDay && !isEventVisible(event));
   const groupOverlappingEvents = (events: Event[]): Event[][] => {
     if (events.length === 0) return [];
-    
     const sortedEvents = [...events].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
-    
     const groups: Event[][] = [];
     let currentGroup: Event[] = [sortedEvents[0]];
-    
     for (let i = 1; i < sortedEvents.length; i++) {
       const event = sortedEvents[i];
       const previousEvent = sortedEvents[i - 1];
-      
       if (event.startDate < previousEvent.endDate) {
         currentGroup.push(event);
       } else {
@@ -143,74 +129,55 @@ const WeekView: React.FC<WeekViewProps> = ({
         currentGroup = [event];
       }
     }
-    
     if (currentGroup.length > 0) {
       groups.push(currentGroup);
     }
-    
     return groups;
   };
-
   const getMultiHourEventsForDay = (day: Date) => {
     return events.filter(event => {
       if (event.allDay) return false;
-      
-      const sameDay = isSameDay(event.startDate, day) || 
-                      isSameDay(event.endDate, day) || 
-                      (event.startDate <= day && event.endDate >= day);
-      
+      const sameDay = isSameDay(event.startDate, day) || isSameDay(event.endDate, day) || event.startDate <= day && event.endDate >= day;
       if (!sameDay) return false;
-      
       if (!isEventVisible(event)) return false;
-      
       return true;
     });
   };
-
   const getMultiHourEventStyle = (event: Event, day: Date, totalOverlapping = 1, index = 0): React.CSSProperties => {
     const eventStart = new Date(event.startDate);
     const eventEnd = new Date(event.endDate);
-    
     const dayStart = new Date(day);
     dayStart.setHours(0, 0, 0, 0);
-    
     const dayEnd = new Date(day);
     dayEnd.setHours(23, 59, 59, 999);
-    
     const effectiveStartDate = eventStart < dayStart ? dayStart : eventStart;
     const effectiveEndDate = eventEnd > dayEnd ? dayEnd : eventEnd;
-    
-    const startHourDecimal = effectiveStartDate.getHours() + (effectiveStartDate.getMinutes() / MINUTES_PER_HOUR);
-    const endHourDecimal = effectiveEndDate.getHours() + (effectiveEndDate.getMinutes() / MINUTES_PER_HOUR);
-    
+    const startHourDecimal = effectiveStartDate.getHours() + effectiveStartDate.getMinutes() / MINUTES_PER_HOUR;
+    const endHourDecimal = effectiveEndDate.getHours() + effectiveEndDate.getMinutes() / MINUTES_PER_HOUR;
+
     // Ensure event is within visible time range
     const visibleStartHourDecimal = Math.max(startHourDecimal, startHour);
     const visibleEndHourDecimal = Math.min(endHourDecimal, endHour + 1);
-    
+
     // Calculate position based on visible time range
     const topPosition = (visibleStartHourDecimal - startHour) * HOUR_HEIGHT;
     const heightValue = Math.max((visibleEndHourDecimal - visibleStartHourDecimal) * HOUR_HEIGHT, 20);
-    
     const dayColumnIndex = daysInWeek.findIndex(d => isSameDay(d, day));
-    
     let eventWidth;
     let leftOffset;
-    
     if (isMobile) {
-      eventWidth = totalOverlapping > 1 ? 90 : 90; 
-      leftOffset = TIME_COLUMN_WIDTH + (dayColumnIndex * DAY_COLUMN_WIDTH) + 1;
+      eventWidth = totalOverlapping > 1 ? 90 : 90;
+      leftOffset = TIME_COLUMN_WIDTH + dayColumnIndex * DAY_COLUMN_WIDTH + 1;
     } else {
       const maxSideEvents = Math.min(totalOverlapping, 3);
-      eventWidth = (DAY_COLUMN_WIDTH / maxSideEvents) - 0.5;
-      
+      eventWidth = DAY_COLUMN_WIDTH / maxSideEvents - 0.5;
       const adjustedIndex = index % maxSideEvents;
-      leftOffset = TIME_COLUMN_WIDTH + (dayColumnIndex * DAY_COLUMN_WIDTH) + (adjustedIndex * (eventWidth));
+      leftOffset = TIME_COLUMN_WIDTH + dayColumnIndex * DAY_COLUMN_WIDTH + adjustedIndex * eventWidth;
     }
-    
     return {
       position: 'absolute' as const,
       top: `${topPosition}px`,
-      height: `${heightValue}px`, 
+      height: `${heightValue}px`,
       left: `${leftOffset}%`,
       width: `${eventWidth}%`,
       minWidth: isMobile ? '80%' : '80px',
@@ -219,16 +186,13 @@ const WeekView: React.FC<WeekViewProps> = ({
       opacity: 0.95
     };
   };
-
   const getVisibleMultiHourEventGroups = (day: Date): Event[][] => {
     const dayEvents = getMultiHourEventsForDay(day);
     return groupOverlappingEvents(dayEvents);
   };
-
   const daysEventGroups = daysInWeek.map(day => {
     return getVisibleMultiHourEventGroups(day);
   });
-
   const handleTimeRangeToggle = (preset: string) => {
     switch (preset) {
       case 'full':
@@ -261,64 +225,47 @@ const WeekView: React.FC<WeekViewProps> = ({
         break;
     }
   };
-
   const handleTimeRangeChange = (type: 'start' | 'end', value: string) => {
     if (type === 'start') {
       setStartInputValue(value);
     } else {
       setEndInputValue(value);
     }
-    
     if (value.trim() === '') {
       return;
     }
-    
     const hour = parseInt(value, 10);
-    
     if (isNaN(hour) || hour < 0 || hour > 23) {
       return;
     }
-    
     let newStart = startHour;
     let newEnd = endHour;
-    
     if (type === 'start') {
       if (hour <= endHour) newStart = hour;
     } else {
       if (hour >= startHour) newEnd = hour;
     }
-    
     const hidden = events.filter(event => {
       if (event.allDay) return false;
-      
       const eventStartHour = event.startDate.getHours();
       const eventStartMinute = event.startDate.getMinutes();
       const eventEndHour = event.endDate.getHours();
       const eventEndMinute = event.endDate.getMinutes();
-      
-      const eventStart = eventStartHour + (eventStartMinute / MINUTES_PER_HOUR);
-      const eventEnd = eventEndHour + (eventEndMinute / MINUTES_PER_HOUR);
-      
+      const eventStart = eventStartHour + eventStartMinute / MINUTES_PER_HOUR;
+      const eventEnd = eventEndHour + eventEndMinute / MINUTES_PER_HOUR;
       return eventEnd <= newStart || eventStart >= newEnd;
     });
-    
-    if (type === 'start') setStartHour(newStart);
-    else setEndHour(newEnd);
-    
+    if (type === 'start') setStartHour(newStart);else setEndHour(newEnd);
     setShowFullDay(newStart === 0 && newEnd === 23);
   };
-
   const handleInputBlur = (type: 'start' | 'end') => {
     if (type === 'start') {
       const value = startInputValue.trim();
-      
       if (value === '' || isNaN(parseInt(value, 10))) {
         setStartInputValue(startHour.toString());
         return;
       }
-      
       const hour = parseInt(value, 10);
-      
       if (hour < 0 || hour > 23 || hour > endHour) {
         setStartInputValue(startHour.toString());
       } else {
@@ -327,14 +274,11 @@ const WeekView: React.FC<WeekViewProps> = ({
       }
     } else {
       const value = endInputValue.trim();
-      
       if (value === '' || isNaN(parseInt(value, 10))) {
         setEndInputValue(endHour.toString());
         return;
       }
-      
       const hour = parseInt(value, 10);
-      
       if (hour < 0 || hour > 23 || hour < startHour) {
         setEndInputValue(endHour.toString());
       } else {
@@ -342,7 +286,6 @@ const WeekView: React.FC<WeekViewProps> = ({
         setEndInputValue(hour.toString());
       }
     }
-    
     setShowFullDay(startHour === 0 && endHour === 23);
   };
 
@@ -351,48 +294,27 @@ const WeekView: React.FC<WeekViewProps> = ({
     const now = currentTime;
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
-    
+
     // Check if current time is within the visible range
     if (currentHour < startHour || currentHour > endHour) return -1;
-    
-    // Calculate position
-    return (currentHour - startHour) * minCellHeight + (currentMinute / 60) * minCellHeight;
-  };
-  
-  const currentTimePosition = getCurrentTimePosition();
-  
-  // Calculate scroll container height - fixed to prevent unbounded scrolling
-  const scrollContainerHeight = isMobile 
-    ? 'calc(100vh - 320px)' 
-    : 'calc(100vh - 300px)';
 
-  return (
-    <ResponsiveContainer fullWidth noGutters className="space-y-4">
+    // Calculate position
+    return (currentHour - startHour) * minCellHeight + currentMinute / 60 * minCellHeight;
+  };
+  const currentTimePosition = getCurrentTimePosition();
+
+  // Calculate scroll container height - fixed to prevent unbounded scrolling
+  const scrollContainerHeight = isMobile ? 'calc(100vh - 320px)' : 'calc(100vh - 300px)';
+  return <ResponsiveContainer fullWidth noGutters className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className={cn(
-          "text-xl font-semibold",
-          theme === 'light' ? "text-foreground" : "text-white",
-          isMobile ? "text-[0.95rem] leading-tight" : ""
-        )}>
+        <h2 className={cn("text-xl font-semibold", theme === 'light' ? "text-foreground" : "text-white", isMobile ? "text-[0.95rem] leading-tight" : "")}>
           {format(weekStart, 'MMM d')} - {format(weekEnd, 'MMM d, yyyy')}
         </h2>
         <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={prevWeek} 
-            aria-label="Previous week"
-            className="tap-target"
-          >
+          <Button variant="outline" size="icon" onClick={prevWeek} aria-label="Previous week" className="tap-target">
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={nextWeek} 
-            aria-label="Next week"
-            className="tap-target"
-          >
+          <Button variant="outline" size="icon" onClick={nextWeek} aria-label="Next week" className="tap-target">
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
@@ -400,234 +322,124 @@ const WeekView: React.FC<WeekViewProps> = ({
 
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2 items-center">
-          <Toggle
-            pressed={showFullDay}
-            onPressedChange={() => handleTimeRangeToggle('full')}
-            className="bg-transparent data-[state=on]:bg-purple-600 data-[state=on]:text-primary-foreground tap-target"
-          >
+          <Toggle pressed={showFullDay} onPressedChange={() => handleTimeRangeToggle('full')} className="bg-transparent data-[state=on]:bg-purple-600 data-[state=on]:text-primary-foreground tap-target">
             Full 24h
           </Toggle>
-          <Toggle
-            pressed={startHour === 8 && endHour === 18}
-            onPressedChange={() => handleTimeRangeToggle('business')}
-            className="bg-transparent data-[state=on]:bg-primary data-[state=on]:text-primary-foreground tap-target"
-          >
+          <Toggle pressed={startHour === 8 && endHour === 18} onPressedChange={() => handleTimeRangeToggle('business')} className="bg-transparent data-[state=on]:bg-primary data-[state=on]:text-primary-foreground tap-target">
             Business hours
           </Toggle>
-          <Toggle
-            pressed={startHour === 17 && endHour === 23}
-            onPressedChange={() => handleTimeRangeToggle('evening')}
-            className="bg-transparent data-[state=on]:bg-primary data-[state=on]:text-primary-foreground tap-target"
-          >
+          <Toggle pressed={startHour === 17 && endHour === 23} onPressedChange={() => handleTimeRangeToggle('evening')} className="bg-transparent data-[state=on]:bg-primary data-[state=on]:text-primary-foreground tap-target">
             Evening
           </Toggle>
-          <Toggle
-            pressed={startHour === 4 && endHour === 12}
-            onPressedChange={() => handleTimeRangeToggle('morning')}
-            className="bg-transparent data-[state=on]:bg-primary data-[state=on]:text-primary-foreground tap-target"
-          >
+          <Toggle pressed={startHour === 4 && endHour === 12} onPressedChange={() => handleTimeRangeToggle('morning')} className="bg-transparent data-[state=on]:bg-primary data-[state=on]:text-primary-foreground tap-target">
             Morning
           </Toggle>
         
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <Label htmlFor="weekStartHour" className={cn("text-sm whitespace-nowrap", isMobile ? "text-[0.8rem]" : "")}>From:</Label>
-              <Input
-                id="weekStartHour"
-                type="text"
-                inputMode="numeric"
-                value={startInputValue}
-                onChange={(e) => handleTimeRangeChange('start', e.target.value)}
-                onBlur={() => handleInputBlur('start')}
-                className={cn("h-8 text-sm", isMobile ? "w-20" : "w-16")}
-              />
+              <Input id="weekStartHour" type="text" inputMode="numeric" value={startInputValue} onChange={e => handleTimeRangeChange('start', e.target.value)} onBlur={() => handleInputBlur('start')} className={cn("h-8 text-sm", isMobile ? "w-20" : "w-16")} />
             </div>
             
             <div className="flex items-center gap-1">
               <Label htmlFor="weekEndHour" className={cn("text-sm whitespace-nowrap", isMobile ? "text-[0.8rem]" : "")}>To:</Label>
-              <Input
-                id="weekEndHour"
-                type="text"
-                inputMode="numeric"
-                value={endInputValue}
-                onChange={(e) => handleTimeRangeChange('end', e.target.value)}
-                onBlur={() => handleInputBlur('end')}
-                className={cn("h-8 text-sm", isMobile ? "w-20" : "w-16")}
-              />
+              <Input id="weekEndHour" type="text" inputMode="numeric" value={endInputValue} onChange={e => handleTimeRangeChange('end', e.target.value)} onBlur={() => handleInputBlur('end')} className={cn("h-8 text-sm", isMobile ? "w-20" : "w-16")} />
             </div>
           </div>
         </div>
         
-        {hiddenEvents.length > 0 && (
-          <Alert 
-            className="py-2 mt-3 bg-amber-100/90 border border-amber-300 dark:bg-amber-900/30 dark:border-amber-700 text-amber-800 dark:text-amber-200 flex items-center"
-          >
+        {hiddenEvents.length > 0 && <Alert className="py-2 mt-3 bg-amber-100/90 border border-amber-300 dark:bg-amber-900/30 dark:border-amber-700 text-amber-800 dark:text-amber-200 flex items-center">
             <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
             <AlertDescription className={cn("text-sm", isMobile ? "text-[0.8rem]" : "")}>
               Warning: {hiddenEvents.length} event{hiddenEvents.length === 1 ? '' : 's'} {hiddenEvents.length > 1 ? 'are' : 'is'} outside the selected time range and {hiddenEvents.length > 1 ? 'are' : 'is'} not visible.
             </AlertDescription>
-          </Alert>
-        )}
+          </Alert>}
       </div>
       
       <div className="border rounded-lg overflow-hidden shadow-sm w-full">
         <div className="sticky top-0 z-10 bg-background border-b">
           <div className="grid grid-cols-8 divide-x border-gray-800">
-            <div className={cn("p-2 text-sm font-medium bg-muted/30 text-center", 
-              isMobile ? "text-[0.8rem]" : "")}
-              style={{minWidth: "5rem"}}
-            >
+            <div className={cn("p-2 text-sm font-medium bg-muted/30 text-center", isMobile ? "text-[0.8rem]" : "")} style={{
+            minWidth: "5rem"
+          }}>
               Time
             </div>
             {daysInWeek.map((day, index) => {
-              const isCurrentDate = isToday(day);
-              const isWeekendDay = isWeekend(day);
-              return (
-                <div 
-                  key={index} 
-                  className={cn(
-                    "p-2 text-center", 
-                    isCurrentDate && "bg-accent/30",
-                    isWeekendDay && "bg-muted/10"
-                  )}
-                >
+            const isCurrentDate = isToday(day);
+            const isWeekendDay = isWeekend(day);
+            return <div key={index} className={cn("p-2 text-center", isCurrentDate && "bg-accent/30", isWeekendDay && "bg-muted/10")}>
                   <div className={cn("font-medium", isMobile ? "text-[0.8rem]" : "")}>
                     {format(day, 'EEE')}
                   </div>
-                  <div className={cn(
-                    "text-sm", 
-                    isCurrentDate ? "text-primary font-semibold" : "text-muted-foreground",
-                    isWeekendDay && !isCurrentDate && "text-purple-300 dark:text-purple-300",
-                    isMobile ? "text-[0.8rem]" : ""
-                  )}>
+                  <div className={cn("text-sm", isCurrentDate ? "text-primary font-semibold" : "text-muted-foreground", isWeekendDay && !isCurrentDate && "text-purple-300 dark:text-purple-300", isMobile ? "text-[0.8rem]" : "")}>
                     {format(day, 'd')}
                   </div>
-                </div>
-              );
-            })}
+                </div>;
+          })}
           </div>
 
           {/* All-day events section - just ONE row that doesn't duplicate */}
           <div className="grid grid-cols-8 divide-x border-gray-800">
-            <div className={cn("p-2 text-sm font-medium bg-muted/30 text-center", 
-              isMobile ? "text-[0.8rem]" : "")}
-              style={{minWidth: "5rem"}}
-            >
+            <div className={cn("p-2 text-sm font-medium bg-muted/30 text-center", isMobile ? "text-[0.8rem]" : "")} style={{
+            minWidth: "5rem"
+          }}>
               All Day
             </div>
             {daysInWeek.map((day, index) => {
-              const allDayEvents = getEventsForDay(day).filter(event => event.allDay);
-              const isCurrentDate = isToday(day);
-              const isWeekendDay = isWeekend(day);
-              return (
-                <div 
-                  key={index} 
-                  className={cn(
-                    "p-1 min-h-[40px]", 
-                    isCurrentDate && "bg-accent/30",
-                    isWeekendDay && "bg-muted/10"
-                  )}
-                >
-                  {allDayEvents.map(event => (
-                    <div 
-                      key={event.id} 
-                      className="text-xs p-1 mb-1 rounded truncate cursor-pointer hover:opacity-80 touch-manipulation" 
-                      style={{ backgroundColor: event.color || '#4285F4' }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewEvent(event);
-                      }}
-                    >
+            const allDayEvents = getEventsForDay(day).filter(event => event.allDay);
+            const isCurrentDate = isToday(day);
+            const isWeekendDay = isWeekend(day);
+            return <div key={index} className={cn("p-1 min-h-[40px]", isCurrentDate && "bg-accent/30", isWeekendDay && "bg-muted/10")}>
+                  {allDayEvents.map(event => <div key={event.id} className="text-xs p-1 mb-1 rounded truncate cursor-pointer hover:opacity-80 touch-manipulation" style={{
+                backgroundColor: event.color || '#4285F4'
+              }} onClick={e => {
+                e.stopPropagation();
+                handleViewEvent(event);
+              }}>
                       <span className="text-white truncate">{event.title}</span>
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
+                    </div>)}
+                </div>;
+          })}
           </div>
         </div>
         
-        <ScrollArea 
-          className="overflow-auto" 
-          style={{ height: scrollContainerHeight, position: 'relative' }}
-          scrollRef={scrollRef}
-        >
+        <ScrollArea className="overflow-auto" style={{
+        height: scrollContainerHeight,
+        position: 'relative'
+      }} scrollRef={scrollRef}>
           <div className="relative">
             <div className="grid grid-cols-8 divide-x border-gray-800">
-              <div className="sticky left-0 z-10 border-r border-gray-800" style={{minWidth: "5rem"}}>
-                {hours.map((hour, i) => (
-                  <div key={`hour-${i}`} className="border-b h-[60px] px-2 py-1 text-right text-xs text-muted-foreground">
+              <div className="sticky left-0 z-10 border-r border-gray-800" style={{
+              minWidth: "5rem"
+            }}>
+                {hours.map((hour, i) => <div key={`hour-${i}`} className="border-b h-[60px] px-2 py-1 text-right text-xs text-muted-foreground">
                     {format(new Date().setHours(hour), 'h a')}
-                  </div>
-                ))}
+                  </div>)}
               </div>
               
-              {daysInWeek.map((day, dayIndex) => (
-                <div key={`day-${dayIndex}`} className={cn(
-                  "relative",
-                  isToday(day) ? "bg-accent/10" : "",
-                  isWeekend(day) ? "bg-muted/5" : ""
-                )}>
-                  {hours.map((_, hourIndex) => (
-                    <div 
-                      key={`${dayIndex}-${hourIndex}`} 
-                      className="border-b h-[60px] relative"
-                    >
+              {daysInWeek.map((day, dayIndex) => <div key={`day-${dayIndex}`} className={cn("relative", isToday(day) ? "bg-accent/10" : "", isWeekend(day) ? "bg-muted/5" : "")}>
+                  {hours.map((_, hourIndex) => <div key={`${dayIndex}-${hourIndex}`} className="border-b h-[60px] relative">
                       {/* Half-hour gridlines - more subtle */}
                       <div className="absolute top-1/2 left-0 right-0 border-t border-gray-800 border-opacity-50"></div>
-                    </div>
-                  ))}
+                    </div>)}
                   
                   {/* Current time indicator for today's column */}
-                  {isToday(day) && currentTimePosition > 0 && (
-                    <div 
-                      className="absolute left-0 right-0 flex items-center z-10 pointer-events-none"
-                      style={{ top: `${currentTimePosition}px` }}
-                    >
+                  {isToday(day) && currentTimePosition > 0 && <div className="absolute left-0 right-0 flex items-center z-10 pointer-events-none" style={{
+                top: `${currentTimePosition}px`
+              }}>
                       <div className="h-2 w-2 rounded-full bg-red-500 ml-2"></div>
                       <div className="flex-1 h-[1px] bg-red-500"></div>
-                    </div>
-                  )}
+                    </div>}
                   
                   {/* Event cards */}
-                  {daysEventGroups[dayIndex].map((group, groupIndex) => (
-                    <div key={`group-${dayIndex}-${groupIndex}`} className="relative">
-                      {group.map((event, eventIndex) => (
-                        <div 
-                          key={`multi-${event.id}-${dayIndex}`} 
-                          className={cn(
-                            "absolute text-xs p-2 rounded cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto",
-                            isMobile ? "left-0 right-0 mx-1" : "",
-                            "shadow-sm"
-                          )}
-                          style={getMultiHourEventStyle(event, day, group.length, eventIndex)}
-                          onClick={() => handleViewEvent(event)}
-                        >
-                          <div className="flex items-center">
-                            <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
-                            <span className="text-white truncate font-medium">{event.title}</span>
-                          </div>
-                          <div className="text-white/90 text-[10px] truncate">
-                            {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
-                          </div>
-                          {event.location && (
-                            <div className="text-white/90 text-[10px] flex items-center truncate">
-                              <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80 flex-shrink-0" />
-                              <span className="truncate">{event.location}</span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              ))}
+                  {daysEventGroups[dayIndex].map((group, groupIndex) => <div key={`group-${dayIndex}-${groupIndex}`} className="relative">
+                      {group.map((event, eventIndex) => {})}
+                    </div>)}
+                </div>)}
             </div>
           </div>
         </ScrollArea>
       </div>
-    </ResponsiveContainer>
-  );
+    </ResponsiveContainer>;
 };
-
 export default WeekView;
