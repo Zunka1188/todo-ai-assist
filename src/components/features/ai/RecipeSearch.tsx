@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Check, ChevronDown, X } from 'lucide-react';
+import { Search, Filter, Check, ChevronDown, X, Scroll } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +57,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
   });
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
 
   useEffect(() => {
     const filtered = recipes.filter(recipe => {
@@ -78,6 +79,15 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
     
     setFilteredRecipes(filtered);
   }, [searchTerm, activeFilters]);
+
+  // Check if we need to show the scroll indicator
+  useEffect(() => {
+    if (filteredRecipes.length > 4) {
+      setShowScrollIndicator(true);
+    } else {
+      setShowScrollIndicator(false);
+    }
+  }, [filteredRecipes]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -143,7 +153,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-72 p-3" align="end">
+            <PopoverContent className="w-72 p-3" align="end" sideOffset={5}>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-medium text-sm">Filters</h3>
@@ -169,7 +179,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
                         className={cn(
                           "justify-start h-auto py-1.5 text-xs",
                           activeFilters.dietary.includes(restriction.value) && 
-                          "bg-primary/10 border-primary/30"
+                          "bg-primary/10 border-primary/30 text-primary font-medium"
                         )}
                       >
                         {activeFilters.dietary.includes(restriction.value) && (
@@ -183,7 +193,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
                 
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium">Cuisines</h4>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
                     {cuisines.map((cuisine) => (
                       <Button
                         key={cuisine.value}
@@ -193,7 +203,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
                         className={cn(
                           "justify-start h-auto py-1.5 text-xs",
                           activeFilters.cuisines.includes(cuisine.value) && 
-                          "bg-primary/10 border-primary/30"
+                          "bg-primary/10 border-primary/30 text-primary font-medium"
                         )}
                       >
                         {activeFilters.cuisines.includes(cuisine.value) && (
@@ -260,59 +270,66 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
       </div>
 
       {/* Results List */}
-      <ScrollArea className="h-[280px] mt-3 pr-3">
-        {filteredRecipes.length > 0 ? (
-          <div className="space-y-2">
-            {filteredRecipes.map((recipe) => (
-              <div
-                key={recipe.id}
-                onClick={() => onSelectRecipe(recipe)}
-                className={cn(
-                  "p-3 rounded-md cursor-pointer transition-colors",
-                  theme === "dark" 
-                    ? "hover:bg-slate-800 border border-slate-700" 
-                    : "hover:bg-slate-100 border border-slate-200"
-                )}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-medium text-sm">{recipe.name}</h4>
-                    <p className="text-xs text-muted-foreground capitalize">{recipe.cuisine} • {recipe.prepTime + recipe.cookTime} mins</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {recipe.dietaryRestrictions.slice(0, 3).map(restriction => (
-                        <Badge 
-                          key={`${recipe.id}-${restriction}`} 
-                          variant="outline" 
-                          className="text-[10px] px-1 py-0 h-4"
-                        >
-                          {restriction}
-                        </Badge>
-                      ))}
-                      {recipe.dietaryRestrictions.length > 3 && (
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
-                          +{recipe.dietaryRestrictions.length - 3}
-                        </Badge>
-                      )}
+      <div className="relative mt-3">
+        <ScrollArea className="h-[280px] pr-3 rounded-md overflow-hidden">
+          {filteredRecipes.length > 0 ? (
+            <div className="space-y-2">
+              {filteredRecipes.map((recipe) => (
+                <button
+                  key={recipe.id}
+                  onClick={() => onSelectRecipe(recipe)}
+                  className={cn(
+                    "p-3 rounded-md cursor-pointer transition-colors w-full text-left",
+                    theme === "dark" 
+                      ? "hover:bg-slate-800 border border-slate-700" 
+                      : "hover:bg-slate-100 border border-slate-200"
+                  )}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-medium text-sm">{recipe.name}</h4>
+                      <p className="text-xs text-muted-foreground capitalize">{recipe.cuisine} • {recipe.prepTime + recipe.cookTime} mins</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {recipe.dietaryRestrictions.slice(0, 3).map(restriction => (
+                          <Badge 
+                            key={`${recipe.id}-${restriction}`} 
+                            variant="outline" 
+                            className="text-[10px] px-1 py-0 h-4"
+                          >
+                            {restriction}
+                          </Badge>
+                        ))}
+                        {recipe.dietaryRestrictions.length > 3 && (
+                          <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
+                            +{recipe.dietaryRestrictions.length - 3}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   </div>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-40 text-center">
-            <p className="text-muted-foreground">No recipes match your search criteria</p>
-            <Button 
-              variant="link" 
-              className="mt-2 h-auto p-0"
-              onClick={clearAllFilters}
-            >
-              Clear filters
-            </Button>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-40 text-center">
+              <p className="text-muted-foreground">No recipes match your search criteria</p>
+              <Button 
+                variant="link" 
+                className="mt-2 h-auto p-0"
+                onClick={clearAllFilters}
+              >
+                Clear filters
+              </Button>
+            </div>
+          )}
+        </ScrollArea>
+        {showScrollIndicator && (
+          <div className="absolute bottom-2 right-2 bg-primary/80 text-white rounded-full p-1.5 shadow-md">
+            <Scroll className="h-3.5 w-3.5" />
           </div>
         )}
-      </ScrollArea>
+      </div>
     </div>
   );
 };
