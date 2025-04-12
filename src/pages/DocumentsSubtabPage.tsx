@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,9 +30,7 @@ const documentCategories = [
   { id: 'other', label: 'Other', icon: File },
 ];
 
-// Define the getValidCategory function to convert DocumentTab to a valid DocumentCategory
 const getValidCategory = (tab: DocumentTab): DocumentCategory => {
-  // Map 'all' to a default category ('style'), otherwise use the tab as the category
   if (tab === 'all') return 'style';
   return tab as DocumentCategory;
 };
@@ -43,7 +40,6 @@ const DocumentsSubtabPage: React.FC = () => {
   const navigate = useNavigate();
 
   const {
-    // State
     viewMode,
     currentCategory,
     isLoading,
@@ -54,11 +50,9 @@ const DocumentsSubtabPage: React.FC = () => {
     isFullScreenPreviewOpen,
     currentFile,
     
-    // Data
     documents,
     categories,
     
-    // Actions
     setCurrentCategory,
     openAddDocumentDialog,
     closeDocumentDialog,
@@ -68,14 +62,12 @@ const DocumentsSubtabPage: React.FC = () => {
     handleDownloadFile,
     clearErrors,
     
-    // Utilities
     convertToDocumentFiles
   } = useDocumentManagement({
     initialCategory: subtab ? getValidCategory(subtab as DocumentTab) : 'all',
     initialViewMode: 'grid'
   });
   
-  // Set active tab based on URL parameter
   useEffect(() => {
     if (subtab && documentCategories.some(cat => cat.id === subtab)) {
       setCurrentCategory(getValidCategory(subtab as DocumentTab));
@@ -167,7 +159,6 @@ const DocumentsSubtabPage: React.FC = () => {
   );
 };
 
-// Helper component for document header actions
 const DocumentHeaderActions: React.FC<{ onAddClick: () => void }> = ({ onAddClick }) => {
   return (
     <div className="flex space-x-2">
@@ -181,12 +172,6 @@ const DocumentHeaderActions: React.FC<{ onAddClick: () => void }> = ({ onAddClic
     </div>
   );
 };
-
-// Tabs component
-interface DocumentTabsProps {
-  activeTab: DocumentTab;
-  onTabChange: (tab: DocumentTab) => void;
-}
 
 const DocumentTabs: React.FC<DocumentTabsProps> = ({ activeTab, onTabChange }) => (
   <Tabs defaultValue={activeTab} value={activeTab} onValueChange={(value) => onTabChange(value as DocumentTab)} className="w-full">

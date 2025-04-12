@@ -28,21 +28,6 @@ export interface DocumentFile {
   fileUrl?: string;
 }
 
-export interface DocumentsState {
-  items: DocumentItem[];
-  files: DocumentFile[];
-  selectedDocument: DocumentFile | null;
-  isLoading: boolean;
-  error: string | null;
-  viewMode: ViewMode;
-  searchTerm: string;
-  currentCategory: DocumentCategory | 'all';
-  isAddDialogOpen: boolean;
-  isEditDialogOpen: boolean;
-  isImageAnalysisOpen: boolean;
-  isFullScreenPreviewOpen: boolean;
-}
-
 export interface DocumentFilters {
   searchTerm?: string;
   category?: DocumentCategory | 'all';
@@ -67,6 +52,21 @@ export interface AddDocDialogItem {
   fileType?: string;
   type?: 'image' | 'note';
   content?: string;
+}
+
+export interface DocumentsState {
+  items: DocumentItem[];
+  files: DocumentFile[];
+  selectedDocument: DocumentFile | null;
+  isLoading: boolean;
+  error: string | null;
+  viewMode: ViewMode;
+  searchTerm: string;
+  currentCategory: DocumentCategory | 'all';
+  isAddDialogOpen: boolean;
+  isEditDialogOpen: boolean;
+  isImageAnalysisOpen: boolean;
+  isFullScreenPreviewOpen: boolean;
 }
 
 export const CATEGORIES: DocumentCategory[] = ['style', 'recipes', 'travel', 'fitness', 'events', 'other', 'files'];

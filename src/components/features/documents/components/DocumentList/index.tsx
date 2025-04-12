@@ -1,4 +1,3 @@
-
 import React, { memo, useState } from 'react';
 import { Plus, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -53,7 +52,6 @@ const DocumentList: React.FC<DocumentListProps> = ({
     setIsAddDialogOpen(true);
   };
 
-  // Handle dialog closure without navigation
   const handleDialogOpenChange = (open: boolean) => {
     setIsAddDialogOpen(open);
     if (!open) {
@@ -65,7 +63,6 @@ const DocumentList: React.FC<DocumentListProps> = ({
     setFullScreenItem(null);
   };
 
-  // Directly handle the edit action by opening the dialog with the document
   const handleEditDocument = (doc: DocumentFile) => {
     handleOpenAddDialog(new MouseEvent('click') as unknown as React.MouseEvent, doc);
   };
@@ -160,7 +157,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
         open={isAddDialogOpen}
         onOpenChange={handleDialogOpenChange}
         onAdd={handleAddDocument}
-        categories={categories}
+        categories={categories as string[]}
         currentCategory="files"
         isEditing={!!editingItem}
         editItem={editingItem ? {
