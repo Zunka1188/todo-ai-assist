@@ -12,7 +12,7 @@ interface AppHeaderProps {
   icon?: React.ReactNode;
   className?: string;
   actions?: React.ReactNode;
-  backTo?: string;  // Adding the backTo prop
+  backTo?: string;  // Added the backTo prop
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({ 
