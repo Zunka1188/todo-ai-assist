@@ -274,17 +274,13 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({
     setShowFileUploader(open);
   }, []);
   
+  // Modified: Removed the toast notification when changing view mode
   const handleViewModeChange = useCallback((value: ViewMode) => {
     if (viewMode !== value) {
       setViewMode(value);
-      toast({
-        title: "View Changed",
-        description: `Calendar view set to ${value}`,
-        role: "status",
-        "aria-live": "polite"
-      });
+      // Toast notification removed as requested
     }
-  }, [viewMode, toast]);
+  }, [viewMode]);
 
   const handleShareCalendar = useCallback(() => {
     setInviteDialogOpen(true);

@@ -33,6 +33,20 @@ const CalendarHeader: React.FC = () => {
   
   const { isMobile } = useIsMobile();
 
+  // Handle previous period navigation with event stopping
+  const handlePrevPeriod = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    prevPeriod();
+  };
+
+  // Handle next period navigation with event stopping
+  const handleNextPeriod = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    nextPeriod();
+  };
+
   return (
     <div className="px-4 pt-4 pb-2 sticky top-0 z-30 bg-background border-b">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
@@ -51,7 +65,7 @@ const CalendarHeader: React.FC = () => {
             <Button 
               variant="outline" 
               size="icon" 
-              onClick={prevPeriod}
+              onClick={handlePrevPeriod}
               aria-label="Previous period"
               className="h-9 w-9 min-w-[36px]"
             >
@@ -61,7 +75,7 @@ const CalendarHeader: React.FC = () => {
             <Button 
               variant="outline" 
               size="icon" 
-              onClick={nextPeriod}
+              onClick={handleNextPeriod}
               aria-label="Next period"
               className="h-9 w-9 min-w-[36px]"
             >
