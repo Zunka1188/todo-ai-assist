@@ -23,12 +23,12 @@ interface DayViewProps {
   timeColumnWidth?: number;
 }
 
-// Define custom event interface for proper typing
-interface CalendarViewEventDetail {
+// Define a custom event interface for proper typing
+interface CalendarEventDetail {
   detail: Event;
 }
 
-// Custom event type
+// Define a custom event type that extends DOM CustomEvent
 type CalendarViewEvent = CustomEvent<Event>;
 
 const DayView: React.FC<DayViewProps> = ({
@@ -106,20 +106,20 @@ const DayView: React.FC<DayViewProps> = ({
     
   // Handle event view clicks with proper typing
   useEffect(() => {
-    // Create a properly typed event handler
-    const handleViewEventClick = (e: Event) => {
-      // Use type assertion to safely access the detail property
-      const customEvent = e as unknown as CustomEvent<Event>;
+    // Create a properly typed event handler that handles CustomEvent<Event>
+    const handleViewEventClick = (event: Event) => {
+      // Type assertion to tell TypeScript this is our custom event type
+      const customEvent = event as unknown as CustomEvent<Event>;
       if (customEvent.detail) {
         handleViewEvent(customEvent.detail);
       }
     };
     
-    // Add event listener with the correct type
-    window.addEventListener('view-event', handleViewEventClick as EventListener);
+    // Add event listener with proper type casting
+    window.addEventListener('view-event', handleViewEventClick as unknown as EventListener);
     
     return () => {
-      window.removeEventListener('view-event', handleViewEventClick as EventListener);
+      window.removeEventListener('view-event', handleViewEventClick as unknown as EventListener);
     };
   }, [handleViewEvent]);
 
