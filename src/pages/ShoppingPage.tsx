@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { ShoppingBag } from 'lucide-react';
 import AppPage from '@/components/ui/app-page';
@@ -8,6 +7,7 @@ import { logger } from '@/utils/logger';
 import { useDataRecovery } from '@/hooks/useDataRecovery';
 import { useVisibilityChange } from '@/hooks/useVisibilityChange';
 import { usePersistenceSetup } from '@/hooks/usePersistenceSetup';
+import ErrorBoundary from '@/components/ui/error-boundary';
 
 /**
  * ShoppingPage component
@@ -37,19 +37,21 @@ const ShoppingPage: React.FC = () => {
   }, []);
 
   return (
-    <AppPage
-      title="Shopping List"
-      icon={<ShoppingBag className="h-5 w-5" />}
-      subtitle="Manage your shopping items"
-      isLoading={isRecovering}
-      error={error}
-      onRetry={handleRetry}
-      fullHeight
-    >
-      <ShoppingItemsProvider onError={handleError}>
-        <ShoppingPageContent />
-      </ShoppingItemsProvider>
-    </AppPage>
+    <ErrorBoundary context="ShoppingPage">
+      <AppPage
+        title="Shopping List"
+        icon={<ShoppingBag className="h-5 w-5" />}
+        subtitle="Manage your shopping items"
+        isLoading={isRecovering}
+        error={error}
+        onRetry={handleRetry}
+        fullHeight
+      >
+        <ShoppingItemsProvider onError={handleError}>
+          <ShoppingPageContent />
+        </ShoppingItemsProvider>
+      </AppPage>
+    </ErrorBoundary>
   );
 };
 
