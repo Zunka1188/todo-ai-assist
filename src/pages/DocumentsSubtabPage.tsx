@@ -154,12 +154,14 @@ const DocumentsSubtabPage: React.FC = () => {
           editItem={null}
         />
         
-        <ImageAnalysisModal
-          isOpen={isImageAnalysisOpen}
-          onClose={() => clearErrors()}
-          onAnalysisComplete={handleAnalysisComplete}
-          imageData={currentFile ? URL.createObjectURL(currentFile) : null}
-        />
+        {isImageAnalysisOpen && currentFile && (
+          <ImageAnalysisModal
+            isOpen={isImageAnalysisOpen}
+            onClose={() => clearErrors()}
+            onAnalysisComplete={handleAnalysisComplete}
+            imageData={URL.createObjectURL(currentFile)}
+          />
+        )}
       </PageLayout>
     </DocumentErrorBoundary>
   );

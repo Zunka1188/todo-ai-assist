@@ -174,7 +174,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
           file: editingItem.fileUrl,
           fileName: editingItem.title,
           fileType: editingItem.fileType
-        } : null}
+        } : undefined}
       />
       
       {fullScreenItem && (
