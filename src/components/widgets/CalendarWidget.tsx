@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Calendar as CalendarIcon, ChevronRight, Bell, Clock, MapPin, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -16,6 +15,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import EventFormDialog from '../features/calendar/dialogs/EventFormDialog';
 import EventViewDialog from '../features/calendar/dialogs/EventViewDialog';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 
 const CalendarWidget = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -32,27 +32,37 @@ const CalendarWidget = () => {
 
   // Load events initially
   useEffect(() => {
+    let isMounted = true;
+    
     const loadEvents = async () => {
       try {
         setIsLoading(true);
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 300));
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       } catch (err) {
-        console.error('[ERROR] CalendarWidget - Failed to load events', err);
-        setError('Failed to load calendar events');
-        setIsLoading(false);
-        toast({
-          title: "Error",
-          description: "Failed to load calendar events",
-          variant: "destructive",
-          role: "alert",
-          "aria-live": "assertive"
-        });
+        if (isMounted) {
+          logger.error('[CalendarWidget] Failed to load events', err);
+          setError('Failed to load calendar events');
+          setIsLoading(false);
+          toast({
+            title: "Error",
+            description: "Failed to load calendar events",
+            variant: "destructive",
+            role: "alert",
+            "aria-live": "assertive"
+          });
+        }
       }
     };
     
     loadEvents();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [toast]);
 
   // Memoize filtered events for better performance

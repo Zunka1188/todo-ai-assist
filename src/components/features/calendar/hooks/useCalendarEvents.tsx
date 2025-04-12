@@ -4,6 +4,7 @@ import { Event } from '../types/event';
 import { initialEvents } from '../data/initialEvents';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
+import { logger } from '@/utils/logger';
 
 export const useCalendarEvents = () => {
   const [events, setEvents] = useState<Event[]>(initialEvents);
@@ -15,47 +16,28 @@ export const useCalendarEvents = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Memoized view event handler
+  // Memoized view event handler - removed unnecessary try/catch
   const handleViewEvent = useCallback((event: Event) => {
-    try {
-      console.log("[DEBUG] Calendar: Viewing event", event.id);
-      setSelectedEvent(event);
-      setIsViewDialogOpen(true);
-    } catch (err) {
-      console.error("[ERROR] Calendar: Failed to view event", err);
-      toast({
-        title: "Error",
-        description: "Failed to open event details",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-    }
-  }, [toast]);
+    logger.log("[Calendar] Viewing event", event.id);
+    setSelectedEvent(event);
+    setIsViewDialogOpen(true);
+  }, []);
 
-  // Memoized edit event handler
+  // Memoized edit event handler - removed unnecessary try/catch
   const handleEditEvent = useCallback(() => {
-    try {
-      setIsEditMode(true);
-      setIsViewDialogOpen(false);
-      setIsCreateDialogOpen(true);
-    } catch (err) {
-      console.error("[ERROR] Calendar: Failed to edit event", err);
-      toast({
-        title: "Error",
-        description: "Failed to open event editor",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-    }
-  }, [toast]);
+    setIsEditMode(true);
+    setIsViewDialogOpen(false);
+    setIsCreateDialogOpen(true);
+  }, []);
 
   // Memoized delete event handler
   const handleDeleteEvent = useCallback(() => {
     if (!selectedEvent) return;
     
+    setIsLoading(true);
+    
     try {
+      // This is an async-like operation that could fail
       setEvents(prev => prev.filter(event => event.id !== selectedEvent.id));
       setIsViewDialogOpen(false);
       
@@ -68,7 +50,7 @@ export const useCalendarEvents = () => {
       
       setSelectedEvent(null);
     } catch (err) {
-      console.error("[ERROR] Calendar: Failed to delete event", err);
+      logger.error("[Calendar] Failed to delete event", err);
       toast({
         title: "Error",
         description: "Failed to delete event",
@@ -76,32 +58,24 @@ export const useCalendarEvents = () => {
         role: "alert",
         "aria-live": "assertive"
       });
+    } finally {
+      setIsLoading(false);
     }
   }, [selectedEvent, toast]);
 
-  // Memoized create event handler
+  // Memoized create event handler - removed unnecessary try/catch
   const handleCreateEvent = useCallback((date: Date) => {
-    try {
-      setSelectedEvent(null);
-      setIsEditMode(false);
-      setIsCreateDialogOpen(true);
-    } catch (err) {
-      console.error("[ERROR] Calendar: Failed to create event", err);
-      toast({
-        title: "Error",
-        description: "Failed to open event creator",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-    }
-  }, [toast]);
+    setSelectedEvent(null);
+    setIsEditMode(false);
+    setIsCreateDialogOpen(true);
+  }, []);
 
   // Memoized save event handler
   const handleSaveEvent = useCallback((newEvent: Event) => {
     setIsLoading(true);
     
     try {
+      // This operation could potentially fail (API call in real app)
       if (isEditMode && selectedEvent) {
         setEvents(prev => prev.map(event => 
           event.id === selectedEvent.id ? newEvent : event
@@ -128,7 +102,7 @@ export const useCalendarEvents = () => {
       setIsEditMode(false);
       setSelectedEvent(null);
     } catch (err) {
-      console.error("[ERROR] Calendar: Failed to save event", err);
+      logger.error("[Calendar] Failed to save event", err);
       toast({
         title: "Error",
         description: "Failed to save event",
@@ -141,7 +115,7 @@ export const useCalendarEvents = () => {
     }
   }, [isEditMode, selectedEvent, toast]);
 
-  // Memoized filter function
+  // Memoized filter function - optimized for performance
   const filterEvents = useCallback((searchTerm: string) => {
     if (!searchTerm) return events;
     

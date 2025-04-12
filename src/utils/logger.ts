@@ -24,6 +24,11 @@ export const logger = {
   error: (...args: any[]): void => {
     // We still log errors in production, but could filter sensitive info
     console.error(...args);
+    
+    // Here you could integrate with an error tracking service
+    // if (errorTrackingService.isEnabled) {
+    //   errorTrackingService.captureException(args[0]);
+    // }
   },
   
   /**
@@ -73,5 +78,23 @@ export const logger = {
       return duration;
     }
     return null;
+  },
+  
+  /**
+   * Group related logs (only in development)
+   */
+  group: (label: string, collapsed: boolean = false): void => {
+    if (!isProduction) {
+      collapsed ? console.groupCollapsed(label) : console.group(label);
+    }
+  },
+  
+  /**
+   * End a group of logs (only in development)
+   */
+  groupEnd: (): void => {
+    if (!isProduction) {
+      console.groupEnd();
+    }
   }
 };

@@ -2,6 +2,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { logger } from '@/utils/logger';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -25,9 +26,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // You can log the error to an error reporting service
-    console.error('[ERROR] Calendar component error:', error);
-    console.error('[ERROR] Component stack:', errorInfo.componentStack);
+    // Log the error using our logger utility
+    logger.error('[Calendar] Component error:', error);
+    logger.error('[Calendar] Component stack:', errorInfo.componentStack);
   }
 
   handleReset = (): void => {
