@@ -115,35 +115,6 @@ export const useCalendarEvents = () => {
     }
   }, [isEditMode, selectedEvent, toast]);
 
-  // New method to update event (for drag and drop)
-  const handleUpdateEvent = useCallback((updatedEvent: Event) => {
-    setIsLoading(true);
-    
-    try {
-      setEvents(prev => prev.map(event => 
-        event.id === updatedEvent.id ? updatedEvent : event
-      ));
-      
-      toast({
-        title: "Event moved",
-        description: `"${updatedEvent.title}" has been rescheduled.`,
-        role: "status",
-        "aria-live": "polite"
-      });
-    } catch (err) {
-      logger.error("[Calendar] Failed to move event", err);
-      toast({
-        title: "Error",
-        description: "Failed to move the event. Please try again.",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
-
   // Memoized filter function - optimized for performance
   const filterEvents = useCallback((searchTerm: string) => {
     if (!searchTerm) return events;
@@ -173,7 +144,6 @@ export const useCalendarEvents = () => {
     handleDeleteEvent,
     handleCreateEvent,
     handleSaveEvent,
-    handleUpdateEvent,
     filterEvents
   };
 };

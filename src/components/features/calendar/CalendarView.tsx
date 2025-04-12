@@ -76,7 +76,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     handleDeleteEvent,
     handleCreateEvent,
     handleSaveEvent,
-    handleUpdateEvent,
     filterEvents
   } = useCalendarEvents();
   
@@ -197,9 +196,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     console.log("[DEBUG] Share link generated:", link);
   }, []);
 
+  // Function to handle date changes in all views, this will be passed to the view components
   const handleSetDate = useCallback((newDate: Date) => {
+    // This function will propagate the date change to the CalendarContent parent
     if (setIsCreateDialogOpen) {
+      // Since we're in CalendarView component, we want to let the parent know about date changes
       console.log("[DEBUG] Date changed:", format(newDate, 'yyyy-MM-dd'));
+      // The actual date change logic is handled by useCalendar context in the parent
     }
   }, [setIsCreateDialogOpen]);
 
@@ -311,7 +314,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                 weekStartsOn={weekStartsOn}
                 minCellHeight={dimensions.minCellHeight}
                 timeColumnWidth={dimensions.timeWidth}
-                onUpdateEvent={handleUpdateEvent}
               />
             )}
             
@@ -323,7 +325,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                 theme={theme}
                 minCellHeight={dimensions.minCellHeight}
                 timeColumnWidth={dimensions.timeWidth}
-                onUpdateEvent={handleUpdateEvent}
               />
             )}
             
