@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { addDays, subDays, isSameDay, format } from 'date-fns';
 import { Event } from '../../types/event';
@@ -22,35 +21,33 @@ interface DayViewProps {
   minCellHeight?: number;
   timeColumnWidth?: number;
   maxTime?: string;
+  minTime?: string;
   hideEmptyRows?: boolean;
   constrainEvents?: boolean;
   disablePopups?: boolean;
+  scrollable?: boolean;
+  scrollBehavior?: ScrollBehavior;
+  scrollDuration?: number;
 }
 
-// Explicitly import DOM Event as DOMEvent to avoid naming collision
 type DOMEvent = globalThis.Event;
 
-// Define a custom event interface for proper typing
 interface CalendarViewEvent extends CustomEvent<Event> {
   detail: Event;
 }
 
-// Function to constrain events to max time
 const constrainEventsToMaxTime = (events: Event[], maxTimeStr: string): Event[] => {
   const [hours, minutes] = maxTimeStr.split(':').map(Number);
   const maxTime = new Date();
   maxTime.setHours(hours || 23, minutes || 0, 0, 0);
   
   return events.map(event => {
-    // Clone the event to avoid mutating the original
     const newEvent = { ...event };
     
-    // Only constrain if the end time is after max time
     if (newEvent.endDate.getHours() > maxTime.getHours() || 
         (newEvent.endDate.getHours() === maxTime.getHours() && 
          newEvent.endDate.getMinutes() > maxTime.getMinutes())) {
       
-      // Create a new end date at the max time on the same day
       const constrainedEnd = new Date(newEvent.endDate);
       constrainedEnd.setHours(maxTime.getHours(), maxTime.getMinutes(), 0, 0);
       newEvent.endDate = constrainedEnd;
@@ -68,25 +65,27 @@ const DayView: React.FC<DayViewProps> = ({
   minCellHeight = 60,
   timeColumnWidth = 60,
   maxTime = "23:00",
+  minTime = "00:00",
   hideEmptyRows = false,
   constrainEvents = false,
-  disablePopups = true
+  disablePopups = true,
+  scrollable = true,
+  scrollBehavior = 'smooth',
+  scrollDuration = 300
 }) => {
   const { isMobile } = useIsMobile();
   const gridRef = useRef<HTMLDivElement>(null);
   const { enabled: debugEnabled, logProps } = useDebugMode();
   const [currentTime, setCurrentTime] = useState(new Date());
   
-  // Update current time for the time indicator
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 60000); // Update every minute
+    }, 60000);
     
     return () => clearInterval(timer);
   }, []);
   
-  // Debug component props
   useEffect(() => {
     logProps('DayView', { date, events: events?.length });
     
@@ -100,14 +99,12 @@ const DayView: React.FC<DayViewProps> = ({
     }
   }, [date, events, theme, isMobile, debugEnabled, logProps]);
   
-  // Process events and constrain them if needed
   const processedEvents = useMemo(() => {
     return constrainEvents 
       ? constrainEventsToMaxTime(events, maxTime)
       : events;
   }, [events, constrainEvents, maxTime]);
   
-  // Use custom hook for event management with processed events
   const {
     startHour,
     endHour,
@@ -124,7 +121,6 @@ const DayView: React.FC<DayViewProps> = ({
   } = useEventManagement(processedEvents, date);
 
   const prevDay = () => {
-    // Using a custom event to bubble up navigation
     window.dispatchEvent(new CustomEvent('calendar-navigate', { 
       detail: { direction: 'prev', view: 'day', date: subDays(date, 1) } 
     }));
@@ -136,29 +132,22 @@ const DayView: React.FC<DayViewProps> = ({
     }));
   };
 
-  // Calculate the number of hours to display
   const numHours = showAllHours ? 24 : (endHour - startHour + 1);
   
-  // Calculate the appropriate height for the scroll container
   const scrollContainerHeight = isMobile 
     ? 'calc(100vh - 320px)' 
     : 'calc(100vh - 300px)';
     
-  // Handle event view clicks with proper typing
   useEffect(() => {
-    // Skip if popups are disabled
     if (disablePopups) return;
       
-    // Create a strongly typed event handler for DOM events
     const handleViewEventClick = (e: DOMEvent) => {
-      // Explicitly cast to CustomEvent<Event> to handle our calendar event data
       const customEvent = e as unknown as CustomEvent<Event>;
       if (customEvent.detail) {
         handleViewEvent(customEvent.detail);
       }
     };
     
-    // Add the event listener with proper type casting
     window.addEventListener('view-event', handleViewEventClick as unknown as EventListener);
     
     return () => {
@@ -166,7 +155,6 @@ const DayView: React.FC<DayViewProps> = ({
     };
   }, [handleViewEvent, disablePopups]);
 
-  // Calculate current time indicator position
   const getCurrentTimePosition = () => {
     if (!isSameDay(currentTime, date)) return -1;
     
@@ -174,10 +162,8 @@ const DayView: React.FC<DayViewProps> = ({
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     
-    // Check if current time is within the visible range
     if (currentHour < startHour || currentHour > endHour) return -1;
     
-    // Calculate position
     return (currentHour - startHour) * minCellHeight + (currentMinute / 60) * minCellHeight;
   };
   
@@ -210,20 +196,17 @@ const DayView: React.FC<DayViewProps> = ({
       />
       
       <div className="border rounded-lg overflow-hidden w-full shadow-sm">
-        {/* Fixed headers with sticky positioning */}
         <div className="grid grid-cols-[3.5rem_1fr] bg-background p-2 border-b sticky top-0 z-20">
           <div className="text-xs font-medium border-r text-muted-foreground">Time</div>
           <div className="text-xs font-medium pl-2">Events</div>
         </div>
         
-        {/* Scrollable time grid with proper height and scroll behavior */}
         <ScrollArea 
           className="overflow-auto" 
           style={{ height: scrollContainerHeight, position: 'relative' }}
           scrollRef={gridRef}
         >
           <div className="relative">
-            {/* Hour grid */}
             <div className="grid grid-cols-[3.5rem_1fr]">
               {hours.map(hour => (
                 <React.Fragment key={hour}>
@@ -241,7 +224,6 @@ const DayView: React.FC<DayViewProps> = ({
               ))}
             </div>
             
-            {/* Current time indicator */}
             {currentTimePosition > 0 && (
               <div 
                 className="absolute left-0 right-0 flex items-center z-30 pointer-events-none"
@@ -252,7 +234,6 @@ const DayView: React.FC<DayViewProps> = ({
               </div>
             )}
             
-            {/* Events */}
             <div className="absolute inset-0 pointer-events-none">
               {processedEventsGroups.map((group, groupIndex) => (
                 group.events.map((event, eventIndex) => (

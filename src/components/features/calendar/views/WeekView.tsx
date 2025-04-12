@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, subMonths, addWeeks, subWeeks, isSameMonth, isSameDay, isToday, isWeekend } from 'date-fns';
@@ -492,6 +491,8 @@ const WeekView: React.FC<WeekViewProps> = ({
   };
 
   // Calculate current time indicator position
+  const currentTime = new Date();
+  
   const getCurrentTimePosition = useCallback(() => {
     const now = currentTime;
     const currentHour = now.getHours();
@@ -500,9 +501,9 @@ const WeekView: React.FC<WeekViewProps> = ({
     // Check if current time is within the visible range
     const configStart = timeRangeConfig.startHour + (timeRangeConfig.startMinute / MINUTES_PER_HOUR);
     const configEnd = timeRangeConfig.endHour + (timeRangeConfig.endMinute / MINUTES_PER_HOUR);
-    const currentTime = currentHour + (currentMinute / 60);
+    const currentTimeValue = currentHour + (currentMinute / 60);
     
-    if (currentTime < configStart || currentTime > configEnd) return -1;
+    if (currentTimeValue < configStart || currentTimeValue > configEnd) return -1;
     
     // Calculate position
     return (currentHour - timeRangeConfig.startHour) * minCellHeight + (currentMinute / 60) * minCellHeight;
