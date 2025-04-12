@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, ScanBarcode, Send, X, RotateCcw, Calendar, ShoppingCart, Receipt, Clock, CheckSquare } from 'lucide-react';
+import { Camera, Upload, ScanBarcode, Send, X, RotateCcw, Calendar, ShoppingCart, Receipt, Clock, CheckSquare, Search } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,8 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Recipe } from '@/types/recipe';
+import RecipeSearch from './RecipeSearch';
 
 interface AIFoodAssistantProps {
   isOpen: boolean;
@@ -51,8 +53,9 @@ type DietaryRestriction = {
 };
 
 type FoodContext = {
-  conversationState: 'initial' | 'dish_selection' | 'serving_size' | 'dietary_restrictions' | 'ingredient_list' | 'decision_point' | 'recipe_generation' | 'schedule_event' | 'closing';
+  conversationState: 'initial' | 'recipe_search' | 'dish_selection' | 'serving_size' | 'dietary_restrictions' | 'ingredient_list' | 'decision_point' | 'recipe_generation' | 'schedule_event' | 'closing';
   dishName?: string;
+  selectedRecipe?: Recipe;
   servingSize?: number;
   dietaryRestrictions: string[];
   dateTime?: Date;
@@ -185,6 +188,14 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       role: 'assistant',
       content: 'I\'m Mr. Todoodle, your food assistant. What dish would you like to explore today?',
       timestamp: new Date(),
+      buttons: [
+        {
+          id: 'browse-recipes',
+          label: 'Browse Recipes',
+          icon: <Search className="h-4 w-4 mr-1" />,
+          action: () => handleBrowseRecipes()
+        }
+      ]
     };
     
     setMessages([welcomeMessage]);
@@ -244,6 +255,83 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     
     setMessages(prev => [...prev, newAssistantMessage]);
     return newAssistantMessage;
+  };
+
+  const handleBrowseRecipes = () => {
+    addUserMessage("Browse recipes");
+    
+    setFoodContext(prev => ({
+      ...prev,
+      conversationState: 'recipe_search'
+    }));
+    
+    setIsTyping(true);
+    
+    setTimeout(() => {
+      setIsTyping(false);
+      
+      addAssistantMessage("Please search for a recipe or browse through our collection.");
+    }, 500);
+  };
+
+  const handleRecipeSelection = (recipe: Recipe) => {
+    const recipeName = recipe.name;
+    
+    addUserMessage(`I want to make ${recipeName}`);
+    
+    setFoodContext(prev => ({
+      ...prev,
+      dishName: recipeName,
+      selectedRecipe: recipe,
+      conversationState: 'serving_size'
+    }));
+    
+    setIsTyping(true);
+    
+    setTimeout(() => {
+      setIsTyping(false);
+      
+      const servingButtons: ButtonOption[] = [
+        { 
+          id: '1', 
+          label: '1', 
+          variant: 'outline', 
+          action: () => handleServingSizeSelection(1) 
+        },
+        { 
+          id: '2', 
+          label: '2', 
+          variant: 'outline', 
+          action: () => handleServingSizeSelection(2) 
+        },
+        { 
+          id: '3', 
+          label: '3', 
+          variant: 'outline', 
+          action: () => handleServingSizeSelection(3) 
+        },
+        { 
+          id: '4', 
+          label: '4', 
+          variant: 'outline', 
+          action: () => handleServingSizeSelection(4) 
+        },
+        { 
+          id: 'custom', 
+          label: 'Custom', 
+          variant: 'outline', 
+          action: () => {
+            addAssistantMessage("How many servings do you need?");
+            setFoodContext(prev => ({
+              ...prev,
+              conversationState: 'serving_size'
+            }));
+          } 
+        },
+      ];
+      
+      addAssistantMessage(`Great choice! ${recipe.name} is a delicious ${recipe.cuisine} dish. How many servings?`, undefined, servingButtons);
+    }, 500);
   };
 
   const handleDishNameInput = (dishName: string) => {
@@ -377,11 +465,29 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   };
   
   const showIngredientsList = () => {
-    const { dishName, servingSize, dietaryRestrictions } = foodContext;
+    const { selectedRecipe, dishName, servingSize, dietaryRestrictions } = foodContext;
     
     let ingredientsList = "";
     
-    if (dishName?.toLowerCase() === 'lasagna') {
+    if (selectedRecipe) {
+      // Scale ingredients by serving size ratio
+      const servingSizeRatio = (servingSize || 1) / (selectedRecipe.servings || 1);
+      
+      ingredientsList = `Ingredients for ${selectedRecipe.name} (${servingSize} servings):\n\n`;
+      selectedRecipe.ingredients.forEach(ingredient => {
+        // Scale numeric amounts by the serving size ratio
+        let scaledAmount = ingredient.amount;
+        if (!isNaN(Number(ingredient.amount))) {
+          const numericAmount = Number(ingredient.amount);
+          scaledAmount = (numericAmount * servingSizeRatio).toString();
+          // Round to 2 decimal places if it's not a whole number
+          if (scaledAmount.includes('.') && scaledAmount.split('.')[1].length > 2) {
+            scaledAmount = Number(scaledAmount).toFixed(2).replace(/\.00$/, '');
+          }
+        }
+        ingredientsList += `- ${scaledAmount} ${ingredient.unit} ${ingredient.name}\n`;
+      });
+    } else if (dishName?.toLowerCase() === 'lasagna') {
       const quantity = servingSize || 2;
       ingredientsList = `Ingredients for ${dishName} (${quantity} servings):\n\n`;
       
@@ -529,11 +635,46 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     setTimeout(() => {
       setIsTyping(false);
       
-      const { dishName, servingSize, dietaryRestrictions } = foodContext;
+      const { selectedRecipe, dishName, servingSize, dietaryRestrictions } = foodContext;
       
       let recipe = "";
       
-      if (dishName?.toLowerCase() === 'lasagna') {
+      if (selectedRecipe) {
+        recipe = `# ${selectedRecipe.name} Recipe (${servingSize} servings)\n\n`;
+        recipe += `## Ingredients\n`;
+        
+        // Scale ingredients by serving size ratio
+        const servingSizeRatio = (servingSize || 1) / (selectedRecipe.servings || 1);
+        
+        selectedRecipe.ingredients.forEach(ingredient => {
+          // Scale numeric amounts by the serving size ratio
+          let scaledAmount = ingredient.amount;
+          if (!isNaN(Number(ingredient.amount))) {
+            const numericAmount = Number(ingredient.amount);
+            scaledAmount = (numericAmount * servingSizeRatio).toString();
+            // Round to 2 decimal places if it's not a whole number
+            if (scaledAmount.includes('.') && scaledAmount.split('.')[1].length > 2) {
+              scaledAmount = Number(scaledAmount).toFixed(2).replace(/\.00$/, '');
+            }
+          }
+          recipe += `- ${scaledAmount} ${ingredient.unit} ${ingredient.name}\n`;
+        });
+        
+        recipe += `\n## Instructions\n`;
+        selectedRecipe.instructions.forEach((step, index) => {
+          recipe += `${index + 1}. ${step}\n`;
+        });
+        
+        // Add dietary information
+        if (selectedRecipe.dietaryRestrictions.length > 0) {
+          recipe += `\n**Dietary Information:** ${selectedRecipe.dietaryRestrictions.join(', ')}\n`;
+        }
+        
+        // Add cooking time information
+        recipe += `\n**Prep Time:** ${selectedRecipe.prepTime} minutes\n`;
+        recipe += `**Cook Time:** ${selectedRecipe.cookTime} minutes\n`;
+        recipe += `**Total Time:** ${selectedRecipe.prepTime + selectedRecipe.cookTime} minutes\n`;
+      } else if (dishName?.toLowerCase() === 'lasagna') {
         recipe = `# ${dishName} Recipe (${servingSize} servings)\n\n`;
         
         if (dietaryRestrictions.includes('Vegan')) {
@@ -805,6 +946,15 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       }
       
       addAssistantMessage(closingMessage);
+      
+      // Add option to start over
+      const newConversationButton: ButtonOption = {
+        id: 'new-conversation',
+        label: 'Start Over',
+        action: resetConversation
+      };
+      
+      addAssistantMessage("Need help with something else?", undefined, [newConversationButton]);
     }, 800);
   };
   
@@ -954,6 +1104,18 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
             </div>
           )}
           
+          {/* Recipe Search UI */}
+          {foodContext.conversationState === 'recipe_search' && (
+            <div className="flex items-start w-full">
+              <div className="bg-secondary px-3 py-2 rounded-lg w-full">
+                <RecipeSearch 
+                  onSelectRecipe={handleRecipeSelection}
+                  selectedDietaryRestrictions={foodContext.dietaryRestrictions}
+                />
+              </div>
+            </div>
+          )}
+          
           {foodContext.conversationState === 'schedule_event' && (
             <>
               <div className="flex items-start">
@@ -1029,12 +1191,12 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="flex-grow"
-              disabled={isProcessing || activeScanOption !== null || ['dietary_restrictions', 'schedule_event'].includes(foodContext.conversationState)}
+              disabled={isProcessing || activeScanOption !== null || ['dietary_restrictions', 'schedule_event', 'recipe_search'].includes(foodContext.conversationState)}
             />
             <Button 
               type="submit" 
               size="icon"
-              disabled={!input.trim() || isProcessing || activeScanOption !== null || ['dietary_restrictions', 'schedule_event'].includes(foodContext.conversationState)}
+              disabled={!input.trim() || isProcessing || activeScanOption !== null || ['dietary_restrictions', 'schedule_event', 'recipe_search'].includes(foodContext.conversationState)}
             >
               <Send className="h-4 w-4" />
               <span className="sr-only">Send message</span>

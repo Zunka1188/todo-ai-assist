@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { MapPin } from 'lucide-react';
@@ -8,6 +9,7 @@ import TimeControls from './TimeControls';
 import WeekHeader from './WeekHeader';
 import AllDayEvents from './AllDayEvents';
 import TimeGrid from './TimeGrid';
+
 interface WeekViewProps {
   date: Date;
   setDate: (date: Date) => void;
@@ -18,6 +20,7 @@ interface WeekViewProps {
   minCellHeight?: number;
   timeColumnWidth?: number;
 }
+
 const WeekView: React.FC<WeekViewProps> = ({
   date,
   setDate,
@@ -56,6 +59,7 @@ const WeekView: React.FC<WeekViewProps> = ({
     weekStartsOn,
     minCellHeight
   });
+
   return <ResponsiveContainer fullWidth noGutters className="space-y-4">
       <div className="grid grid-cols-7 gap-2 mb-4">
         <div className="col-span-7">
@@ -75,4 +79,5 @@ const WeekView: React.FC<WeekViewProps> = ({
       </div>
     </ResponsiveContainer>;
 };
+
 export default WeekView;
