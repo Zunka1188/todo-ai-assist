@@ -116,102 +116,6 @@ const AIFoodAssistant = ({ isOpen, onClose }: AIFoodAssistantProps) => {
   }, [messages]);
 
   const handleRecipeSelection = (recipe: Recipe) => {
-    setFoodContext(prev => ({ 
-      ...prev, 
-      selectedRecipe: recipe,
-      conversationState: 'serving_size'
-    }));
-
-    const message: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      content: `Great choice! ${recipe.name} serves ${recipe.baseServings} people by default. How many servings would you like?`,
-      timestamp: new Date(),
-      buttons: [
-        {
-          id: 'browse-recipes',
-          label: 'Browse Recipes',
-          icon: <Search className="h-4 w-4 mr-1" />,
-          action: () => handleBrowseRecipes()
-        }
-      ]
-    };
-
-    setMessages(prev => [...prev, {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: `I'd like to make ${recipe.name}.`,
-      timestamp: new Date()
-    }, message]);
-  };
-
-  const handleCuisineBrowse = () => {
-    const cuisines = Array.from(new Set(RecipeService.getAllRecipes().map((recipe: Recipe) => recipe.cuisine)));
-    const cuisineOptions: ButtonOption[] = cuisines.map((cuisine: string) => ({
-      id: cuisine,
-      label: cuisine.charAt(0).toUpperCase() + cuisine.slice(1),
-      action: () => showRecipesByCuisine(cuisine)
-    }));
-    addAssistantMessage('Browse recipes by cuisine:', undefined, undefined, cuisineOptions);
-  };
-
-  const showRecipesByCuisine = (cuisine: string) => {
-    const filteredRecipes = RecipeService.getAllRecipes().filter((recipe: Recipe) => recipe.cuisine === cuisine);
-    const recipeOptions: ButtonOption[] = filteredRecipes.map((recipe: Recipe) => ({
-      id: recipe.id.toString(),
-      label: recipe.name,
-      variant: 'outline',
-      action: () => handleRecipeSelection(recipe)
-    }));
-    addAssistantMessage(`Here are the ${cuisine} recipes:`, undefined, undefined, recipeOptions);
-  };
-
-  const addUserMessage = (content: string) => {
-    const message: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content,
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, message]);
-  };
-
-  const addAssistantMessage = (
-    content: string,
-    imageUrl?: string,
-    options?: ButtonOption[],
-    buttons?: ButtonOption[]
-  ) => {
-    const message: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      content,
-      timestamp: new Date(),
-      imageUrl,
-      options,
-      buttons
-    };
-    setMessages(prev => [...prev, message]);
-  };
-
-  const handleBrowseRecipes = () => {
-    addUserMessage("Browse recipes");
-    
-    setFoodContext(prev => ({
-      ...prev,
-      conversationState: 'recipe_search'
-    }));
-    
-    setIsTyping(true);
-    
-    setTimeout(() => {
-      setIsTyping(false);
-      
-      addAssistantMessage("Please search for a recipe or browse through our collection.");
-    }, 500);
-  };
-
-  const handleRecipeSelection = (recipe: Recipe) => {
     const recipeName = recipe.name;
     
     addUserMessage(`I want to make ${recipeName}`);
@@ -242,85 +146,17 @@ const AIFoodAssistant = ({ isOpen, onClose }: AIFoodAssistantProps) => {
           action: () => handleServingSizeSelection(2) 
         },
         { 
-          id: '3', 
-          label: '3', 
-          variant: 'outline', 
-          action: () => handleServingSizeSelection(3) 
-        },
-        { 
           id: '4', 
           label: '4', 
           variant: 'outline', 
           action: () => handleServingSizeSelection(4) 
         },
         { 
-          id: 'custom', 
-          label: 'Custom', 
+          id: '6', 
+          label: '6', 
           variant: 'outline', 
-          action: () => {
-            addAssistantMessage("How many servings do you need?");
-            setFoodContext(prev => ({
-              ...prev,
-              conversationState: 'serving_size'
-            }));
-          } 
-        },
-      ];
-      
-      addAssistantMessage(`Great choice! ${recipe.name} is a delicious ${recipe.cuisine} dish. How many servings?`, undefined, servingButtons);
-    }, 500);
-  };
-
-  const handleDishNameInput = (dishName: string) => {
-    setFoodContext(prev => ({
-      ...prev,
-      dishName,
-      conversationState: 'serving_size'
-    }));
-    
-    addUserMessage(dishName);
-    setIsTyping(true);
-    
-    setTimeout(() => {
-      setIsTyping(false);
-      
-      const servingButtons: ButtonOption[] = [
-        { 
-          id: '1', 
-          label: '1', 
-          variant: 'outline', 
-          action: () => handleServingSizeSelection(1) 
-        },
-        { 
-          id: '2', 
-          label: '2', 
-          variant: 'outline', 
-          action: () => handleServingSizeSelection(2) 
-        },
-        { 
-          id: '3', 
-          label: '3', 
-          variant: 'outline', 
-          action: () => handleServingSizeSelection(3) 
-        },
-        { 
-          id: '4', 
-          label: '4', 
-          variant: 'outline', 
-          action: () => handleServingSizeSelection(4) 
-        },
-        { 
-          id: 'custom', 
-          label: 'Custom', 
-          variant: 'outline', 
-          action: () => {
-            addAssistantMessage("How many servings do you need?");
-            setFoodContext(prev => ({
-              ...prev,
-              conversationState: 'serving_size'
-            }));
-          } 
-        },
+          action: () => handleServingSizeSelection(6) 
+        }
       ];
       
       addAssistantMessage("How many servings?", undefined, servingButtons);
