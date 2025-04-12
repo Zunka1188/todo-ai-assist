@@ -1,5 +1,5 @@
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Event } from '../../types/event';
 import { useToast } from '@/hooks/use-toast';
 import { useDebugMode } from '@/hooks/useDebugMode';
@@ -11,8 +11,7 @@ interface ProcessedEventGroup {
 
 export const useEventManagement = (
   events: Event[], 
-  date: Date,
-  maxTime: string = "23:00"
+  date: Date
 ) => {
   const [startHour, setStartHour] = useState(0);
   const [endHour, setEndHour] = useState(23);
@@ -22,14 +21,8 @@ export const useEventManagement = (
   const [endInputValue, setEndInputValue] = useState("23");
   const { toast } = useToast();
   const { enabled: debugEnabled } = useDebugMode();
-  
-  // Ref for tracking current hidden events
-  const hiddenEventsRef = useRef<Event[]>([]);
 
-  // Parse max time
-  const maxHour = parseInt(maxTime.split(':')[0], 10) || 23;
-
-  const getEventsForDay = useMemo(() => {
+  const getEventsForDay = () => {
     if (!events) return [];
     
     const filteredEvents = events.filter(event => 
@@ -43,7 +36,7 @@ export const useEventManagement = (
     }
     
     return filteredEvents;
-  }, [events, date, debugEnabled]);
+  };
 
   const isSameDay = (date1: Date, date2: Date) => {
     return (
@@ -53,9 +46,9 @@ export const useEventManagement = (
     );
   };
 
-  const dayEvents = getEventsForDay;
-  const allDayEvents = useMemo(() => dayEvents.filter(event => event.allDay), [dayEvents]);
-  const timeEvents = useMemo(() => dayEvents.filter(event => !event.allDay), [dayEvents]);
+  const dayEvents = getEventsForDay();
+  const allDayEvents = dayEvents.filter(event => event.allDay);
+  const timeEvents = dayEvents.filter(event => !event.allDay);
 
   useEffect(() => {
     if (debugEnabled) {
@@ -66,19 +59,13 @@ export const useEventManagement = (
       console.log('All-Day Events:', allDayEvents);
       console.log('Time Events:', timeEvents);
       console.log('Time Range:', `${startHour}:00 - ${endHour}:00`);
-      console.log('Max Hour:', maxHour);
       console.groupEnd();
     }
-  }, [
-    events, date, dayEvents, allDayEvents, timeEvents, 
-    startHour, endHour, debugEnabled, maxHour
-  ]);
+  }, [events, date, dayEvents, allDayEvents, timeEvents, startHour, endHour, debugEnabled]);
 
-  const hours = useMemo(() => {
-    return showAllHours 
-      ? Array.from({ length: Math.min(24, maxHour + 1) }, (_, i) => i) 
-      : Array.from({ length: Math.min((endHour - startHour) + 1, maxHour - startHour + 1) }, (_, i) => i + startHour);
-  }, [showAllHours, startHour, endHour, maxHour]);
+  const hours = showAllHours 
+    ? Array.from({ length: 24 }, (_, i) => i) 
+    : Array.from({ length: (endHour - startHour) + 1 }, (_, i) => i + startHour);
 
   const isEventVisible = (event: Event): boolean => {
     if (event.allDay) return true;
@@ -91,11 +78,11 @@ export const useEventManagement = (
     const eventStart = eventStartHour + (eventStartMinute / 60);
     const eventEnd = eventEndHour + (eventEndMinute / 60);
     
-    const isVisible = eventStart < Math.min(endHour + 1, maxHour + 1) && eventEnd > startHour;
+    const isVisible = eventStart < endHour + 1 && eventEnd > startHour;
     
     if (debugEnabled) {
       console.log(`Event ${event.title} visibility check:`, isVisible);
-      console.log(`Event time: ${eventStart}-${eventEnd}, View time: ${startHour}-${Math.min(endHour + 1, maxHour + 1)}`);
+      console.log(`Event time: ${eventStart}-${eventEnd}, View time: ${startHour}-${endHour + 1}`);
     }
     
     return isVisible;
@@ -113,7 +100,7 @@ export const useEventManagement = (
     });
   };
 
-  const getVisibleMultiHourEvents = useMemo(() => {
+  const getVisibleMultiHourEvents = (): Event[] => {
     const multiHourEvents = getMultiHourEvents();
     const visibleEvents = multiHourEvents.filter(event => isEventVisible(event));
     
@@ -122,7 +109,7 @@ export const useEventManagement = (
     }
     
     return visibleEvents;
-  }, [timeEvents, startHour, endHour, maxHour]);
+  };
 
   const groupOverlappingEvents = (events: Event[]): ProcessedEventGroup[] => {
     if (!events || events.length === 0) return [];
@@ -176,11 +163,10 @@ export const useEventManagement = (
       const eventStart = eventStartHour + (eventStartMinute / 60);
       const eventEnd = eventEndHour + (eventEndMinute / 60);
       
-      return eventEnd <= start || eventStart >= Math.min(end + 1, maxHour + 1);
+      return eventEnd <= start || eventStart >= end + 1;
     });
 
     setHiddenEvents(hidden);
-    hiddenEventsRef.current = hidden;
     
     if (hidden.length > 0) {
       toast({
@@ -201,35 +187,35 @@ export const useEventManagement = (
     switch (preset) {
       case 'full':
         setStartHour(0);
-        setEndHour(Math.min(23, maxHour));
+        setEndHour(23);
         setStartInputValue("0");
-        setEndInputValue(maxHour.toString());
+        setEndInputValue("23");
         setShowAllHours(true);
         setHiddenEvents([]);
         break;
       case 'business':
         setStartHour(8);
-        setEndHour(Math.min(18, maxHour));
+        setEndHour(18);
         setStartInputValue("8");
-        setEndInputValue(Math.min(18, maxHour).toString());
+        setEndInputValue("18");
         setShowAllHours(false);
-        checkForHiddenEvents(8, Math.min(18, maxHour));
+        checkForHiddenEvents(8, 18);
         break;
       case 'evening':
         setStartHour(17);
-        setEndHour(Math.min(23, maxHour));
+        setEndHour(23);
         setStartInputValue("17");
-        setEndInputValue(Math.min(23, maxHour).toString());
+        setEndInputValue("23");
         setShowAllHours(false);
-        checkForHiddenEvents(17, Math.min(23, maxHour));
+        checkForHiddenEvents(17, 23);
         break;
       case 'morning':
         setStartHour(4);
-        setEndHour(Math.min(12, maxHour));
+        setEndHour(12);
         setStartInputValue("4");
-        setEndInputValue(Math.min(12, maxHour).toString());
+        setEndInputValue("12");
         setShowAllHours(false);
-        checkForHiddenEvents(4, Math.min(12, maxHour));
+        checkForHiddenEvents(4, 12);
         break;
     }
   };
@@ -247,7 +233,7 @@ export const useEventManagement = (
     
     const hour = parseInt(value, 10);
     
-    if (isNaN(hour) || hour < 0 || hour > maxHour) {
+    if (isNaN(hour) || hour < 0 || hour > 23) {
       return;
     }
     
@@ -257,7 +243,7 @@ export const useEventManagement = (
     if (type === 'start') {
       if (hour <= endHour) newStart = hour;
     } else {
-      if (hour >= startHour) newEnd = Math.min(hour, maxHour);
+      if (hour >= startHour) newEnd = hour;
     }
     
     checkForHiddenEvents(newStart, newEnd);
@@ -265,7 +251,7 @@ export const useEventManagement = (
     if (type === 'start') setStartHour(newStart);
     else setEndHour(newEnd);
     
-    setShowAllHours(newStart === 0 && newEnd === maxHour);
+    setShowAllHours(newStart === 0 && newEnd === 23);
     
     if (debugEnabled) {
       console.log(`Time range changed: ${type === 'start' ? newStart : startHour}:00 - ${type === 'end' ? newEnd : endHour}:00`);
@@ -283,7 +269,7 @@ export const useEventManagement = (
       
       const hour = parseInt(value, 10);
       
-      if (hour < 0 || hour > maxHour || hour > endHour) {
+      if (hour < 0 || hour > 23 || hour > endHour) {
         setStartInputValue(startHour.toString());
       } else {
         setStartHour(hour);
@@ -299,7 +285,7 @@ export const useEventManagement = (
       
       const hour = parseInt(value, 10);
       
-      if (hour < 0 || hour > maxHour || hour < startHour) {
+      if (hour < 0 || hour > 23 || hour < startHour) {
         setEndInputValue(endHour.toString());
       } else {
         setEndHour(hour);
@@ -307,13 +293,11 @@ export const useEventManagement = (
       }
     }
     
-    setShowAllHours(startHour === 0 && endHour === maxHour);
+    setShowAllHours(startHour === 0 && endHour === 23);
   };
   
-  // Process and group events - memoized for performance
-  const processedEventsGroups = useMemo(() => 
-    groupOverlappingEvents(getVisibleMultiHourEvents), 
-    [getVisibleMultiHourEvents]);
+  // Process and group events
+  const processedEvents = groupOverlappingEvents(getVisibleMultiHourEvents());
 
   return {
     startHour,
@@ -325,7 +309,7 @@ export const useEventManagement = (
     hours,
     allDayEvents,
     timeEvents,
-    processedEventsGroups,
+    processedEvents,
     handleTimeRangeToggle,
     handleTimeRangeChange,
     handleInputBlur,

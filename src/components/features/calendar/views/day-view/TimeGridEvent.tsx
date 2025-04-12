@@ -11,9 +11,6 @@ interface TimeGridEventProps {
   index: number;
   handleViewEvent: (event: Event) => void;
   startHour: number;
-  maxHour?: number;
-  constrainEvents?: boolean;
-  disablePopups?: boolean;
 }
 
 const TimeGridEvent: React.FC<TimeGridEventProps> = ({ 
@@ -21,10 +18,7 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
   totalOverlapping, 
   index, 
   handleViewEvent,
-  startHour,
-  maxHour = 23,
-  constrainEvents = false,
-  disablePopups = false
+  startHour
 }) => {
   const { isMobile } = useIsMobile();
   const hourHeight = isMobile ? 60 : 80;
@@ -40,15 +34,8 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
     const endMinutesSinceMidnight = eventEndHour * 60 + eventEndMinute;
     const startHourInMinutes = startHour * 60;
     
-    // Constrain end time if needed
-    let constrainedEndMinutes = endMinutesSinceMidnight;
-    if (constrainEvents && maxHour !== undefined) {
-      const maxMinutes = maxHour * 60 + 59;
-      constrainedEndMinutes = Math.min(endMinutesSinceMidnight, maxMinutes);
-    }
-    
     const topPosition = Math.max(0, (startMinutesSinceMidnight - startHourInMinutes) * minuteHeight);
-    const height = Math.max(30, (constrainedEndMinutes - startMinutesSinceMidnight) * minuteHeight);
+    const height = Math.max(30, (endMinutesSinceMidnight - startMinutesSinceMidnight) * minuteHeight);
     
     // Improved width calculation based on overlapping events
     let width = 95;  // Default to 95% width if no overlap
@@ -84,11 +71,6 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
   
   const eventStyle = calculateEventPosition();
   
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (disablePopups) return;
-    handleViewEvent(event);
-  };
-  
   return (
     <div 
       className="absolute rounded text-xs p-1.5 cursor-pointer overflow-hidden hover:opacity-90 transition-opacity touch-manipulation"
@@ -101,7 +83,7 @@ const TimeGridEvent: React.FC<TimeGridEventProps> = ({
         touchAction: 'manipulation', // Improve touch behavior
         minWidth: isMobile ? '85%' : '90px', // Ensure minimum width for readability
       }}
-      onClick={handleClick}
+      onClick={() => handleViewEvent(event)}
       role="button"
       aria-label={`Event: ${event.title}`}
       tabIndex={0}

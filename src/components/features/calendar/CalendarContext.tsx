@@ -1,277 +1,361 @@
 
-import React, { createContext, useState, useContext, ReactNode, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useMemo } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { format, startOfWeek, endOfWeek, addDays, subDays, addMonths, subMonths } from 'date-fns';
+import { Event } from './types/event';
+import { useCalendarEvents } from './hooks/useCalendarEvents';
+import { logger } from '@/utils/logger';
+import { useIsMobile } from '@/hooks/use-mobile';
 
-// Define all possible view modes
-export type ViewMode = 'day' | 'week' | 'month' | 'agenda';
+// Define our context types
+export type ViewMode = 'month' | 'week' | 'day' | 'agenda';
 
-// Interface for calendar dimensions
 interface ViewDimensions {
   minCellHeight: number;
   headerHeight: number;
   timeWidth: number;
 }
 
-// Context interface with retryDataFetch and other missing properties
-interface CalendarContextValue {
+interface CalendarContextType {
+  // State
   viewMode: ViewMode;
-  setViewMode: (mode: ViewMode) => void;
-  currentDate: Date;
-  setCurrentDate: (date: Date) => void;
   searchTerm: string;
-  setSearchTerm: (term: string) => void;
+  isLoading: boolean;
+  pageError: string | null;
   createDialogOpen: boolean;
   showFileUploader: boolean;
-  handleDialogClose: (open: boolean) => void;
-  handleFileUploaderChange: (open: boolean) => void;
-  dimensions: ViewDimensions;
-  retryDataFetch: () => void;
-  // Add missing properties required by CalendarHeader
+  inviteDialogOpen: boolean;
   isAddingEvent: boolean;
   isInviting: boolean;
+  currentDate: Date;
+  dimensions: ViewDimensions;
+  
+  // Navigation
   todayButtonClick: () => void;
   nextPeriod: () => void;
   prevPeriod: () => void;
   getViewTitle: () => string;
+  
+  // Event handlers
+  setViewMode: (mode: ViewMode) => void;
+  setSearchTerm: (term: string) => void;
   handleAddItem: () => void;
+  handleDialogClose: (open: boolean) => void;
+  handleFileUploaderChange: (open: boolean) => void;
   handleShareCalendar: () => void;
-  // Add missing properties required by CalendarPage
-  isLoading: boolean;
-  pageError: string | null;
-  inviteDialogOpen: boolean;
-  handleInviteSent: (email: string) => void;
+  handleInviteSent: (link: string) => void;
   setInviteDialogOpen: (open: boolean) => void;
+  setAddingEvent: (adding: boolean) => void;
+  setIsInviting: (inviting: boolean) => void;
+  retryDataFetch: () => void;
+  setCurrentDate: (date: Date) => void;
+  
+  // Calendar events functionality
+  eventsState: ReturnType<typeof useCalendarEvents>;
 }
 
-// Create context with default values
-const CalendarContext = createContext<CalendarContextValue>({
-  viewMode: 'week',
-  setViewMode: () => {},
-  currentDate: new Date(),
-  setCurrentDate: () => {},
-  searchTerm: '',
-  setSearchTerm: () => {},
-  createDialogOpen: false,
-  showFileUploader: false,
-  handleDialogClose: () => {},
-  handleFileUploaderChange: () => {},
-  dimensions: {
-    minCellHeight: 60,
-    headerHeight: 40,
-    timeWidth: 60
-  },
-  retryDataFetch: () => {},
-  // Default values for missing properties
-  isAddingEvent: false,
-  isInviting: false,
-  todayButtonClick: () => {},
-  nextPeriod: () => {},
-  prevPeriod: () => {},
-  getViewTitle: () => "",
-  handleAddItem: () => {},
-  handleShareCalendar: () => {},
-  isLoading: false,
-  pageError: null,
-  inviteDialogOpen: false,
-  handleInviteSent: () => {},
-  setInviteDialogOpen: () => {}
-});
+const CalendarContext = createContext<CalendarContextType | null>(null);
 
-// Provider props interface
 interface CalendarProviderProps {
   children: ReactNode;
   initialView?: ViewMode;
 }
 
-// Provider component
 export const CalendarProvider: React.FC<CalendarProviderProps> = ({ 
   children, 
-  initialView = 'week' 
+  initialView = 'day' 
 }) => {
   // State declarations
+  const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>(initialView);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
-  const [showFileUploader, setShowFileUploader] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [showFileUploader, setShowFileUploader] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
-  const [isAddingEvent, setIsAddingEvent] = useState<boolean>(false);
-  const [isInviting, setIsInviting] = useState<boolean>(false);
-  const [inviteDialogOpen, setInviteDialogOpen] = useState<boolean>(false);
+  const [isAddingEvent, setIsAddingEvent] = useState(false);
+  const [isInviting, setIsInviting] = useState(false);
 
-  // Device-specific dimensions
-  const dimensions: ViewDimensions = {
-    minCellHeight: 60,
-    headerHeight: 40,
-    timeWidth: 60
-  };
-
-  // Handle dialog state
-  const handleDialogClose = (open: boolean) => {
-    setCreateDialogOpen(open);
-  };
-
-  // Handle file uploader state
-  const handleFileUploaderChange = (open: boolean) => {
-    setShowFileUploader(open);
-  };
+  // Get toast functionality
+  const { toast } = useToast();
+  const { isMobile } = useIsMobile();
   
-  // Add retry function
-  const retryDataFetch = useCallback(() => {
-    console.log("Retrying data fetch from CalendarContext");
-    setIsLoading(true);
-    
-    // Simulate data fetching process
-    setTimeout(() => {
-      setIsLoading(false);
-      setPageError(null);
-    }, 1000);
-  }, []);
+  // Get calendar events functionality
+  const eventsState = useCalendarEvents();
 
-  // Add calendar navigation handlers
+  // Calculate view dimensions based on view mode
+  const dimensions = useMemo(() => {
+    switch(viewMode) {
+      case 'day':
+        return {
+          minCellHeight: isMobile ? 48 : 64,
+          headerHeight: 40,
+          timeWidth: 60
+        };
+      case 'week':
+        return {
+          minCellHeight: isMobile ? 24 : 32, 
+          headerHeight: 40,
+          timeWidth: 60
+        };
+      case 'month':
+        return {
+          minCellHeight: isMobile ? 60 : 100,
+          headerHeight: 32,
+          timeWidth: 0
+        };
+      case 'agenda':
+        return {
+          minCellHeight: 64,
+          headerHeight: 0,
+          timeWidth: 120
+        };
+      default:
+        return {
+          minCellHeight: isMobile ? 60 : 100,
+          headerHeight: 40,
+          timeWidth: 60
+        };
+    }
+  }, [viewMode, isMobile]);
+
+  // Navigation functions
   const todayButtonClick = useCallback(() => {
     setCurrentDate(new Date());
-  }, []);
-
+    toast({
+      title: "Today selected",
+      description: "Calendar showing today's events",
+      role: "status",
+      "aria-live": "polite"
+    });
+  }, [toast]);
+  
   const nextPeriod = useCallback(() => {
-    const newDate = new Date(currentDate);
+    let newDate = new Date(currentDate);
     
-    switch (viewMode) {
+    switch(viewMode) {
       case 'day':
-        newDate.setDate(newDate.getDate() + 1);
+        newDate = addDays(currentDate, 1);
         break;
       case 'week':
-        newDate.setDate(newDate.getDate() + 7);
+        newDate = addDays(currentDate, 7);
         break;
       case 'month':
-        newDate.setMonth(newDate.getMonth() + 1);
+        newDate = addMonths(currentDate, 1);
         break;
-      case 'agenda':
-        newDate.setDate(newDate.getDate() + 14);
-        break;
-    }
-    
-    setCurrentDate(newDate);
-  }, [currentDate, viewMode]);
-
-  const prevPeriod = useCallback(() => {
-    const newDate = new Date(currentDate);
-    
-    switch (viewMode) {
-      case 'day':
-        newDate.setDate(newDate.getDate() - 1);
-        break;
-      case 'week':
-        newDate.setDate(newDate.getDate() - 7);
-        break;
-      case 'month':
-        newDate.setMonth(newDate.getMonth() - 1);
-        break;
-      case 'agenda':
-        newDate.setDate(newDate.getDate() - 14);
-        break;
-    }
-    
-    setCurrentDate(newDate);
-  }, [currentDate, viewMode]);
-
-  // Get title based on current view and date
-  const getViewTitle = useCallback(() => {
-    const options: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' };
-    
-    switch (viewMode) {
-      case 'day':
-        return currentDate.toLocaleDateString('en-US', { 
-          weekday: 'long',
-          month: 'long', 
-          day: 'numeric' 
-        });
-      case 'week':
-        const weekStart = new Date(currentDate);
-        const day = weekStart.getDay();
-        const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1);
-        weekStart.setDate(diff);
-        
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekEnd.getDate() + 6);
-        
-        if (weekStart.getMonth() === weekEnd.getMonth()) {
-          return `${weekStart.toLocaleDateString('en-US', { month: 'long' })} ${weekStart.getDate()} - ${weekEnd.getDate()}, ${weekStart.getFullYear()}`;
-        } else if (weekStart.getFullYear() === weekEnd.getFullYear()) {
-          return `${weekStart.toLocaleDateString('en-US', { month: 'short' })} ${weekStart.getDate()} - ${weekEnd.toLocaleDateString('en-US', { month: 'short' })} ${weekEnd.getDate()}, ${weekStart.getFullYear()}`;
-        } else {
-          return `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-        }
-      case 'month':
-        return currentDate.toLocaleDateString('en-US', options);
-      case 'agenda':
-        return `Upcoming Events`;
       default:
-        return currentDate.toLocaleDateString('en-US', options);
+        newDate = addDays(currentDate, 1);
+        break;
     }
-  }, [currentDate, viewMode]);
-
-  // Event handlers
-  const handleAddItem = useCallback(() => {
-    setIsAddingEvent(true);
-    setCreateDialogOpen(true);
     
-    // Reset state after animation
+    setCurrentDate(newDate);
+  }, [currentDate, viewMode]);
+  
+  const prevPeriod = useCallback(() => {
+    let newDate = new Date(currentDate);
+    
+    switch(viewMode) {
+      case 'day':
+        newDate = subDays(currentDate, 1);
+        break;
+      case 'week':
+        newDate = subDays(currentDate, 7);
+        break;
+      case 'month':
+        newDate = subMonths(currentDate, 1);
+        break;
+      default:
+        newDate = subDays(currentDate, 1);
+        break;
+    }
+    
+    setCurrentDate(newDate);
+  }, [currentDate, viewMode]);
+  
+  const getViewTitle = useCallback(() => {
+    switch(viewMode) {
+      case 'day':
+        return format(currentDate, isMobile ? 'EEE, MMM d' : 'EEEE, MMMM d, yyyy');
+      case 'week': {
+        const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+        
+        if (isMobile) {
+          return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`;
+        }
+        
+        return `${format(weekStart, 'MMMM d')} - ${format(weekEnd, 'MMMM d, yyyy')}`;
+      }
+      case 'month':
+        return format(currentDate, 'MMMM yyyy');
+      case 'agenda':
+        return 'Upcoming Events';
+      default:
+        return format(currentDate, 'MMMM yyyy');
+    }
+  }, [currentDate, viewMode, isMobile]);
+
+  // Load calendar data
+  React.useEffect(() => {
+    let isMounted = true;
+    
+    const loadCalendarData = async () => {
+      try {
+        setIsLoading(true);
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 500));
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        if (isMounted) {
+          const errorMessage = "Failed to load calendar data. Please try again.";
+          logger.error("[Calendar] Failed to load calendar data", error);
+          setPageError(errorMessage);
+          setIsLoading(false);
+          
+          toast({
+            title: "Error",
+            description: errorMessage,
+            variant: "destructive",
+            role: "alert",
+            "aria-live": "assertive"
+          });
+        }
+      }
+    };
+
+    loadCalendarData();
+    
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+    };
+  }, [toast]);
+
+  // Retry function for error handling
+  const retryDataFetch = useCallback(() => {
+    setPageError(null);
+    setIsLoading(true);
+    
+    // Simulate API call
     setTimeout(() => {
-      setIsAddingEvent(false);
+      setIsLoading(false);
+      
+      toast({
+        title: "Success",
+        description: "Calendar data refreshed successfully",
+        role: "status",
+        "aria-live": "polite"
+      });
     }, 1000);
+  }, [toast]);
+
+  // Event handlers without unnecessary try/catch blocks
+  const handleAddItem = useCallback(() => {
+    setCreateDialogOpen(true);
+    setShowFileUploader(false);
+    setIsAddingEvent(true);
   }, []);
+
+  const handleDialogClose = useCallback((open: boolean) => {
+    setCreateDialogOpen(open);
+    if (!open) {
+      setIsAddingEvent(false);
+      // Improve focus management for accessibility
+      setTimeout(() => {
+        document.getElementById('add-event-button')?.focus();
+      }, 0);
+    }
+  }, []);
+
+  const handleFileUploaderChange = useCallback((open: boolean) => {
+    setShowFileUploader(open);
+  }, []);
+  
+  const handleViewModeChange = useCallback((value: ViewMode) => {
+    if (viewMode !== value) {
+      setViewMode(value);
+      toast({
+        title: "View Changed",
+        description: `Calendar view set to ${value}`,
+        role: "status",
+        "aria-live": "polite"
+      });
+    }
+  }, [viewMode, toast]);
 
   const handleShareCalendar = useCallback(() => {
-    setIsInviting(true);
     setInviteDialogOpen(true);
-    
-    // Reset state after animation
-    setTimeout(() => {
-      setIsInviting(false);
-    }, 1000);
+    setIsInviting(true);
   }, []);
 
-  const handleInviteSent = useCallback((email: string) => {
-    console.log(`Invitation sent to ${email}`);
+  const handleInviteSent = useCallback((link: string) => {
     setInviteDialogOpen(false);
-  }, []);
+    setIsInviting(false);
+    
+    toast({
+      title: "Invitation Link Generated",
+      description: "The link has been created and is ready to share",
+      role: "status",
+      "aria-live": "polite"
+    });
+  }, [toast]);
 
-  // Provide context value
-  const value: CalendarContextValue = {
+  // Provide the context value
+  const contextValue: CalendarContextType = {
+    // State
     viewMode,
-    setViewMode,
-    currentDate,
-    setCurrentDate,
     searchTerm,
-    setSearchTerm,
+    isLoading,
+    pageError,
     createDialogOpen,
     showFileUploader,
-    handleDialogClose,
-    handleFileUploaderChange,
-    dimensions,
-    retryDataFetch,
+    inviteDialogOpen,
     isAddingEvent,
     isInviting,
+    currentDate,
+    dimensions,
+    
+    // Navigation
     todayButtonClick,
     nextPeriod,
     prevPeriod,
     getViewTitle,
+    
+    // Setters and handlers
+    setViewMode: handleViewModeChange,
+    setSearchTerm,
     handleAddItem,
+    handleDialogClose,
+    handleFileUploaderChange,
     handleShareCalendar,
-    isLoading,
-    pageError,
-    inviteDialogOpen,
     handleInviteSent,
-    setInviteDialogOpen
+    setInviteDialogOpen,
+    setAddingEvent: setIsAddingEvent,
+    setIsInviting,
+    retryDataFetch,
+    setCurrentDate,
+    
+    // Calendar events functionality
+    eventsState
   };
 
   return (
-    <CalendarContext.Provider value={value}>
+    <CalendarContext.Provider value={contextValue}>
       {children}
     </CalendarContext.Provider>
   );
 };
 
 // Custom hook for using the calendar context
-export const useCalendar = () => useContext(CalendarContext);
+export const useCalendar = (): CalendarContextType => {
+  const context = useContext(CalendarContext);
+  
+  if (!context) {
+    throw new Error('useCalendar must be used within a CalendarProvider');
+  }
+  
+  return context;
+};

@@ -16,40 +16,6 @@ export const useCalendarEvents = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Add retryDataFetch function
-  const retryDataFetch = useCallback(() => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      // In a real app, this would be an API call
-      // For now, we'll simulate a delay and success
-      setTimeout(() => {
-        setEvents(initialEvents);
-        setIsLoading(false);
-        
-        toast({
-          title: "Data refreshed",
-          description: "Calendar events have been reloaded",
-          role: "status",
-          "aria-live": "polite"
-        });
-      }, 800);
-    } catch (err) {
-      logger.error("[Calendar] Failed to fetch events", err);
-      setError("Could not load calendar events. Please try again later.");
-      setIsLoading(false);
-      
-      toast({
-        title: "Error",
-        description: "Failed to refresh calendar data",
-        variant: "destructive",
-        role: "alert",
-        "aria-live": "assertive"
-      });
-    }
-  }, [toast]);
-
   // Memoized view event handler - removed unnecessary try/catch
   const handleViewEvent = useCallback((event: Event) => {
     logger.log("[Calendar] Viewing event", event.id);
@@ -173,47 +139,11 @@ export const useCalendarEvents = () => {
     setIsCreateDialogOpen,
     isLoading,
     error,
-    handleViewEvent: useCallback((event: Event) => {
-      setSelectedEvent(event);
-      setIsViewDialogOpen(true);
-    }, []),
-    handleEditEvent: useCallback(() => {
-      setIsEditMode(true);
-      setIsViewDialogOpen(false);
-      setIsCreateDialogOpen(true);
-    }, []),
-    handleDeleteEvent: useCallback(() => {
-      if (!selectedEvent) return;
-      setEvents(prev => prev.filter(event => event.id !== selectedEvent.id));
-      setIsViewDialogOpen(false);
-      setSelectedEvent(null);
-    }, [selectedEvent]),
-    handleCreateEvent: useCallback((date: Date) => {
-      setSelectedEvent(null);
-      setIsEditMode(false);
-      setIsCreateDialogOpen(true);
-    }, []),
-    handleSaveEvent: useCallback((newEvent: Event) => {
-      if (selectedEvent) {
-        setEvents(prev => prev.map(event => 
-          event.id === selectedEvent.id ? newEvent : event
-        ));
-      } else {
-        setEvents(prev => [...prev, newEvent]);
-      }
-      setIsCreateDialogOpen(false);
-      setIsEditMode(false);
-      setSelectedEvent(null);
-    }, [selectedEvent]),
-    filterEvents: useCallback((searchTerm: string) => {
-      if (!searchTerm) return events;
-      const lowerSearchTerm = searchTerm.toLowerCase();
-      return events.filter(event => 
-        event.title.toLowerCase().includes(lowerSearchTerm) || 
-        (event.description && event.description.toLowerCase().includes(lowerSearchTerm)) || 
-        (event.location && event.location.toLowerCase().includes(lowerSearchTerm))
-      );
-    }, [events]),
-    retryDataFetch // Add this to the returned object
+    handleViewEvent,
+    handleEditEvent,
+    handleDeleteEvent,
+    handleCreateEvent,
+    handleSaveEvent,
+    filterEvents
   };
 };

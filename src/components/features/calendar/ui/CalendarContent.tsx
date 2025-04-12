@@ -7,31 +7,7 @@ import { useCalendar } from '../CalendarContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import CalendarView from '../CalendarView';
 
-interface CalendarContentProps {
-  disablePopups?: boolean;
-  maxTime?: string;
-  minTime?: string;
-  hideEmptyRows?: boolean;
-  deduplicateAllDay?: boolean;
-  constrainEvents?: boolean;
-  scrollable?: boolean;
-  onScroll?: (event: React.UIEvent<HTMLDivElement>) => void;
-  scrollBehavior?: ScrollBehavior;
-  scrollDuration?: number;
-}
-
-const CalendarContent: React.FC<CalendarContentProps> = ({ 
-  disablePopups = true, // Default to disabled popups
-  maxTime = "23:59",
-  minTime = "00:00",
-  hideEmptyRows = true,
-  deduplicateAllDay = true,
-  constrainEvents = true,
-  scrollable = true,
-  onScroll = () => {},
-  scrollBehavior = 'smooth',
-  scrollDuration = 300
-}) => {
+const CalendarContent: React.FC = () => {
   const { theme } = useTheme();
   const { 
     viewMode,
@@ -41,17 +17,11 @@ const CalendarContent: React.FC<CalendarContentProps> = ({
     createDialogOpen,
     showFileUploader,
     handleDialogClose,
-    handleFileUploaderChange,
-    retryDataFetch
+    handleFileUploaderChange
   } = useCalendar();
   
   // Debounce search term to avoid excessive filtering
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-
-  // Handle scroll events
-  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
-    onScroll(event);
-  };
 
   // Memoize the calendar view to prevent unnecessary rerenders
   const memoizedCalendarView = useMemo(() => (
@@ -65,15 +35,6 @@ const CalendarContent: React.FC<CalendarContentProps> = ({
       isFileUploaderOpen={showFileUploader}
       setIsFileUploaderOpen={handleFileUploaderChange}
       dimensions={dimensions}
-      disablePopups={disablePopups}
-      maxTime={maxTime}
-      minTime={minTime}
-      hideEmptyRows={hideEmptyRows}
-      deduplicateAllDay={deduplicateAllDay}
-      constrainEvents={constrainEvents}
-      scrollable={scrollable}
-      scrollBehavior={scrollBehavior}
-      scrollDuration={scrollDuration}
     />
   ), [
     viewMode,
@@ -83,34 +44,16 @@ const CalendarContent: React.FC<CalendarContentProps> = ({
     createDialogOpen, 
     showFileUploader, 
     handleDialogClose,
-    handleFileUploaderChange,
-    disablePopups,
-    maxTime,
-    minTime,
-    hideEmptyRows,
-    deduplicateAllDay,
-    constrainEvents,
-    scrollable,
-    scrollBehavior,
-    scrollDuration
+    handleFileUploaderChange
   ]);
 
   return (
-    <div 
-      className={cn(
-        "flex-1 overflow-hidden w-full",
-        "bg-background dark:bg-transparent",
-        theme === 'dark' ? 'text-white' : ''
-      )}
-    >
-      <div 
-        className={cn(
-          "h-full px-4 py-3",
-          scrollable ? "overflow-y-auto" : "overflow-hidden"
-        )} 
-        style={{ padding: '0 16px' }}
-        onScroll={handleScroll}
-      >
+    <div className={cn(
+      "flex-1 overflow-hidden w-full",
+      "bg-background dark:bg-transparent",
+      theme === 'dark' ? 'text-white' : ''
+    )}>
+      <div className="h-full overflow-y-auto px-4 py-3">
         <ErrorBoundary>
           {memoizedCalendarView}
         </ErrorBoundary>
