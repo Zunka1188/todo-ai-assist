@@ -340,7 +340,7 @@ const DocumentsSubtabPage = () => {
         onOpenChange={(open) => setAddDialogOpen(open)}
         onAdd={handleAddDocumentWrapper}
         categories={CATEGORIES as string[]}
-        currentCategory={activeTab as DocumentCategory}
+        currentCategory={getValidCategory(activeTab)}
         isEditing={false}
         editItem={null}
       />
