@@ -176,14 +176,16 @@ const WeekView: React.FC<WeekViewProps> = ({
     let eventWidth;
     let leftOffset;
     
+    // Fixed positioning within the day column
     if (isMobile) {
-      eventWidth = totalOverlapping > 1 ? 90 : 90;
-      leftOffset = (dayColumnIndex / 7) * (100 - TIME_COLUMN_WIDTH) + TIME_COLUMN_WIDTH;
+      eventWidth = 80; // Percentage width within the column
+      leftOffset = dayColumnIndex * (100 - TIME_COLUMN_WIDTH) / 7 + TIME_COLUMN_WIDTH;
     } else {
       const maxSideEvents = Math.min(totalOverlapping, 3);
-      eventWidth = DAY_COLUMN_WIDTH / maxSideEvents - 0.5;
+      eventWidth = (100 - TIME_COLUMN_WIDTH) / 7 / maxSideEvents * 0.9; // 90% of column width divided by max overlapping events
       const adjustedIndex = index % maxSideEvents;
-      leftOffset = TIME_COLUMN_WIDTH + dayColumnIndex * DAY_COLUMN_WIDTH + adjustedIndex * eventWidth;
+      const columnStart = dayColumnIndex * (100 - TIME_COLUMN_WIDTH) / 7 + TIME_COLUMN_WIDTH;
+      leftOffset = columnStart + (adjustedIndex * eventWidth / maxSideEvents);
     }
     
     return {
