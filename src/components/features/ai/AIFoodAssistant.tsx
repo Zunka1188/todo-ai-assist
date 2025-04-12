@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search,
   Utensils,
@@ -6,11 +6,17 @@ import {
   Check,
   File,
   ArrowUp,
-  X
+  X,
+  Camera, 
+  Upload, 
+  ScanBarcode, 
+  Send, 
+  RotateCcw, 
+  ShoppingCart, 
+  Receipt, 
+  Clock, 
+  CheckSquare
 } from 'lucide-react';
-
-import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, ScanBarcode, Send, X, RotateCcw, Calendar, ShoppingCart, Receipt, Clock, CheckSquare, Search } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1401,23 +1407,10 @@ const AIFoodAssistant = ({ isOpen, onClose }: AIFoodAssistantProps) => {
             size="icon"
             disabled={!input.trim() || isProcessing || ['dietary_restrictions', 'schedule_event'].includes(foodContext.conversationState)}
           >
-            <Input
-              placeholder="Type a message..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              className="flex-grow"
-              disabled={isProcessing || activeScanOption !== null || ['dietary_restrictions', 'schedule_event', 'recipe_search'].includes(foodContext.conversationState)}
-            />
-            <Button 
-              type="submit" 
-              size="icon"
-              disabled={!input.trim() || isProcessing || activeScanOption !== null || ['dietary_restrictions', 'schedule_event', 'recipe_search'].includes(foodContext.conversationState)}
-            >
-              <Send className="h-4 w-4" />
-              <span className="sr-only">Send message</span>
-            </Button>
-          </form>
-        </div>
+            <Send className="h-4 w-4" />
+            <span className="sr-only">Send message</span>
+          </Button>
+        </form>
       </SheetContent>
     </Sheet>
   );
