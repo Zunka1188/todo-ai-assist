@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
@@ -11,6 +10,7 @@ import MonthView from './views/MonthView';
 import WeekView from './views/WeekView';
 import DayView from './views/day-view';
 import EnhancedAgendaView from './views/EnhancedAgendaView';
+import AgendaView from './views/AgendaView';
 import EventFormDialog from './dialogs/EventFormDialog';
 import { useCalendarEvents } from './hooks/useCalendarEvents';
 import { useCalendarSharing } from './hooks/useCalendarSharing';
@@ -285,6 +285,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
             {viewMode === 'month' && (
               <MonthView
                 date={date}
+                setDate={() => {}}
                 events={filteredEvents}
                 handleViewEvent={handleViewEvent}
                 theme={theme}
@@ -296,6 +297,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
             {viewMode === 'week' && (
               <WeekView
                 date={date}
+                setDate={() => {}}
                 events={filteredEvents}
                 handleViewEvent={handleViewEvent}
                 theme={theme}
@@ -317,8 +319,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
             )}
             
             {viewMode === 'agenda' && (
-              <EnhancedAgendaView
+              <AgendaView
                 date={date}
+                setDate={() => {}}
                 events={filteredEvents}
                 handleViewEvent={handleViewEvent}
                 theme={theme}

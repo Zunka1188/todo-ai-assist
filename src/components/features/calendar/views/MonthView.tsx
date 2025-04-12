@@ -31,6 +31,7 @@ interface MonthViewProps {
   handleViewEvent: (event: Event) => void;
   theme: string;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  minCellHeight?: number; // Added this prop
 }
 
 const MonthView: React.FC<MonthViewProps> = ({
@@ -39,7 +40,8 @@ const MonthView: React.FC<MonthViewProps> = ({
   events,
   handleViewEvent,
   theme,
-  weekStartsOn = 1  // Default to Monday
+  weekStartsOn = 1,  // Default to Monday
+  minCellHeight = 100 // Default value if not provided
 }) => {
   const monthStart = startOfMonth(date);
   const monthEnd = endOfMonth(date);

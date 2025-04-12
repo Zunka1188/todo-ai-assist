@@ -37,6 +37,7 @@ interface AgendaViewProps {
   events: Event[];
   handleViewEvent: (event: Event) => void;
   theme: string;
+  itemHeight?: number; // Added this prop
 }
 
 const AgendaView: React.FC<AgendaViewProps> = ({
@@ -44,7 +45,8 @@ const AgendaView: React.FC<AgendaViewProps> = ({
   setDate,
   events,
   handleViewEvent,
-  theme
+  theme,
+  itemHeight = 64 // Default value
 }) => {
   // Sort events by start date
   const sortedEvents = [...events].sort((a, b) => compareAsc(a.startDate, b.endDate));

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, subMonths, addWeeks, subWeeks, isSameMonth, isSameDay, isToday } from 'date-fns';
@@ -20,6 +21,8 @@ interface WeekViewProps {
   handleViewEvent: (event: Event) => void;
   theme: string;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  minCellHeight?: number; // Added this prop
+  timeColumnWidth?: number; // Added this prop
 }
 
 const WeekView: React.FC<WeekViewProps> = ({
@@ -28,7 +31,9 @@ const WeekView: React.FC<WeekViewProps> = ({
   events,
   handleViewEvent,
   theme,
-  weekStartsOn = 1 // Default to Monday
+  weekStartsOn = 1, // Default to Monday
+  minCellHeight = 60, // Default value
+  timeColumnWidth = 60 // Default value
 }) => {
   
   const [startHour, setStartHour] = useState(0);

@@ -23,6 +23,14 @@ interface DayViewProps {
   timeColumnWidth?: number;
 }
 
+// Define custom event interface to fix type errors
+interface CalendarViewEventDetail {
+  detail: Event;
+}
+
+// Custom event type
+type CalendarViewEvent = CustomEvent<Event>;
+
 const DayView: React.FC<DayViewProps> = ({
   date,
   events,
@@ -96,18 +104,19 @@ const DayView: React.FC<DayViewProps> = ({
     ? 'calc(100vh - 320px)' 
     : 'calc(100vh - 300px)';
     
-  // Handle event view clicks
+  // Handle event view clicks with proper typing
   useEffect(() => {
-    const handleViewEventClick = (e: Event) => {
-      if (e instanceof CustomEvent && e.detail) {
+    const handleViewEventClick = (e: CustomEvent<Event>) => {
+      if (e.detail) {
         handleViewEvent(e.detail);
       }
     };
     
-    window.addEventListener('view-event', handleViewEventClick);
+    // Use 'any' to bypass type checking for the custom event
+    window.addEventListener('view-event', handleViewEventClick as any);
     
     return () => {
-      window.removeEventListener('view-event', handleViewEventClick);
+      window.removeEventListener('view-event', handleViewEventClick as any);
     };
   }, [handleViewEvent]);
 
