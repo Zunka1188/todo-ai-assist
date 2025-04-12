@@ -59,23 +59,39 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
 
+  // Set up a proper debug mode log to help troubleshoot
   useEffect(() => {
-    const filtered = recipes.filter(recipe => {
-      // Filter by search term
-      const matchesSearch = recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           recipe.cuisine.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      // Filter by dietary restrictions
-      const matchesDietary = activeFilters.dietary.length === 0 || 
-                           activeFilters.dietary.every(restriction => 
-                             recipe.dietaryRestrictions.includes(restriction));
-      
-      // Filter by cuisine
-      const matchesCuisine = activeFilters.cuisines.length === 0 || 
-                           activeFilters.cuisines.includes(recipe.cuisine);
-      
-      return matchesSearch && matchesDietary && matchesCuisine;
-    });
+    console.log("Active filters:", activeFilters);
+    console.log("Filtered recipes length:", filteredRecipes.length);
+  }, [activeFilters, filteredRecipes]);
+
+  useEffect(() => {
+    // First, grab all recipes
+    let filtered = recipes;
+    
+    // Then apply search term filter if present
+    if (searchTerm) {
+      filtered = filtered.filter(recipe => 
+        recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        recipe.cuisine.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Then apply dietary restrictions if any are selected
+    if (activeFilters.dietary.length > 0) {
+      filtered = filtered.filter(recipe => 
+        activeFilters.dietary.every(restriction => 
+          recipe.dietaryRestrictions.includes(restriction)
+        )
+      );
+    }
+    
+    // Then apply cuisine filter if any are selected
+    if (activeFilters.cuisines.length > 0) {
+      filtered = filtered.filter(recipe => 
+        activeFilters.cuisines.includes(recipe.cuisine)
+      );
+    }
     
     setFilteredRecipes(filtered);
   }, [searchTerm, activeFilters]);
@@ -153,7 +169,12 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-72 p-3" align="end" sideOffset={5}>
+            <PopoverContent 
+              className="w-72 p-3" 
+              align="end" 
+              sideOffset={5}
+              style={{ background: theme === "dark" ? "#1f2937" : "#ffffff" }} // Explicitly setting background
+            >
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-medium text-sm">Filters</h3>
@@ -193,26 +214,28 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
                 
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium">Cuisines</h4>
-                  <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
-                    {cuisines.map((cuisine) => (
-                      <Button
-                        key={cuisine.value}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleCuisine(cuisine.value)}
-                        className={cn(
-                          "justify-start h-auto py-1.5 text-xs",
-                          activeFilters.cuisines.includes(cuisine.value) && 
-                          "bg-primary/10 border-primary/30 text-primary font-medium"
-                        )}
-                      >
-                        {activeFilters.cuisines.includes(cuisine.value) && (
-                          <Check className="mr-1 h-3 w-3 text-primary" />
-                        )}
-                        {cuisine.label}
-                      </Button>
-                    ))}
-                  </div>
+                  <ScrollArea className="h-48 overflow-y-auto">
+                    <div className="grid grid-cols-2 gap-2 pr-4">
+                      {cuisines.map((cuisine) => (
+                        <Button
+                          key={cuisine.value}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleCuisine(cuisine.value)}
+                          className={cn(
+                            "justify-start h-auto py-1.5 text-xs",
+                            activeFilters.cuisines.includes(cuisine.value) && 
+                            "bg-primary/10 border-primary/30 text-primary font-medium"
+                          )}
+                        >
+                          {activeFilters.cuisines.includes(cuisine.value) && (
+                            <Check className="mr-1 h-3 w-3 text-primary" />
+                          )}
+                          {cuisine.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </ScrollArea>
                 </div>
               </div>
             </PopoverContent>
