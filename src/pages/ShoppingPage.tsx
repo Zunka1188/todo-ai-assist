@@ -17,9 +17,12 @@ import { usePersistenceSetup } from '@/hooks/usePersistenceSetup';
  */
 const ShoppingPage: React.FC = () => {
   // Set up data recovery and persistence with custom hooks
-  const { isRecovering, error } = useDataRecovery();
+  const { isRecovering, retryRecovery } = useDataRecovery();
   useVisibilityChange();
   usePersistenceSetup();
+
+  // Define an error state variable
+  const [error, setError] = React.useState<string | null>(null);
 
   return (
     <ErrorBoundary 

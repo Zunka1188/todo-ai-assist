@@ -5,10 +5,12 @@ import DocumentsPageContent from '@/components/features/documents/DocumentsPageC
 import ErrorBoundary from '@/components/ui/error-boundary';
 
 const DocumentsPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('style');
+  
   return (
     <ErrorBoundary>
       <Tabs defaultValue="style">
-        <DocumentsPageContent />
+        <DocumentsPageContent activeTab={activeTab} />
       </Tabs>
     </ErrorBoundary>
   );

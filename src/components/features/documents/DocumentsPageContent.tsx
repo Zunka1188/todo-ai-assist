@@ -5,7 +5,7 @@ import ContentGrid from '@/components/ui/content-grid';
 import HeaderActions from '@/components/ui/header-actions';
 import SearchInput from '@/components/ui/search-input';
 import DocumentList from './DocumentList';
-import { useDocuments } from './hooks/useDocuments';
+import { useDocuments } from '@/hooks/useDocuments';
 
 interface DocumentsPageContentProps {
   activeTab: string;
@@ -20,21 +20,47 @@ const DocumentsPageContent: React.FC<DocumentsPageContentProps> = ({
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   
   const {
-    documents,
-    filteredDocuments,
-    isLoading,
-    error,
-    addDocument,
-    editDocument,
-    deleteDocument,
-    downloadDocument,
+    categoryItems,
+    files,
     filterDocuments,
+    filterFiles,
+    handleAddOrUpdateItem,
+    handleDeleteItem,
+    handleAddOrUpdateFile,
+    handleDeleteFile,
+    formatDateRelative,
+    CATEGORIES
   } = useDocuments();
   
+  // Create convenience functions to match expected props in DocumentList
+  const addDocument = handleAddOrUpdateItem;
+  const editDocument = handleAddOrUpdateItem;
+  const deleteDocument = handleDeleteItem;
+  const downloadDocument = (url: string, name: string) => {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name || 'document';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  // Filtered documents based on active tab and search term
+  const [filteredDocuments, setFilteredDocuments] = useState<any[]>([]);
+
   // Update filtered documents when search term changes
   useEffect(() => {
-    filterDocuments(searchTerm, activeTab);
-  }, [searchTerm, activeTab, filterDocuments]);
+    const filtered = files.filter(file => 
+      activeTab === 'style' ? file.category === 'style' :
+      activeTab === 'shared' ? ['work', 'shared', 'other'].includes(file.category) :
+      activeTab === 'templates' ? ['templates', 'events'].includes(file.category) :
+      true
+    ).filter(file =>
+      searchTerm === '' || file.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    setFilteredDocuments(filtered);
+  }, [searchTerm, activeTab, files]);
   
   const headerActions = {
     primaryAction: {
