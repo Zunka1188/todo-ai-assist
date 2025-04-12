@@ -42,6 +42,12 @@ const CalendarPageContent: React.FC = () => {
     return () => window.removeEventListener('online', handleOnline);
   }, [retryDataFetch, pageError]);
 
+  // Handle calendar content scrolling
+  const handleCalendarScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    // Optional: Implement custom scroll behavior for the calendar
+    // For example, persist scroll position between view changes
+  };
+
   return (
     <AppPage
       title="Calendar"
@@ -58,10 +64,15 @@ const CalendarPageContent: React.FC = () => {
         <div className="flex-1 overflow-auto">
           <CalendarContent 
             disablePopups={true}
-            maxTime="23:00"
+            maxTime="23:59"
+            minTime="00:00"
             hideEmptyRows={true}
             deduplicateAllDay={true}
             constrainEvents={true}
+            scrollable={true}
+            onScroll={handleCalendarScroll}
+            scrollBehavior="smooth"
+            scrollDuration={300}
           />
         </div>
       </div>

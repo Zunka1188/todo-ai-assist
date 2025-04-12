@@ -31,12 +31,14 @@ interface ViewDimensions {
 interface CalendarConfig {
   weekView?: {
     maxTime?: string;
+    minTime?: string;
     hideEmptyRows?: boolean;
     deduplicateAllDay?: boolean;
     constrainEvents?: boolean;
   };
   dayView?: {
     maxTime?: string;
+    minTime?: string;
     hideEmptyRows?: boolean;
     constrainEvents?: boolean;
   };
@@ -54,9 +56,13 @@ interface CalendarViewProps {
   dimensions: ViewDimensions;
   disablePopups?: boolean;
   maxTime?: string;
+  minTime?: string;
   hideEmptyRows?: boolean;
   deduplicateAllDay?: boolean;
   constrainEvents?: boolean;
+  scrollable?: boolean;
+  scrollBehavior?: ScrollBehavior;
+  scrollDuration?: number;
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({
@@ -70,10 +76,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   setIsFileUploaderOpen = () => {},
   dimensions,
   disablePopups = false,
-  maxTime = "23:00",
+  maxTime = "23:59",
+  minTime = "00:00",
   hideEmptyRows = true,
   deduplicateAllDay = true,
-  constrainEvents = true
+  constrainEvents = true,
+  scrollable = true,
+  scrollBehavior = 'smooth',
+  scrollDuration = 300
 }) => {
   const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<any>(null);
@@ -146,6 +156,25 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     return filterEvents(searchTerm);
   }, [filterEvents, searchTerm]);
   
+  const calculateTimeRange = useCallback(() => {
+    const getHoursMinutes = (timeStr: string) => {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      return { hours: hours || 0, minutes: minutes || 0 };
+    };
+    
+    const start = getHoursMinutes(minTime);
+    const end = getHoursMinutes(maxTime);
+    
+    return {
+      startHour: start.hours,
+      startMinute: start.minutes,
+      endHour: end.hours,
+      endMinute: end.minutes
+    };
+  }, [minTime, maxTime]);
+
+  const timeRange = calculateTimeRange();
+
   const constrainedEvents = useMemo(() => {
     if (!constrainEvents) return filteredEvents;
     
@@ -174,6 +203,22 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     
     return constrainEventsFunc(filteredEvents, maxTime);
   }, [filteredEvents, constrainEvents, maxTime]);
+
+  const handleEventClick = useCallback((event: Event) => {
+    handleViewEvent(event);
+    
+    if (disablePopups) {
+      setTimeout(() => {
+        const eventElement = document.querySelector(`[data-event-id="${event.id}"]`);
+        if (eventElement) {
+          eventElement.scrollIntoView({
+            behavior: scrollBehavior,
+            block: 'center'
+          });
+        }
+      }, 10);
+    }
+  }, [disablePopups, handleViewEvent, scrollBehavior]);
 
   useEffect(() => {
     setViewLoadError(null);
@@ -291,12 +336,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const calendarConfig: CalendarConfig = {
     weekView: {
       maxTime: maxTime,
+      minTime: minTime,
       hideEmptyRows: hideEmptyRows,
       deduplicateAllDay: deduplicateAllDay,
       constrainEvents: constrainEvents
     },
     dayView: {
       maxTime: maxTime,
+      minTime: minTime,
       hideEmptyRows: hideEmptyRows,
       constrainEvents: constrainEvents
     }
@@ -399,7 +446,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                 date={date}
                 setDate={() => {}}
                 events={constrainedEvents}
-                handleViewEvent={disablePopups ? () => {} : handleViewEvent}
+                handleViewEvent={disablePopups ? () => {} : handleEventClick}
                 theme={theme}
                 weekStartsOn={weekStartsOn}
                 minCellHeight={dimensions.minCellHeight}
@@ -412,16 +459,20 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                 date={date}
                 setDate={() => {}}
                 events={constrainedEvents}
-                handleViewEvent={disablePopups ? () => {} : handleViewEvent}
+                handleViewEvent={disablePopups ? () => {} : handleEventClick}
                 theme={theme}
                 weekStartsOn={weekStartsOn}
                 minCellHeight={dimensions.minCellHeight}
                 timeColumnWidth={dimensions.timeWidth}
                 maxTime={maxTime}
+                minTime={minTime}
                 hideEmptyRows={hideEmptyRows}
                 deduplicateAllDay={deduplicateAllDay}
                 constrainEvents={constrainEvents}
                 disablePopups={disablePopups}
+                scrollable={scrollable}
+                scrollBehavior={scrollBehavior}
+                scrollDuration={scrollDuration}
               />
             )}
             
@@ -429,14 +480,18 @@ const CalendarView: React.FC<CalendarViewProps> = ({
               <DayView
                 date={date}
                 events={constrainedEvents}
-                handleViewEvent={disablePopups ? () => {} : handleViewEvent}
+                handleViewEvent={disablePopups ? () => {} : handleEventClick}
                 theme={theme}
                 minCellHeight={dimensions.minCellHeight}
                 timeColumnWidth={dimensions.timeWidth}
                 maxTime={maxTime}
+                minTime={minTime}
                 hideEmptyRows={hideEmptyRows}
                 constrainEvents={constrainEvents}
                 disablePopups={disablePopups}
+                scrollable={scrollable}
+                scrollBehavior={scrollBehavior}
+                scrollDuration={scrollDuration}
               />
             )}
             
@@ -445,7 +500,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
                 date={date}
                 setDate={() => {}}
                 events={constrainedEvents}
-                handleViewEvent={disablePopups ? () => {} : handleViewEvent}
+                handleViewEvent={disablePopups ? () => {} : handleEventClick}
                 theme={theme}
                 itemHeight={dimensions.minCellHeight}
                 disablePopups={disablePopups}
@@ -461,6 +516,29 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           .week-header {
             overflow-x: auto;
           }
+        }
+        
+        .calendar-event {
+          transition: transform ${scrollDuration}ms ease-in-out, opacity ${scrollDuration}ms ease-in-out;
+        }
+        
+        .calendar-scroll-container::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        
+        .calendar-scroll-container::-webkit-scrollbar-track {
+          background: #f1f1f1;
+        }
+        
+        .calendar-scroll-container::-webkit-scrollbar-thumb {
+          background: #666;
+          border-radius: 4px;
+        }
+        
+        .calendar-scroll-container {
+          scrollbar-width: thin;
+          scrollbar-color: #666 #f1f1f1;
         }
         `}
       </style>
