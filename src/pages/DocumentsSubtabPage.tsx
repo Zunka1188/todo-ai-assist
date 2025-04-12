@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,6 +22,11 @@ import ErrorFallback from '@/components/features/documents/components/ErrorFallb
 import LoadingState from '@/components/features/documents/components/LoadingState';
 
 export type DocumentTab = 'all' | 'receipts' | 'images' | 'forms' | 'other';
+
+interface DocumentTabsProps {
+  activeTab: DocumentTab;
+  onTabChange: (tab: DocumentTab) => void;
+}
 
 const documentCategories = [
   { id: 'all', label: 'All', icon: FileBox },
