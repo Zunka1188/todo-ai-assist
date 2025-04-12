@@ -178,7 +178,7 @@ const WeekView: React.FC<WeekViewProps> = ({
     
     if (isMobile) {
       eventWidth = totalOverlapping > 1 ? 90 : 90;
-      leftOffset = TIME_COLUMN_WIDTH + dayColumnIndex * DAY_COLUMN_WIDTH + 1;
+      leftOffset = (dayColumnIndex / 7) * (100 - TIME_COLUMN_WIDTH) + TIME_COLUMN_WIDTH;
     } else {
       const maxSideEvents = Math.min(totalOverlapping, 3);
       eventWidth = DAY_COLUMN_WIDTH / maxSideEvents - 0.5;
@@ -307,13 +307,13 @@ const WeekView: React.FC<WeekViewProps> = ({
   };
 
   const getCurrentTimePosition = () => {
-    const now = currentTime;
+    const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
 
     if (currentHour < startHour || currentHour > endHour) return -1;
 
-    return (currentHour - startHour) * minCellHeight + currentMinute / 60 * minCellHeight;
+    return (currentHour - startHour) * HOUR_HEIGHT + (currentMinute / 60) * HOUR_HEIGHT;
   };
 
   const currentTimePosition = getCurrentTimePosition();
@@ -440,7 +440,7 @@ const WeekView: React.FC<WeekViewProps> = ({
             height: scrollContainerHeight,
             position: 'relative'
           }} 
-          scrollRef={scrollRef}
+          ref={scrollRef}
         >
           <div className="relative">
             <div className="grid grid-cols-8 divide-x border-gray-800">
@@ -487,7 +487,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                   )}
                   
                   {daysEventGroups[dayIndex].map((group, groupIndex) => (
-                    <div key={`group-${dayIndex}-${groupIndex}`} className="relative">
+                    <React.Fragment key={`group-${dayIndex}-${groupIndex}`}>
                       {group.map((event, eventIndex) => (
                         <div
                           key={`event-${dayIndex}-${groupIndex}-${eventIndex}`}
@@ -512,7 +512,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                           )}
                         </div>
                       ))}
-                    </div>
+                    </React.Fragment>
                   ))}
                 </div>
               ))}
