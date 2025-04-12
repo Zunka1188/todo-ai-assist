@@ -1,10 +1,11 @@
-
 /**
  * Shopping service utilities to help with mobile/desktop synchronization
  */
 
 import { ShoppingItem } from '@/components/features/shopping/useShoppingItems';
 import { logger } from '@/utils/logger';
+import { validateShoppingItems, processShoppingItems } from '@/utils/validation';
+import { handleError } from '@/utils/errorHandling';
 
 // Constants for storage keys
 export const STORAGE_KEY = 'shoppingItems';
@@ -19,41 +20,74 @@ export const TOAST_DURATIONS = {
 };
 
 /**
- * Load items from storage with error handling
+ * Load items from storage with error handling and validation
+ * @returns Array of validated shopping items or empty array
  */
 export const loadItems = (): ShoppingItem[] => {
   try {
+    // Performance tracking
+    logger.startTimer('loadItems');
     const items = localStorage.getItem(STORAGE_KEY);
-    if (!items) return [];
+    
+    if (!items) {
+      logger.log("[Storage] No items found in localStorage");
+      logger.endTimer('loadItems');
+      return [];
+    }
 
     const parsedItems = JSON.parse(items);
     
     // Input validation - ensure we have an array
     if (!Array.isArray(parsedItems)) {
-      logger.error("[ERROR] Loaded items is not an array");
+      handleError(new Error("Loaded items is not an array"), {
+        context: "Storage",
+        message: "Invalid data format in storage",
+        severity: 'warning'
+      });
+      logger.endTimer('loadItems');
       return [];
     }
     
-    // Convert date strings back to Date objects
-    return parsedItems.map((item: any) => ({
-      ...item,
-      dateAdded: new Date(item.dateAdded),
-      lastPurchased: item.lastPurchased ? new Date(item.lastPurchased) : undefined
-    }));
+    // Process date strings to Date objects
+    const processedItems = processShoppingItems(parsedItems);
+    
+    // Validate the items
+    const { valid, validItems, errorCount } = validateShoppingItems(processedItems);
+    
+    if (!valid) {
+      logger.warn(`[Storage] Found ${errorCount} invalid items while loading data`);
+    }
+    
+    const duration = logger.endTimer('loadItems');
+    if (duration && duration > 100) {
+      logger.warn(`[Performance] Loading items took ${duration.toFixed(2)}ms, which is slow`);
+    }
+    
+    return validItems;
   } catch (error) {
-    logger.error("[ERROR] Failed to load items from storage:", error);
+    handleError(error, {
+      context: "Storage",
+      message: "Failed to load items from storage"
+    });
     return [];
   }
 };
 
 /**
  * Save items to storage with error handling
+ * @param items Shopping items to save
+ * @returns True if successful, false otherwise
  */
 export const saveItems = (items: ShoppingItem[]): boolean => {
   try {
+    logger.startTimer('saveItems');
+    
     // Input validation - ensure we have valid items
     if (!Array.isArray(items)) {
-      logger.error("[ERROR] Items to save is not an array");
+      handleError(new Error("Items to save is not an array"), {
+        context: "Storage",
+        message: "Invalid items format"
+      });
       return false;
     }
     
@@ -72,24 +106,36 @@ export const saveItems = (items: ShoppingItem[]): boolean => {
         window.dispatchEvent(storageEvent);
       }
     } catch (e) {
-      logger.error("[ERROR] Failed to dispatch storage event:", e);
+      handleError(e, {
+        context: "Storage",
+        message: "Failed to dispatch storage event",
+        showToast: false
+      });
     }
     
+    logger.endTimer('saveItems');
     return true;
   } catch (error) {
-    logger.error("[ERROR] Failed to save items to storage:", error);
+    handleError(error, {
+      context: "Storage",
+      message: "Failed to save items to storage" 
+    });
     return false;
   }
 };
 
 /**
  * Attempt to recover data from various sources
+ * @returns Object containing recovered items and source information
  */
 export const attemptDataRecovery = (): { items: ShoppingItem[] | null, source: string } => {
   try {
+    logger.startTimer('dataRecovery');
+    
     // First try to load from localStorage
     const items = loadItems();
     if (items && items.length > 0) {
+      logger.endTimer('dataRecovery');
       return { items, source: 'localStorage' };
     }
     
@@ -99,21 +145,30 @@ export const attemptDataRecovery = (): { items: ShoppingItem[] | null, source: s
       if (backup) {
         const parsedBackup = JSON.parse(backup);
         if (Array.isArray(parsedBackup) && parsedBackup.length > 0) {
-          const restoredItems = parsedBackup.map((item: any) => ({
-            ...item,
-            dateAdded: new Date(item.dateAdded),
-            lastPurchased: item.lastPurchased ? new Date(item.lastPurchased) : undefined
-          }));
-          return { items: restoredItems, source: 'sessionStorage' };
+          const processedItems = processShoppingItems(parsedBackup);
+          const { valid, validItems } = validateShoppingItems(processedItems);
+          
+          if (valid && validItems.length > 0) {
+            logger.endTimer('dataRecovery');
+            return { items: validItems, source: 'sessionStorage' };
+          }
         }
       }
     } catch (e) {
-      logger.error("[ERROR] Failed to check session storage backup:", e);
+      handleError(e, {
+        context: "DataRecovery",
+        message: "Failed to check session storage backup",
+        showToast: false
+      });
     }
     
+    logger.endTimer('dataRecovery');
     return { items: null, source: 'none' };
   } catch (error) {
-    logger.error("[ERROR] Data recovery attempt failed:", error);
+    handleError(error, {
+      context: "DataRecovery",
+      message: "Data recovery attempt failed" 
+    });
     return { items: null, source: 'error' };
   }
 };
@@ -277,4 +332,35 @@ export const checkAndRestoreBackup = (): ShoppingItem[] | null => {
   }
   
   return null;
+};
+
+/**
+ * Updates the app with items from another window/tab
+ * @param newValue JSON string with new items
+ * @returns True if successful, false otherwise
+ */
+export const handleStorageUpdate = (newValue: string | null): boolean => {
+  if (!newValue) return false;
+  
+  try {
+    const items = JSON.parse(newValue);
+    if (Array.isArray(items) && items.length > 0) {
+      const processedItems = processShoppingItems(items);
+      const { valid, validItems } = validateShoppingItems(processedItems);
+      
+      if (valid && validItems.length > 0) {
+        // Here we would dispatch an action to update the app state
+        logger.log("[Storage] Received update from another tab:", validItems.length);
+        return true;
+      }
+    }
+    return false;
+  } catch (error) {
+    handleError(error, {
+      context: "StorageSync",
+      message: "Failed to process items from another tab",
+      showToast: false
+    });
+    return false;
+  }
 };
