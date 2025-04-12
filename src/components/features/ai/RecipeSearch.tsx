@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Check, ChevronDown, X, Scroll, SlidersHorizontal, Clock, Users } from 'lucide-react';
+import { Search, Filter, Check, ChevronDown, X, Scroll, SlidersHorizontal, Clock, Users, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -184,6 +184,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
     }
   };
 
+  // Modified to handle serving size in recipe selection
   const handleSelectRecipe = (recipe: Recipe) => {
     // Create a copy of the recipe with updated serving size
     const adjustedRecipe = {
@@ -193,16 +194,106 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
     onSelectRecipe(adjustedRecipe);
   };
 
+  // Function to handle incrementing serving size
+  const incrementServingSize = () => {
+    if (servingSize < 10) {
+      setServingSize(prev => prev + 1);
+    }
+  };
+
+  // Function to handle decrementing serving size
+  const decrementServingSize = () => {
+    if (servingSize > 1) {
+      setServingSize(prev => prev - 1);
+    }
+  };
+
+  useEffect(() => {
+    // First, grab all recipes
+    let filtered = recipes;
+    
+    // Then apply search term filter if present
+    if (searchTerm) {
+      filtered = filtered.filter(recipe => 
+        recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        recipe.cuisine.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Then apply dietary restrictions if any are selected
+    if (activeFilters.dietary.length > 0) {
+      filtered = filtered.filter(recipe => 
+        activeFilters.dietary.every(restriction => 
+          recipe.dietaryRestrictions.includes(restriction)
+        )
+      );
+    }
+    
+    // Then apply cuisine filter if any are selected
+    if (activeFilters.cuisines.length > 0) {
+      filtered = filtered.filter(recipe => 
+        activeFilters.cuisines.includes(recipe.cuisine)
+      );
+    }
+    
+    // Apply sorting
+    filtered = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'prepTime':
+          return a.prepTime - b.prepTime;
+        case 'cookTime':
+          return a.cookTime - b.cookTime;
+        case 'totalTime':
+          return (a.prepTime + a.cookTime) - (b.prepTime + b.cookTime);
+        default:
+          return 0;
+      }
+    });
+    
+    setFilteredRecipes(filtered);
+  }, [searchTerm, activeFilters, sortBy]);
+
+  // Check if we need to show the scroll indicator
+  useEffect(() => {
+    if (filteredRecipes.length > 4) {
+      setShowScrollIndicator(true);
+    } else {
+      setShowScrollIndicator(false);
+    }
+  }, [filteredRecipes]);
+
   return (
     <div className="mb-4 w-full">
       <div className="flex flex-col space-y-3">
-        {/* Serving Size Selector */}
+        {/* Enhanced Serving Size Selector with +/- buttons */}
         <div className="flex items-center space-x-2 p-2 border border-dashed border-gray-300 dark:border-gray-700 rounded-md">
           <Users className="h-4 w-4 text-muted-foreground" />
           <div className="flex-1">
             <div className="flex justify-between text-sm mb-1">
               <span>Servings:</span>
-              <span className="font-medium">{servingSize} {servingSize === 1 ? 'person' : 'people'}</span>
+              <div className="flex items-center">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="h-6 w-6 rounded-full p-0" 
+                  onClick={decrementServingSize}
+                  disabled={servingSize <= 1}
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+                <span className="font-medium mx-2">{servingSize} {servingSize === 1 ? 'person' : 'people'}</span>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="h-6 w-6 rounded-full p-0" 
+                  onClick={incrementServingSize}
+                  disabled={servingSize >= 10}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
             </div>
             <Slider
               value={[servingSize]}
