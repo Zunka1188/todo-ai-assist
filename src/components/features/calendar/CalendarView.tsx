@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
@@ -86,7 +85,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
   
-  // Track dialog state with refs for better state handling
   const inviteDialogOpenRef = useRef<boolean>(false);
   const contentRef = useRef<HTMLDivElement>(null);
   
@@ -115,30 +113,26 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     recordRSVP
   } = useCalendarSharing();
   
-  // Ensure refs are updated with latest values
   useEffect(() => {
     inviteDialogOpenRef.current = shareDialogOpen;
   }, [shareDialogOpen]);
   
-  // Auto retry on network reconnection
   useEffect(() => {
     const handleOnline = () => retryDataFetch();
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
   }, [retryDataFetch]);
   
-  // Show loading state when changing views
   useEffect(() => {
     setLoadingView(true);
     const timer = setTimeout(() => setLoadingView(false), 300);
     return () => clearTimeout(timer);
   }, [viewMode]);
   
-  // Initialize scroll position based on view
   useEffect(() => {
     if (contentRef.current) {
-      const hourHeight = dimensions.minCellHeight || 60; // pixels per hour
-      const startHour = 8; // 8 AM
+      const hourHeight = dimensions.minCellHeight || 60;
+      const startHour = 8;
       setTimeout(() => {
         contentRef.current?.scrollTo(0, startHour * hourHeight);
       }, 300);
@@ -148,34 +142,27 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const effectiveCreateDialogOpen = isCreateDialogOpen !== undefined ? isCreateDialogOpen : localCreateDialogOpen;
   const effectiveSetCreateDialogOpen = setIsCreateDialogOpen || setLocalCreateDialogOpen;
   
-  // Use memoized filtered events for better performance
   const filteredEvents = useMemo(() => {
     return filterEvents(searchTerm);
   }, [filterEvents, searchTerm]);
   
-  // Apply event constraints if needed
   const constrainedEvents = useMemo(() => {
     if (!constrainEvents) return filteredEvents;
     
-    // Function to constrain event end times
     const constrainEventsFunc = (events: Event[], maxTimeStr: string): Event[] => {
       const [hours, minutes] = maxTimeStr.split(':').map(Number);
       const maxHour = hours || 23;
       const maxMinute = minutes || 0;
       
       return events.map(event => {
-        // Don't modify all-day events
         if (event.allDay) return event;
         
-        // Clone the event to avoid mutations
         const newEvent = { ...event };
         
-        // Only constrain if the end time is after max time
         if (newEvent.endDate.getHours() > maxHour || 
             (newEvent.endDate.getHours() === maxHour && 
              newEvent.endDate.getMinutes() > maxMinute)) {
           
-          // Create a new end date at the max time on the same day
           const constrainedEnd = new Date(newEvent.endDate);
           constrainedEnd.setHours(maxHour, maxMinute, 0, 0);
           newEvent.endDate = constrainedEnd;
@@ -301,7 +288,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     console.log("[DEBUG] Share link generated:", link);
   }, []);
 
-  // Create calendar config object for view-specific settings
   const calendarConfig: CalendarConfig = {
     weekView: {
       maxTime: maxTime,
@@ -469,7 +455,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         </ErrorBoundary>
       )}
       
-      {/* Add responsive styles for mobile */}
       <style>
         {`
         @media (max-width: 768px) {

@@ -24,6 +24,11 @@ interface WeekViewProps {
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   minCellHeight?: number;
   timeColumnWidth?: number;
+  maxTime?: string;
+  hideEmptyRows?: boolean;
+  deduplicateAllDay?: boolean;
+  constrainEvents?: boolean;
+  disablePopups?: boolean;
 }
 
 const WeekView: React.FC<WeekViewProps> = ({

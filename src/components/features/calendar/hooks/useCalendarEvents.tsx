@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo } from 'react';
 import { Event } from '../types/event';
 import { initialEvents } from '../data/initialEvents';
@@ -173,12 +172,47 @@ export const useCalendarEvents = () => {
     setIsCreateDialogOpen,
     isLoading,
     error,
-    handleViewEvent,
-    handleEditEvent,
-    handleDeleteEvent,
-    handleCreateEvent,
-    handleSaveEvent,
-    filterEvents,
-    retryDataFetch
+    handleViewEvent: useCallback((event: Event) => {
+      setSelectedEvent(event);
+      setIsViewDialogOpen(true);
+    }, []),
+    handleEditEvent: useCallback(() => {
+      setIsEditMode(true);
+      setIsViewDialogOpen(false);
+      setIsCreateDialogOpen(true);
+    }, []),
+    handleDeleteEvent: useCallback(() => {
+      if (!selectedEvent) return;
+      setEvents(prev => prev.filter(event => event.id !== selectedEvent.id));
+      setIsViewDialogOpen(false);
+      setSelectedEvent(null);
+    }, [selectedEvent]),
+    handleCreateEvent: useCallback((date: Date) => {
+      setSelectedEvent(null);
+      setIsEditMode(false);
+      setIsCreateDialogOpen(true);
+    }, []),
+    handleSaveEvent: useCallback((newEvent: Event) => {
+      if (selectedEvent) {
+        setEvents(prev => prev.map(event => 
+          event.id === selectedEvent.id ? newEvent : event
+        ));
+      } else {
+        setEvents(prev => [...prev, newEvent]);
+      }
+      setIsCreateDialogOpen(false);
+      setIsEditMode(false);
+      setSelectedEvent(null);
+    }, [selectedEvent]),
+    filterEvents: useCallback((searchTerm: string) => {
+      if (!searchTerm) return events;
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      return events.filter(event => 
+        event.title.toLowerCase().includes(lowerSearchTerm) || 
+        (event.description && event.description.toLowerCase().includes(lowerSearchTerm)) || 
+        (event.location && event.location.toLowerCase().includes(lowerSearchTerm))
+      );
+    }, [events]),
+    retryDataFetch // Add this to the returned object
   };
 };
