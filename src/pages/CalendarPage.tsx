@@ -1,9 +1,10 @@
+
 /**
  * Calendar Page Component
  * Displays the user's calendar with various view modes (day, week, month, agenda)
  * and allows for event management.
  */
-import React from 'react';
+import React, { useState } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import InviteDialog from '@/components/features/calendar/dialogs/InviteDialog';
 import { CalendarProvider, useCalendar } from '@/components/features/calendar/CalendarContext';
