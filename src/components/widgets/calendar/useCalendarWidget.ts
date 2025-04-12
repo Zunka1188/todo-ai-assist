@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { format, isSameDay } from 'date-fns';
 import { Event } from '@/components/features/calendar/types/event';
