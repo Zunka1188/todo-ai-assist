@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, ArrowUpRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { WidgetWrapper } from './shared/WidgetWrapper';
 import CalendarDatePicker from './calendar/CalendarDatePicker';
 import CalendarWidgetContent from './calendar/CalendarWidgetContent';
 import { useCalendarWidget } from './calendar/useCalendarWidget';
 import EventViewDialog from '../features/calendar/dialogs/EventViewDialog';
-import EventFormDialog from '../features/calendar/dialogs/EventFormDialog';
 
 const CalendarWidget = () => {
   const {
@@ -36,16 +37,19 @@ const CalendarWidget = () => {
       className="h-full"
     >
       <div className="p-0 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <CalendarDatePicker 
-              date={date}
-              formattedDate={formattedDate}
-              handleSelect={handleSelect}
-              open={open}
-              setOpen={setOpen}
-            />
-          </div>
+        <div className="flex items-center justify-between p-4 pb-0">
+          <CalendarDatePicker 
+            date={date}
+            formattedDate={formattedDate}
+            handleSelect={handleSelect}
+            open={open}
+            setOpen={setOpen}
+          />
+          <Button variant="ghost" size="icon" asChild className="ml-auto">
+            <Link to="/calendar">
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </Button>
         </div>
 
         <CalendarWidgetContent 

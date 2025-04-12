@@ -2,6 +2,8 @@
 import React from 'react';
 import { Clock, MapPin } from 'lucide-react';
 import { Event } from '@/components/features/calendar/types/event';
+import { cn } from '@/lib/utils';
+import { getFormattedTime } from '@/components/features/calendar/utils/dateUtils';
 
 interface EventItemProps {
   event: Event;
@@ -9,20 +11,15 @@ interface EventItemProps {
 }
 
 const EventItem: React.FC<EventItemProps> = ({ event, onClick }) => {
-  // Function to get formatted time
-  const getFormattedTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
   return (
     <button
       onClick={() => onClick(event)}
-      className="w-full text-left px-2 py-1.5 rounded-md hover:bg-muted flex items-start"
+      className={cn(
+        "w-full text-left px-2 py-1.5 rounded-md hover:bg-muted flex items-start group",
+        "border-l-2 transition-colors"
+      )}
+      style={{ borderLeftColor: event.color || '#4285F4' }}
     >
-      <div
-        className="w-2 h-2 rounded-full mt-1.5 mr-2 flex-shrink-0"
-        style={{ backgroundColor: event.color || '#4285F4' }}
-      />
       <div className="flex-1 min-w-0">
         <p className="font-medium truncate">{event.title}</p>
         <div className="text-xs text-muted-foreground flex flex-wrap gap-2">

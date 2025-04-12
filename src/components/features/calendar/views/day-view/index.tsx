@@ -1,6 +1,6 @@
 
-import React, { useRef, useEffect } from 'react';
-import { addDays, subDays } from 'date-fns';
+import React, { useRef, useEffect, useState } from 'react';
+import { addDays, subDays, isSameDay, format } from 'date-fns';
 import { Event } from '../../types/event';
 import DayHeader from './DayHeader';
 import TimeRange from './TimeRange';
@@ -12,25 +12,38 @@ import { useDebugMode } from '@/hooks/useDebugMode';
 import ResponsiveContainer from '@/components/ui/responsive-container';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import CalendarEventItem from '../../ui/CalendarEventItem';
 
 interface DayViewProps {
   date: Date;
-  setDate: (date: Date) => void;
   events: Event[];
   handleViewEvent: (event: Event) => void;
   theme: string;
+  minCellHeight?: number;
+  timeColumnWidth?: number;
 }
 
 const DayView: React.FC<DayViewProps> = ({
   date,
-  setDate,
   events,
   handleViewEvent,
-  theme
+  theme,
+  minCellHeight = 60,
+  timeColumnWidth = 60
 }) => {
   const { isMobile } = useIsMobile();
   const gridRef = useRef<HTMLDivElement>(null);
   const { enabled: debugEnabled, logProps } = useDebugMode();
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Update current time for the time indicator
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(timer);
+  }, []);
   
   // Debug component props
   useEffect(() => {
@@ -62,25 +75,17 @@ const DayView: React.FC<DayViewProps> = ({
     processedEvents,
   } = useEventManagement(events, date);
 
-  // Debug data flow
-  useEffect(() => {
-    if (debugEnabled) {
-      console.group('DayView - Processed Data');
-      console.log('Events:', events);
-      console.log('All Day Events:', allDayEvents?.length);
-      console.log('Processed Events:', processedEvents);
-      console.log('Time Range:', `${startHour}:00-${endHour}:00`);
-      console.log('Hidden Events:', hiddenEvents?.length);
-      console.groupEnd();
-    }
-  }, [events, allDayEvents, processedEvents, startHour, endHour, hiddenEvents, debugEnabled]);
-
   const prevDay = () => {
-    setDate(subDays(date, 1));
+    // Using a custom event to bubble up navigation
+    window.dispatchEvent(new CustomEvent('calendar-navigate', { 
+      detail: { direction: 'prev', view: 'day', date: subDays(date, 1) } 
+    }));
   };
   
   const nextDay = () => {
-    setDate(addDays(date, 1));
+    window.dispatchEvent(new CustomEvent('calendar-navigate', { 
+      detail: { direction: 'next', view: 'day', date: addDays(date, 1) } 
+    }));
   };
 
   // Calculate the number of hours to display
@@ -90,6 +95,38 @@ const DayView: React.FC<DayViewProps> = ({
   const scrollContainerHeight = isMobile 
     ? 'calc(100vh - 320px)' 
     : 'calc(100vh - 300px)';
+    
+  // Handle event view clicks
+  useEffect(() => {
+    const handleViewEventClick = (e: Event) => {
+      if (e instanceof CustomEvent && e.detail) {
+        handleViewEvent(e.detail);
+      }
+    };
+    
+    window.addEventListener('view-event', handleViewEventClick);
+    
+    return () => {
+      window.removeEventListener('view-event', handleViewEventClick);
+    };
+  }, [handleViewEvent]);
+
+  // Calculate current time indicator position
+  const getCurrentTimePosition = () => {
+    if (!isSameDay(currentTime, date)) return -1;
+    
+    const now = currentTime;
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    // Check if current time is within the visible range
+    if (currentHour < startHour || currentHour > endHour) return -1;
+    
+    // Calculate position
+    return (currentHour - startHour) * minCellHeight + (currentMinute / 60) * minCellHeight;
+  };
+  
+  const currentTimePosition = getCurrentTimePosition();
 
   return (
     <ResponsiveContainer fullWidth noGutters mobileFullWidth className="space-y-2">
@@ -130,15 +167,54 @@ const DayView: React.FC<DayViewProps> = ({
           style={{ height: scrollContainerHeight, position: 'relative' }}
           scrollRef={gridRef}
         >
-          <TimeGrid
-            events={events}
-            date={date}
-            handleViewEvent={handleViewEvent}
-            startHour={startHour}
-            numHours={numHours}
-            gridRef={gridRef}
-            processedEvents={processedEvents}
-          />
+          <div className="relative">
+            {/* Hour grid */}
+            <div className="grid grid-cols-[3.5rem_1fr]">
+              {hours.map(hour => (
+                <React.Fragment key={hour}>
+                  <div 
+                    className="border-t text-xs text-right pr-2 pt-1 text-muted-foreground border-r"
+                    style={{ height: `${minCellHeight}px` }}
+                  >
+                    {format(new Date().setHours(hour), 'h a')}
+                  </div>
+                  <div 
+                    className="border-t"
+                    style={{ height: `${minCellHeight}px` }}
+                  />
+                </React.Fragment>
+              ))}
+            </div>
+            
+            {/* Current time indicator */}
+            {currentTimePosition > 0 && (
+              <div 
+                className="absolute left-0 right-0 flex items-center z-30 pointer-events-none"
+                style={{ top: `${currentTimePosition}px` }}
+              >
+                <div className="h-3 w-3 rounded-full bg-red-500 ml-2"></div>
+                <div className="flex-1 h-[2px] bg-red-500"></div>
+              </div>
+            )}
+            
+            {/* Events */}
+            <div className="absolute inset-0 pointer-events-none">
+              {processedEvents.map((group, groupIndex) => (
+                group.events.map((event, eventIndex) => (
+                  <CalendarEventItem
+                    key={event.id}
+                    event={event}
+                    viewType="day"
+                    date={date}
+                    cellHeight={minCellHeight}
+                    timeColumnWidth={timeColumnWidth}
+                    position={eventIndex}
+                    totalOverlapping={group.maxOverlap}
+                  />
+                ))
+              ))}
+            </div>
+          </div>
         </ScrollArea>
       </div>
     </ResponsiveContainer>

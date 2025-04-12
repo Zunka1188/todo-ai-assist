@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import AppPage from '@/components/ui/app-page';
-import InviteDialog from '@/components/features/calendar/dialogs/InviteDialog';
 import { CalendarProvider, useCalendar } from '@/components/features/calendar/CalendarContext';
 import CalendarHeader from '@/components/features/calendar/ui/CalendarHeader';
 import CalendarContent from '@/components/features/calendar/ui/CalendarContent';
+import InviteDialog from '@/components/features/calendar/dialogs/InviteDialog';
 
 /**
  * Calendar Page Content Component
@@ -19,8 +19,6 @@ const CalendarPageContent: React.FC = () => {
     inviteDialogOpen, 
     handleInviteSent,
     retryDataFetch,
-    isAddingEvent,
-    isInviting,
     setInviteDialogOpen
   } = useCalendar();
 
@@ -36,7 +34,7 @@ const CalendarPageContent: React.FC = () => {
       noPadding
     >
       <div className="flex flex-col h-full">
-        <CalendarHeader isInviting={isInviting} isAdding={isAddingEvent} />
+        <CalendarHeader />
         <div className="flex-1 overflow-auto">
           <CalendarContent />
         </div>

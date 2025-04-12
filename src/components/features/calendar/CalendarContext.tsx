@@ -1,12 +1,20 @@
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { format, startOfWeek, endOfWeek, addDays, subDays, addMonths, subMonths } from 'date-fns';
 import { Event } from './types/event';
 import { useCalendarEvents } from './hooks/useCalendarEvents';
 import { logger } from '@/utils/logger';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Define our context types
 export type ViewMode = 'month' | 'week' | 'day' | 'agenda';
+
+interface ViewDimensions {
+  minCellHeight: number;
+  headerHeight: number;
+  timeWidth: number;
+}
 
 interface CalendarContextType {
   // State
@@ -19,6 +27,14 @@ interface CalendarContextType {
   inviteDialogOpen: boolean;
   isAddingEvent: boolean;
   isInviting: boolean;
+  currentDate: Date;
+  dimensions: ViewDimensions;
+  
+  // Navigation
+  todayButtonClick: () => void;
+  nextPeriod: () => void;
+  prevPeriod: () => void;
+  getViewTitle: () => string;
   
   // Event handlers
   setViewMode: (mode: ViewMode) => void;
@@ -32,6 +48,7 @@ interface CalendarContextType {
   setAddingEvent: (adding: boolean) => void;
   setIsInviting: (inviting: boolean) => void;
   retryDataFetch: () => void;
+  setCurrentDate: (date: Date) => void;
   
   // Calendar events functionality
   eventsState: ReturnType<typeof useCalendarEvents>;
@@ -51,6 +68,7 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({
   // State declarations
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>(initialView);
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [showFileUploader, setShowFileUploader] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -61,9 +79,122 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({
 
   // Get toast functionality
   const { toast } = useToast();
+  const { isMobile } = useIsMobile();
   
   // Get calendar events functionality
   const eventsState = useCalendarEvents();
+
+  // Calculate view dimensions based on view mode
+  const dimensions = useMemo(() => {
+    switch(viewMode) {
+      case 'day':
+        return {
+          minCellHeight: isMobile ? 48 : 64,
+          headerHeight: 40,
+          timeWidth: 60
+        };
+      case 'week':
+        return {
+          minCellHeight: isMobile ? 24 : 32, 
+          headerHeight: 40,
+          timeWidth: 60
+        };
+      case 'month':
+        return {
+          minCellHeight: isMobile ? 60 : 100,
+          headerHeight: 32,
+          timeWidth: 0
+        };
+      case 'agenda':
+        return {
+          minCellHeight: 64,
+          headerHeight: 0,
+          timeWidth: 120
+        };
+      default:
+        return {
+          minCellHeight: isMobile ? 60 : 100,
+          headerHeight: 40,
+          timeWidth: 60
+        };
+    }
+  }, [viewMode, isMobile]);
+
+  // Navigation functions
+  const todayButtonClick = useCallback(() => {
+    setCurrentDate(new Date());
+    toast({
+      title: "Today selected",
+      description: "Calendar showing today's events",
+      role: "status",
+      "aria-live": "polite"
+    });
+  }, [toast]);
+  
+  const nextPeriod = useCallback(() => {
+    let newDate = new Date(currentDate);
+    
+    switch(viewMode) {
+      case 'day':
+        newDate = addDays(currentDate, 1);
+        break;
+      case 'week':
+        newDate = addDays(currentDate, 7);
+        break;
+      case 'month':
+        newDate = addMonths(currentDate, 1);
+        break;
+      default:
+        newDate = addDays(currentDate, 1);
+        break;
+    }
+    
+    setCurrentDate(newDate);
+  }, [currentDate, viewMode]);
+  
+  const prevPeriod = useCallback(() => {
+    let newDate = new Date(currentDate);
+    
+    switch(viewMode) {
+      case 'day':
+        newDate = subDays(currentDate, 1);
+        break;
+      case 'week':
+        newDate = subDays(currentDate, 7);
+        break;
+      case 'month':
+        newDate = subMonths(currentDate, 1);
+        break;
+      default:
+        newDate = subDays(currentDate, 1);
+        break;
+    }
+    
+    setCurrentDate(newDate);
+  }, [currentDate, viewMode]);
+  
+  const getViewTitle = useCallback(() => {
+    switch(viewMode) {
+      case 'day':
+        return format(currentDate, isMobile ? 'EEE, MMM d' : 'EEEE, MMMM d, yyyy');
+      case 'week': {
+        const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+        
+        if (isMobile) {
+          return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`;
+        }
+        
+        return `${format(weekStart, 'MMMM d')} - ${format(weekEnd, 'MMMM d, yyyy')}`;
+      }
+      case 'month':
+        return format(currentDate, 'MMMM yyyy');
+      case 'agenda':
+        return 'Upcoming Events';
+      default:
+        return format(currentDate, 'MMMM yyyy');
+    }
+  }, [currentDate, viewMode, isMobile]);
 
   // Load calendar data
   React.useEffect(() => {
@@ -184,6 +315,14 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({
     inviteDialogOpen,
     isAddingEvent,
     isInviting,
+    currentDate,
+    dimensions,
+    
+    // Navigation
+    todayButtonClick,
+    nextPeriod,
+    prevPeriod,
+    getViewTitle,
     
     // Setters and handlers
     setViewMode: handleViewModeChange,
@@ -197,6 +336,7 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({
     setAddingEvent: setIsAddingEvent,
     setIsInviting,
     retryDataFetch,
+    setCurrentDate,
     
     // Calendar events functionality
     eventsState

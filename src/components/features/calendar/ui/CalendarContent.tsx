@@ -10,7 +10,9 @@ import CalendarView from '../CalendarView';
 const CalendarContent: React.FC = () => {
   const { theme } = useTheme();
   const { 
-    viewMode, 
+    viewMode,
+    dimensions,
+    currentDate, 
     searchTerm,
     createDialogOpen,
     showFileUploader,
@@ -24,17 +26,21 @@ const CalendarContent: React.FC = () => {
   // Memoize the calendar view to prevent unnecessary rerenders
   const memoizedCalendarView = useMemo(() => (
     <CalendarView 
-      viewMode={viewMode} 
+      viewMode={viewMode}
+      date={currentDate}
       searchTerm={debouncedSearchTerm} 
       weekStartsOn={1} 
       isCreateDialogOpen={createDialogOpen} 
       setIsCreateDialogOpen={handleDialogClose}
       isFileUploaderOpen={showFileUploader}
       setIsFileUploaderOpen={handleFileUploaderChange}
+      dimensions={dimensions}
     />
   ), [
-    viewMode, 
-    debouncedSearchTerm, 
+    viewMode,
+    currentDate,
+    debouncedSearchTerm,
+    dimensions, 
     createDialogOpen, 
     showFileUploader, 
     handleDialogClose,

@@ -1,11 +1,11 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
 import { useTheme } from '@/hooks/use-theme';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { AlertCircle, Loader2, Check, Paperclip } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
 
 import MonthView from './views/MonthView';
 import WeekView from './views/WeekView';
@@ -22,34 +22,43 @@ import { Event, AttachmentType } from './types/event';
 import EventViewDialogExtension from './dialogs/EventViewDialogExtension';
 import ErrorBoundary from './ErrorBoundary';
 
+interface ViewDimensions {
+  minCellHeight: number;
+  headerHeight: number;
+  timeWidth: number;
+}
+
 interface CalendarViewProps {
   viewMode: 'month' | 'week' | 'day' | 'agenda';
+  date: Date;
   searchTerm?: string;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   isCreateDialogOpen?: boolean;
   setIsCreateDialogOpen?: (open: boolean) => void;
   isFileUploaderOpen?: boolean;
   setIsFileUploaderOpen?: (open: boolean) => void;
+  dimensions: ViewDimensions;
 }
 
 const CalendarView: React.FC<CalendarViewProps> = ({
   viewMode,
+  date,
   searchTerm = '',
   weekStartsOn = 1,
   isCreateDialogOpen,
   setIsCreateDialogOpen,
   isFileUploaderOpen = false,
-  setIsFileUploaderOpen = () => {}
+  setIsFileUploaderOpen = () => {},
+  dimensions
 }) => {
-  const [date, setDate] = useState<Date>(new Date());
-  const { theme } = useTheme();
-  const { isMobile } = useIsMobile();
   const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<any>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [rsvpDialogOpen, setRsvpDialogOpen] = useState(false);
   const [eventToShare, setEventToShare] = useState<Event | null>(null);
   const [viewLoadError, setViewLoadError] = useState<string | null>(null);
+  const { theme } = useTheme();
+  const { isMobile } = useIsMobile();
   
   const {
     events,
@@ -211,7 +220,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
   return (
     <div className={cn(
-      "space-y-2 w-full mx-auto max-w-full",
+      "space-y-2 w-full mx-auto max-w-full relative",
       isMobile ? "pb-2" : ""
     )}
     role="region"
@@ -276,42 +285,44 @@ const CalendarView: React.FC<CalendarViewProps> = ({
             {viewMode === 'month' && (
               <MonthView
                 date={date}
-                setDate={setDate}
                 events={filteredEvents}
                 handleViewEvent={handleViewEvent}
                 theme={theme}
                 weekStartsOn={weekStartsOn}
+                minCellHeight={dimensions.minCellHeight}
               />
             )}
             
             {viewMode === 'week' && (
               <WeekView
                 date={date}
-                setDate={setDate}
                 events={filteredEvents}
                 handleViewEvent={handleViewEvent}
                 theme={theme}
                 weekStartsOn={weekStartsOn}
+                minCellHeight={dimensions.minCellHeight}
+                timeColumnWidth={dimensions.timeWidth}
               />
             )}
             
             {viewMode === 'day' && (
               <DayView
                 date={date}
-                setDate={setDate}
                 events={filteredEvents}
                 handleViewEvent={handleViewEvent}
                 theme={theme}
+                minCellHeight={dimensions.minCellHeight}
+                timeColumnWidth={dimensions.timeWidth}
               />
             )}
             
             {viewMode === 'agenda' && (
               <EnhancedAgendaView
                 date={date}
-                setDate={setDate}
                 events={filteredEvents}
                 handleViewEvent={handleViewEvent}
                 theme={theme}
+                itemHeight={dimensions.minCellHeight}
               />
             )}
           </div>
