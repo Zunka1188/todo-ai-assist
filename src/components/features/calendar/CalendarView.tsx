@@ -8,7 +8,7 @@ import { AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import MonthView from './views/MonthView';
-import WeekView from './views/WeekView';
+import WeekView from './views/week-view'; // Fixed import path
 import DayView from './views/day-view';
 import EnhancedAgendaView from './views/EnhancedAgendaView';
 import AgendaView from './views/AgendaView';

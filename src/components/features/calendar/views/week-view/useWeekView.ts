@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { startOfWeek, endOfWeek, eachDayOfInterval, subWeeks, addWeeks } from 'date-fns';
+import { startOfWeek, endOfWeek, eachDayOfInterval, subWeeks, addWeeks, isToday, isWeekend, isSameDay } from 'date-fns'; // Added isSameDay import
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Event } from '../../types/event';
@@ -226,7 +226,8 @@ export const useWeekView = (props: {
       const eventEnd = eventEndHour + eventEndMinute / MINUTES_PER_HOUR;
       return eventEnd <= newStart || eventStart >= newEnd;
     });
-    if (type === 'start') setStartHour(newStart);else setEndHour(newEnd);
+    if (type === 'start') setStartHour(newStart);
+    else setEndHour(newEnd);
     setShowFullDay(newStart === 0 && newEnd === 23);
   };
 

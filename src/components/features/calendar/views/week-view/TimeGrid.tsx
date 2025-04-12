@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { isToday, isWeekend } from 'date-fns';
 import { format } from 'date-fns';
-import { Clock } from 'lucide-react';
+import { Clock, MapPin } from 'lucide-react'; // Added MapPin import
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Event } from '../../types/event';
 import { getFormattedTime } from '../../utils/dateUtils';
@@ -11,7 +11,7 @@ import { getFormattedTime } from '../../utils/dateUtils';
 interface TimeGridProps {
   daysInWeek: Date[];
   hours: number[];
-  events: Event[][];
+  events: Event[][][]; // Fixed type to match what we receive
   handleViewEvent: (event: Event) => void;
   scrollRef: React.RefObject<HTMLDivElement>;
   currentTimePosition: number;
@@ -23,7 +23,7 @@ interface TimeGridProps {
 const TimeGrid: React.FC<TimeGridProps> = ({
   daysInWeek,
   hours,
-  events: daysEventGroups,
+  events: daysEventGroups, // This is Event[][][]
   handleViewEvent,
   scrollRef,
   currentTimePosition,
