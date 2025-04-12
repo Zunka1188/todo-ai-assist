@@ -7,7 +7,7 @@ import { useDocumentClassification } from '@/hooks/useDocumentClassification';
 import { 
   DocumentCategory, 
   DocumentFile, 
-  DocumentItem, 
+  DocumentItem,
   DocumentFilters,
   ViewMode,
   AddDocDialogItem
