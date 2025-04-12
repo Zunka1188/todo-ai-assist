@@ -470,13 +470,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       )}
       
       {/* Add responsive styles for mobile */}
-      <style jsx global>{`
+      <style>
+        {`
         @media (max-width: 768px) {
           .week-header {
             overflow-x: auto;
           }
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };

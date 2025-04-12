@@ -9,10 +9,18 @@ import CalendarView from '../CalendarView';
 
 interface CalendarContentProps {
   disablePopups?: boolean;
+  maxTime?: string;
+  hideEmptyRows?: boolean;
+  deduplicateAllDay?: boolean;
+  constrainEvents?: boolean;
 }
 
 const CalendarContent: React.FC<CalendarContentProps> = ({ 
-  disablePopups = true // Default to disabled popups
+  disablePopups = true, // Default to disabled popups
+  maxTime = "23:00",
+  hideEmptyRows = true,
+  deduplicateAllDay = true,
+  constrainEvents = true
 }) => {
   const { theme } = useTheme();
   const { 
@@ -23,7 +31,8 @@ const CalendarContent: React.FC<CalendarContentProps> = ({
     createDialogOpen,
     showFileUploader,
     handleDialogClose,
-    handleFileUploaderChange
+    handleFileUploaderChange,
+    retryDataFetch
   } = useCalendar();
   
   // Debounce search term to avoid excessive filtering
@@ -42,10 +51,10 @@ const CalendarContent: React.FC<CalendarContentProps> = ({
       setIsFileUploaderOpen={handleFileUploaderChange}
       dimensions={dimensions}
       disablePopups={disablePopups}
-      maxTime="23:00"
-      hideEmptyRows={true}
-      deduplicateAllDay={true}
-      constrainEvents={true}
+      maxTime={maxTime}
+      hideEmptyRows={hideEmptyRows}
+      deduplicateAllDay={deduplicateAllDay}
+      constrainEvents={constrainEvents}
     />
   ), [
     viewMode,
@@ -56,7 +65,11 @@ const CalendarContent: React.FC<CalendarContentProps> = ({
     showFileUploader, 
     handleDialogClose,
     handleFileUploaderChange,
-    disablePopups
+    disablePopups,
+    maxTime,
+    hideEmptyRows,
+    deduplicateAllDay,
+    constrainEvents
   ]);
 
   return (
