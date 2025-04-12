@@ -1,78 +1,108 @@
-import React from 'react';
+
+import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { MapPin } from 'lucide-react';
-import ResponsiveContainer from '@/components/ui/responsive-container';
+import { addDays, startOfWeek, eachDayOfInterval, getHours, format, differenceInMinutes, isToday } from 'date-fns';
+import { startOfDay, endOfDay } from 'date-fns';
+import { useIsMobile } from '@/hooks/use-mobile';
+import TimeGrid from './TimeGrid';
+import AllDayEvents from './AllDayEvents';
+import WeekHeader from './WeekHeader';
+import TimeControls from './TimeControls';
+import Navigation from './Navigation';
 import { Event } from '../../types/event';
 import { useWeekView } from './useWeekView';
-import TimeControls from './TimeControls';
-import WeekHeader from './WeekHeader';
-import AllDayEvents from './AllDayEvents';
-import TimeGrid from './TimeGrid';
+
 interface WeekViewProps {
   date: Date;
   setDate: (date: Date) => void;
   events: Event[];
   handleViewEvent: (event: Event) => void;
-  theme: string;
+  theme?: string;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  showWeekends?: boolean;
   minCellHeight?: number;
   timeColumnWidth?: number;
+  onUpdateEvent?: (event: Event) => void;
 }
+
 const WeekView: React.FC<WeekViewProps> = ({
   date,
   setDate,
   events,
   handleViewEvent,
-  theme,
-  weekStartsOn = 1,
+  theme = 'light',
+  weekStartsOn = 1, // Default to Monday
+  showWeekends = true,
   minCellHeight = 60,
-  timeColumnWidth = 60
+  timeColumnWidth = 60,
+  onUpdateEvent
 }) => {
   const {
-    hours,
-    daysInWeek,
-    daysEventGroups,
     scrollRef,
-    startHour,
-    endHour,
-    showFullDay,
-    startInputValue,
-    endInputValue,
-    hiddenEvents,
+    daysInWeek,
+    hours,
+    eventGroups,
+    allDayEvents,
     currentTimePosition,
-    scrollContainerHeight,
-    weekStart,
-    weekEnd,
     prevWeek,
     nextWeek,
+    todayColumn,
+    goToToday,
     getMultiHourEventStyle,
-    handleTimeRangeToggle,
-    handleTimeRangeChange,
-    handleInputBlur
+    horizontalScrollRef
   } = useWeekView({
     date,
     setDate,
     events,
     weekStartsOn,
+    showWeekends,
     minCellHeight
   });
-  return <ResponsiveContainer fullWidth noGutters className="space-y-4">
-      <div className="grid grid-cols-7 gap-2 mb-4">
-        <div className="col-span-7">
-          
-        </div>
-      </div>
 
-      <TimeControls startHour={startHour} endHour={endHour} showFullDay={showFullDay} startInputValue={startInputValue} endInputValue={endInputValue} hiddenEvents={hiddenEvents} handleTimeRangeToggle={handleTimeRangeToggle} handleTimeRangeChange={handleTimeRangeChange} handleInputBlur={handleInputBlur} />
+  // Calculate container height to make it responsive
+  const mainHeight = "calc(100vh - 280px)";
+  
+  const { isMobile } = useIsMobile();
+  
+  return (
+    <div className="flex flex-col space-y-2 h-full">
+      {/* We'll put the navigation controls in CalendarHeader instead */}
       
-      <div className="border rounded-lg overflow-hidden shadow-sm w-full">
-        <div className="sticky top-0 z-10 bg-background border-b">
-          <WeekHeader daysInWeek={daysInWeek} />
-          <AllDayEvents daysInWeek={daysInWeek} events={events} handleViewEvent={handleViewEvent} />
+      <div className="flex flex-col h-full">
+        <div 
+          className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600" 
+          ref={horizontalScrollRef}
+        >
+          {/* Week days header */}
+          <WeekHeader 
+            daysInWeek={daysInWeek} 
+            todayColumnIndex={todayColumn} 
+          />
+
+          {/* All day events */}
+          <AllDayEvents 
+            daysInWeek={daysInWeek} 
+            events={allDayEvents} 
+            handleViewEvent={handleViewEvent} 
+          />
+
+          {/* Time grid with events */}
+          <TimeGrid 
+            daysInWeek={daysInWeek} 
+            hours={hours} 
+            events={eventGroups} 
+            handleViewEvent={handleViewEvent} 
+            scrollRef={scrollRef} 
+            currentTimePosition={currentTimePosition} 
+            getMultiHourEventStyle={getMultiHourEventStyle}
+            minCellHeight={minCellHeight}
+            scrollContainerHeight={isMobile ? "calc(100vh - 280px)" : mainHeight}
+            onEventUpdate={onUpdateEvent}
+          />
         </div>
-        
-        <TimeGrid daysInWeek={daysInWeek} hours={hours} events={daysEventGroups} handleViewEvent={handleViewEvent} scrollRef={scrollRef} currentTimePosition={currentTimePosition} getMultiHourEventStyle={getMultiHourEventStyle} minCellHeight={minCellHeight} scrollContainerHeight={scrollContainerHeight} />
       </div>
-    </ResponsiveContainer>;
+    </div>
+  );
 };
+
 export default WeekView;
