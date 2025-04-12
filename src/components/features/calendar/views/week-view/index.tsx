@@ -5,7 +5,6 @@ import { MapPin } from 'lucide-react';
 import ResponsiveContainer from '@/components/ui/responsive-container';
 import { Event } from '../../types/event';
 import { useWeekView } from './useWeekView';
-import Navigation from './Navigation';
 import TimeControls from './TimeControls';
 import WeekHeader from './WeekHeader';
 import AllDayEvents from './AllDayEvents';
@@ -57,13 +56,16 @@ const WeekView: React.FC<WeekViewProps> = ({
   
   return (
     <ResponsiveContainer fullWidth noGutters className="space-y-4">
-      <Navigation 
-        weekStart={weekStart} 
-        weekEnd={weekEnd} 
-        prevWeek={prevWeek} 
-        nextWeek={nextWeek}
-        theme={theme}
-      />
+      <div className="grid grid-cols-7 gap-2 mb-4">
+        <div className="col-span-7">
+          <h2 className={cn(
+            "text-xl font-semibold",
+            theme === 'light' ? "text-foreground" : "text-white"
+          )}>
+            {weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          </h2>
+        </div>
+      </div>
 
       <TimeControls 
         startHour={startHour}

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { isToday, isWeekend } from 'date-fns';
+import { isToday, isWeekend, isSameDay } from 'date-fns';
 import { format } from 'date-fns';
 import { Clock, MapPin } from 'lucide-react'; 
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -43,7 +43,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
       <div className="relative">
         <div className="grid grid-cols-8 divide-x border-gray-800">
           <div 
-            className="sticky left-0 z-10 border-r border-gray-800" 
+            className="sticky left-0 z-10 border-r border-gray-800 bg-background" 
             style={{
               minWidth: "5rem"
             }}
@@ -52,6 +52,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
               <div 
                 key={`hour-${i}`} 
                 className="border-b h-[60px] px-2 py-1 text-right text-xs text-muted-foreground"
+                style={{ height: `${minCellHeight}px` }}
               >
                 {format(new Date().setHours(hour), 'h a')}
               </div>
@@ -66,7 +67,8 @@ const TimeGrid: React.FC<TimeGridProps> = ({
               {hours.map((_, hourIndex) => (
                 <div 
                   key={`${dayIndex}-${hourIndex}`} 
-                  className="border-b h-[60px] relative"
+                  className="border-b relative"
+                  style={{ height: `${minCellHeight}px` }}
                 >
                   <div className="absolute top-1/2 left-0 right-0 border-t border-gray-800 border-opacity-50"></div>
                 </div>
@@ -84,7 +86,7 @@ const TimeGrid: React.FC<TimeGridProps> = ({
                 </div>
               )}
               
-              {daysEventGroups[dayIndex].map((group, groupIndex) => {
+              {daysEventGroups[dayIndex] && daysEventGroups[dayIndex].map((group, groupIndex) => {
                 return group.map((event, eventIndex) => (
                   <div
                     key={`event-${dayIndex}-${groupIndex}-${eventIndex}`}

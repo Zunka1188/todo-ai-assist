@@ -2,10 +2,9 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { format, isSameDay, isToday, compareAsc, addDays } from 'date-fns';
-import { Clock, MapPin, Calendar as CalendarIcon, Paperclip, FileText, Image, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Clock, MapPin, Calendar as CalendarIcon, Paperclip, FileText, Image } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Event {
@@ -74,15 +73,6 @@ const AgendaView: React.FC<AgendaViewProps> = ({
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Navigation functions
-  const prevDay = () => {
-    setDate(addDays(date, -1));
-  };
-
-  const nextDay = () => {
-    setDate(addDays(date, 1));
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -93,24 +83,6 @@ const AgendaView: React.FC<AgendaViewProps> = ({
         )}>
           Upcoming events
         </h2>
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={prevDay} 
-            aria-label="Previous period"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={nextDay} 
-            aria-label="Next period"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
       
       <ScrollArea className="h-[calc(100vh-220px)]">
