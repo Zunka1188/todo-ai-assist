@@ -8,7 +8,7 @@ import {
   DocumentCategory, 
   DocumentFile, 
   DocumentItem, 
-  DocumentFilters, 
+  DocumentFilters,
   ViewMode,
   AddDocDialogItem
 } from '../types';
