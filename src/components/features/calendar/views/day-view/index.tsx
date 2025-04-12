@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { addDays, subDays, isSameDay, format } from 'date-fns';
 import { Event } from '../../types/event';
@@ -106,17 +105,18 @@ const DayView: React.FC<DayViewProps> = ({
     
   // Handle event view clicks with proper typing
   useEffect(() => {
+    // Create a properly typed event handler
     const handleViewEventClick = (e: CustomEvent<Event>) => {
       if (e.detail) {
         handleViewEvent(e.detail);
       }
     };
     
-    // Use 'any' to bypass type checking for the custom event
-    window.addEventListener('view-event', handleViewEventClick as any);
+    // Use type assertion to bypass TypeScript's strict event typing
+    window.addEventListener('view-event', handleViewEventClick as unknown as EventListener);
     
     return () => {
-      window.removeEventListener('view-event', handleViewEventClick as any);
+      window.removeEventListener('view-event', handleViewEventClick as unknown as EventListener);
     };
   }, [handleViewEvent]);
 

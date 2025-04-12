@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, subMonths, addWeeks, subWeeks, isSameMonth, isSameDay, isToday } from 'date-fns';
@@ -21,8 +20,8 @@ interface WeekViewProps {
   handleViewEvent: (event: Event) => void;
   theme: string;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  minCellHeight?: number; // Added this prop
-  timeColumnWidth?: number; // Added this prop
+  minCellHeight?: number;
+  timeColumnWidth?: number;
 }
 
 const WeekView: React.FC<WeekViewProps> = ({
@@ -31,11 +30,10 @@ const WeekView: React.FC<WeekViewProps> = ({
   events,
   handleViewEvent,
   theme,
-  weekStartsOn = 1, // Default to Monday
-  minCellHeight = 60, // Default value
-  timeColumnWidth = 60 // Default value
+  weekStartsOn = 1,
+  minCellHeight = 60,
+  timeColumnWidth = 60
 }) => {
-  
   const [startHour, setStartHour] = useState(0);
   const [endHour, setEndHour] = useState(23);
   const [showFullDay, setShowFullDay] = useState(true);
@@ -43,29 +41,29 @@ const WeekView: React.FC<WeekViewProps> = ({
   const [endInputValue, setEndInputValue] = useState("23");
   const { toast } = useToast();
   const { isMobile } = useIsMobile();
-  
-  const HOUR_HEIGHT = 60; // Height in pixels for each hour block in Week View
+
+  const HOUR_HEIGHT = 60;
   const MINUTES_PER_HOUR = 60;
-  const MINUTE_HEIGHT = HOUR_HEIGHT / MINUTES_PER_HOUR; // Height in pixels for 1 minute
-  const TIME_COLUMN_WIDTH = 10; // Percentage width of time column
-  const DAY_COLUMN_WIDTH = (100 - TIME_COLUMN_WIDTH) / 7; // Equal width for each day column
-  
+  const MINUTE_HEIGHT = HOUR_HEIGHT / MINUTES_PER_HOUR;
+  const TIME_COLUMN_WIDTH = 10;
+  const DAY_COLUMN_WIDTH = (100 - TIME_COLUMN_WIDTH) / 7;
+
   const weekStart = startOfWeek(date, { weekStartsOn });
   const weekEnd = endOfWeek(date, { weekStartsOn });
-  
+
   const daysInWeek = eachDayOfInterval({
     start: weekStart,
     end: weekEnd
   });
-  
+
   const prevWeek = () => {
     setDate(subWeeks(date, 1));
   };
-  
+
   const nextWeek = () => {
     setDate(addWeeks(date, 1));
   };
-  
+
   const getEventsForDay = (day: Date) => {
     return events.filter(event => 
       isSameDay(event.startDate, day) || 
@@ -77,7 +75,7 @@ const WeekView: React.FC<WeekViewProps> = ({
   const hours = Array.from({
     length: endHour - startHour + 1
   }, (_, i) => startHour + i);
-  
+
   const isEventVisible = (event: Event): boolean => {
     if (event.allDay) return true;
     
@@ -91,7 +89,7 @@ const WeekView: React.FC<WeekViewProps> = ({
     
     return eventStart < endHour && eventEnd > startHour;
   };
-  
+
   const hiddenEvents = events.filter(event => 
     !event.allDay && !isEventVisible(event)
   );
@@ -322,7 +320,7 @@ const WeekView: React.FC<WeekViewProps> = ({
     
     setShowFullDay(startHour === 0 && endHour === 23);
   };
-  
+
   return (
     <ResponsiveContainer fullWidth noGutters className="space-y-4">
       <div className="flex items-center justify-between">

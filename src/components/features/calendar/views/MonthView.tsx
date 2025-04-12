@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
@@ -31,7 +30,7 @@ interface MonthViewProps {
   handleViewEvent: (event: Event) => void;
   theme: string;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  minCellHeight?: number; // Added this prop
+  minCellHeight?: number; // Now included in the interface
 }
 
 const MonthView: React.FC<MonthViewProps> = ({
@@ -159,6 +158,7 @@ const MonthView: React.FC<MonthViewProps> = ({
                   isCurrentDate && "bg-accent/30",
                   isSelectedDate && "bg-primary/10"
                 )}
+                style={{minHeight: `${minCellHeight}px`}}
                 onClick={() => setDate(day)}
                 role="button"
                 aria-pressed={isSelectedDate}

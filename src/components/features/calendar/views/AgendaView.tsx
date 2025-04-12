@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { format, isSameDay, isToday, compareAsc } from 'date-fns';
@@ -37,7 +36,7 @@ interface AgendaViewProps {
   events: Event[];
   handleViewEvent: (event: Event) => void;
   theme: string;
-  itemHeight?: number; // Added this prop
+  itemHeight?: number; // Now properly included in the interface
 }
 
 const AgendaView: React.FC<AgendaViewProps> = ({
@@ -113,6 +112,7 @@ const AgendaView: React.FC<AgendaViewProps> = ({
                     <div 
                       key={event.id}
                       className="p-4 cursor-pointer hover:bg-muted/40 transition-colors"
+                      style={{minHeight: `${itemHeight}px`}}
                       onClick={() => handleViewEvent(event)}
                     >
                       <div className="flex items-start gap-3">
