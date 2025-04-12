@@ -50,15 +50,13 @@ const CalendarContent: React.FC = () => {
   return (
     <div className={cn(
       "flex-1 overflow-hidden w-full",
-      "bg-muted/10",
+      "bg-background dark:bg-transparent",
       theme === 'dark' ? 'text-white' : ''
     )}>
-      <div className="h-full overflow-y-auto">
-        <div className="px-4 py-3">
-          <ErrorBoundary>
-            {memoizedCalendarView}
-          </ErrorBoundary>
-        </div>
+      <div className="h-full overflow-y-auto px-4 py-3">
+        <ErrorBoundary>
+          {memoizedCalendarView}
+        </ErrorBoundary>
       </div>
     </div>
   );

@@ -59,7 +59,8 @@ const TimeGrid: React.FC<TimeGridProps> = ({
       className="relative border-t border-muted bg-background w-full"
       style={{
         minHeight: `${numHours * hourHeight}px`,
-        paddingBottom: "20px" // Add padding at the bottom for better scroll experience
+        paddingBottom: "20px", // Add padding at the bottom for better scroll experience
+        maxHeight: 'calc(100vh - 400px)', // Limit maximum height for scroll
       }}
     >
       {/* Hour grid lines - improved visibility */}

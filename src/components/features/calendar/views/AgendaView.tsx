@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 import { format, isSameDay, isToday, compareAsc, addDays } from 'date-fns';
 import { Clock, MapPin, Calendar as CalendarIcon, Paperclip, FileText, Image, ChevronRight, ChevronLeft } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';

@@ -116,7 +116,8 @@ const WeekView: React.FC<WeekViewProps> = ({
     const eventStart = eventStartHour + (eventStartMinute / MINUTES_PER_HOUR);
     const eventEnd = eventEndHour + (eventEndMinute / MINUTES_PER_HOUR);
     
-    return eventStart < endHour && eventEnd > startHour;
+    // Check if the event falls within the visible time range
+    return (eventStart <= endHour && eventEnd >= startHour);
   };
 
   const hiddenEvents = events.filter(event => 
@@ -182,9 +183,11 @@ const WeekView: React.FC<WeekViewProps> = ({
     const startHourDecimal = effectiveStartDate.getHours() + (effectiveStartDate.getMinutes() / MINUTES_PER_HOUR);
     const endHourDecimal = effectiveEndDate.getHours() + (effectiveEndDate.getMinutes() / MINUTES_PER_HOUR);
     
+    // Ensure event is within visible time range
     const visibleStartHourDecimal = Math.max(startHourDecimal, startHour);
     const visibleEndHourDecimal = Math.min(endHourDecimal, endHour + 1);
     
+    // Calculate position based on visible time range
     const topPosition = (visibleStartHourDecimal - startHour) * HOUR_HEIGHT;
     const heightValue = Math.max((visibleEndHourDecimal - visibleStartHourDecimal) * HOUR_HEIGHT, 20);
     
@@ -194,7 +197,7 @@ const WeekView: React.FC<WeekViewProps> = ({
     let leftOffset;
     
     if (isMobile) {
-      eventWidth = totalOverlapping > 1 ? 90 : 90;
+      eventWidth = totalOverlapping > 1 ? 90 : 90; 
       leftOffset = TIME_COLUMN_WIDTH + (dayColumnIndex * DAY_COLUMN_WIDTH) + 1;
     } else {
       const maxSideEvents = Math.min(totalOverlapping, 3);
@@ -299,14 +302,6 @@ const WeekView: React.FC<WeekViewProps> = ({
       return eventEnd <= newStart || eventStart >= newEnd;
     });
     
-    if (hidden.length > 0) {
-      toast({
-        title: "Warning: Hidden Events",
-        description: `${hidden.length} event${hidden.length === 1 ? '' : 's'} will be hidden with this time range.`,
-        variant: "default",
-      });
-    }
-    
     if (type === 'start') setStartHour(newStart);
     else setEndHour(newEnd);
     
@@ -366,7 +361,7 @@ const WeekView: React.FC<WeekViewProps> = ({
   
   const currentTimePosition = getCurrentTimePosition();
   
-  // Calculate scroll container height
+  // Calculate scroll container height - fixed to prevent unbounded scrolling
   const scrollContainerHeight = isMobile 
     ? 'calc(100vh - 320px)' 
     : 'calc(100vh - 300px)';
@@ -482,7 +477,7 @@ const WeekView: React.FC<WeekViewProps> = ({
               isMobile ? "text-[0.8rem]" : "")}
               style={{minWidth: "5rem"}}
             >
-              All Day
+              Time
             </div>
             {daysInWeek.map((day, index) => {
               const isCurrentDate = isToday(day);
@@ -491,7 +486,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                 <div 
                   key={index} 
                   className={cn(
-                    "p-2 text-center border-b border-gray-800", 
+                    "p-2 text-center", 
                     isCurrentDate && "bg-accent/30",
                     isWeekendDay && "bg-muted/10"
                   )}
@@ -511,8 +506,9 @@ const WeekView: React.FC<WeekViewProps> = ({
               );
             })}
           </div>
-          
-          <div className="grid grid-cols-8 divide-x border-gray-800 border-b">
+
+          {/* All-day events section - just ONE row that doesn't duplicate */}
+          <div className="grid grid-cols-8 divide-x border-gray-800">
             <div className={cn("p-2 text-sm font-medium bg-muted/30 text-center", 
               isMobile ? "text-[0.8rem]" : "")}
               style={{minWidth: "5rem"}}
@@ -527,7 +523,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                 <div 
                   key={index} 
                   className={cn(
-                    "p-1 min-h-[60px]", 
+                    "p-1 min-h-[40px]", 
                     isCurrentDate && "bg-accent/30",
                     isWeekendDay && "bg-muted/10"
                   )}
@@ -577,7 +573,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                       key={`${dayIndex}-${hourIndex}`} 
                       className="border-b h-[60px] relative"
                     >
-                      {/* Half-hour gridlines */}
+                      {/* Half-hour gridlines - more subtle */}
                       <div className="absolute top-1/2 left-0 right-0 border-t border-gray-800 border-opacity-50"></div>
                     </div>
                   ))}
