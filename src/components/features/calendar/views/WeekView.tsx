@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, subMonths, addWeeks, subWeeks, isSameMonth, isSameDay, isToday, isWeekend } from 'date-fns';
@@ -109,8 +108,8 @@ const WeekView: React.FC<WeekViewProps> = ({
     if (event.allDay) return true;
     
     const eventStartHour = event.startDate.getHours();
-    const eventEndHour = event.endDate.getHours();
     const eventStartMinute = event.startDate.getMinutes();
+    const eventEndHour = event.endDate.getHours();
     const eventEndMinute = event.endDate.getMinutes();
     
     const eventStart = eventStartHour + (eventStartMinute / MINUTES_PER_HOUR);
@@ -197,14 +196,18 @@ const WeekView: React.FC<WeekViewProps> = ({
     let leftOffset;
     
     if (isMobile) {
-      eventWidth = totalOverlapping > 1 ? 90 : 90; 
-      leftOffset = TIME_COLUMN_WIDTH + (dayColumnIndex * DAY_COLUMN_WIDTH) + 1;
+      eventWidth = 85; 
+      leftOffset = TIME_COLUMN_WIDTH + (dayColumnIndex * DAY_COLUMN_WIDTH) + 2;
     } else {
       const maxSideEvents = Math.min(totalOverlapping, 3);
-      eventWidth = (DAY_COLUMN_WIDTH / maxSideEvents) - 0.5;
+      const gapWidth = 1; 
+      eventWidth = ((DAY_COLUMN_WIDTH - gapWidth) / maxSideEvents) - gapWidth;
       
       const adjustedIndex = index % maxSideEvents;
-      leftOffset = TIME_COLUMN_WIDTH + (dayColumnIndex * DAY_COLUMN_WIDTH) + (adjustedIndex * (eventWidth));
+      leftOffset = TIME_COLUMN_WIDTH + 
+                  (dayColumnIndex * DAY_COLUMN_WIDTH) + 
+                  (adjustedIndex * (eventWidth + gapWidth)) + 
+                  gapWidth;
     }
     
     return {
@@ -213,10 +216,12 @@ const WeekView: React.FC<WeekViewProps> = ({
       height: `${heightValue}px`, 
       left: `${leftOffset}%`,
       width: `${eventWidth}%`,
-      minWidth: isMobile ? '80%' : '80px',
-      zIndex: 20,
+      maxWidth: isMobile ? '85%' : undefined,
+      zIndex: 20 + index,
       backgroundColor: event.color || '#4285F4',
-      opacity: 0.95
+      opacity: 0.95,
+      transform: 'translateZ(0)',
+      willChange: 'transform',
     };
   };
 
@@ -470,7 +475,7 @@ const WeekView: React.FC<WeekViewProps> = ({
         )}
       </div>
       
-      <div className="border rounded-lg overflow-hidden shadow-sm w-full">
+      <div className="border rounded-lg overflow-hidden shadow-sm w-full contain-strict">
         <div className="sticky top-0 z-10 bg-background border-b">
           <div className="grid grid-cols-8 divide-x border-gray-800">
             <div className={cn("p-2 text-sm font-medium bg-muted/30 text-center", 
@@ -548,8 +553,12 @@ const WeekView: React.FC<WeekViewProps> = ({
         </div>
         
         <ScrollArea 
-          className="overflow-auto" 
-          style={{ height: scrollContainerHeight, position: 'relative' }}
+          className="overflow-hidden" 
+          style={{ 
+            height: scrollContainerHeight,
+            position: 'relative',
+            containIntrinsicSize: `auto ${(endHour - startHour + 1) * minCellHeight}px`
+          }}
           scrollRef={scrollRef}
         >
           <div className="relative">
@@ -564,7 +573,8 @@ const WeekView: React.FC<WeekViewProps> = ({
               
               {daysInWeek.map((day, dayIndex) => (
                 <div key={`day-${dayIndex}`} className={cn(
-                  "relative",
+                  "relative min-w-[100px]",
+                  "contain-strict",
                   isToday(day) ? "bg-accent/10" : "",
                   isWeekend(day) ? "bg-muted/5" : ""
                 )}>
