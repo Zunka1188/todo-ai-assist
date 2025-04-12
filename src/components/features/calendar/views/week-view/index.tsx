@@ -90,7 +90,7 @@ const WeekView: React.FC<WeekViewProps> = ({
         <TimeGrid 
           daysInWeek={daysInWeek}
           hours={hours}
-          events={daysEventGroups} // Now properly typed as Event[][][]
+          events={daysEventGroups} // Passing Event[][][] type
           handleViewEvent={handleViewEvent}
           scrollRef={scrollRef}
           currentTimePosition={currentTimePosition}
