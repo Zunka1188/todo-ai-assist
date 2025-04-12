@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, FileText } from 'lucide-react';
-import ContentGrid from '@/components/ui/content-grid';
+import { Plus } from 'lucide-react';
 import HeaderActions from '@/components/ui/header-actions';
 import SearchInput from '@/components/ui/search-input';
 import DocumentList from './DocumentList';
