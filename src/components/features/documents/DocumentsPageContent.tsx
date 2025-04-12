@@ -1,10 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { Suspense } from 'react';
 import { Plus } from 'lucide-react';
 import HeaderActions from '@/components/ui/header-actions';
 import SearchInput from '@/components/ui/search-input';
-import DocumentList from './DocumentList';
-import { useDocuments } from '@/hooks/useDocuments';
+import { lazy } from 'react';
+import { useDocumentManagement } from './hooks/useDocumentManagement';
+import DocumentErrorBoundary from './components/DocumentErrorBoundary';
+import LoadingState from './components/LoadingState';
+import ErrorFallback from './components/ErrorFallback';
+
+// Lazy loaded components
+const DocumentList = lazy(() => import('./components/DocumentList'));
+const ImageAnalysisModal = lazy(() => import('./ImageAnalysisModal'));
 
 interface DocumentsPageContentProps {
   activeTab: string;
@@ -15,85 +22,109 @@ const DocumentsPageContent: React.FC<DocumentsPageContentProps> = ({
   activeTab,
   initialSearch = '',
 }) => {
-  const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  
   const {
-    categoryItems,
-    files,
-    filterDocuments,
-    filterFiles,
-    handleAddOrUpdateItem,
-    handleDeleteItem,
-    handleAddOrUpdateFile,
-    handleDeleteFile,
-    formatDateRelative,
-    CATEGORIES
-  } = useDocuments();
-  
-  // Create convenience functions to match expected props in DocumentList
-  const addDocument = handleAddOrUpdateItem;
-  const editDocument = handleAddOrUpdateItem;
-  const deleteDocument = handleDeleteItem;
-  const downloadDocument = (url: string, name: string) => {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = name || 'document';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
-
-  // Filtered documents based on active tab and search term
-  const [filteredDocuments, setFilteredDocuments] = useState<any[]>([]);
-
-  // Update filtered documents when search term changes
-  useEffect(() => {
-    const filtered = files.filter(file => 
-      activeTab === 'style' ? file.category === 'style' :
-      activeTab === 'shared' ? ['work', 'shared', 'other'].includes(file.category) :
-      activeTab === 'templates' ? ['templates', 'events'].includes(file.category) :
-      true
-    ).filter(file =>
-      searchTerm === '' || file.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // State
+    viewMode,
+    searchTerm,
+    currentCategory,
+    isLoading,
+    error,
+    isAddDialogOpen,
+    isImageAnalysisOpen,
+    currentFile,
     
-    setFilteredDocuments(filtered);
-  }, [searchTerm, activeTab, files]);
+    // Data
+    documents,
+    categories,
+    
+    // Actions
+    setSearchTerm,
+    openAddDocumentDialog,
+    handleAddDocument,
+    deleteDocument,
+    handleAnalysisComplete,
+    handleDownloadFile,
+    clearErrors
+  } = useDocumentManagement({
+    initialCategory: mapTabToCategory(activeTab),
+    initialSearchTerm: initialSearch,
+    initialViewMode: 'table'
+  });
   
+  function mapTabToCategory(tab: string) {
+    switch (tab) {
+      case 'style':
+        return 'style';
+      case 'shared':
+        return 'all'; // Show all categories for shared tab
+      case 'templates':
+        return 'events'; // Show events for templates tab
+      default:
+        return 'all';
+    }
+  }
+
   const headerActions = {
     primaryAction: {
       icon: Plus,
       label: "Add Document",
       shortLabel: "Add",
-      onClick: () => setIsAddDialogOpen(true)
+      onClick: openAddDocumentDialog
     }
   };
   
-  return (
-    <div className="w-full space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center">
-        <div className="w-full sm:max-w-sm">
-          <SearchInput
-            value={searchTerm}
-            onChange={setSearchTerm}
-            placeholder="Search documents..."
-          />
-        </div>
-        <HeaderActions {...headerActions} />
-      </div>
-      
-      <DocumentList
-        documents={filteredDocuments}
-        onAddDocument={addDocument}
-        onEditDocument={editDocument}
-        onDeleteDocument={deleteDocument}
-        onDownload={downloadDocument}
-        searchTerm={searchTerm}
-        viewMode="table"
-        showAddButton={false}
+  if (error) {
+    return (
+      <ErrorFallback 
+        error={error}
+        resetError={clearErrors}
+        title="Could not load documents"
+        description="There was a problem loading your documents. Please try again."
       />
-    </div>
+    );
+  }
+  
+  return (
+    <DocumentErrorBoundary context="DocumentsPageContent">
+      <div className="w-full space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center">
+          <div className="w-full sm:max-w-sm">
+            <SearchInput
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Search documents..."
+            />
+          </div>
+          <HeaderActions {...headerActions} />
+        </div>
+        
+        <Suspense fallback={<LoadingState message="Loading document list..." />}>
+          <DocumentList
+            documents={documents}
+            onAddDocument={handleAddDocument}
+            onEditDocument={openAddDocumentDialog}
+            onDeleteDocument={deleteDocument}
+            onDownload={handleDownloadFile}
+            searchTerm={searchTerm}
+            viewMode="table"
+            showAddButton={false}
+            isLoading={isLoading}
+            categories={categories}
+          />
+        </Suspense>
+        
+        <Suspense fallback={null}>
+          {isImageAnalysisOpen && currentFile && (
+            <ImageAnalysisModal
+              isOpen={isImageAnalysisOpen}
+              onClose={() => clearErrors()}
+              onAnalysisComplete={handleAnalysisComplete}
+              imageData={currentFile ? URL.createObjectURL(currentFile) : null}
+            />
+          )}
+        </Suspense>
+      </div>
+    </DocumentErrorBoundary>
   );
 };
 
