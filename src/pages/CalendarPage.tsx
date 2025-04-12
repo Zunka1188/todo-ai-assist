@@ -6,6 +6,7 @@ import { CalendarProvider, useCalendar } from '@/components/features/calendar/Ca
 import CalendarHeader from '@/components/features/calendar/ui/CalendarHeader';
 import CalendarContent from '@/components/features/calendar/ui/CalendarContent';
 import InviteDialog from '@/components/features/calendar/dialogs/InviteDialog';
+import { Toaster } from '@/components/ui/toaster';
 
 /**
  * Calendar Page Content Component
@@ -45,6 +46,8 @@ const CalendarPageContent: React.FC = () => {
         setIsOpen={setInviteDialogOpen}
         onShareLink={handleInviteSent}
       />
+      
+      <Toaster />
     </AppPage>
   );
 };
@@ -57,7 +60,7 @@ interface CalendarPageProps {
  * Calendar Page Component
  * Wrapper component that provides the calendar context
  */
-const CalendarPage: React.FC<CalendarPageProps> = ({ initialView }) => {
+const CalendarPage: React.FC<CalendarPageProps> = ({ initialView = 'week' }) => {
   return (
     <CalendarProvider initialView={initialView}>
       <CalendarPageContent />

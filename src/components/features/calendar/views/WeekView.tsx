@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, subMonths, addWeeks, subWeeks, isSameMonth, isSameDay, isToday } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, subMonths, addWeeks, subWeeks, isSameMonth, isSameDay, isToday, isWeekend } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Clock, AlertCircle, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { getFormattedTime } from '../utils/dateUtils';
 import { Event } from '../types/event';
 import ResponsiveContainer from '@/components/ui/responsive-container';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface WeekViewProps {
   date: Date;
@@ -34,18 +36,45 @@ const WeekView: React.FC<WeekViewProps> = ({
   minCellHeight = 60,
   timeColumnWidth = 60
 }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [startHour, setStartHour] = useState(0);
   const [endHour, setEndHour] = useState(23);
   const [showFullDay, setShowFullDay] = useState(true);
   const [startInputValue, setStartInputValue] = useState("0");
   const [endInputValue, setEndInputValue] = useState("23");
+  const [currentTime, setCurrentTime] = useState(new Date());
   const { toast } = useToast();
   const { isMobile } = useIsMobile();
 
-  const HOUR_HEIGHT = 60;
+  // Update current time for the time indicator
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(timer);
+  }, []);
+
+  // Scroll to current time on initial render
+  useEffect(() => {
+    if (scrollRef.current) {
+      const now = new Date();
+      const currentHour = now.getHours();
+      
+      // Only scroll if current time is within view range
+      if (currentHour >= startHour && currentHour <= endHour) {
+        const scrollPosition = (currentHour - startHour) * minCellHeight;
+        setTimeout(() => {
+          scrollRef.current?.scrollTo({ top: scrollPosition - 100, behavior: 'smooth' });
+        }, 300);
+      }
+    }
+  }, [startHour, endHour, minCellHeight]);
+
+  const HOUR_HEIGHT = minCellHeight;
   const MINUTES_PER_HOUR = 60;
   const MINUTE_HEIGHT = HOUR_HEIGHT / MINUTES_PER_HOUR;
-  const TIME_COLUMN_WIDTH = 10;
+  const TIME_COLUMN_WIDTH = timeColumnWidth;
   const DAY_COLUMN_WIDTH = (100 - TIME_COLUMN_WIDTH) / 7;
 
   const weekStart = startOfWeek(date, { weekStartsOn });
@@ -183,7 +212,8 @@ const WeekView: React.FC<WeekViewProps> = ({
       width: `${eventWidth}%`,
       minWidth: isMobile ? '80%' : '80px',
       zIndex: 20,
-      backgroundColor: event.color || '#4285F4'
+      backgroundColor: event.color || '#4285F4',
+      opacity: 0.95
     };
   };
 
@@ -321,6 +351,26 @@ const WeekView: React.FC<WeekViewProps> = ({
     setShowFullDay(startHour === 0 && endHour === 23);
   };
 
+  // Calculate current time indicator position
+  const getCurrentTimePosition = () => {
+    const now = currentTime;
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    // Check if current time is within the visible range
+    if (currentHour < startHour || currentHour > endHour) return -1;
+    
+    // Calculate position
+    return (currentHour - startHour) * minCellHeight + (currentMinute / 60) * minCellHeight;
+  };
+  
+  const currentTimePosition = getCurrentTimePosition();
+  
+  // Calculate scroll container height
+  const scrollContainerHeight = isMobile 
+    ? 'calc(100vh - 320px)' 
+    : 'calc(100vh - 300px)';
+
   return (
     <ResponsiveContainer fullWidth noGutters className="space-y-4">
       <div className="flex items-center justify-between">
@@ -358,7 +408,7 @@ const WeekView: React.FC<WeekViewProps> = ({
           <Toggle
             pressed={showFullDay}
             onPressedChange={() => handleTimeRangeToggle('full')}
-            className="bg-transparent data-[state=on]:bg-todo-purple data-[state=on]:text-primary-foreground tap-target"
+            className="bg-transparent data-[state=on]:bg-purple-600 data-[state=on]:text-primary-foreground tap-target"
           >
             Full 24h
           </Toggle>
@@ -425,9 +475,9 @@ const WeekView: React.FC<WeekViewProps> = ({
         )}
       </div>
       
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded-lg overflow-hidden shadow-sm w-full">
         <div className="sticky top-0 z-10 bg-background border-b">
-          <div className="grid grid-cols-8 divide-x">
+          <div className="grid grid-cols-8 divide-x border-gray-800">
             <div className={cn("p-2 text-sm font-medium bg-muted/30 text-center", 
               isMobile ? "text-[0.8rem]" : "")}
               style={{minWidth: "5rem"}}
@@ -436,10 +486,15 @@ const WeekView: React.FC<WeekViewProps> = ({
             </div>
             {daysInWeek.map((day, index) => {
               const isCurrentDate = isToday(day);
+              const isWeekendDay = isWeekend(day);
               return (
                 <div 
                   key={index} 
-                  className={cn("p-2 text-center", isCurrentDate && "bg-accent/30")}
+                  className={cn(
+                    "p-2 text-center border-b border-gray-800", 
+                    isCurrentDate && "bg-accent/30",
+                    isWeekendDay && "bg-muted/10"
+                  )}
                 >
                   <div className={cn("font-medium", isMobile ? "text-[0.8rem]" : "")}>
                     {format(day, 'EEE')}
@@ -447,6 +502,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                   <div className={cn(
                     "text-sm", 
                     isCurrentDate ? "text-primary font-semibold" : "text-muted-foreground",
+                    isWeekendDay && !isCurrentDate && "text-purple-300 dark:text-purple-300",
                     isMobile ? "text-[0.8rem]" : ""
                   )}>
                     {format(day, 'd')}
@@ -456,7 +512,7 @@ const WeekView: React.FC<WeekViewProps> = ({
             })}
           </div>
           
-          <div className="grid grid-cols-8 divide-x border-b">
+          <div className="grid grid-cols-8 divide-x border-gray-800 border-b">
             <div className={cn("p-2 text-sm font-medium bg-muted/30 text-center", 
               isMobile ? "text-[0.8rem]" : "")}
               style={{minWidth: "5rem"}}
@@ -466,10 +522,15 @@ const WeekView: React.FC<WeekViewProps> = ({
             {daysInWeek.map((day, index) => {
               const allDayEvents = getEventsForDay(day).filter(event => event.allDay);
               const isCurrentDate = isToday(day);
+              const isWeekendDay = isWeekend(day);
               return (
                 <div 
                   key={index} 
-                  className={cn("p-1 min-h-[60px]", isCurrentDate && "bg-accent/30")}
+                  className={cn(
+                    "p-1 min-h-[60px]", 
+                    isCurrentDate && "bg-accent/30",
+                    isWeekendDay && "bg-muted/10"
+                  )}
                 >
                   {allDayEvents.map(event => (
                     <div 
@@ -490,61 +551,84 @@ const WeekView: React.FC<WeekViewProps> = ({
           </div>
         </div>
         
-        <div className={cn(
-          "overflow-y-auto relative",
-          isMobile ? "max-h-[calc(100vh-360px)]" : "max-h-[600px]"
-        )}>
-          <div className="grid grid-cols-8 divide-x">
-            <div className="bg-muted/10 sticky left-0 z-10 border-r border-muted" style={{minWidth: "5rem"}}>
-              {hours.map((hour, i) => (
-                <div key={`hour-${i}`} className="border-b h-[60px] px-2 py-1 text-right text-sm text-muted-foreground">
-                  {hour}:00
-                </div>
-              ))}
-            </div>
-            
-            {daysInWeek.map((day, dayIndex) => (
-              <div key={`day-${dayIndex}`} className="relative">
-                {hours.map((_, hourIndex) => (
-                  <div 
-                    key={`${dayIndex}-${hourIndex}`} 
-                    className="border-b h-[60px]"
-                  />
-                ))}
-                
-                {daysEventGroups[dayIndex].map((group, groupIndex) => (
-                  <div key={`group-${dayIndex}-${groupIndex}`} className="relative">
-                    {group.map((event, eventIndex) => (
-                      <div 
-                        key={`multi-${event.id}-${dayIndex}`} 
-                        className={cn(
-                          "absolute text-xs p-2 rounded cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto",
-                          isMobile ? "left-0 right-0 mx-1" : ""
-                        )}
-                        style={getMultiHourEventStyle(event, day, group.length, eventIndex)}
-                        onClick={() => handleViewEvent(event)}
-                      >
-                        <div className="flex items-center">
-                          <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
-                          <span className="text-white truncate">{event.title}</span>
-                        </div>
-                        <div className="text-white/90 text-[10px] truncate">
-                          {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
-                        </div>
-                        {event.location && (
-                          <div className="text-white/90 text-[10px] flex items-center truncate">
-                            <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80 flex-shrink-0" />
-                            <span className="truncate">{event.location}</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+        <ScrollArea 
+          className="overflow-auto" 
+          style={{ height: scrollContainerHeight, position: 'relative' }}
+          scrollRef={scrollRef}
+        >
+          <div className="relative">
+            <div className="grid grid-cols-8 divide-x border-gray-800">
+              <div className="sticky left-0 z-10 border-r border-gray-800" style={{minWidth: "5rem"}}>
+                {hours.map((hour, i) => (
+                  <div key={`hour-${i}`} className="border-b h-[60px] px-2 py-1 text-right text-xs text-muted-foreground">
+                    {format(new Date().setHours(hour), 'h a')}
                   </div>
                 ))}
               </div>
-            ))}
+              
+              {daysInWeek.map((day, dayIndex) => (
+                <div key={`day-${dayIndex}`} className={cn(
+                  "relative",
+                  isToday(day) ? "bg-accent/10" : "",
+                  isWeekend(day) ? "bg-muted/5" : ""
+                )}>
+                  {hours.map((_, hourIndex) => (
+                    <div 
+                      key={`${dayIndex}-${hourIndex}`} 
+                      className="border-b h-[60px] relative"
+                    >
+                      {/* Half-hour gridlines */}
+                      <div className="absolute top-1/2 left-0 right-0 border-t border-gray-800 border-opacity-50"></div>
+                    </div>
+                  ))}
+                  
+                  {/* Current time indicator for today's column */}
+                  {isToday(day) && currentTimePosition > 0 && (
+                    <div 
+                      className="absolute left-0 right-0 flex items-center z-10 pointer-events-none"
+                      style={{ top: `${currentTimePosition}px` }}
+                    >
+                      <div className="h-2 w-2 rounded-full bg-red-500 ml-2"></div>
+                      <div className="flex-1 h-[1px] bg-red-500"></div>
+                    </div>
+                  )}
+                  
+                  {/* Event cards */}
+                  {daysEventGroups[dayIndex].map((group, groupIndex) => (
+                    <div key={`group-${dayIndex}-${groupIndex}`} className="relative">
+                      {group.map((event, eventIndex) => (
+                        <div 
+                          key={`multi-${event.id}-${dayIndex}`} 
+                          className={cn(
+                            "absolute text-xs p-2 rounded cursor-pointer hover:opacity-80 touch-manipulation pointer-events-auto",
+                            isMobile ? "left-0 right-0 mx-1" : "",
+                            "shadow-sm"
+                          )}
+                          style={getMultiHourEventStyle(event, day, group.length, eventIndex)}
+                          onClick={() => handleViewEvent(event)}
+                        >
+                          <div className="flex items-center">
+                            <Clock className="h-2.5 w-2.5 mr-1 text-white flex-shrink-0" />
+                            <span className="text-white truncate font-medium">{event.title}</span>
+                          </div>
+                          <div className="text-white/90 text-[10px] truncate">
+                            {getFormattedTime(event.startDate)} - {getFormattedTime(event.endDate)}
+                          </div>
+                          {event.location && (
+                            <div className="text-white/90 text-[10px] flex items-center truncate">
+                              <MapPin className="h-2.5 w-2.5 mr-0.5 text-white/80 flex-shrink-0" />
+                              <span className="truncate">{event.location}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </ScrollArea>
       </div>
     </ResponsiveContainer>
   );
