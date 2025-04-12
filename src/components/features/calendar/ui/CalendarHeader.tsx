@@ -49,9 +49,7 @@ const CalendarHeader: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
         {/* Left section: Navigation and title */}
         <div className="flex items-center - m">
-          <Button variant="ghost" size="sm" onClick={todayButtonClick} className="mr-2 text-sm">
-            Today
-          </Button>
+          
           
           <div className="flex items-center space-x-1 mr-4">
             <Button variant="outline" size="icon" onClick={handlePrevPeriod} aria-label="Previous period" className="h-9 w-9 min-w-[36px]">

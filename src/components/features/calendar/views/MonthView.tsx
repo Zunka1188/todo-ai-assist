@@ -99,10 +99,7 @@ const MonthView: React.FC<MonthViewProps> = ({
   // Reorder the days of week to start with Monday
   const daysOfWeek = weekStartsOn === 1 ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   return <div className="space-y-4">
-      <div className="flex justify-between items-center px-4 py-2">
-        
-        
-      </div>
+      
       
       <div className="bg-card border rounded-lg overflow-hidden shadow-sm">
         <div className="grid grid-cols-7 text-center">
