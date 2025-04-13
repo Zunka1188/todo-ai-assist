@@ -6,6 +6,7 @@ import { recipes } from '@/data/recipes';
 import { Recipe } from '@/data/recipes/types';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Clock, Flame, User } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 const RecipePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,10 +19,17 @@ const RecipePage: React.FC = () => {
     if (id) {
       // Find the recipe by ID when on a specific recipe page
       const foundRecipe = recipes.find(r => r.id === id);
+      
       if (foundRecipe) {
-        setRecipe(foundRecipe);
+        // Ensure we're using the correct type by explicitly casting
+        setRecipe(foundRecipe as Recipe);
       } else {
         setRecipe(null);
+        toast({
+          title: "Recipe Not Found",
+          description: `No recipe found with ID: ${id}`,
+          variant: "destructive"
+        });
       }
     }
     setLoading(false);
