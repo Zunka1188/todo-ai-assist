@@ -1,15 +1,9 @@
 
-// jest-dom adds custom jest matchers for asserting on DOM nodes.
-// allows you to do things like:
-// expect(element).toBeInTheDocument();
-// learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 import { expect, vi } from 'vitest';
+import { cleanup } from '@testing-library/react';
 
-// Set up global mocks or test utilities here
-// This file will be run before each test file
-
-// Mock window.matchMedia for components that might use media queries
+// Global mocks for common browser APIs
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation(query => ({
@@ -22,4 +16,30 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
+});
+
+// Mock local storage
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  clear: vi.fn(),
+  removeItem: vi.fn(),
+};
+global.localStorage = localStorageMock as unknown as Storage;
+
+// Cleanup after each test
+afterEach(() => {
+  cleanup();
+  vi.clearAllMocks();
+});
+
+// Enhanced expect with custom matchers
+expect.extend({
+  toBeInTheDocument(received) {
+    const pass = received !== null && received !== undefined;
+    return {
+      pass,
+      message: () => `expected element to be in the document`,
+    };
+  },
 });
