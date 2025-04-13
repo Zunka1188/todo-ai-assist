@@ -84,7 +84,7 @@ export function usePerformance({
 /**
  * HOC to wrap a component with performance tracking
  */
-export function withPerformanceTracking<P>(
+export function withPerformanceTracking<P extends object>(
   Component: React.ComponentType<P>,
   options: Omit<UsePerformanceOptions, 'componentName'>
 ) {
