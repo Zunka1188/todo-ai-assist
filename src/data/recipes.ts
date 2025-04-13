@@ -1,3 +1,4 @@
+
 import { Recipe, Ingredient } from '@/types/recipe';
 
 // Utility function to convert old format to new format
@@ -705,3 +706,9 @@ export const recipes: Recipe[] = [
     },
     nutritionalInfo: {
       calories: 100,
+      protein: 3,
+      carbs: 20,
+      fat: 1
+    }
+  }
+];
