@@ -27,22 +27,41 @@ const retryLoadComponent = <T extends { default: ComponentType<any> }>(
   });
 };
 
-// Lazy load pages with retry
-const Index = lazy(() => retryLoadComponent(() => import('@/pages/Index')));
-const ScanPage = lazy(() => retryLoadComponent(() => import('@/pages/ScanPage')));
-const UploadPage = lazy(() => retryLoadComponent(() => import('@/pages/UploadPage')));
-const CalendarPage = lazy(() => retryLoadComponent(() => import('@/pages/CalendarPage')));
-const ShoppingPage = lazy(() => retryLoadComponent(() => import('@/pages/ShoppingPage')));
-const TasksPage = lazy(() => retryLoadComponent(() => import('@/pages/TasksPage')));
-const DocumentsPage = lazy(() => retryLoadComponent(() => import('@/pages/DocumentsPage')));
-const SettingsPage = lazy(() => retryLoadComponent(() => import('@/pages/SettingsPage')));
-const NotFound = lazy(() => retryLoadComponent(() => import('@/pages/NotFound')));
-const TroubleshootPage = lazy(() => retryLoadComponent(() => import('@/pages/TroubleshootPage')));
-const AIModelsPage = lazy(() => retryLoadComponent(() => import('@/pages/AIModelsPage')));
-const WeatherPage = lazy(() => retryLoadComponent(() => import('@/pages/WeatherPage')));
-const ProduceRecognitionPage = lazy(() => retryLoadComponent(() => import('@/pages/ProduceRecognitionPage')));
-const RecipePage = lazy(() => retryLoadComponent(() => import('@/pages/RecipePage')));
-const DocumentsSubtabPage = lazy(() => retryLoadComponent(() => import('@/pages/DocumentsSubtabPage')));
+// Split code into chunks for better loading performance
+const pageBundles = {
+  home: () => import(/* webpackChunkName: "home" */ '@/pages/Index'),
+  scan: () => import(/* webpackChunkName: "scan" */ '@/pages/ScanPage'),
+  upload: () => import(/* webpackChunkName: "upload" */ '@/pages/UploadPage'),
+  calendar: () => import(/* webpackChunkName: "calendar" */ '@/pages/CalendarPage'),
+  shopping: () => import(/* webpackChunkName: "shopping" */ '@/pages/ShoppingPage'),
+  tasks: () => import(/* webpackChunkName: "tasks" */ '@/pages/TasksPage'),
+  documents: () => import(/* webpackChunkName: "documents" */ '@/pages/DocumentsPage'),
+  settings: () => import(/* webpackChunkName: "settings" */ '@/pages/SettingsPage'),
+  notFound: () => import(/* webpackChunkName: "not-found" */ '@/pages/NotFound'),
+  troubleshoot: () => import(/* webpackChunkName: "troubleshoot" */ '@/pages/TroubleshootPage'),
+  aiModels: () => import(/* webpackChunkName: "ai-models" */ '@/pages/AIModelsPage'),
+  weather: () => import(/* webpackChunkName: "weather" */ '@/pages/WeatherPage'),
+  produceRecognition: () => import(/* webpackChunkName: "produce" */ '@/pages/ProduceRecognitionPage'),
+  recipe: () => import(/* webpackChunkName: "recipe" */ '@/pages/RecipePage'),
+  documentsSubtab: () => import(/* webpackChunkName: "docs-subtab" */ '@/pages/DocumentsSubtabPage'),
+};
+
+// Lazy load pages with retry and code splitting
+const Index = lazy(() => retryLoadComponent(pageBundles.home));
+const ScanPage = lazy(() => retryLoadComponent(pageBundles.scan));
+const UploadPage = lazy(() => retryLoadComponent(pageBundles.upload));
+const CalendarPage = lazy(() => retryLoadComponent(pageBundles.calendar));
+const ShoppingPage = lazy(() => retryLoadComponent(pageBundles.shopping));
+const TasksPage = lazy(() => retryLoadComponent(pageBundles.tasks));
+const DocumentsPage = lazy(() => retryLoadComponent(pageBundles.documents));
+const SettingsPage = lazy(() => retryLoadComponent(pageBundles.settings));
+const NotFound = lazy(() => retryLoadComponent(pageBundles.notFound));
+const TroubleshootPage = lazy(() => retryLoadComponent(pageBundles.troubleshoot));
+const AIModelsPage = lazy(() => retryLoadComponent(pageBundles.aiModels));
+const WeatherPage = lazy(() => retryLoadComponent(pageBundles.weather));
+const ProduceRecognitionPage = lazy(() => retryLoadComponent(pageBundles.produceRecognition));
+const RecipePage = lazy(() => retryLoadComponent(pageBundles.recipe));
+const DocumentsSubtabPage = lazy(() => retryLoadComponent(pageBundles.documentsSubtab));
 
 // Route guard to check authentication if needed
 export function withAuthGuard(element: React.ReactNode, requireAuth = false, allowedRoles: string[] = []): React.ReactNode {
@@ -159,3 +178,35 @@ export const routes: RouteObject[] = [
     element: withAllWrappers(<NotFound />, '404 Not Found'),
   },
 ];
+
+// Function to prefetch routes for faster navigation
+export const prefetchRoutes = (routePaths: string[]) => {
+  routePaths.forEach(path => {
+    switch (path) {
+      case '/':
+        pageBundles.home();
+        break;
+      case '/scan':
+        pageBundles.scan();
+        break;
+      case '/upload':
+        pageBundles.upload();
+        break;
+      case '/calendar':
+        pageBundles.calendar();
+        break;
+      case '/shopping':
+        pageBundles.shopping();
+        break;
+      case '/tasks':
+        pageBundles.tasks();
+        break;
+      case '/documents':
+        pageBundles.documents();
+        break;
+      default:
+        // No prefetch for other routes
+        break;
+    }
+  });
+};
