@@ -38,13 +38,13 @@ export function useCachedQuery<TData, TError = Error>(
     return data;
   };
 
-  // Explicitly create query options
-  const queryOptions: UseQueryOptions<TData, TError> = {
+  // Create the options object with the required structure
+  const queryOptions = {
     queryKey,
     queryFn: enhancedQueryFn,
-    ...options,
+    ...(options || {})
   };
 
-  // Use the created options object
-  return useQuery<TData, TError>(queryOptions);
+  // Pass the options object as a single argument
+  return useQuery(queryOptions);
 }
