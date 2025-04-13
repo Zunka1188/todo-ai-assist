@@ -119,6 +119,12 @@ export const ValidationSchemas = {
   url: z.string().url('Invalid URL format'),
   phone: z.string().regex(/^\+?[0-9]{10,15}$/, 'Invalid phone number format'),
   date: z.coerce.date(),
+  uuid: z.string().uuid('Invalid UUID format'),
+  objectId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid ObjectId format'),
+  zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, 'Invalid ZIP code format'),
+  ipAddress: z.string().ip('Invalid IP address format'),
+  creditCard: z.string().regex(/^\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}$/, 'Invalid credit card format'),
+  hexColor: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Invalid hex color format'),
 };
 
 /**
@@ -165,3 +171,66 @@ export function createSanitizedField(maxLength: number = 255) {
     setValueAs: (value: string) => sanitizeTextInput(value, maxLength),
   };
 }
+
+/**
+ * Validate file based on allowed types and size
+ * @param file File to validate
+ * @param allowedTypes Array of MIME types
+ * @param maxSize Maximum file size in bytes
+ * @returns Validation result
+ */
+export function validateFile(
+  file: File,
+  allowedTypes: string[] = [],
+  maxSize: number = 5 * 1024 * 1024 // 5MB default
+): { valid: boolean; message?: string } {
+  // Check file size
+  if (file.size > maxSize) {
+    return {
+      valid: false,
+      message: `File size exceeds maximum allowed (${(maxSize / (1024 * 1024)).toFixed(2)}MB)`,
+    };
+  }
+  
+  // Check file type if types are specified
+  if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
+    return {
+      valid: false,
+      message: `File type not allowed. Allowed types: ${allowedTypes.join(', ')}`,
+    };
+  }
+  
+  return { valid: true };
+}
+
+/**
+ * Advanced schema composition helpers
+ */
+export const SchemaHelpers = {
+  /**
+   * Create an object schema with common validation
+   */
+  createObjectSchema: <T extends z.ZodRawShape>(shape: T) => {
+    return z.object(shape).strict();
+  },
+  
+  /**
+   * Create an array schema with common validation
+   */
+  createArraySchema: <T extends z.ZodTypeAny>(itemSchema: T) => {
+    return z.array(itemSchema)
+      .nonempty('Array cannot be empty');
+  },
+  
+  /**
+   * Transform and validate string to a number
+   */
+  stringToNumber: () => {
+    return z.string()
+      .transform((val) => {
+        const parsed = parseFloat(val);
+        return Number.isNaN(parsed) ? undefined : parsed;
+      })
+      .refine((val) => val !== undefined, 'Must be a valid number');
+  },
+};

@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useShareableLinks } from '@/hooks/useShareableLinks';
 import { Event } from '../types/event';
+import { validateWithSchema } from '@/utils/input-validation';
+import { z } from 'zod';
 
 type RSVPStatus = 'yes' | 'no' | 'maybe' | 'pending';
 
@@ -20,6 +22,23 @@ export interface EventInvite {
   responses: RSVPResponse[];
   expiresAt: string;
 }
+
+// Schema for RSVP response
+const RSVPResponseSchema = z.object({
+  userId: z.string().optional(),
+  name: z.string().min(1, "Name is required").max(100),
+  status: z.enum(["yes", "no", "maybe", "pending"]),
+  timestamp: z.string().datetime()
+});
+
+// Schema for event invite
+const EventInviteSchema = z.object({
+  eventId: z.string().min(1),
+  invitedBy: z.string(),
+  inviteLink: z.string().url("Invalid URL format"),
+  responses: z.array(RSVPResponseSchema),
+  expiresAt: z.string().datetime()
+});
 
 export const useCalendarSharing = () => {
   const [invites, setInvites] = useState<EventInvite[]>([]);
@@ -52,6 +71,11 @@ export const useCalendarSharing = () => {
   // Create a shareable link for a specific event
   const shareEvent = (event: Event, expiresInDays: number = 7) => {
     try {
+      // Validate the event
+      if (!event.id) {
+        throw new Error("Event must have an ID");
+      }
+      
       const linkUrl = createShareableLink(event.id, 'calendar', expiresInDays);
       
       // Store the event invite information locally
@@ -62,6 +86,12 @@ export const useCalendarSharing = () => {
         responses: [],
         expiresAt: new Date(Date.now() + (expiresInDays * 24 * 60 * 60 * 1000)).toISOString()
       };
+      
+      // Validate invite structure before storing
+      const validation = validateWithSchema(EventInviteSchema, newInvite);
+      if (!validation.success) {
+        throw new Error("Invalid event invite structure");
+      }
       
       setInvites(prev => [...prev, newInvite]);
       
@@ -90,6 +120,12 @@ export const useCalendarSharing = () => {
         status,
         timestamp: new Date().toISOString()
       };
+
+      // Validate RSVP response
+      const validation = validateWithSchema(RSVPResponseSchema, response);
+      if (!validation.success) {
+        throw new Error(validation.errors?.[0]?.message || "Invalid RSVP response");
+      }
 
       setInvites(prev => prev.map(invite => {
         if (invite.eventId === eventId) {
@@ -122,7 +158,7 @@ export const useCalendarSharing = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to record RSVP"
+        description: error instanceof Error ? error.message : "Failed to record RSVP"
       });
       return false;
     }

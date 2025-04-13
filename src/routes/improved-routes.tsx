@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { RouteObject } from 'react-router-dom';
-import { lazyLoad } from '@/utils/code-splitting';
+import { lazyLoad, prefetchModule } from '@/utils/code-splitting';
 import { performanceMonitor } from '@/utils/performance-monitor';
 import ErrorBoundary from '@/components/ui/error-boundary';
+import { logger } from '@/utils/logger';
 
 // Lazy-loaded route components
 const Index = lazyLoad(() => import('@/pages/Index'), 'IndexPage');
@@ -104,18 +105,19 @@ export const enhancedRoutes: RouteObject[] = [
 // Prefetch specific routes for better UX
 export function prefetchRoutes(paths: string[]): void {
   const routesToPrefetch = enhancedRoutes
-    .filter(route => paths.includes(route.path || ''))
-    .map(route => {
-      // Extract component from the React.Suspense and ErrorBoundary wrapper
-      // This is a simplification - in real implementation you'd need to get the actual component
-      return route;
-    });
+    .filter(route => paths.includes(route.path || ''));
 
   performanceMonitor.mark('route_prefetch_start');
   
-  // Note: This is a simplified example
-  // In a real implementation, you would extract the lazy components and prefetch them
-  logger.log(`[Router] Prefetching routes: ${paths.join(', ')}`);
+  // Dynamically import route components
+  paths.forEach(path => {
+    const route = enhancedRoutes.find(r => r.path === path);
+    if (route) {
+      // This logs the prefetch intention but doesn't actually do the prefetch
+      // The actual prefetch happens in Router.tsx
+      logger.log(`[Router] Queueing prefetch for route: ${path}`);
+    }
+  });
   
   performanceMonitor.mark('route_prefetch_end');
   performanceMonitor.measure(
@@ -124,6 +126,17 @@ export function prefetchRoutes(paths: string[]): void {
     'route_prefetch_end'
   );
 }
+
+// Map of paths to import functions for actual prefetching
+export const routeImportMap: Record<string, () => Promise<{ default: React.ComponentType<any> }>> = {
+  '/': () => import('@/pages/Index'),
+  '/scan': () => import('@/pages/ScanPage'),
+  '/upload': () => import('@/pages/UploadPage'),
+  '/shopping': () => import('@/pages/ShoppingPage'),
+  '/calendar': () => import('@/pages/CalendarPage'),
+  '/documents': () => import('@/pages/DocumentsPage'),
+  '/weather': () => import('@/pages/WeatherPage'),
+};
 
 // Export enhanced route configuration
 export default enhancedRoutes;

@@ -87,6 +87,32 @@ export function preloadAssets(
 }
 
 /**
+ * Dynamically import a module with controlled priority
+ * @param importFunc Function that imports the module
+ * @param priority Whether to load with high priority
+ */
+export function importWithPriority<T>(
+  importFunc: () => Promise<T>,
+  priority: 'high' | 'low' = 'high'
+): Promise<T> {
+  // For modern browsers that support loading priority
+  if ('connection' in navigator && (navigator as any).connection?.saveData) {
+    // If the user is in data saver mode, always use low priority
+    priority = 'low';
+  }
+  
+  if (priority === 'low' && 'requestIdleCallback' in window) {
+    return new Promise(resolve => {
+      (window as any).requestIdleCallback(() => {
+        importFunc().then(resolve);
+      });
+    });
+  }
+  
+  return importFunc();
+}
+
+/**
  * Initialize bundle optimizations
  * @param options Configuration options
  */
@@ -96,6 +122,7 @@ export function initBundleOptimizations(options: {
   preloadFonts?: string[];
   preloadScripts?: string[];
   preloadStyles?: string[];
+  enableIntersectionLoading?: boolean;
 }): void {
   logger.log('[BundleOptimization] Initializing bundle optimizations');
   
@@ -121,5 +148,45 @@ export function initBundleOptimizations(options: {
     preloadAssets(options.preloadStyles, 'style');
   }
   
+  // Setup intersection observer based lazy loading
+  if (options.enableIntersectionLoading && 'IntersectionObserver' in window) {
+    setupIntersectionBasedLoading();
+  }
+  
   logger.log('[BundleOptimization] Bundle optimizations initialized');
+}
+
+/**
+ * Setup intersection observer based lazy loading for images and iframes
+ */
+function setupIntersectionBasedLoading(): void {
+  const lazyLoadElements = document.querySelectorAll('[data-lazy-src], [data-lazy-srcset]');
+  
+  if (lazyLoadElements.length === 0) return;
+  
+  const lazyLoadObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const element = entry.target as HTMLImageElement | HTMLIFrameElement;
+        
+        if (element.dataset.lazySrc) {
+          element.src = element.dataset.lazySrc;
+          delete element.dataset.lazySrc;
+        }
+        
+        if (element.dataset.lazySrcset) {
+          element.srcset = element.dataset.lazySrcset;
+          delete element.dataset.lazySrcset;
+        }
+        
+        observer.unobserve(element);
+      }
+    });
+  });
+  
+  lazyLoadElements.forEach(element => {
+    lazyLoadObserver.observe(element);
+  });
+  
+  logger.log(`[BundleOptimization] Set up lazy loading for ${lazyLoadElements.length} elements`);
 }
