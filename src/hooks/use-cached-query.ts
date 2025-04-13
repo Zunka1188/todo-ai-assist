@@ -39,9 +39,9 @@ export function useCachedQuery<TData, TError = Error>(
   };
 
   // Use the object parameter syntax required by TanStack Query v5
-  return useQuery({
-    queryKey: queryKey,
+  return useQuery<TData, TError>({
+    queryKey,
     queryFn: enhancedQueryFn,
-    ...(options || {})
+    ...options
   });
 }
