@@ -83,8 +83,8 @@ export function useInvalidateCache() {
     // Clear local cache
     appCache.clear();
     
-    // Clear React Query cache - Pass an empty object with no arguments
-    return queryClient.clear({});
+    // Clear React Query cache - Use empty object parameter for v5 API
+    return queryClient.clear();
   };
   
   return { invalidateQuery, clearAllQueries };
