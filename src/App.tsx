@@ -10,13 +10,15 @@ import AppLayout from "./components/layout/AppLayout";
 import Router from "./routes/Router";
 import { StoreProvider } from "./state/useStore";
 import { SecurityProvider } from "./state/SecurityProvider";
+import ErrorBoundary from "./components/ui/error-boundary";
 
-// Create query client with default options
+// Create query client with default options and error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: 1
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
     }
   }
 });
@@ -31,25 +33,27 @@ const routerOptions = {
 
 const App = () => {
   return (
-    <StoreProvider>
-      <QueryClientProvider client={queryClient}>
-        <SecurityProvider>
-          <ThemeProvider>
-            <ToastProvider>
-              <TooltipProvider>
-                <BrowserRouter {...routerOptions}>
-                  <Toaster />
-                  <Sonner />
-                  <AppLayout>
-                    <Router />
-                  </AppLayout>
-                </BrowserRouter>
-              </TooltipProvider>
-            </ToastProvider>
-          </ThemeProvider>
-        </SecurityProvider>
-      </QueryClientProvider>
-    </StoreProvider>
+    <ErrorBoundary>
+      <StoreProvider>
+        <QueryClientProvider client={queryClient}>
+          <SecurityProvider>
+            <ThemeProvider>
+              <ToastProvider>
+                <TooltipProvider>
+                  <BrowserRouter {...routerOptions}>
+                    <Toaster />
+                    <Sonner />
+                    <AppLayout>
+                      <Router />
+                    </AppLayout>
+                  </BrowserRouter>
+                </TooltipProvider>
+              </ToastProvider>
+            </ThemeProvider>
+          </SecurityProvider>
+        </QueryClientProvider>
+      </StoreProvider>
+    </ErrorBoundary>
   );
 };
 
