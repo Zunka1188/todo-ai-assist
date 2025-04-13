@@ -213,5 +213,106 @@ export const koreanRecipes: Recipe[] = [
       fiber: 4
     },
     image: '/images/recipes/kimchi-jjigae.jpg'
+  },
+  {
+    id: 'bulgogi',
+    name: 'Bulgogi (Korean BBQ Beef)',
+    category: 'main',
+    cuisine: 'korean',
+    baseServings: 1,
+    prepTime: 30,
+    cookTime: 15,
+    calories: 420,
+    ingredients: {
+      default: [
+        { name: 'ribeye or sirloin beef', quantity: 250, unit: 'g', scalable: true },
+        { name: 'pear', quantity: 0.5, unit: 'medium', scalable: true },
+        { name: 'onion', quantity: 0.5, unit: 'medium', scalable: true },
+        { name: 'green onion', quantity: 2, unit: 'stalks', scalable: true },
+        { name: 'soy sauce', quantity: 3, unit: 'tbsp', scalable: true },
+        { name: 'brown sugar', quantity: 1, unit: 'tbsp', scalable: true },
+        { name: 'sesame oil', quantity: 1, unit: 'tbsp', scalable: true },
+        { name: 'garlic', quantity: 2, unit: 'cloves', scalable: false },
+        { name: 'ginger', quantity: 1, unit: 'tsp', scalable: true },
+        { name: 'black pepper', quantity: 0.5, unit: 'tsp', scalable: false },
+        { name: 'sesame seeds', quantity: 1, unit: 'tbsp', scalable: true }
+      ],
+      vegan: [
+        { name: 'seitan or soy curls', quantity: 250, unit: 'g', scalable: true },
+        { name: 'pear', quantity: 0.5, unit: 'medium', scalable: true },
+        { name: 'onion', quantity: 0.5, unit: 'medium', scalable: true },
+        { name: 'green onion', quantity: 2, unit: 'stalks', scalable: true },
+        { name: 'soy sauce', quantity: 3, unit: 'tbsp', scalable: true },
+        { name: 'brown sugar', quantity: 1, unit: 'tbsp', scalable: true },
+        { name: 'sesame oil', quantity: 1, unit: 'tbsp', scalable: true },
+        { name: 'garlic', quantity: 2, unit: 'cloves', scalable: false },
+        { name: 'ginger', quantity: 1, unit: 'tsp', scalable: true },
+        { name: 'black pepper', quantity: 0.5, unit: 'tsp', scalable: false },
+        { name: 'sesame seeds', quantity: 1, unit: 'tbsp', scalable: true }
+      ],
+      glutenFree: [
+        { name: 'ribeye or sirloin beef', quantity: 250, unit: 'g', scalable: true },
+        { name: 'pear', quantity: 0.5, unit: 'medium', scalable: true },
+        { name: 'onion', quantity: 0.5, unit: 'medium', scalable: true },
+        { name: 'green onion', quantity: 2, unit: 'stalks', scalable: true },
+        { name: 'tamari sauce', quantity: 3, unit: 'tbsp', scalable: true },
+        { name: 'brown sugar', quantity: 1, unit: 'tbsp', scalable: true },
+        { name: 'sesame oil', quantity: 1, unit: 'tbsp', scalable: true },
+        { name: 'garlic', quantity: 2, unit: 'cloves', scalable: false },
+        { name: 'ginger', quantity: 1, unit: 'tsp', scalable: true },
+        { name: 'black pepper', quantity: 0.5, unit: 'tsp', scalable: false },
+        { name: 'sesame seeds', quantity: 1, unit: 'tbsp', scalable: true }
+      ],
+      dairyFree: [
+        { name: 'ribeye or sirloin beef', quantity: 250, unit: 'g', scalable: true },
+        { name: 'pear', quantity: 0.5, unit: 'medium', scalable: true },
+        { name: 'onion', quantity: 0.5, unit: 'medium', scalable: true },
+        { name: 'green onion', quantity: 2, unit: 'stalks', scalable: true },
+        { name: 'soy sauce', quantity: 3, unit: 'tbsp', scalable: true },
+        { name: 'brown sugar', quantity: 1, unit: 'tbsp', scalable: true },
+        { name: 'sesame oil', quantity: 1, unit: 'tbsp', scalable: true },
+        { name: 'garlic', quantity: 2, unit: 'cloves', scalable: false },
+        { name: 'ginger', quantity: 1, unit: 'tsp', scalable: true },
+        { name: 'black pepper', quantity: 0.5, unit: 'tsp', scalable: false },
+        { name: 'sesame seeds', quantity: 1, unit: 'tbsp', scalable: true }
+      ],
+      lowCarb: [
+        { name: 'ribeye or sirloin beef', quantity: 300, unit: 'g', scalable: true },
+        { name: 'onion', quantity: 0.5, unit: 'medium', scalable: true },
+        { name: 'green onion', quantity: 2, unit: 'stalks', scalable: true },
+        { name: 'coconut aminos', quantity: 3, unit: 'tbsp', scalable: true },
+        { name: 'monk fruit sweetener', quantity: 1, unit: 'tsp', scalable: true },
+        { name: 'sesame oil', quantity: 1, unit: 'tbsp', scalable: true },
+        { name: 'garlic', quantity: 2, unit: 'cloves', scalable: false },
+        { name: 'ginger', quantity: 1, unit: 'tsp', scalable: true },
+        { name: 'black pepper', quantity: 0.5, unit: 'tsp', scalable: false },
+        { name: 'sesame seeds', quantity: 1, unit: 'tbsp', scalable: true }
+      ]
+    },
+    instructions: [
+      'Slice beef thinly across the grain',
+      'Blend pear, onion, soy sauce, sugar, and seasonings for marinade',
+      'Marinate beef for at least 30 minutes',
+      'Heat pan over high heat',
+      'Cook beef in batches until caramelized',
+      'Garnish with green onions and sesame seeds',
+      'Serve with rice and lettuce leaves'
+    ],
+    dietaryInfo: {
+      isVegan: false,
+      isVegetarian: false,
+      isGlutenFree: false,
+      isDairyFree: true,
+      isLowCarb: false,
+      isNutFree: true
+    },
+    nutritionalInfo: {
+      calories: 420,
+      protein: 30,
+      carbohydrates: 18,
+      fat: 24,
+      fiber: 2
+    },
+    image: '/images/recipes/bulgogi.jpg'
   }
 ];
