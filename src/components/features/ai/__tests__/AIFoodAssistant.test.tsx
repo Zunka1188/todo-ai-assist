@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AIFoodAssistant from '../AIFoodAssistant';
-import { expect, vi } from 'vitest';
+import { expect, vi, describe, beforeEach, it } from 'vitest';
 
 // Mock the Toast provider since it might be used in the component
 vi.mock('@/hooks/use-toast', () => ({

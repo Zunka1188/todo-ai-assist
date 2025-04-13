@@ -1,4 +1,5 @@
-import { Recipe } from './types';
+
+import { Recipe } from '@/types/recipe';
 import { thaiRecipes } from './thai';
 import { indianRecipes } from './indian';
 import { italianRecipes } from './italian';
@@ -31,7 +32,7 @@ export const recipes: Recipe[] = [
   ...moroccanRecipes,
   ...lebaneseRecipes,
   // Spread other cuisine recipes here as they are added
-];
+] as Recipe[];
 
 // Helper functions for filtering recipes
 export function getRecipesByCuisine(cuisine: Recipe['cuisine']): Recipe[] {
