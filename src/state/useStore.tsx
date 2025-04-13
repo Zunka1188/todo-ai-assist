@@ -13,6 +13,7 @@ import {
 } from './types';
 import { SortOption } from '@/components/features/shopping/useShoppingItems';
 import { logger } from '@/utils/logger';
+import { Event } from '@/components/features/calendar/types/event';
 
 // Initial states
 const initialAppState: AppState = {
