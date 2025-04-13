@@ -1,8 +1,16 @@
-import { Recipe, Ingredient } from '@/data/recipes';
-import { DietaryRestriction, RecipeFilters } from '@/types/recipe';
+import { Recipe } from '@/data/recipes/types';
+import { recipes } from '@/data/recipes';
+import { DietaryRestriction } from '@/types/recipe';
+
+export interface RecipeFilters {
+  dietary: DietaryRestriction[];
+  maxPrepTime?: number;
+  maxCookTime?: number;
+  category?: string;
+}
 
 export class RecipeService {
-  static getRecipeVariation(recipe: Recipe, dietaryRestrictions: DietaryRestriction[]): Ingredient[] {
+  static getRecipeVariation(recipe: Recipe, dietaryRestrictions: DietaryRestriction[]): any[] {
     if (dietaryRestrictions.length === 0) {
       return recipe.ingredients.default;
     }
@@ -38,7 +46,7 @@ export class RecipeService {
     return ingredients;
   }
 
-  static scaleIngredients(ingredients: Ingredient[], targetServings: number, baseServings: number): Ingredient[] {
+  static scaleIngredients(ingredients: any[], targetServings: number, baseServings: number): any[] {
     return ingredients.map(ingredient => ({
       ...ingredient,
       quantity: ingredient.scalable 
@@ -47,7 +55,7 @@ export class RecipeService {
     }));
   }
 
-  static formatIngredient(ingredient: Ingredient): string {
+  static formatIngredient(ingredient: any): string {
     const quantity = ingredient.scalable 
       ? Math.round(ingredient.quantity * 10) / 10 // Round to 1 decimal place
       : ingredient.quantity;
@@ -56,25 +64,22 @@ export class RecipeService {
 
   static checkDietaryCompatibility(recipe: Recipe, restrictions: DietaryRestriction[]): boolean {
     for (const restriction of restrictions) {
-      switch (restriction) {
-        case 'vegan':
-          if (!recipe.dietaryInfo.isVegan) return false;
-          break;
-        case 'vegetarian':
-          if (!recipe.dietaryInfo.isVegetarian) return false;
-          break;
-        case 'gluten-free':
-          if (!recipe.dietaryInfo.isGlutenFree) return false;
-          break;
-        case 'dairy-free':
-          if (!recipe.dietaryInfo.isDairyFree) return false;
-          break;
-        case 'low-carb':
-          if (!recipe.dietaryInfo.isLowCarb) return false;
-          break;
-      }
+      const key = this.mapRestrictionToKey(restriction);
+      if (key && !recipe.dietaryInfo[key]) return false;
     }
     return true;
+  }
+
+  private static mapRestrictionToKey(restriction: DietaryRestriction): keyof Recipe['dietaryInfo'] | null {
+    switch (restriction) {
+      case 'vegan': return 'isVegan';
+      case 'vegetarian': return 'isVegetarian';
+      case 'gluten-free': return 'isGlutenFree';
+      case 'dairy-free': return 'isDairyFree';
+      case 'low-carb': return 'isLowCarb';
+      case 'nut-free': return 'isNutFree';
+      default: return null;
+    }
   }
 
   static filterRecipes(recipes: Recipe[], filters: RecipeFilters): Recipe[] {

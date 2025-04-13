@@ -13,6 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { DietaryRestrictionType } from './types';
+import { RecipeService } from '@/services/recipe.service';
 
 interface RecipeSearchProps {
   onSelectRecipe: (recipe: Recipe) => void;
@@ -89,15 +90,12 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
 
     // Filter by dietary restrictions
     if (activeFilters.dietary.length > 0) {
-      filtered = filtered.filter(recipe =>
-        activeFilters.dietary.every(restriction => 
-          recipe.dietaryInfo[restriction === 'dairy-free' ? 'isDairyFree' :
-                            restriction === 'gluten-free' ? 'isGlutenFree' :
-                            restriction === 'nut-free' ? 'isNutFree' :
-                            restriction === 'low-carb' ? 'isLowCarb' :
-                            `is${restriction.charAt(0).toUpperCase()}${restriction.slice(1)}` as keyof Recipe['dietaryInfo']]
-        )
-      );
+      filtered = filtered.filter(recipe => {
+        return activeFilters.dietary.every(restriction => {
+          const key = mapRestrictionToKey(restriction);
+          return key ? recipe.dietaryInfo[key] : false;
+        });
+      });
     }
 
     // Apply sorting
@@ -116,7 +114,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
       }
     });
 
-    setFilteredRecipes(filtered);
+    setFilteredRecipes([...filtered]);
   }, [searchTerm, activeFilters, sortBy]);
 
   useEffect(() => {
@@ -161,14 +159,10 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
   };
 
   const calculateMatchingCount = (filter: DietaryRestrictionType, type: 'dietary') => {
-    return recipes.filter(recipe => 
-      recipe.dietaryInfo[filter === 'dairy-free' ? 'isDairyFree' :
-                        filter === 'gluten-free' ? 'isGlutenFree' :
-                        filter === 'nut-free' ? 'isNutFree' :
-                        filter === 'low-carb' ? 'isLowCarb' :
-                        `is${filter.charAt(0).toUpperCase()}${filter.slice(1)}` as keyof Recipe['dietaryInfo']] &&
-      (activeFilters.cuisines.length === 0 || activeFilters.cuisines.includes(recipe.cuisine))
-    ).length;
+    return recipes.filter(recipe => {
+      const key = mapRestrictionToKey(filter);
+      return key ? recipe.dietaryInfo[key] : false;
+    }).length;
   };
 
   const handleSelectRecipe = (recipe: Recipe) => {
@@ -188,6 +182,18 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
   const decrementServingSize = () => {
     if (servingSize > 1) {
       setServingSize(prev => prev - 1);
+    }
+  };
+
+  const mapRestrictionToKey = (restriction: DietaryRestrictionType): keyof Recipe['dietaryInfo'] | null => {
+    switch (restriction) {
+      case 'vegan': return 'isVegan';
+      case 'vegetarian': return 'isVegetarian';
+      case 'gluten-free': return 'isGlutenFree';
+      case 'dairy-free': return 'isDairyFree';
+      case 'low-carb': return 'isLowCarb';
+      case 'nut-free': return 'isNutFree';
+      default: return null;
     }
   };
 
@@ -310,7 +316,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
               className="w-72 p-3" 
               align="end" 
               sideOffset={5}
-              style={{ background: theme === "dark" ? "#1f2937" : "#ffffff" }} // Explicitly setting background
+              style={{ background: theme === "dark" ? "#1f2937" : "#ffffff" }}
             >
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -439,48 +445,65 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
         <ScrollArea className="h-[280px] pr-3 rounded-md overflow-hidden">
           {filteredRecipes.length > 0 ? (
             <div className="space-y-2">
-              {filteredRecipes.map((recipe) => (
-                <button
-                  key={recipe.id}
-                  onClick={() => handleSelectRecipe(recipe)}
-                  className={cn(
-                    "p-3 rounded-md cursor-pointer transition-colors w-full text-left",
-                    theme === "dark" 
-                      ? "hover:bg-slate-800 border border-slate-700" 
-                      : "hover:bg-slate-100 border border-slate-200"
-                  )}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-medium text-sm">{recipe.name}</h4>
-                      <p className="text-xs text-muted-foreground capitalize">{recipe.cuisine} • {recipe.prepTime + recipe.cookTime} mins</p>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        <div className="flex items-center mr-2">
-                          <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            {recipe.prepTime}m prep • {recipe.cookTime}m cook
-                          </span>
+              {filteredRecipes.map((recipe) => {
+                const dietaryRestrictions = Object.entries(recipe.dietaryInfo)
+                  .filter(([_, value]) => value === true)
+                  .map(([key]) => {
+                    switch(key) {
+                      case 'isVegan': return 'vegan';
+                      case 'isVegetarian': return 'vegetarian';
+                      case 'isGlutenFree': return 'gluten-free';
+                      case 'isDairyFree': return 'dairy-free';
+                      case 'isLowCarb': return 'low-carb';
+                      case 'isNutFree': return 'nut-free';
+                      default: return '';
+                    }
+                  })
+                  .filter(val => val !== '');
+                  
+                return (
+                  <button
+                    key={recipe.id}
+                    onClick={() => handleSelectRecipe(recipe)}
+                    className={cn(
+                      "p-3 rounded-md cursor-pointer transition-colors w-full text-left",
+                      theme === "dark" 
+                        ? "hover:bg-slate-800 border border-slate-700" 
+                        : "hover:bg-slate-100 border border-slate-200"
+                    )}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium text-sm">{recipe.name}</h4>
+                        <p className="text-xs text-muted-foreground capitalize">{recipe.cuisine} • {recipe.prepTime + recipe.cookTime} mins</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          <div className="flex items-center mr-2">
+                            <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">
+                              {recipe.prepTime}m prep • {recipe.cookTime}m cook
+                            </span>
+                          </div>
+                          {dietaryRestrictions.slice(0, 3).map(restriction => (
+                            <Badge 
+                              key={`${recipe.id}-${restriction}`} 
+                              variant="outline" 
+                              className="text-[10px] px-1 py-0 h-4"
+                            >
+                              {restriction}
+                            </Badge>
+                          ))}
+                          {dietaryRestrictions.length > 3 && (
+                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
+                              +{dietaryRestrictions.length - 3}
+                            </Badge>
+                          )}
                         </div>
-                        {recipe.dietaryRestrictions.slice(0, 3).map(restriction => (
-                          <Badge 
-                            key={`${recipe.id}-${restriction}`} 
-                            variant="outline" 
-                            className="text-[10px] px-1 py-0 h-4"
-                          >
-                            {restriction}
-                          </Badge>
-                        ))}
-                        {recipe.dietaryRestrictions.length > 3 && (
-                          <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
-                            +{recipe.dietaryRestrictions.length - 3}
-                          </Badge>
-                        )}
                       </div>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </div>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-40 text-center">

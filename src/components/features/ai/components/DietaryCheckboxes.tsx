@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -8,7 +9,7 @@ interface DietaryCheckboxesProps {
   options: DietaryOption[];
   setOptions: (options: DietaryOption[]) => void;
   foodContext: FoodContext;
-  setFoodContext: (context: FoodContext) => void;
+  setFoodContext: React.Dispatch<React.SetStateAction<FoodContext>>;
   addUserMessage: (content: string) => void;
   handleDishNameInput: () => void;
 }

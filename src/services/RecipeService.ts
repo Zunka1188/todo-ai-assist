@@ -25,7 +25,12 @@ export class RecipeService {
   // Filter recipes by dietary requirements
   static getRecipesByDiet(dietaryRequirements: Array<keyof Recipe['dietaryInfo']>): Recipe[] {
     return recipes.filter(recipe => 
-      dietaryRequirements.every(requirement => recipe.dietaryInfo[requirement])
+      dietaryRequirements.every(requirement => {
+        if (requirement in recipe.dietaryInfo) {
+          return recipe.dietaryInfo[requirement];
+        }
+        return false;
+      })
     );
   }
 
@@ -51,7 +56,12 @@ export class RecipeService {
 
     if (preferences.dietary?.length) {
       filteredRecipes = filteredRecipes.filter(recipe =>
-        preferences.dietary?.every(requirement => recipe.dietaryInfo[requirement])
+        preferences.dietary?.every(requirement => {
+          if (requirement in recipe.dietaryInfo) {
+            return recipe.dietaryInfo[requirement];
+          }
+          return false;
+        })
       );
     }
 
