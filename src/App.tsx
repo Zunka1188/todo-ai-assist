@@ -36,9 +36,9 @@ const App = () => {
     <ErrorBoundary>
       <StoreProvider>
         <QueryClientProvider client={queryClient}>
-          <SecurityProvider>
-            <ThemeProvider>
-              <ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <SecurityProvider>
                 <TooltipProvider>
                   <BrowserRouter {...routerOptions}>
                     <Toaster />
@@ -48,9 +48,9 @@ const App = () => {
                     </AppLayout>
                   </BrowserRouter>
                 </TooltipProvider>
-              </ToastProvider>
-            </ThemeProvider>
-          </SecurityProvider>
+              </SecurityProvider>
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>
       </StoreProvider>
     </ErrorBoundary>
