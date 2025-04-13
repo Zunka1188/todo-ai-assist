@@ -34,7 +34,7 @@ describe('useCachedQuery Hook', () => {
       defaultOptions: {
         queries: {
           retry: false,
-          cacheTime: 0,
+          gcTime: 0, // Using gcTime instead of cacheTime in v5
         },
       },
     });
