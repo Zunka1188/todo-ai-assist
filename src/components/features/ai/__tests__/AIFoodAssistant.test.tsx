@@ -3,12 +3,25 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AIFoodAssistant from '../AIFoodAssistant';
+import { vi } from 'vitest';
+
+// Mock the Toast provider since it might be used in the component
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: vi.fn(),
+  }),
+}));
+
+// Mock any other dependencies that might cause test failures
+vi.mock('@/types/recipe', () => ({
+  Recipe: {},
+}));
 
 describe('AIFoodAssistant', () => {
-  const mockOnClose = jest.fn();
+  const mockOnClose = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders without crashing', () => {
