@@ -3,7 +3,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { isSameDay, isToday, isWeekend } from 'date-fns';
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Event } from '../../types/event';
+import { Event } from '../../../calendar/types/event';
 
 interface AllDayEventsProps {
   daysInWeek: Date[];

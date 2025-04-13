@@ -37,12 +37,12 @@ export const DietaryCheckboxes: React.FC<DietaryCheckboxesProps> = ({
               option.checked = checked as boolean;
               setOptions([...options]);
               if (checked) {
-                setFoodContext(prev => ({
+                setFoodContext((prev: FoodContext) => ({
                   ...prev,
                   dietaryRestrictions: [...prev.dietaryRestrictions, option.id]
                 }));
               } else {
-                setFoodContext(prev => ({
+                setFoodContext((prev: FoodContext) => ({
                   ...prev,
                   dietaryRestrictions: prev.dietaryRestrictions.filter(id => id !== option.id)
                 }));

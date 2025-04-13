@@ -1,8 +1,9 @@
 
 export interface Ingredient {
-  amount: string;
-  unit: string;
   name: string;
+  quantity: number;
+  unit: string;
+  scalable: boolean;
 }
 
 export interface NutritionInfo {
@@ -18,14 +19,37 @@ export interface Recipe {
   id: string;
   name: string;
   cuisine: string;
-  dietaryRestrictions: string[];
+  category: string;
+  baseServings: number;
   prepTime: number;
   cookTime: number;
-  servings: number;
-  ingredients: Ingredient[];
+  calories: number;
+  ingredients: {
+    default: Ingredient[];
+    vegan?: Ingredient[];
+    vegetarian?: Ingredient[];
+    glutenFree?: Ingredient[];
+    dairyFree?: Ingredient[];
+    lowCarb?: Ingredient[];
+    nutFree?: Ingredient[];
+  };
   instructions: string[];
   image: string;
-  nutrition?: NutritionInfo;
+  dietaryRestrictions?: string[];
+  dietaryInfo: {
+    isVegan: boolean;
+    isVegetarian: boolean;
+    isGlutenFree: boolean;
+    isDairyFree: boolean;
+    isLowCarb: boolean;
+    isNutFree: boolean;
+  };
+  nutritionalInfo: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
 }
 
 export type DietaryRestriction = 
@@ -52,3 +76,10 @@ export type Cuisine =
   | "turkish" 
   | "moroccan" 
   | "lebanese";
+
+export interface RecipeFilters {
+  dietary: DietaryRestriction[];
+  maxPrepTime?: number;
+  maxCookTime?: number;
+  category?: string;
+}
