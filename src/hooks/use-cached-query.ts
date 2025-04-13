@@ -2,7 +2,7 @@
 import { useQuery, UseQueryOptions, QueryKey, QueryFunction } from '@tanstack/react-query';
 import { appCache } from '@/utils/cacheUtils';
 
-interface CachedQueryOptions<TData, TError> extends UseQueryOptions<TData, TError> {
+interface CachedQueryOptions<TData, TError> extends Omit<UseQueryOptions<TData, TError, TData, QueryKey>, 'queryKey' | 'queryFn'> {
   cacheTime?: number; // Cache time in seconds
 }
 
@@ -46,5 +46,5 @@ export function useCachedQuery<TData, TError = Error>(
   };
 
   // Pass the queryOptions object as the only argument to useQuery
-  return useQuery(queryOptions);
+  return useQuery<TData, TError>(queryOptions);
 }
