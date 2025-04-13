@@ -64,8 +64,9 @@ export interface Recipe {
   nutritionalInfo: {
     calories: number;
     protein: number;
-    carbs: number;
+    carbohydrates: number;
     fat: number;
+    fiber: number;
   };
 }
 
