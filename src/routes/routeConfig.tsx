@@ -1,12 +1,17 @@
-import React, { lazy, Suspense } from 'react';
+
+import React, { lazy, Suspense, ComponentType } from 'react';
 import { RouteObject } from 'react-router-dom';
 import LoadingState from '@/components/features/calendar/ui/LoadingState';
 import RouteErrorBoundary from './RouteErrorBoundary';
 import { ShoppingItemsProvider } from '@/components/features/shopping/ShoppingItemsContext';
 import RouteGuard from '@/components/auth/RouteGuard';
 
-// Lazy load pages for better performance with retry logic
-const retryLoadComponent = (fn: () => Promise<any>, retriesLeft = 3, interval = 1000) => {
+// Lazy load pages for better performance with retry logic - fixed type definition
+const retryLoadComponent = <T extends { default: ComponentType<any> }>(
+  fn: () => Promise<T>, 
+  retriesLeft = 3, 
+  interval = 1000
+): Promise<T> => {
   return new Promise((resolve, reject) => {
     fn()
       .then(resolve)
