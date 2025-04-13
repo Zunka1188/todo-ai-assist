@@ -19,7 +19,7 @@ export interface Recipe {
   id: string;
   name: string;
   cuisine: string;
-  category: string;
+  category: "main" | "side" | "dessert" | "breakfast" | "snack" | "soup" | "appetizer";
   baseServings: number;
   prepTime: number;
   cookTime: number;

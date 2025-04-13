@@ -1,6 +1,6 @@
 
 import { Recipe, DietaryRestriction } from '@/types/recipe';
-import { recipes } from '@/data/recipes';
+import { recipes as recipeData } from '@/data/recipes';
 
 export interface RecipeFilters {
   dietary: DietaryRestriction[];

@@ -1,31 +1,31 @@
 
 import { Recipe } from '@/types/recipe';
-import { recipes } from '@/data/recipes';
+import { recipes as recipeData } from '@/data/recipes';
 
 export class RecipeService {
   // Get all recipes
   static getAllRecipes(): Recipe[] {
-    return recipes as unknown as Recipe[];
+    return recipeData as unknown as Recipe[];
   }
 
   // Search recipes by name
   static searchRecipesByName(query: string): Recipe[] {
     const searchTerm = query.toLowerCase();
-    return (recipes as unknown as Recipe[]).filter(recipe => 
+    return (recipeData as unknown as Recipe[]).filter(recipe => 
       recipe.name.toLowerCase().includes(searchTerm)
     );
   }
 
   // Filter recipes by cuisine
   static getRecipesByCuisine(cuisine: string): Recipe[] {
-    return (recipes as unknown as Recipe[]).filter(recipe => 
+    return (recipeData as unknown as Recipe[]).filter(recipe => 
       recipe.cuisine.toLowerCase() === cuisine.toLowerCase()
     );
   }
 
   // Filter recipes by dietary requirements
   static getRecipesByDiet(dietaryRequirements: Array<keyof Recipe['dietaryInfo']>): Recipe[] {
-    return (recipes as unknown as Recipe[]).filter(recipe => 
+    return (recipeData as unknown as Recipe[]).filter(recipe => 
       dietaryRequirements.every(requirement => {
         if (requirement in recipe.dietaryInfo) {
           return recipe.dietaryInfo[requirement];
@@ -37,7 +37,7 @@ export class RecipeService {
 
   // Get recipe by ID
   static getRecipeById(id: string): Recipe | undefined {
-    return (recipes as unknown as Recipe[]).find(recipe => recipe.id === id);
+    return (recipeData as unknown as Recipe[]).find(recipe => recipe.id === id);
   }
 
   // Get recipe suggestions based on preferences
@@ -47,7 +47,7 @@ export class RecipeService {
     maxCalories?: number;
     maxPrepTime?: number;
   }): Recipe[] {
-    let filteredRecipes = [...(recipes as unknown as Recipe[])];
+    let filteredRecipes = [...(recipeData as unknown as Recipe[])];
 
     if (preferences.cuisine) {
       filteredRecipes = filteredRecipes.filter(recipe => 
@@ -111,7 +111,7 @@ export class RecipeService {
     const targetRecipe = this.getRecipeById(recipeId);
     if (!targetRecipe) return [];
 
-    return (recipes as unknown as Recipe[])
+    return (recipeData as unknown as Recipe[])
       .filter(recipe => recipe.id !== recipeId)
       .map(recipe => ({
         recipe,

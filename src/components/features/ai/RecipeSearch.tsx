@@ -6,8 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { recipes } from '@/data/recipes';
-import { Recipe } from '@/data/recipes/types';
+import { Recipe } from '@/types/recipe';
 import { useTheme } from '@/hooks/use-theme';
 import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -15,12 +14,13 @@ import { Label } from '@/components/ui/label';
 import { DietaryRestrictionType } from './types';
 import { RecipeService } from '@/services/recipe.service';
 
+import { recipes } from '@/data/recipes';
+
 interface RecipeSearchProps {
   onSelectRecipe: (recipe: Recipe) => void;
   selectedDietaryRestrictions: DietaryRestrictionType[];
 }
 
-// Define dietary restrictions and cuisines
 const dietaryRestrictions: { value: DietaryRestrictionType; label: string }[] = [
   { value: 'vegan', label: 'Vegan' },
   { value: 'vegetarian', label: 'Vegetarian' },
@@ -71,9 +71,8 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
   }, [activeFilters, filteredRecipes, sortBy, servingSize]);
 
   useEffect(() => {
-    let filtered = [...recipes];
+    let filtered = [...recipes] as unknown as Recipe[];
 
-    // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(recipe =>
         recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -81,14 +80,12 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
       );
     }
 
-    // Filter by cuisine
     if (activeFilters.cuisines.length > 0) {
       filtered = filtered.filter(recipe =>
         activeFilters.cuisines.includes(recipe.cuisine)
       );
     }
 
-    // Filter by dietary restrictions
     if (activeFilters.dietary.length > 0) {
       filtered = filtered.filter(recipe => {
         return activeFilters.dietary.every(restriction => {
@@ -98,7 +95,6 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
       });
     }
 
-    // Apply sorting
     filtered = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'name':
@@ -114,7 +110,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
       }
     });
 
-    setFilteredRecipes([...filtered]);
+    setFilteredRecipes(filtered);
   }, [searchTerm, activeFilters, sortBy]);
 
   useEffect(() => {
