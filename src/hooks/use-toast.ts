@@ -5,7 +5,7 @@ import {
   Toast,
   ToastActionElement,
   ToastProps,
-  ToastProvider,
+  ToastProvider as ToastUIProvider,
   ToastViewport
 } from "@/components/ui/toast";
 
