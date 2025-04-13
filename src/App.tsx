@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
+import { ToastProvider } from "@/hooks/use-toast";
 import AppLayout from "./components/layout/AppLayout";
 import Router from "./routes/Router";
 
@@ -30,15 +31,17 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <TooltipProvider>
-          <BrowserRouter {...routerOptions}>
-            <Toaster />
-            <Sonner />
-            <AppLayout>
-              <Router />
-            </AppLayout>
-          </BrowserRouter>
-        </TooltipProvider>
+        <ToastProvider>
+          <TooltipProvider>
+            <BrowserRouter {...routerOptions}>
+              <Toaster />
+              <Sonner />
+              <AppLayout>
+                <Router />
+              </AppLayout>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

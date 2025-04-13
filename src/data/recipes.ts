@@ -1,9 +1,14 @@
-import { Recipe, Ingredient } from '@/types/recipe';
+import { Recipe } from "@/types/recipe";
 
 // Utility function to convert old format to new format
 const convertToNewFormat = (recipe: any): Recipe => {
   // ... keep existing code (conversion function logic)
 };
+
+export function getRecipes(): Recipe[] {
+  // Return the recipes
+  return recipes;
+}
 
 export const recipes: Recipe[] = [
   {
