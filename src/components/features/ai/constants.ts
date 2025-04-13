@@ -1,3 +1,4 @@
+
 import { DietaryOption } from './types';
 
 export const STORAGE_KEY = 'ai-food-assistant-session';
