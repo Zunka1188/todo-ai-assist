@@ -75,7 +75,7 @@ export function useInvalidateCache() {
     // Remove from local cache
     appCache.remove(cacheKey);
     
-    // Invalidate in React Query - FIXED: Pass an object with queryKey property
+    // Invalidate in React Query - Pass an object with queryKey property
     return queryClient.invalidateQueries({ queryKey });
   };
   
@@ -117,7 +117,7 @@ export function useCachingMutation<TData, TVariables, TError = Error, TContext =
           
           appCache.remove(cacheKey);
           
-          // Invalidate in React Query - FIXED: Pass an object with queryKey property
+          // Invalidate in React Query - Pass an object with queryKey property
           await queryClient.invalidateQueries({ queryKey });
         }
       }

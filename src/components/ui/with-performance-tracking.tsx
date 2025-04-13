@@ -132,11 +132,14 @@ export function withPerformanceTracking<P extends object>(
       };
     }, [props, renderCount]);
     
+    // Define shouldTrackProps here before using it
+    const shouldTrackProps = trackProps && performanceMonitor.isEnabled();
+    
     // Track prop changes if enabled
     useEffect(() => {
-      if (!performanceMonitor.isEnabled() || !trackProps) return;
+      if (!shouldTrackProps) return;
       
-      const trackProps = () => {
+      const trackPropsChanges = () => {
         const propNames = Object.keys(props);
         if (propNames.length > 0) {
           performanceMonitor.mark(`${componentName}_props_update_${Date.now()}`);
@@ -145,9 +148,9 @@ export function withPerformanceTracking<P extends object>(
       
       // Use non-blocking tracking
       if (window.requestIdleCallback) {
-        window.requestIdleCallback(trackProps);
+        window.requestIdleCallback(trackPropsChanges);
       } else {
-        setTimeout(trackProps, 0);
+        setTimeout(trackPropsChanges, 0);
       }
     }, Object.values(props));
     
