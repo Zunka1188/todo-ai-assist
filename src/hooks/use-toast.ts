@@ -90,19 +90,15 @@ export function ToastProvider({
     setToasts((toasts) => toasts.filter((t) => t.id !== id));
   }, []);
 
-  return (
-    <ToastContext.Provider
-      value={{
-        toasts,
-        addToast,
-        updateToast,
-        dismissToast,
-        removeToast,
-      }}
-    >
-      {children}
-    </ToastContext.Provider>
-  );
+  return React.createElement(ToastContext.Provider, {
+    value: {
+      toasts,
+      addToast,
+      updateToast,
+      dismissToast,
+      removeToast
+    }
+  }, children);
 }
 
 // Simple function to create a toast using the hook
