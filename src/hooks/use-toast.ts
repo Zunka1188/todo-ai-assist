@@ -106,10 +106,10 @@ export function ToastProvider({
 }
 
 // Simple function to create a toast using the hook
-export const toast = (props: Omit<ToasterToast, "id">) => {
-  const { toast } = useToast();
-  return toast(props);
-};
+export function toast(props: Omit<ToasterToast, "id">) {
+  const { toast: toastFn } = useToast();
+  return toastFn(props);
+}
 
 // Re-export the toast types
 export type { 
