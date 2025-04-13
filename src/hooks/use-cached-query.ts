@@ -45,6 +45,6 @@ export function useCachedQuery<TData, TError = Error>(
     ...(options || {}), // Ensure options is always an object
   };
 
-  // Pass the options object as a single argument with explicit type generics
+  // Pass a single options object with explicit type generics
   return useQuery<TData, TError>(queryOptions);
 }
