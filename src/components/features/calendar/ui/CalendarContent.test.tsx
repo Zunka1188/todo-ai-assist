@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '../../../test-utils';
+import { render, screen } from '../../../../test-utils';
 import { CalendarProvider } from '../NewCalendarContext';
 import CalendarContent from './CalendarContent';
 
@@ -25,7 +25,7 @@ describe('CalendarContent', () => {
   
   it('renders the day view by default', () => {
     render(
-      <CalendarProvider initialViewMode="day">
+      <CalendarProvider initialView="day">
         <CalendarContent />
       </CalendarProvider>
     );
@@ -35,7 +35,7 @@ describe('CalendarContent', () => {
   
   it('renders the month view when set to month mode', () => {
     render(
-      <CalendarProvider initialViewMode="month">
+      <CalendarProvider initialView="month">
         <CalendarContent />
       </CalendarProvider>
     );
@@ -45,7 +45,7 @@ describe('CalendarContent', () => {
   
   it('renders the agenda view when set to agenda mode', () => {
     render(
-      <CalendarProvider initialViewMode="agenda">
+      <CalendarProvider initialView="agenda">
         <CalendarContent />
       </CalendarProvider>
     );

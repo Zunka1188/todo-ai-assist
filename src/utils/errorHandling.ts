@@ -18,6 +18,15 @@ export enum ErrorType {
 }
 
 /**
+ * Standard durations for consistency
+ */
+export const TOAST_DURATIONS = {
+  SHORT: 2000,
+  NORMAL: 3000,
+  LONG: 5000,
+};
+
+/**
  * Error with additional context for better handling
  */
 export interface AppError extends Error {
@@ -34,6 +43,14 @@ interface ErrorHandlingOptions {
   showToast?: boolean;
   logToService?: boolean;
   rethrow?: boolean;
+  context?: string;
+  message?: string;
+  severity?: 'info' | 'warning' | 'error' | 'critical';
+  retry?: {
+    callback: () => Promise<any>;
+    maxAttempts: number;
+    delay: number;
+  };
 }
 
 /**
@@ -52,6 +69,91 @@ export type ErrorFeedbackHandler = (
 ) => void;
 
 /**
+ * Handle an error with options for UI feedback and logging
+ */
+export const handleError = (error: Error | AppError, options: ErrorHandlingOptions = {}): void => {
+  const { showToast = true, logToService = true, rethrow = false } = options;
+  
+  // Default error type if not specified
+  const appError = error as AppError;
+  const errorType = appError.type || ErrorType.UNKNOWN;
+  
+  // Log the error
+  logger.error(`[${options.context || errorType.toUpperCase()}]`, error);
+  
+  // Record in performance monitoring
+  performanceMonitor.mark(`error_${errorType}`);
+  
+  // Use custom feedback handler if available
+  if (errorHandler.feedbackHandler) {
+    errorHandler.feedbackHandler(error, errorType.toUpperCase(), {
+      title: appError.name,
+      message: options.message || appError.message
+    });
+    // Return early as feedback is handled
+    if (rethrow) {
+      throw error;
+    }
+    return;
+  }
+  
+  // Default toast feedback if no custom handler is set
+  if (showToast) {
+    const toastMessages: Record<ErrorType, string> = {
+      [ErrorType.NETWORK]: 'Network connection issue. Please check your internet connection.',
+      [ErrorType.VALIDATION]: 'Please check your input and try again.',
+      [ErrorType.AUTHENTICATION]: 'Authentication failed. Please log in again.',
+      [ErrorType.AUTHORIZATION]: 'You do not have permission to perform this action.',
+      [ErrorType.NOT_FOUND]: 'The requested resource was not found.',
+      [ErrorType.SERVER]: 'Server error. Our team has been notified.',
+      [ErrorType.CLIENT]: 'An error occurred in the application.',
+      [ErrorType.UNKNOWN]: 'An unexpected error occurred.'
+    };
+    
+    toast({
+      title: appError.name || 'Error',
+      description: options.message || appError.message || toastMessages[errorType],
+      variant: 'destructive',
+      duration: TOAST_DURATIONS.NORMAL
+    });
+  }
+  
+  // Log to error tracking service
+  if (logToService) {
+    // Placeholder for external error tracking service
+    // errorTrackingService.captureException(error, { 
+    //   tags: { type: errorType },
+    //   extra: appError.context
+    // });
+  }
+  
+  // Handle retry logic if provided
+  if (options.retry) {
+    const { callback, maxAttempts, delay } = options.retry;
+    
+    setTimeout(() => {
+      callback().catch(retryError => {
+        // Recursively call handleError with decremented maxAttempts
+        if (maxAttempts > 1) {
+          handleError(retryError, {
+            ...options,
+            retry: {
+              ...options.retry,
+              maxAttempts: maxAttempts - 1
+            }
+          });
+        }
+      });
+    }, delay);
+  }
+  
+  // Rethrow if needed
+  if (rethrow) {
+    throw error;
+  }
+};
+
+/**
  * Central error handling utility
  */
 export const errorHandler = {
@@ -68,67 +170,7 @@ export const errorHandler = {
   /**
    * Handle an error with options for UI feedback and logging
    */
-  handle: (error: Error | AppError, options: ErrorHandlingOptions = {}): void => {
-    const { showToast = true, logToService = true, rethrow = false } = options;
-    
-    // Default error type if not specified
-    const appError = error as AppError;
-    const errorType = appError.type || ErrorType.UNKNOWN;
-    
-    // Log the error
-    logger.error(`[${errorType.toUpperCase()}]`, error);
-    
-    // Record in performance monitoring
-    performanceMonitor.mark(`error_${errorType}`);
-    
-    // Use custom feedback handler if available
-    if (errorHandler.feedbackHandler) {
-      errorHandler.feedbackHandler(error, errorType.toUpperCase(), {
-        title: appError.name,
-        message: appError.message
-      });
-      // Return early as feedback is handled
-      if (rethrow) {
-        throw error;
-      }
-      return;
-    }
-    
-    // Default toast feedback if no custom handler is set
-    if (showToast) {
-      const toastMessages: Record<ErrorType, string> = {
-        [ErrorType.NETWORK]: 'Network connection issue. Please check your internet connection.',
-        [ErrorType.VALIDATION]: 'Please check your input and try again.',
-        [ErrorType.AUTHENTICATION]: 'Authentication failed. Please log in again.',
-        [ErrorType.AUTHORIZATION]: 'You do not have permission to perform this action.',
-        [ErrorType.NOT_FOUND]: 'The requested resource was not found.',
-        [ErrorType.SERVER]: 'Server error. Our team has been notified.',
-        [ErrorType.CLIENT]: 'An error occurred in the application.',
-        [ErrorType.UNKNOWN]: 'An unexpected error occurred.'
-      };
-      
-      toast({
-        title: appError.name || 'Error',
-        description: appError.message || toastMessages[errorType],
-        variant: 'destructive',
-        duration: 5000
-      });
-    }
-    
-    // Log to error tracking service
-    if (logToService) {
-      // Placeholder for external error tracking service
-      // errorTrackingService.captureException(error, { 
-      //   tags: { type: errorType },
-      //   extra: appError.context
-      // });
-    }
-    
-    // Rethrow if needed
-    if (rethrow) {
-      throw error;
-    }
-  },
+  handle: handleError,
   
   /**
    * Create an AppError with context
@@ -196,7 +238,7 @@ export function withErrorHandling<T>(
     try {
       return await fn(...args);
     } catch (error) {
-      errorHandler.handle(error instanceof Error ? error : new Error(String(error)), options);
+      handleError(error instanceof Error ? error : new Error(String(error)), options);
       if (options.rethrow) {
         throw error;
       }
@@ -213,19 +255,21 @@ export function withComponentErrorHandling<T extends Record<string, any>>(
   props: T,
   errorHandlers: Record<string, ErrorHandlingOptions> = {}
 ): T {
-  const result = { ...props };
+  const result = { ...props } as T;
   
+  // Fix for TS2862: Type 'T' is generic and can only be indexed for reading
   Object.entries(props).forEach(([key, value]) => {
     if (typeof value === 'function') {
       const options = errorHandlers[key] || {};
-      result[key] = (...args: any[]) => {
+      // Use type assertion to define the function signature more explicitly
+      (result as any)[key] = (...args: any[]) => {
         try {
           const result = value(...args);
           
           // Handle promise returns
           if (result instanceof Promise) {
             return result.catch(error => {
-              errorHandler.handle(error instanceof Error ? error : new Error(String(error)), options);
+              handleError(error instanceof Error ? error : new Error(String(error)), options);
               if (options.rethrow) {
                 throw error;
               }
@@ -235,7 +279,7 @@ export function withComponentErrorHandling<T extends Record<string, any>>(
           
           return result;
         } catch (error) {
-          errorHandler.handle(error instanceof Error ? error : new Error(String(error)), options);
+          handleError(error instanceof Error ? error : new Error(String(error)), options);
           if (options.rethrow) {
             throw error;
           }

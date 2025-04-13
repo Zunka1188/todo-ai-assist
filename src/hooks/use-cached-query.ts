@@ -27,7 +27,7 @@ export function useCachedQuery<TData, TError = Error>(
   const queryClient = useQueryClient();
 
   // Enhanced query function that checks local cache first
-  const enhancedQueryFn = async () => {
+  const enhancedQueryFn = async (): Promise<TData> => {
     // Skip local cache if requested
     if (!skipLocalCache) {
       // Try local cache first

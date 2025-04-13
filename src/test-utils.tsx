@@ -8,6 +8,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { StoreProvider } from './state/useStore';
 import { AuthProvider } from './hooks/use-auth';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { vi } from 'vitest';
 
 // Create a custom render function that includes providers
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {

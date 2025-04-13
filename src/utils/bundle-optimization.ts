@@ -1,4 +1,3 @@
-
 /**
  * Bundle optimization utilities
  * 
@@ -174,8 +173,8 @@ function setupIntersectionBasedLoading(): void {
           delete element.dataset.lazySrc;
         }
         
-        if (element.dataset.lazySrcset) {
-          element.srcset = element.dataset.lazySrcset;
+        if ('srcset' in element) {
+          (element as HTMLImageElement).srcset = element.dataset.lazySrcset;
           delete element.dataset.lazySrcset;
         }
         

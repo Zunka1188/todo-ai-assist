@@ -1,3 +1,4 @@
+
 /**
  * Shopping service utilities to help with mobile/desktop synchronization
  */
@@ -12,7 +13,7 @@ export const STORAGE_KEY = 'shoppingItems';
 export const LAST_SYNC_KEY = 'shoppingLastSync';
 export const BACKUP_KEY = 'shoppingItems_backup';
 
-// Standard durations for consistency
+// Export toast durations
 export const TOAST_DURATIONS = {
   SHORT: 2000,
   NORMAL: 3000,
