@@ -38,9 +38,10 @@ export function useCachedQuery<TData, TError = Error>(
     return data;
   };
 
+  // Pass an empty object if options is undefined to avoid the error
   return useQuery<TData, TError>({
     queryKey,
     queryFn: enhancedQueryFn,
-    ...options,
+    ...(options || {})
   });
 }
