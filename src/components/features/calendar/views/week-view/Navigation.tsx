@@ -11,10 +11,11 @@ interface NavigationProps {
   weekEnd: Date;
   prevWeek: () => void;
   nextWeek: () => void;
-  theme: string;
+  theme?: string;
+  today: () => void;
 }
 
-const Navigation: React.FC<NavigationProps> = ({ weekStart, weekEnd, prevWeek, nextWeek, theme }) => {
+const Navigation: React.FC<NavigationProps> = ({ weekStart, weekEnd, prevWeek, nextWeek, theme, today }) => {
   const { isMobile } = useIsMobile();
   
   // Handle previous week navigation with event stopping
@@ -45,6 +46,14 @@ const Navigation: React.FC<NavigationProps> = ({ weekStart, weekEnd, prevWeek, n
           className="tap-target"
         >
           <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => today()}
+          size="sm"
+          className="tap-target"
+        >
+          Today
         </Button>
         <Button 
           variant="outline" 

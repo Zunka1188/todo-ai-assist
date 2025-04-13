@@ -18,7 +18,11 @@ const RecipePage: React.FC = () => {
     if (id) {
       // Find the recipe by ID when on a specific recipe page
       const foundRecipe = recipes.find(r => r.id === id);
-      setRecipe(foundRecipe || null);
+      if (foundRecipe) {
+        setRecipe(foundRecipe);
+      } else {
+        setRecipe(null);
+      }
     }
     setLoading(false);
   }, [id]);

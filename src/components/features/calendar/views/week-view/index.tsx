@@ -71,6 +71,7 @@ const WeekView: React.FC<WeekViewProps> = ({
             prevWeek={prevWeek}
             nextWeek={nextWeek}
             today={() => setDate(new Date())}
+            theme={theme}
           />
         </div>
       </div>
