@@ -1,5 +1,4 @@
 
-// This file implements a custom useToast hook from the shadcn Toast component
 import * as React from "react";
 import {
   Toast,
