@@ -1,105 +1,136 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { performanceMonitor } from '@/utils/performance-monitor';
-import { logger } from '@/utils/logger';
 
+/**
+ * Options for the usePerformance hook
+ */
 interface UsePerformanceOptions {
   componentName: string;
+  trackProps?: boolean;
+  reportThreshold?: number; // in ms
   trackRenders?: boolean;
-  trackMounts?: boolean;
-  trackUnmounts?: boolean;
-  debugMode?: boolean;
+  onPerformanceIssue?: (data: PerformanceData) => void;
 }
 
 /**
- * Hook to track component performance
+ * Performance data structure
  */
-export function usePerformance({
+interface PerformanceData {
+  componentName: string;
+  renderTime: number;
+  renderCount: number;
+  propsChanged?: boolean;
+  timestamp: number;
+  isSlowRender: boolean;
+}
+
+/**
+ * Hook that tracks component performance
+ */
+export function usePerformance<T extends Record<string, any>>({
   componentName,
+  trackProps = false,
+  reportThreshold = 16, // Default 16ms (60fps)
   trackRenders = true,
-  trackMounts = true,
-  trackUnmounts = true,
-  debugMode = false
+  onPerformanceIssue
 }: UsePerformanceOptions) {
   const renderCount = useRef(0);
-  const mountTime = useRef(0);
-  const renderStartTime = useRef(0);
-  
+  const lastRenderTime = useRef(performance.now());
+  const lastProps = useRef<T | null>(null);
+  const [isSlowRender, setIsSlowRender] = useState(false);
+
+  // Track render time and count
   useEffect(() => {
-    if (!performanceMonitor.isEnabled()) return;
-    
-    // Track mount time
-    if (trackMounts) {
-      mountTime.current = Date.now();
-      performanceMonitor.mark(`${componentName}_mount`);
+    if (trackRenders) {
+      const startTime = lastRenderTime.current;
+      const endTime = performance.now();
+      const renderTime = endTime - startTime;
       
-      if (debugMode) {
-        logger.log(`[Performance] Component mounted: ${componentName}`);
-      }
-    }
-    
-    // Track unmount
-    return () => {
-      if (trackUnmounts && mountTime.current > 0) {
-        const unmountTime = Date.now();
-        const lifetimeDuration = unmountTime - mountTime.current;
+      renderCount.current += 1;
+      
+      // Log render time if it exceeds threshold
+      if (renderTime > reportThreshold) {
+        setIsSlowRender(true);
         
-        performanceMonitor.mark(`${componentName}_unmount`);
+        const perfData: PerformanceData = {
+          componentName,
+          renderTime,
+          renderCount: renderCount.current,
+          timestamp: Date.now(),
+          isSlowRender: true
+        };
+        
+        // Report performance issue
+        if (onPerformanceIssue) {
+          onPerformanceIssue(perfData);
+        }
+        
+        // Record performance mark
+        performanceMonitor.mark(`slow-render-${componentName}`);
         performanceMonitor.measure(
-          `${componentName}_lifetime`,
-          `${componentName}_mount`,
-          `${componentName}_unmount`
+          `${componentName}-render-time`,
+          `slow-render-${componentName}`,
+          undefined
         );
         
-        if (debugMode) {
-          logger.log(`[Performance] Component unmounted: ${componentName} (lifetime: ${lifetimeDuration}ms)`);
-        }
-      }
-    };
-  }, [componentName, trackMounts, trackUnmounts, debugMode]);
-
-  // Track renders
-  useEffect(() => {
-    if (trackRenders && performanceMonitor.isEnabled()) {
-      renderCount.current++;
-      
-      if (renderStartTime.current > 0) {
-        const renderTime = Date.now() - renderStartTime.current;
-        
-        if (debugMode && renderCount.current > 1) {
-          logger.log(`[Performance] Component re-rendered: ${componentName} (render #${renderCount.current}, time: ${renderTime}ms)`);
-        }
+        // Log warning
+        console.warn(
+          `[Performance] Slow render detected in ${componentName}: ${renderTime.toFixed(2)}ms (threshold: ${reportThreshold}ms)`
+        );
+      } else {
+        setIsSlowRender(false);
       }
       
-      renderStartTime.current = Date.now();
+      // Update last render time for next render
+      lastRenderTime.current = performance.now();
     }
+    
+    return () => {
+      // Cleanup if needed
+    };
   });
 
-  return {
-    getRenderCount: () => renderCount.current,
-    getComponentLifetime: () => mountTime.current > 0 ? Date.now() - mountTime.current : 0
-  };
-}
-
-/**
- * HOC to wrap a component with performance tracking
- */
-export function withPerformanceTracking<P extends object>(
-  Component: React.ComponentType<P>,
-  options: Omit<UsePerformanceOptions, 'componentName'>
-) {
-  const componentName = Component.displayName || Component.name || 'UnknownComponent';
-  
-  const WrappedComponent = (props: P) => {
-    usePerformance({
+  // Generate performance data object
+  const getPerformanceData = useCallback((): PerformanceData => {
+    return {
       componentName,
-      ...options
-    });
+      renderTime: 0, // This will be measured when called
+      renderCount: renderCount.current,
+      timestamp: Date.now(),
+      isSlowRender
+    };
+  }, [componentName, isSlowRender]);
+
+  // Track props changes
+  const trackPropsChange = useCallback((props: T) => {
+    if (trackProps && lastProps.current) {
+      const changedProps: string[] = [];
+      
+      // Find changed props
+      Object.keys(props).forEach(key => {
+        if (props[key] !== (lastProps.current as T)[key]) {
+          changedProps.push(key);
+        }
+      });
+      
+      // Log if any props changed
+      if (changedProps.length > 0) {
+        console.debug(
+          `[Performance] Props changed in ${componentName}:`,
+          changedProps
+        );
+      }
+    }
     
-    return <Component {...props} />;
+    // Update last props
+    lastProps.current = { ...props };
+  }, [componentName, trackProps]);
+
+  return {
+    isSlowRender,
+    trackPropsChange,
+    getPerformanceData,
+    renderCount: renderCount.current
   };
-  
-  WrappedComponent.displayName = `WithPerformance(${componentName})`;
-  
-  return WrappedComponent;
 }
