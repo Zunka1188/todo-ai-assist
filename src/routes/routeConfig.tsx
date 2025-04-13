@@ -25,11 +25,20 @@ import EditRecipePage from '@/pages/EditRecipePage';
 import AppLayout from '@/components/layout/AppLayout';
 import RouteErrorBoundary from '@/routes/RouteErrorBoundary';
 
+// Define a wrapper component that provides required props to RouteErrorBoundary
+const RouteErrorWrapper = ({ children }: { children: React.ReactNode }) => (
+  <RouteErrorBoundary routeName="app-routes">
+    {children}
+  </RouteErrorBoundary>
+);
+
 export const routes: RouteObject[] = [
   {
     path: "/",
     element: <AppLayout />,
-    errorElement: <RouteErrorBoundary />,
+    errorElement: <RouteErrorWrapper>
+      <div>An error occurred loading this page</div>
+    </RouteErrorWrapper>,
     children: [
       { index: true, element: <Index /> },
       { path: "calendar", element: <CalendarPage /> },
