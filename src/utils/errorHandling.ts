@@ -37,9 +37,34 @@ interface ErrorHandlingOptions {
 }
 
 /**
+ * Type definition for feedback handler function
+ */
+export type ErrorFeedbackHandler = (
+  error: Error | AppError, 
+  errorType: string,
+  metadata?: {
+    title?: string;
+    message?: string;
+    actionable?: boolean;
+    actionLabel?: string;
+    actionHandler?: () => void;
+  }
+) => void;
+
+/**
  * Central error handling utility
  */
 export const errorHandler = {
+  // Feedback handler function that can be set by other modules
+  feedbackHandler: null as ErrorFeedbackHandler | null,
+
+  /**
+   * Set a custom feedback handler function
+   */
+  setFeedbackHandler: function(handler: ErrorFeedbackHandler): void {
+    this.feedbackHandler = handler;
+  },
+
   /**
    * Handle an error with options for UI feedback and logging
    */
@@ -56,7 +81,20 @@ export const errorHandler = {
     // Record in performance monitoring
     performanceMonitor.mark(`error_${errorType}`);
     
-    // Show user-friendly toast
+    // Use custom feedback handler if available
+    if (errorHandler.feedbackHandler) {
+      errorHandler.feedbackHandler(error, errorType.toUpperCase(), {
+        title: appError.name,
+        message: appError.message
+      });
+      // Return early as feedback is handled
+      if (rethrow) {
+        throw error;
+      }
+      return;
+    }
+    
+    // Default toast feedback if no custom handler is set
     if (showToast) {
       const toastMessages: Record<ErrorType, string> = {
         [ErrorType.NETWORK]: 'Network connection issue. Please check your internet connection.',

@@ -56,36 +56,44 @@ const routerOptions = {
 // Apply CSP headers via meta tag
 const SecurityMetaTags = () => {
   useEffect(() => {
-    // Apply security headers to meta tags
-    const headers = getSecurityHeaders();
-    Object.entries(headers).forEach(([name, content]) => {
-      if (name === 'Content-Security-Policy') {
-        const existingMeta = document.querySelector(`meta[http-equiv="${name}"]`);
-        if (!existingMeta) {
-          const meta = document.createElement('meta');
-          meta.httpEquiv = name;
-          meta.content = content;
-          document.head.appendChild(meta);
+    try {
+      // Apply security headers to meta tags
+      const headers = getSecurityHeaders();
+      Object.entries(headers).forEach(([name, content]) => {
+        if (name === 'Content-Security-Policy') {
+          const existingMeta = document.querySelector(`meta[http-equiv="${name}"]`);
+          if (!existingMeta) {
+            const meta = document.createElement('meta');
+            meta.httpEquiv = name;
+            meta.content = content;
+            document.head.appendChild(meta);
+          }
         }
-      }
-    });
+      });
 
-    // Record performance mark for app initialization
-    performanceMonitor.mark('app_initialized');
-    
-    // Initialize bundle optimizations
-    initBundleOptimizations({
-      preconnect: [
-        'https://fonts.googleapis.com',
-        'https://fonts.gstatic.com'
-      ],
-      preloadImages: [
-        '/placeholder.svg'
-      ]
-    });
-    
-    // Initialize error feedback system
-    initErrorFeedback();
+      // Record performance mark for app initialization
+      performanceMonitor.mark('app_initialized');
+      
+      // Initialize bundle optimizations
+      initBundleOptimizations({
+        preconnect: [
+          'https://fonts.googleapis.com',
+          'https://fonts.gstatic.com'
+        ],
+        preloadImages: [
+          '/placeholder.svg'
+        ]
+      });
+      
+      // Initialize error feedback system
+      try {
+        initErrorFeedback();
+      } catch (err) {
+        logger.error('[App] Failed to initialize error feedback system:', err);
+      }
+    } catch (error) {
+      logger.error('[App] Error in SecurityMetaTags initialization:', error);
+    }
     
     return () => {
       // Cleanup if needed

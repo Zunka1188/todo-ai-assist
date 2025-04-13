@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { errorHandler } from './errorHandling';
+import { errorHandler, ErrorType } from './errorHandling';
 import { logger } from './logger';
 import { toast } from '@/components/ui/use-toast';
 import { AlertCircle, AlertTriangle, Ban, Info, X } from 'lucide-react';
@@ -109,39 +109,48 @@ export function showErrorToast(
  * Initialize error feedback handler
  */
 export function initErrorFeedback() {
-  // Override the global error handler's feedback mechanism
-  errorHandler.setFeedbackHandler((error, errorType, metadata) => {
-    let severity = ErrorSeverity.ERROR;
-    
-    // Determine severity based on error type
-    switch (errorType) {
-      case 'INFO':
-        severity = ErrorSeverity.INFO;
-        break;
-      case 'WARNING':
-        severity = ErrorSeverity.WARNING;
-        break;
-      case 'CRITICAL':
-        severity = ErrorSeverity.CRITICAL;
-        break;
-      default:
-        severity = ErrorSeverity.ERROR;
+  try {
+    // Check if errorHandler exists and has the setFeedbackHandler method
+    if (errorHandler && typeof errorHandler.setFeedbackHandler === 'function') {
+      // Override the global error handler's feedback mechanism
+      errorHandler.setFeedbackHandler((error, errorType, metadata) => {
+        let severity = ErrorSeverity.ERROR;
+        
+        // Determine severity based on error type
+        switch (errorType) {
+          case 'INFO':
+            severity = ErrorSeverity.INFO;
+            break;
+          case 'WARNING':
+            severity = ErrorSeverity.WARNING;
+            break;
+          case 'CRITICAL':
+            severity = ErrorSeverity.CRITICAL;
+            break;
+          default:
+            severity = ErrorSeverity.ERROR;
+        }
+        
+        // Show toast with appropriate severity
+        showErrorToast(error, {
+          severity,
+          title: metadata?.title || 'Application Error',
+          description: metadata?.message || error.message,
+          showDebugInfo: process.env.NODE_ENV !== 'production',
+          action: metadata?.actionable ? {
+            label: metadata.actionLabel || 'Retry',
+            onClick: metadata.actionHandler || (() => window.location.reload())
+          } : undefined
+        });
+      });
+      
+      logger.log('[ErrorFeedback] Error feedback handler initialized');
+    } else {
+      logger.error('[ErrorFeedback] Error handler or setFeedbackHandler not available');
     }
-    
-    // Show toast with appropriate severity
-    showErrorToast(error, {
-      severity,
-      title: metadata?.title || 'Application Error',
-      description: metadata?.message || error.message,
-      showDebugInfo: process.env.NODE_ENV !== 'production',
-      action: metadata?.actionable ? {
-        label: metadata.actionLabel || 'Retry',
-        onClick: metadata.actionHandler || (() => window.location.reload())
-      } : undefined
-    });
-  });
-  
-  logger.log('[ErrorFeedback] Error feedback handler initialized');
+  } catch (err) {
+    logger.error('[ErrorFeedback] Failed to initialize error feedback:', err);
+  }
 }
 
 /**
