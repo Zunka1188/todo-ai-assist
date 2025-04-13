@@ -7,6 +7,7 @@ import { UserRecipeService } from '@/services/userRecipeService';
 import { useToast } from '@/hooks/use-toast';
 import { useCachedQuery, useCachingMutation } from '@/hooks/use-cached-query';
 import { logger } from '@/utils/logger';
+import { QueryFunctionContext } from '@tanstack/react-query';
 
 interface RecipeFilters {
   query?: string;
@@ -47,7 +48,7 @@ export const useRecipes = () => {
   }, [toast]);
 
   // Get all recipes with filtering
-  const getAllRecipes = useCallback(() => {
+  const getAllRecipes = useCallback(async (_context: QueryFunctionContext<any>): Promise<Recipe[]> => {
     let recipes = RecipeService.getAllRecipes();
     
     // Apply filters
@@ -208,7 +209,7 @@ export const useRecipes = () => {
   );
   
   // Get all user recipes (saved + custom)
-  const getUserRecipes = useCallback(() => {
+  const getUserRecipes = useCallback(async (_context: QueryFunctionContext<any>): Promise<Recipe[]> => {
     return UserRecipeService.getAllUserRecipes();
   }, []);
   

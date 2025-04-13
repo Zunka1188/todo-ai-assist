@@ -39,11 +39,11 @@ const SavedRecipesList: React.FC<SavedRecipesListProps> = ({
       return customRecipes;
     }
     
-    if (showFavoritesOnly) {
+    if (showFavoritesOnly && userRecipes) {
       return userRecipes.filter(recipe => favorites.includes(recipe.id));
     }
     
-    return userRecipes;
+    return userRecipes || [];
   };
   
   const recipesToShow = getFilteredRecipes();
