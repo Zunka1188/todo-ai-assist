@@ -1,8 +1,13 @@
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { appCache, withCache } from './cacheUtils';
 
 describe('Cache Utility', () => {
+  beforeEach(() => {
+    // Clear the cache before each test
+    appCache.clear();
+  });
+
   it('should set and retrieve cached data', () => {
     const key = 'testKey';
     const data = { test: 'value' };

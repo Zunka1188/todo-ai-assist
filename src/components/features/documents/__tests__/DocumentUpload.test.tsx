@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import DocumentsPageContent from '../DocumentsPageContent';
 import { useDocuments } from '@/hooks/useDocuments';
 
@@ -20,7 +20,7 @@ describe('DocumentsPageContent', () => {
   };
 
   beforeEach(() => {
-    (useDocuments as vi.Mock).mockReturnValue(mockUseDocuments);
+    (useDocuments as unknown as ReturnType<typeof vi.fn>).mockReturnValue(mockUseDocuments);
   });
 
   it('should render search input and add document button', () => {
@@ -36,7 +36,7 @@ describe('DocumentsPageContent', () => {
       { id: '2', title: 'Another Document', category: 'personal' },
     ];
 
-    (useDocuments as vi.Mock).mockReturnValue({
+    (useDocuments as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       ...mockUseDocuments,
       files: mockFiles,
     });
