@@ -1,20 +1,5 @@
 
-export type ViewMode = 'day' | 'month' | 'agenda';
+// This file is being consolidated with src/components/features/calendar/types.ts
+// Please import from there instead
 
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  description?: string;
-  start: Date;
-  end: Date;
-  allDay?: boolean;
-}
-
-export interface CalendarDimensions {
-  width: string;
-  height: string;
-  minWidth: string;
-  minHeight: string;
-  headerHeight: number;
-  timeWidth: number;
-}
+export type { ViewMode, CalendarEvent, CalendarDimensions } from '../features/calendar/types';

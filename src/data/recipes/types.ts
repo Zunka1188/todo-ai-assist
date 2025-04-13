@@ -21,14 +21,15 @@ export type Cuisine =
   | 'korean' 
   | 'turkish' 
   | 'moroccan' 
-  | 'lebanese';
+  | 'lebanese'
+  | 'mediterranean';
 
 export interface Recipe {
   id: string;
   name: string;
   category: 'main' | 'side' | 'dessert' | 'breakfast' | 'snack' | 'soup' | 'appetizer';
   cuisine: Cuisine;
-  baseServings: number; // Changed from 1 to number to match @/types/recipe
+  baseServings: number;
   prepTime: number;
   cookTime: number;
   calories: number;
@@ -57,5 +58,6 @@ export interface Recipe {
     fat: number;
     fiber: number;
   };
-  image: string; // Add the required image property
+  image: string;
+  servings?: number;
 }

@@ -1,4 +1,5 @@
-export type ViewMode = 'day' | 'month' | 'agenda';
+
+export type ViewMode = 'day' | 'week' | 'month' | 'agenda';
 
 export interface CalendarEvent {
   id: string;
@@ -7,6 +8,7 @@ export interface CalendarEvent {
   start: Date;
   end: Date;
   allDay?: boolean;
+  location?: string;
 }
 
 export interface CalendarDimensions {
@@ -43,4 +45,6 @@ export interface CalendarContextType {
   handleShareCalendar: () => void;
   handleInviteSent: () => void;
   getDateRange: () => { start: Date; end: Date };
+  retryDataFetch?: () => void;
+  setInviteDialogOpen?: (open: boolean) => void;
 }

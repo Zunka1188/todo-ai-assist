@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { Recipe } from '@/types/recipe';
+import { Recipe } from '@/data/recipes/types';
 import { useTheme } from '@/hooks/use-theme';
 import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -47,7 +47,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
     dietary: DietaryRestrictionType[];
     cuisines: string[];
   }>({
-    dietary: selectedDietaryRestrictions,
+    dietary: selectedDietaryRestrictions || [],
     cuisines: [],
   });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -58,14 +58,16 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
   const { theme } = useTheme();
 
   useEffect(() => {
-    console.log("Active filters:", activeFilters);
-    console.log("Filtered recipes length:", filteredRecipes.length);
-    console.log("Sort by:", sortBy);
-    console.log("Serving size:", servingSize);
-  }, [activeFilters, filteredRecipes, sortBy, servingSize]);
+    if (selectedDietaryRestrictions && selectedDietaryRestrictions.length > 0) {
+      setActiveFilters(prev => ({
+        ...prev,
+        dietary: selectedDietaryRestrictions
+      }));
+    }
+  }, [selectedDietaryRestrictions]);
 
   useEffect(() => {
-    let filtered = [...recipes] as unknown as Recipe[];
+    let filtered = [...recipes] as Recipe[];
 
     if (searchTerm) {
       filtered = filtered.filter(recipe =>
@@ -105,7 +107,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
     });
 
     setFilteredRecipes(filtered);
-  }, [searchTerm, activeFilters, sortBy]);
+  }, [searchTerm, activeFilters, sortBy, selectedDietaryRestrictions]);
 
   useEffect(() => {
     if (filteredRecipes.length > 4) {
@@ -148,8 +150,8 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
     return activeFilters.dietary.length + activeFilters.cuisines.length;
   };
 
-  const calculateMatchingCount = (filter: DietaryRestrictionType, type: 'dietary') => {
-    return (recipes as unknown as Recipe[]).filter(recipe => {
+  const calculateMatchingCount = (filter: DietaryRestrictionType) => {
+    return (recipes as Recipe[]).filter(recipe => {
       const key = mapRestrictionToKey(filter);
       return key ? recipe.dietaryInfo[key] : false;
     }).length;
@@ -325,7 +327,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
                   <h4 className="text-sm font-medium">Dietary Restrictions</h4>
                   <div className="grid grid-cols-2 gap-2">
                     {dietaryRestrictions.map((restriction) => {
-                      const matchCount = calculateMatchingCount(restriction.value, 'dietary');
+                      const matchCount = calculateMatchingCount(restriction.value);
                       return (
                         <Button
                           key={restriction.value}

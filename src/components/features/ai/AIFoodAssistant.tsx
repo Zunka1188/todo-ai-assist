@@ -12,7 +12,7 @@ import { EventScheduler } from './components/EventScheduler';
 import { DIETARY_OPTIONS } from './constants';
 import { AIFoodAssistantProps, DietaryOption, FoodContext, DietaryRestrictionType } from './types';
 import { useChatMessages } from './hooks/useChatMessages';
-import { Recipe } from '@/types/recipe';
+import { Recipe } from '@/data/recipes/types';
 import { useToast } from '@/hooks/use-toast';
 
 const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) => {
@@ -28,6 +28,8 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
 
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [eventNotes, setEventNotes] = useState('');
   const [dietaryOptions, setDietaryOptions] = useState<DietaryOption[]>(DIETARY_OPTIONS);
@@ -72,51 +74,59 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     setInput('');
     setIsProcessing(true);
     setIsTyping(true);
+    setError(null);
 
-    // Process user input based on context
-    setTimeout(() => {
+    try {
+      // Process user input based on context
+      setTimeout(() => {
+        setIsProcessing(false);
+        setIsTyping(false);
+
+        const lowerInput = input.toLowerCase();
+        
+        if (lowerInput.includes('recipe') || lowerInput.includes('cook') || lowerInput.includes('make')) {
+          // User is looking for recipes
+          addAssistantMessage("Great! Let's find some recipes. Please tell me what dish you're interested in making, or just browse our options below.");
+          setFoodContext(prev => ({
+            ...prev,
+            conversationState: 'recipe_search'
+          }));
+        } else if (lowerInput.includes('diet') || lowerInput.includes('vegan') || lowerInput.includes('vegetarian')) {
+          // User asking about dietary restrictions
+          addAssistantMessage(
+            "Let me know your dietary preferences. I can filter recipes based on dietary restrictions.",
+            undefined,
+            [
+              {
+                id: 'set-dietary',
+                label: 'Set Dietary Preferences',
+                variant: 'default',
+                action: () => handleDishNameInput()
+              }
+            ]
+          );
+        } else {
+          // General response
+          addAssistantMessage(
+            "I can help you find recipes, plan meals, or answer cooking questions. What would you like to do?",
+            undefined,
+            [
+              {
+                id: 'find-recipes',
+                label: 'Find Recipes',
+                variant: 'default',
+                action: () => handleDishNameInput()
+              }
+            ]
+          );
+        }
+      }, 1000);
+    } catch (err) {
+      console.error("Error processing input:", err);
+      setError("Something went wrong. Please try again.");
       setIsProcessing(false);
       setIsTyping(false);
-
-      const lowerInput = input.toLowerCase();
-      
-      if (lowerInput.includes('recipe') || lowerInput.includes('cook') || lowerInput.includes('make')) {
-        // User is looking for recipes
-        addAssistantMessage("Great! Let's find some recipes. Please tell me what dish you're interested in making, or just browse our options below.");
-        setFoodContext(prev => ({
-          ...prev,
-          conversationState: 'recipe_search'
-        }));
-      } else if (lowerInput.includes('diet') || lowerInput.includes('vegan') || lowerInput.includes('vegetarian')) {
-        // User asking about dietary restrictions
-        addAssistantMessage(
-          "Let me know your dietary preferences. I can filter recipes based on dietary restrictions.",
-          undefined,
-          [
-            {
-              id: 'set-dietary',
-              label: 'Set Dietary Preferences',
-              variant: 'default',
-              action: () => handleDishNameInput()
-            }
-          ]
-        );
-      } else {
-        // General response
-        addAssistantMessage(
-          "I can help you find recipes, plan meals, or answer cooking questions. What would you like to do?",
-          undefined,
-          [
-            {
-              id: 'find-recipes',
-              label: 'Find Recipes',
-              variant: 'default',
-              action: () => handleDishNameInput()
-            }
-          ]
-        );
-      }
-    }, 1000);
+    }
   };
 
   const handleDishNameInput = () => {
@@ -128,47 +138,56 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   };
 
   const handleRecipeSelection = (recipe: Recipe) => {
-    addUserMessage(`I want to make ${recipe.name}`);
-    
-    setFoodContext(prev => ({
-      ...prev,
-      dishName: recipe.name,
-      selectedRecipe: recipe,
-      conversationState: 'serving_size'
-    }));
-    
-    // Show recipe details
-    setTimeout(() => {
-      addAssistantMessage(
-        `Great choice! ${recipe.name} is a delicious ${recipe.cuisine} ${recipe.category}. Would you like me to adjust the recipe for any dietary restrictions or serving size?`,
-        recipe.image,
-        [
-          {
-            id: 'view-recipe',
-            label: 'View Recipe Details',
-            variant: 'default',
-            action: () => showRecipeDetails(recipe)
-          },
-          {
-            id: 'save-recipe',
-            label: 'Save to My Recipes',
-            variant: 'outline',
-            action: () => saveRecipe(recipe)
-          }
-        ]
-      );
-    }, 500);
+    setIsLoading(true);
+    try {
+      addUserMessage(`I want to make ${recipe.name}`);
+      
+      setFoodContext(prev => ({
+        ...prev,
+        dishName: recipe.name,
+        selectedRecipe: recipe,
+        conversationState: 'serving_size'
+      }));
+      
+      // Show recipe details
+      setTimeout(() => {
+        addAssistantMessage(
+          `Great choice! ${recipe.name} is a delicious ${recipe.cuisine} ${recipe.category}. Would you like me to adjust the recipe for any dietary restrictions or serving size?`,
+          recipe.image,
+          [
+            {
+              id: 'view-recipe',
+              label: 'View Recipe Details',
+              variant: 'default',
+              action: () => showRecipeDetails(recipe)
+            },
+            {
+              id: 'save-recipe',
+              label: 'Save to My Recipes',
+              variant: 'outline',
+              action: () => saveRecipe(recipe)
+            }
+          ]
+        );
+        setIsLoading(false);
+      }, 500);
+    } catch (err) {
+      console.error("Error selecting recipe:", err);
+      setError("Failed to load recipe details. Please try again.");
+      setIsLoading(false);
+    }
   };
 
   const showRecipeDetails = (recipe: Recipe) => {
-    const dietaryInfo = [];
-    if (recipe.dietaryInfo.isVegan) dietaryInfo.push("Vegan");
-    if (recipe.dietaryInfo.isVegetarian) dietaryInfo.push("Vegetarian");
-    if (recipe.dietaryInfo.isGlutenFree) dietaryInfo.push("Gluten-Free");
-    if (recipe.dietaryInfo.isDairyFree) dietaryInfo.push("Dairy-Free");
-    if (recipe.dietaryInfo.isLowCarb) dietaryInfo.push("Low-Carb");
-    
-    const recipeDetails = `
+    try {
+      const dietaryInfo = [];
+      if (recipe.dietaryInfo.isVegan) dietaryInfo.push("Vegan");
+      if (recipe.dietaryInfo.isVegetarian) dietaryInfo.push("Vegetarian");
+      if (recipe.dietaryInfo.isGlutenFree) dietaryInfo.push("Gluten-Free");
+      if (recipe.dietaryInfo.isDairyFree) dietaryInfo.push("Dairy-Free");
+      if (recipe.dietaryInfo.isLowCarb) dietaryInfo.push("Low-Carb");
+      
+      const recipeDetails = `
 ## ${recipe.name}
 **Cuisine**: ${recipe.cuisine}
 **Prep Time**: ${recipe.prepTime} mins | **Cook Time**: ${recipe.cookTime} mins
@@ -176,30 +195,47 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
 ${dietaryInfo.length > 0 ? `**Dietary Info**: ${dietaryInfo.join(", ")}` : ""}
 
 ### Ingredients:
-${Object.values(recipe.ingredients.default)
+${recipe.ingredients.default
   .map(ing => `- ${ing.quantity} ${ing.unit} ${ing.name}`)
   .join("\n")}
 
 ### Instructions:
 ${recipe.instructions.map((step, i) => `${i+1}. ${step}`).join("\n")}
-    `;
-    
-    addAssistantMessage(recipeDetails, recipe.image);
+      `;
+      
+      addAssistantMessage(recipeDetails, recipe.image);
+    } catch (err) {
+      console.error("Error showing recipe details:", err);
+      toast({
+        title: "Error",
+        description: "Failed to display recipe details",
+        variant: "destructive"
+      });
+    }
   };
 
   const saveRecipe = (recipe: Recipe) => {
-    // Simulate saving the recipe
-    setFoodContext(prev => ({
-      ...prev,
-      recipeSaved: true
-    }));
-    
-    toast({
-      title: "Recipe Saved",
-      description: `${recipe.name} has been added to your saved recipes.`,
-    });
-    
-    addAssistantMessage(`I've saved ${recipe.name} to your recipe collection. You can access it anytime from your saved recipes.`);
+    try {
+      // Simulate saving the recipe
+      setFoodContext(prev => ({
+        ...prev,
+        recipeSaved: true
+      }));
+      
+      toast({
+        title: "Recipe Saved",
+        description: `${recipe.name} has been added to your saved recipes.`,
+      });
+      
+      addAssistantMessage(`I've saved ${recipe.name} to your recipe collection. You can access it anytime from your saved recipes.`);
+    } catch (err) {
+      console.error("Error saving recipe:", err);
+      toast({
+        title: "Error",
+        description: "Failed to save recipe",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDietaryChange = (options: DietaryOption[]) => {
@@ -234,7 +270,19 @@ ${recipe.instructions.map((step, i) => `${i+1}. ${step}`).join("\n")}
           </Button>
         </SheetHeader>
 
+        {error && (
+          <div className="bg-destructive/10 text-destructive px-4 py-2 text-sm">
+            {error}
+          </div>
+        )}
+
         <ChatMessages messages={messages} isTyping={isTyping} />
+
+        {isLoading && (
+          <div className="flex justify-center p-4">
+            <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
+          </div>
+        )}
 
         {foodContext.conversationState === 'recipe_search' && (
           <div className="flex items-start w-full p-4 pb-0">
