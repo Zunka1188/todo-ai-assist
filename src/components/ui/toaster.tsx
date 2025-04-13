@@ -1,12 +1,13 @@
 
-import { useToast } from "@/hooks/use-toast";
+import { ToastProvider as HookToastProvider, useToast } from "@/hooks/use-toast";
 import { Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport } from "@/components/ui/toast";
 
-export function Toaster() {
+// This component must be a child of ToastProvider from use-toast.ts
+function ToastList() {
   const { toasts } = useToast();
   
   return (
-    <ToastProvider>
+    <>
       {toasts.map(function ({
         id,
         title,
@@ -26,6 +27,16 @@ export function Toaster() {
         );
       })}
       <ToastViewport />
-    </ToastProvider>
+    </>
+  );
+}
+
+export function Toaster() {
+  return (
+    <HookToastProvider>
+      <ToastProvider>
+        <ToastList />
+      </ToastProvider>
+    </HookToastProvider>
   );
 }
