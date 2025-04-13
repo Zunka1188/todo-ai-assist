@@ -46,5 +46,5 @@ export function useCachedQuery<TData, TError = Error>(
   };
 
   // Pass the options object with explicit type parameters
-  return useQuery<TData, TError, TData>(queryOptions);
+  return useQuery<TData, TError>(queryKey, enhancedQueryFn, options);
 }
