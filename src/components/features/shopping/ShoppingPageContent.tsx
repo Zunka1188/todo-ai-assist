@@ -12,11 +12,13 @@ import ResponsiveContainer from '@/components/ui/responsive-container';
 import LoadingState from './LoadingState';
 import EmptyState from '@/components/ui/empty-state';
 import ContentGrid from '@/components/ui/content-grid';
+import ShoppingTabsSection from './ShoppingTabsSection';
 
 const ShoppingPageContent: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMode, setFilterMode] = useState<'all' | 'one-off' | 'weekly' | 'monthly'>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
   const { isMobile } = useIsMobile();
   const { 
     addItem, 
@@ -46,6 +48,11 @@ const ShoppingPageContent: React.FC = () => {
     return false;
   };
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setFilterMode(value as 'all' | 'one-off' | 'weekly' | 'monthly');
+  };
+
   const headerActions = {
     primaryAction: {
       icon: Plus,
@@ -58,39 +65,6 @@ const ShoppingPageContent: React.FC = () => {
   // Show loading state when data is loading
   if (isLoading) {
     return <LoadingState />;
-  }
-  
-  // Show empty state when there are no items and no search filter
-  if (notPurchasedItems.length === 0 && purchasedItems.length === 0 && !searchTerm) {
-    return (
-      <ResponsiveContainer direction="column" gap="md" mobileFullWidth={true}>
-        <div className="flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center mb-4">
-          <div className="w-full sm:max-w-sm">
-            <SearchInput
-              value={searchTerm}
-              onChange={setSearchTerm}
-              placeholder="Search shopping items..."
-            />
-          </div>
-          <HeaderActions {...headerActions} />
-        </div>
-        
-        <EmptyState 
-          icon={<ShoppingBag />}
-          title="Your shopping list is empty"
-          description="Add items to your shopping list to get started"
-          actionLabel="Add Item"
-          onAction={() => setIsAddDialogOpen(true)}
-          centered={true}
-        />
-        
-        <AddItemDialog
-          open={isAddDialogOpen}
-          onOpenChange={setIsAddDialogOpen}
-          onSave={handleSaveItem}
-        />
-      </ResponsiveContainer>
-    );
   }
   
   return (
@@ -106,17 +80,27 @@ const ShoppingPageContent: React.FC = () => {
         <HeaderActions {...headerActions} />
       </div>
       
+      {/* Always show the tabs section */}
       <div className="mb-4">
-        <FilterButtons
-          activeFilter={filterMode}
-          onFilterChange={setFilterMode}
+        <ShoppingTabsSection
+          activeTab={activeTab}
+          handleTabChange={handleTabChange}
+          searchTerm={searchTerm}
+          readOnly={false}
         />
       </div>
       
-      <ShoppingList
-        searchTerm={searchTerm}
-        filterMode={filterMode}
-      />
+      {/* Show empty state when there are no items and no search filter */}
+      {notPurchasedItems.length === 0 && purchasedItems.length === 0 && !searchTerm && (
+        <EmptyState 
+          icon={<ShoppingBag />}
+          title="Your shopping list is empty"
+          description="Add items to your shopping list to get started"
+          actionLabel="Add Item"
+          onAction={() => setIsAddDialogOpen(true)}
+          centered={true}
+        />
+      )}
 
       <AddItemDialog
         open={isAddDialogOpen}
