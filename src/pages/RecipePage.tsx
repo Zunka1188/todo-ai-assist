@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import AppPage from '@/components/ui/app-page';
 import { recipes } from '@/data/recipes';
-import { Recipe } from '@/data/recipes/types';
+import { Recipe } from '@/types/recipe';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Clock, Flame, User } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -21,8 +21,8 @@ const RecipePage: React.FC = () => {
       const foundRecipe = recipes.find(r => r.id === id);
       
       if (foundRecipe) {
-        // Ensure we're using the correct type by explicitly casting
-        setRecipe(foundRecipe as Recipe);
+        // Cast the recipe type to match Recipe type from @/types/recipe
+        setRecipe(foundRecipe as unknown as Recipe);
       } else {
         setRecipe(null);
         toast({
