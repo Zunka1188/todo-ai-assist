@@ -1,4 +1,3 @@
-
 import { Recipe, Ingredient } from '@/types/recipe';
 
 // Utility function to convert old format to new format
@@ -52,8 +51,9 @@ export const recipes: Recipe[] = [
     nutritionalInfo: {
       calories: 400,
       protein: 10,
-      carbs: 60,
-      fat: 12
+      carbohydrates: 60,
+      fat: 12,
+      fiber: 0
     }
   },
   {
@@ -99,8 +99,9 @@ export const recipes: Recipe[] = [
     nutritionalInfo: {
       calories: 450,
       protein: 15,
-      carbs: 70,
-      fat: 18
+      carbohydrates: 70,
+      fat: 18,
+      fiber: 0
     }
   },
   {
@@ -141,8 +142,9 @@ export const recipes: Recipe[] = [
     nutritionalInfo: {
       calories: 200,
       protein: 5,
-      carbs: 10,
-      fat: 5
+      carbohydrates: 10,
+      fat: 5,
+      fiber: 0
     }
   },
   {
@@ -188,8 +190,9 @@ export const recipes: Recipe[] = [
     nutritionalInfo: {
       calories: 500,
       protein: 15,
-      carbs: 60,
-      fat: 20
+      carbohydrates: 60,
+      fat: 20,
+      fiber: 0
     }
   },
   {
@@ -232,8 +235,9 @@ export const recipes: Recipe[] = [
     nutritionalInfo: {
       calories: 250,
       protein: 5,
-      carbs: 10,
-      fat: 5
+      carbohydrates: 10,
+      fat: 5,
+      fiber: 0
     }
   },
   
@@ -283,8 +287,9 @@ export const recipes: Recipe[] = [
     nutritionalInfo: {
       calories: 550,
       protein: 15,
-      carbs: 70,
-      fat: 20
+      carbohydrates: 70,
+      fat: 20,
+      fiber: 0
     }
   },
   {
@@ -330,8 +335,9 @@ export const recipes: Recipe[] = [
     nutritionalInfo: {
       calories: 300,
       protein: 10,
-      carbs: 20,
-      fat: 10
+      carbohydrates: 20,
+      fat: 10,
+      fiber: 0
     }
   },
   {
@@ -384,8 +390,9 @@ export const recipes: Recipe[] = [
     nutritionalInfo: {
       calories: 600,
       protein: 20,
-      carbs: 20,
-      fat: 30
+      carbohydrates: 20,
+      fat: 30,
+      fiber: 0
     }
   },
   {
@@ -434,8 +441,9 @@ export const recipes: Recipe[] = [
     nutritionalInfo: {
       calories: 350,
       protein: 10,
-      carbs: 10,
-      fat: 20
+      carbohydrates: 10,
+      fat: 20,
+      fiber: 0
     }
   },
   {
@@ -481,8 +489,9 @@ export const recipes: Recipe[] = [
     nutritionalInfo: {
       calories: 400,
       protein: 10,
-      carbs: 10,
-      fat: 20
+      carbohydrates: 10,
+      fat: 20,
+      fiber: 0
     }
   },
   
@@ -525,8 +534,9 @@ export const recipes: Recipe[] = [
     nutritionalInfo: {
       calories: 200,
       protein: 5,
-      carbs: 10,
-      fat: 5
+      carbohydrates: 10,
+      fat: 5,
+      fiber: 0
     }
   },
   {
@@ -572,8 +582,9 @@ export const recipes: Recipe[] = [
     nutritionalInfo: {
       calories: 400,
       protein: 20,
-      carbs: 10,
-      fat: 20
+      carbohydrates: 10,
+      fat: 20,
+      fiber: 0
     }
   },
   {
@@ -617,8 +628,9 @@ export const recipes: Recipe[] = [
     nutritionalInfo: {
       calories: 300,
       protein: 10,
-      carbs: 10,
-      fat: 10
+      carbohydrates: 10,
+      fat: 10,
+      fiber: 0
     }
   },
   {
@@ -664,8 +676,9 @@ export const recipes: Recipe[] = [
     nutritionalInfo: {
       calories: 500,
       protein: 20,
-      carbs: 10,
-      fat: 20
+      carbohydrates: 10,
+      fat: 20,
+      fiber: 0
     }
   },
   {
@@ -692,23 +705,4 @@ export const recipes: Recipe[] = [
       "Make an indentation in the center and add filling if desired.",
       "Close the rice around the filling and shape into a triangle or ball.",
       "Wrap the bottom with a strip of nori.",
-      "Sprinkle with furikake seasoning if desired."
-    ],
-    image: "",
-    dietaryRestrictions: ["vegetarian", "dairy-free", "nut-free"],
-    dietaryInfo: {
-      isVegan: false,
-      isVegetarian: true,
-      isGlutenFree: false,
-      isDairyFree: true,
-      isLowCarb: false,
-      isNutFree: true
-    },
-    nutritionalInfo: {
-      calories: 100,
-      protein: 3,
-      carbs: 20,
-      fat: 1
-    }
-  }
-];
+      "Spr
