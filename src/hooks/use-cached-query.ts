@@ -42,9 +42,9 @@ export function useCachedQuery<TData, TError = Error>(
   const queryOptions: UseQueryOptions<TData, TError> = {
     queryKey,
     queryFn: enhancedQueryFn,
-    ...options,
+    ...(options || {}), // Ensure options is always an object
   };
 
-  // Pass the options object as a single argument
+  // Pass the options object as a single argument with explicit type generics
   return useQuery<TData, TError>(queryOptions);
 }
