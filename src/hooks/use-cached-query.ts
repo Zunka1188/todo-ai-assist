@@ -83,8 +83,8 @@ export function useInvalidateCache() {
     // Clear local cache
     appCache.clear();
     
-    // Clear React Query cache - In TanStack Query v5, clear() doesn't take arguments
-    return queryClient.clear();
+    // Clear React Query cache - Pass an empty object
+    return queryClient.clear({});
   };
   
   return { invalidateQuery, clearAllQueries };
@@ -131,3 +131,4 @@ export function useCachingMutation<TData, TVariables, TError = Error, TContext =
     onSettled: options.onSettled
   });
 }
+
