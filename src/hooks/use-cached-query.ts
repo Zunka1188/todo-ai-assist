@@ -1,5 +1,5 @@
 
-import { useQuery, UseQueryOptions, QueryKey, QueryFunction, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, UseQueryOptions, QueryKey, QueryFunction, useMutation, useQueryClient, QueryFunctionContext } from '@tanstack/react-query';
 import { appCache } from '@/utils/cacheUtils';
 
 interface CachedQueryOptions<TData, TError> extends Omit<UseQueryOptions<TData, TError, TData, QueryKey>, 'queryKey' | 'queryFn'> {
@@ -12,7 +12,7 @@ interface CachedQueryOptions<TData, TError> extends Omit<UseQueryOptions<TData, 
  */
 export function useCachedQuery<TData, TError = Error>(
   queryKey: QueryKey,
-  queryFn: QueryFunction<TData>,
+  queryFn: (context: QueryFunctionContext<QueryKey>) => Promise<TData>,
   options?: CachedQueryOptions<TData, TError>
 ) {
   // Convert array key to string for local cache
@@ -23,11 +23,8 @@ export function useCachedQuery<TData, TError = Error>(
   const cacheTimeInSeconds = options?.cacheTime ?? 300; // Default 5 minutes
   const skipLocalCache = options?.skipLocalCache ?? false;
 
-  // Get query client for invalidation
-  const queryClient = useQueryClient();
-
   // Enhanced query function that checks local cache first
-  const enhancedQueryFn = async (): Promise<TData> => {
+  const enhancedQueryFn = async (context: QueryFunctionContext<QueryKey>): Promise<TData> => {
     // Skip local cache if requested
     if (!skipLocalCache) {
       // Try local cache first
@@ -37,8 +34,8 @@ export function useCachedQuery<TData, TError = Error>(
       }
     }
     
-    // If not in local cache, fetch data
-    const data = await queryFn();
+    // If not in local cache, fetch data with proper context
+    const data = await queryFn(context);
     
     // Store in local cache if not skipping
     if (!skipLocalCache) {
@@ -84,7 +81,7 @@ export function useInvalidateCache() {
     appCache.clear();
     
     // Clear React Query cache - Use empty object parameter for v5 API
-    return queryClient.clear({ });
+    return queryClient.clear();
   };
   
   return { invalidateQuery, clearAllQueries };
