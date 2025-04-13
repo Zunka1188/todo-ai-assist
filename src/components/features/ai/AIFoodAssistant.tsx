@@ -4,7 +4,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Recipe } from '@/data/recipes/types';
 import RecipeSearch from './RecipeSearch';
 import { DietaryCheckboxes } from './components/DietaryCheckboxes';
 import { ChatMessages } from './components/ChatMessages';
@@ -13,6 +12,7 @@ import { EventScheduler } from './components/EventScheduler';
 import { DIETARY_OPTIONS } from './constants';
 import { AIFoodAssistantProps, DietaryOption, FoodContext } from './types';
 import { useChatMessages } from './hooks/useChatMessages';
+import { Recipe } from '@/types/recipe';
 
 const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) => {
   const {

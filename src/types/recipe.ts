@@ -15,10 +15,27 @@ export interface NutritionInfo {
   sugar: number;
 }
 
+export type Cuisine = 
+  | "italian" 
+  | "french" 
+  | "japanese" 
+  | "chinese" 
+  | "indian" 
+  | "mexican" 
+  | "thai" 
+  | "polish" 
+  | "greek" 
+  | "spanish" 
+  | "vietnamese" 
+  | "korean" 
+  | "turkish" 
+  | "moroccan" 
+  | "lebanese";
+
 export interface Recipe {
   id: string;
   name: string;
-  cuisine: string;
+  cuisine: Cuisine;
   category: "main" | "side" | "dessert" | "breakfast" | "snack" | "soup" | "appetizer";
   baseServings: number;
   prepTime: number;
@@ -59,23 +76,6 @@ export type DietaryRestriction =
   | "dairy-free" 
   | "nut-free" 
   | "low-carb";
-
-export type Cuisine = 
-  | "italian" 
-  | "french" 
-  | "japanese" 
-  | "chinese" 
-  | "indian" 
-  | "mexican" 
-  | "thai" 
-  | "polish" 
-  | "greek" 
-  | "spanish" 
-  | "vietnamese" 
-  | "korean" 
-  | "turkish" 
-  | "moroccan" 
-  | "lebanese";
 
 export interface RecipeFilters {
   dietary: DietaryRestriction[];

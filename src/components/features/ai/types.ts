@@ -1,4 +1,5 @@
-import { Recipe } from '@/data/recipes/types';
+
+import { Recipe } from '@/types/recipe';
 import { ReactNode } from 'react';
 
 export type DietaryRestrictionType = 
@@ -49,4 +50,9 @@ export interface ChatMessage {
 export interface AIFoodAssistantProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+export interface RecipeSearchProps {
+  onSelectRecipe: (recipe: Recipe) => void;
+  selectedDietaryRestrictions: DietaryRestrictionType[];
 }
