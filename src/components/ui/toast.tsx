@@ -1,7 +1,7 @@
 
 import * as React from "react"
 import { Viewport } from "@radix-ui/react-toast"
-import { Cross2Icon } from "@radix-ui/react-icons"
+import { Cross2Icon } from "@radix-ui/react-icons" // Ensure this import is correct
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 import * as ToastPrimitives from "@radix-ui/react-toast"
