@@ -6,7 +6,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { LanguageSelector } from '@/components/ui/language-selector';
 import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, HelpCircle, Cloud, MessageSquare, Leaf, Utensils } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +29,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
   const location = useLocation();
   const [chatOpen, setChatOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { t } = useTranslation();
   
   useEffect(() => {
     if (localStorage.getItem('theme') === null) {
@@ -98,6 +101,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
         </div>
         
         <div className="flex items-center gap-2">
+          <LanguageSelector variant="compact" />
           <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
             <DropdownMenuTrigger 
               className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation" 
@@ -117,7 +121,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
                   )}
                 >
                   <Home className="h-4 w-4" />
-                  <span className={textColorClass}>Home</span>
+                  <span className={textColorClass}>{t('navigation.home')}</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
@@ -130,7 +134,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
                   )}
                 >
                   <ShoppingBag className="h-4 w-4" />
-                  <span className={textColorClass}>Shopping</span>
+                  <span className={textColorClass}>{t('navigation.shopping')}</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
@@ -143,7 +147,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
                   )}
                 >
                   <Calendar className="h-4 w-4" />
-                  <span className={textColorClass}>Calendar</span>
+                  <span className={textColorClass}>{t('navigation.calendar')}</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
@@ -156,7 +160,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
                   )}
                 >
                   <FileText className="h-4 w-4" />
-                  <span className={textColorClass}>Documents</span>
+                  <span className={textColorClass}>{t('navigation.documents')}</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
@@ -169,7 +173,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
                   )}
                 >
                   <Utensils className="h-4 w-4" />
-                  <span className={textColorClass}>Recipes</span>
+                  <span className={textColorClass}>{t('navigation.recipes')}</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
@@ -182,7 +186,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
                   )}
                 >
                   <Cloud className="h-4 w-4" />
-                  <span className={textColorClass}>Weather</span>
+                  <span className={textColorClass}>{t('navigation.weather')}</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
@@ -195,7 +199,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
                   )}
                 >
                   <HelpCircle className="h-4 w-4" />
-                  <span className={textColorClass}>Troubleshoot</span>
+                  <span className={textColorClass}>{t('navigation.troubleshoot')}</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
@@ -208,7 +212,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
                   )}
                 >
                   <Leaf className="h-4 w-4" />
-                  <span className={textColorClass}>Produce Recognition</span>
+                  <span className={textColorClass}>{t('navigation.produceRecognition')}</span>
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>

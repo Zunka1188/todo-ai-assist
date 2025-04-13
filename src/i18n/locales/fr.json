@@ -1,0 +1,64 @@
+
+{
+  "common": {
+    "appName": "Assistant de Recettes",
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "noResults": "Aucun résultat trouvé",
+    "error": "Une erreur s'est produite"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "recipes": "Recettes",
+    "shopping": "Courses",
+    "calendar": "Calendrier",
+    "documents": "Documents",
+    "weather": "Météo",
+    "settings": "Paramètres",
+    "troubleshoot": "Dépannage",
+    "produceRecognition": "Reconnaissance Alimentaire"
+  },
+  "recipes": {
+    "savedRecipes": "Vos Recettes Enregistrées",
+    "customRecipes": "Vos Recettes Personnalisées",
+    "favoriteRecipes": "Vos Recettes Favorites",
+    "noCustomRecipes": "Vous n'avez pas encore créé de recettes personnalisées.",
+    "noFavorites": "Vous n'avez pas encore ajouté de favoris.",
+    "noSaved": "Aucune recette enregistrée.",
+    "saveToAccess": "Enregistrez les recettes que vous aimez pour y accéder rapidement plus tard.",
+    "markAsFavorite": "Marquez les recettes comme favorites pour un accès rapide.",
+    "browseRecipes": "Parcourir les Recettes",
+    "prepTime": "Préparation",
+    "cookTime": "Cuisson",
+    "minutes": "min",
+    "viewRecipe": "Voir la Recette",
+    "addToFavorites": "Ajouter aux favoris",
+    "removeFromFavorites": "Retirer des favoris",
+    "removeRecipe": "Supprimer la recette",
+    "dietary": {
+      "vegan": "Vegan",
+      "vegetarian": "Végétarien",
+      "glutenFree": "Sans Gluten",
+      "dairyFree": "Sans Produits Laitiers"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Personnalisez votre expérience de l'application",
+    "profile": "Profil",
+    "editProfile": "Modifier le Profil",
+    "language": "Langue",
+    "darkMode": "Mode Sombre",
+    "notifications": "Notifications",
+    "appSettings": "Paramètres de l'Application",
+    "selectLanguage": "Sélectionnez votre langue préférée",
+    "themeDescription": "Changer entre thèmes clair et sombre",
+    "saveChanges": "Enregistrer les modifications",
+    "changesSaved": "Vos paramètres ont été mis à jour avec succès."
+  }
+}

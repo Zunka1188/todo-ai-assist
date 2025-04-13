@@ -1,0 +1,64 @@
+
+{
+  "common": {
+    "appName": "Recipe Assistant",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "filter": "Filter",
+    "noResults": "No results found",
+    "error": "An error occurred"
+  },
+  "navigation": {
+    "home": "Home",
+    "recipes": "Recipes",
+    "shopping": "Shopping",
+    "calendar": "Calendar",
+    "documents": "Documents",
+    "weather": "Weather",
+    "settings": "Settings",
+    "troubleshoot": "Troubleshoot",
+    "produceRecognition": "Produce Recognition"
+  },
+  "recipes": {
+    "savedRecipes": "Your Saved Recipes",
+    "customRecipes": "Your Custom Recipes",
+    "favoriteRecipes": "Your Favorite Recipes",
+    "noCustomRecipes": "You haven't created any custom recipes yet.",
+    "noFavorites": "You haven't added any favorites yet.",
+    "noSaved": "No recipes saved yet.",
+    "saveToAccess": "Save recipes you love to access them quickly later.",
+    "markAsFavorite": "Mark recipes as favorites for quick access.",
+    "browseRecipes": "Browse Recipes",
+    "prepTime": "Prep",
+    "cookTime": "Cook",
+    "minutes": "min",
+    "viewRecipe": "View Recipe",
+    "addToFavorites": "Add to favorites",
+    "removeFromFavorites": "Remove from favorites",
+    "removeRecipe": "Remove recipe",
+    "dietary": {
+      "vegan": "Vegan",
+      "vegetarian": "Vegetarian",
+      "glutenFree": "Gluten-Free",
+      "dairyFree": "Dairy-Free"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Customize your app experience",
+    "profile": "Profile",
+    "editProfile": "Edit Profile",
+    "language": "Language",
+    "darkMode": "Dark Mode",
+    "notifications": "Notifications",
+    "appSettings": "App Settings",
+    "selectLanguage": "Select your preferred language",
+    "themeDescription": "Switch between light and dark themes",
+    "saveChanges": "Save changes",
+    "changesSaved": "Your settings have been successfully updated."
+  }
+}

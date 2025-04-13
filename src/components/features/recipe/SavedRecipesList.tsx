@@ -8,6 +8,7 @@ import { BookmarkIcon, Heart, Trash2, Clock, Utensils } from 'lucide-react';
 import { useRecipes } from '@/hooks/useRecipes';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface SavedRecipesListProps {
   showCustomOnly?: boolean;
@@ -33,6 +34,8 @@ const SavedRecipesList: React.FC<SavedRecipesListProps> = ({
     isRecipeFavorite
   } = useRecipes();
   
+  const { t } = useTranslation();
+  
   // Filter recipes based on the props
   const getFilteredRecipes = () => {
     if (showCustomOnly) {
@@ -51,7 +54,7 @@ const SavedRecipesList: React.FC<SavedRecipesListProps> = ({
   if (isLoadingUserRecipes) {
     return (
       <div className="space-y-4">
-        {showTitle && <h2 className="text-2xl font-semibold">Your Saved Recipes</h2>}
+        {showTitle && <h2 className="text-2xl font-semibold">{t('recipes.savedRecipes')}</h2>}
         {[1, 2, 3].map(i => (
           <Card key={i} className="overflow-hidden">
             <CardHeader>
@@ -78,10 +81,10 @@ const SavedRecipesList: React.FC<SavedRecipesListProps> = ({
         {showTitle && (
           <h2 className="text-2xl font-semibold">
             {showCustomOnly 
-              ? 'Your Custom Recipes' 
+              ? t('recipes.customRecipes')
               : showFavoritesOnly
-                ? 'Your Favorite Recipes'
-                : 'Your Saved Recipes'
+                ? t('recipes.favoriteRecipes')
+                : t('recipes.savedRecipes')
             }
           </h2>
         )}
@@ -90,20 +93,20 @@ const SavedRecipesList: React.FC<SavedRecipesListProps> = ({
             <BookmarkIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-xl font-medium">
               {showCustomOnly 
-                ? "You haven't created any custom recipes yet."
+                ? t('recipes.noCustomRecipes')
                 : showFavoritesOnly
-                  ? "You haven't added any favorites yet."
-                  : "No recipes saved yet."}
+                  ? t('recipes.noFavorites')
+                  : t('recipes.noSaved')}
             </h3>
             <p className="text-muted-foreground mt-2">
               {showCustomOnly 
-                ? "You haven't created any custom recipes yet."
+                ? t('recipes.noCustomRecipes')
                 : showFavoritesOnly
-                  ? "Mark recipes as favorites for quick access."
-                  : "Save recipes you love to access them quickly later."}
+                  ? t('recipes.markAsFavorite')
+                  : t('recipes.saveToAccess')}
             </p>
             <Button asChild className="mt-4">
-              <Link to="/recipes">Browse Recipes</Link>
+              <Link to="/recipes">{t('recipes.browseRecipes')}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -116,10 +119,10 @@ const SavedRecipesList: React.FC<SavedRecipesListProps> = ({
       {showTitle && (
         <h2 className="text-2xl font-semibold">
           {showCustomOnly 
-            ? 'Your Custom Recipes' 
+            ? t('recipes.customRecipes')
             : showFavoritesOnly
-              ? 'Your Favorite Recipes'
-              : 'Your Saved Recipes'
+              ? t('recipes.favoriteRecipes')
+              : t('recipes.savedRecipes')
           }
         </h2>
       )}
@@ -154,6 +157,8 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   onToggleFavorite,
   isRemoving
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md">
       <CardHeader>
@@ -163,30 +168,30 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
       <CardContent className="space-y-2">
         <div className="flex items-center text-sm text-muted-foreground">
           <Clock className="h-4 w-4 mr-1" /> 
-          <span>Prep: {recipe.prepTime} min</span>
+          <span>{t('recipes.prepTime')}: {recipe.prepTime} {t('recipes.minutes')}</span>
           <span className="mx-2">•</span>
           <Clock className="h-4 w-4 mr-1" /> 
-          <span>Cook: {recipe.cookTime} min</span>
+          <span>{t('recipes.cookTime')}: {recipe.cookTime} {t('recipes.minutes')}</span>
         </div>
         <div className="flex flex-wrap gap-1 mt-2">
           {recipe.dietaryInfo.isVegan && (
             <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded dark:bg-green-900 dark:text-green-100">
-              Vegan
+              {t('recipes.dietary.vegan')}
             </span>
           )}
           {recipe.dietaryInfo.isVegetarian && !recipe.dietaryInfo.isVegan && (
             <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded dark:bg-green-900 dark:text-green-100">
-              Vegetarian
+              {t('recipes.dietary.vegetarian')}
             </span>
           )}
           {recipe.dietaryInfo.isGlutenFree && (
             <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-100">
-              Gluten-Free
+              {t('recipes.dietary.glutenFree')}
             </span>
           )}
           {recipe.dietaryInfo.isDairyFree && (
             <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded dark:bg-blue-900 dark:text-blue-100">
-              Dairy-Free
+              {t('recipes.dietary.dairyFree')}
             </span>
           )}
         </div>
@@ -195,7 +200,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
         <Button asChild variant="outline">
           <Link to={`/recipes/${recipe.id}`} className="flex items-center">
             <Utensils className="h-4 w-4 mr-2" />
-            View Recipe
+            {t('recipes.viewRecipe')}
           </Link>
         </Button>
         <div className="flex space-x-1">
@@ -203,7 +208,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             size="icon"
             variant="ghost"
             onClick={onToggleFavorite}
-            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            aria-label={isFavorite ? t('recipes.removeFromFavorites') : t('recipes.addToFavorites')}
           >
             <Heart 
               className={cn("h-4 w-4", isFavorite ? "fill-red-500 text-red-500" : "")} 
@@ -214,7 +219,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
             variant="ghost"
             onClick={onRemove}
             disabled={isRemoving}
-            aria-label="Remove recipe"
+            aria-label={t('recipes.removeRecipe')}
           >
             <Trash2 className="h-4 w-4" />
           </Button>

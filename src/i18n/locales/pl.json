@@ -1,0 +1,64 @@
+
+{
+  "common": {
+    "appName": "Asystent Przepisów",
+    "loading": "Ładowanie...",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "delete": "Usuń",
+    "edit": "Edytuj",
+    "search": "Szukaj",
+    "filter": "Filtruj",
+    "noResults": "Nie znaleziono wyników",
+    "error": "Wystąpił błąd"
+  },
+  "navigation": {
+    "home": "Strona główna",
+    "recipes": "Przepisy",
+    "shopping": "Zakupy",
+    "calendar": "Kalendarz",
+    "documents": "Dokumenty",
+    "weather": "Pogoda",
+    "settings": "Ustawienia",
+    "troubleshoot": "Rozwiązywanie problemów",
+    "produceRecognition": "Rozpoznawanie Produktów"
+  },
+  "recipes": {
+    "savedRecipes": "Twoje Zapisane Przepisy",
+    "customRecipes": "Twoje Własne Przepisy",
+    "favoriteRecipes": "Twoje Ulubione Przepisy",
+    "noCustomRecipes": "Nie stworzyłeś jeszcze żadnych własnych przepisów.",
+    "noFavorites": "Nie dodałeś jeszcze żadnych ulubionych.",
+    "noSaved": "Brak zapisanych przepisów.",
+    "saveToAccess": "Zapisz przepisy, które lubisz, aby mieć do nich szybki dostęp później.",
+    "markAsFavorite": "Oznacz przepisy jako ulubione, aby mieć do nich szybki dostęp.",
+    "browseRecipes": "Przeglądaj Przepisy",
+    "prepTime": "Przygotowanie",
+    "cookTime": "Gotowanie",
+    "minutes": "min",
+    "viewRecipe": "Zobacz Przepis",
+    "addToFavorites": "Dodaj do ulubionych",
+    "removeFromFavorites": "Usuń z ulubionych",
+    "removeRecipe": "Usuń przepis",
+    "dietary": {
+      "vegan": "Wegańskie",
+      "vegetarian": "Wegetariańskie",
+      "glutenFree": "Bezglutenowe",
+      "dairyFree": "Bez Nabiału"
+    }
+  },
+  "settings": {
+    "title": "Ustawienia",
+    "subtitle": "Dostosuj działanie aplikacji",
+    "profile": "Profil",
+    "editProfile": "Edytuj Profil",
+    "language": "Język",
+    "darkMode": "Tryb Ciemny",
+    "notifications": "Powiadomienia",
+    "appSettings": "Ustawienia Aplikacji",
+    "selectLanguage": "Wybierz preferowany język",
+    "themeDescription": "Przełącz między jasnym a ciemnym motywem",
+    "saveChanges": "Zapisz zmiany",
+    "changesSaved": "Twoje ustawienia zostały pomyślnie zaktualizowane."
+  }
+}

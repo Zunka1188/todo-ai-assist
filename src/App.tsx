@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { ToastProvider } from "@/hooks/use-toast";
+import { LanguageProvider } from "@/hooks/use-language";
 import AppLayout from "./components/layout/AppLayout";
 import Router from "./routes/Router";
 import { StoreProvider } from "./state/useStore";
@@ -19,6 +19,9 @@ import { performanceMonitor } from "./utils/performance-monitor";
 import { initErrorFeedback } from "./utils/error-feedback";
 import { AuthProvider } from "./hooks/use-auth";
 import { initBundleOptimizations } from "./utils/bundle-optimization";
+
+// Import i18n configuration
+import "@/i18n/i18n";
 
 // Enable performance monitoring in development
 if (process.env.NODE_ENV === 'development') {
@@ -126,20 +129,22 @@ const App = () => {
           <QueryClientProvider client={queryClient}>
             <ThemeProvider>
               <ToastProvider>
-                <SecurityProvider>
-                  <SecurityMetaTags />
-                  <TooltipProvider>
-                    <BrowserRouter {...routerOptions}>
-                      <Toaster />
-                      <Sonner />
-                      <AppLayout>
-                        <ErrorBoundary>
-                          <Router />
-                        </ErrorBoundary>
-                      </AppLayout>
-                    </BrowserRouter>
-                  </TooltipProvider>
-                </SecurityProvider>
+                <LanguageProvider>
+                  <SecurityProvider>
+                    <SecurityMetaTags />
+                    <TooltipProvider>
+                      <BrowserRouter {...routerOptions}>
+                        <Toaster />
+                        <Sonner />
+                        <AppLayout>
+                          <ErrorBoundary>
+                            <Router />
+                          </ErrorBoundary>
+                        </AppLayout>
+                      </BrowserRouter>
+                    </TooltipProvider>
+                  </SecurityProvider>
+                </LanguageProvider>
               </ToastProvider>
             </ThemeProvider>
           </QueryClientProvider>

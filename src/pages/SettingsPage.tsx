@@ -8,9 +8,11 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import AppHeader from '@/components/layout/AppHeader';
 import { useTheme } from '@/hooks/use-theme';
+import { useLanguage } from '@/hooks/use-language';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTranslation } from 'react-i18next';
 import {
   Sheet,
   SheetClose,
@@ -34,12 +36,14 @@ interface UserSettings {
 const SettingsPage = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { language, setLanguage, languageList } = useLanguage();
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<UserSettings>({
     username: 'User',
     email: 'user@example.com',
     notifications: true,
-    language: 'English'
+    language: language
   });
 
   const form = useForm<UserSettings>({
@@ -54,8 +58,8 @@ const SettingsPage = () => {
     setSettings(data);
     localStorage.setItem('userSettings', JSON.stringify(data));
     toast({
-      title: "Settings saved",
-      description: "Your settings have been successfully updated.",
+      title: t('settings.changesSaved'),
+      description: "",
     });
   };
 
@@ -66,24 +70,13 @@ const SettingsPage = () => {
     });
   };
 
-  const languages = [
-    { value: "English", label: "English" },
-    { value: "Polish", label: "Polski" },
-    { value: "Spanish", label: "Español" },
-    { value: "French", label: "Français" }
-  ];
-
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLang = e.target.value;
+    const newLang = e.target.value as keyof typeof languageList;
     form.setValue('language', newLang);
+    setLanguage(newLang);
     
     // Update settings immediately for the UI
     setSettings(prev => ({...prev, language: newLang}));
-    
-    toast({
-      title: newLang === "Polish" ? "Zmieniono język" : "Language changed",
-      description: newLang === "Polish" ? "Język został zmieniony na Polski" : `Language has been changed to ${newLang}`,
-    });
   };
 
   return (
@@ -94,13 +87,13 @@ const SettingsPage = () => {
           size="icon" 
           onClick={goBack} 
           className="mr-2"
-          aria-label="Go back to home"
+          aria-label={t('common.cancel')}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <AppHeader 
-          title="Settings" 
-          subtitle="Customize your app experience"
+          title={t('settings.title')} 
+          subtitle={t('settings.subtitle')}
           className="py-0"
         />
       </div>
@@ -123,13 +116,13 @@ const SettingsPage = () => {
 
           <Sheet>
             <SheetTrigger asChild>
-              <Button className="w-full">Edit Profile</Button>
+              <Button className="w-full">{t('settings.editProfile')}</Button>
             </SheetTrigger>
             <SheetContent className={isMobile ? "w-full" : ""}>
               <SheetHeader>
-                <SheetTitle>Edit Profile</SheetTitle>
+                <SheetTitle>{t('settings.editProfile')}</SheetTitle>
                 <SheetDescription>
-                  Make changes to your profile here. Click save when you're done.
+                  {t('settings.editProfile')}
                 </SheetDescription>
               </SheetHeader>
               
@@ -157,21 +150,22 @@ const SettingsPage = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="language">Language</Label>
+                    <Label htmlFor="language">{t('settings.language')}</Label>
                     <select 
                       id="language"
                       className="bg-background w-full border rounded px-3 py-2 text-base"
                       {...form.register('language')}
                       defaultValue={settings.language}
+                      onChange={handleLanguageChange}
                     >
-                      {languages.map(lang => (
-                        <option key={lang.value} value={lang.value}>{lang.label}</option>
+                      {Object.entries(languageList).map(([code, { label }]) => (
+                        <option key={code} value={code}>{label}</option>
                       ))}
                     </select>
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="notifications">Notifications</Label>
+                    <Label htmlFor="notifications">{t('settings.notifications')}</Label>
                     <Switch 
                       id="notifications"
                       checked={settings.notifications}
@@ -184,7 +178,7 @@ const SettingsPage = () => {
                 
                 <SheetFooter className={isMobile ? "flex-col" : ""}>
                   <SheetClose asChild>
-                    <Button type="submit" className={isMobile ? "w-full" : ""}>Save changes</Button>
+                    <Button type="submit" className={isMobile ? "w-full" : ""}>{t('settings.saveChanges')}</Button>
                   </SheetClose>
                 </SheetFooter>
               </form>
@@ -203,14 +197,14 @@ const SettingsPage = () => {
 
         {/* App settings section */}
         <Card className="p-4 sm:p-6 space-y-4 sm:space-y-6 flex-1">
-          <h3 className="text-lg font-medium">App Settings</h3>
+          <h3 className="text-lg font-medium">{t('settings.appSettings')}</h3>
           
           <div className="space-y-4 sm:space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="space-y-0.5">
-                <Label>Dark Mode</Label>
+                <Label>{t('settings.darkMode')}</Label>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Switch between light and dark themes
+                  {t('settings.themeDescription')}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -225,18 +219,18 @@ const SettingsPage = () => {
             
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="space-y-0.5">
-                <Label>Language</Label>
+                <Label>{t('settings.language')}</Label>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Select your preferred language
+                  {t('settings.selectLanguage')}
                 </p>
               </div>
               <select 
                 className="bg-background border rounded px-3 py-2 w-full sm:w-auto text-base"
-                value={settings.language}
-                onChange={handleLanguageChange}
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as keyof typeof languageList)}
               >
-                {languages.map(lang => (
-                  <option key={lang.value} value={lang.value}>{lang.label}</option>
+                {Object.entries(languageList).map(([code, { label }]) => (
+                  <option key={code} value={code}>{label}</option>
                 ))}
               </select>
             </div>
