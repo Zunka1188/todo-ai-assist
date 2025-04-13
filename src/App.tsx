@@ -9,6 +9,7 @@ import { ToastProvider } from "@/hooks/use-toast";
 import AppLayout from "./components/layout/AppLayout";
 import Router from "./routes/Router";
 import { StoreProvider } from "./state/useStore";
+import { SecurityProvider } from "./state/SecurityProvider";
 
 // Create query client with default options
 const queryClient = new QueryClient({
@@ -32,19 +33,21 @@ const App = () => {
   return (
     <StoreProvider>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <ToastProvider>
-            <TooltipProvider>
-              <BrowserRouter {...routerOptions}>
-                <Toaster />
-                <Sonner />
-                <AppLayout>
-                  <Router />
-                </AppLayout>
-              </BrowserRouter>
-            </TooltipProvider>
-          </ToastProvider>
-        </ThemeProvider>
+        <SecurityProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <TooltipProvider>
+                <BrowserRouter {...routerOptions}>
+                  <Toaster />
+                  <Sonner />
+                  <AppLayout>
+                    <Router />
+                  </AppLayout>
+                </BrowserRouter>
+              </TooltipProvider>
+            </ToastProvider>
+          </ThemeProvider>
+        </SecurityProvider>
       </QueryClientProvider>
     </StoreProvider>
   );

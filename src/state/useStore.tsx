@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { initialEvents } from '@/components/features/calendar/data/initialEvents';
 import { 
@@ -21,7 +20,9 @@ const initialAppState: AppState = {
   isMobile: false,
   debugMode: false,
   isLoading: false,
-  error: null
+  error: null,
+  csrfProtectionEnabled: true,
+  securityHeadersEnabled: true
 };
 
 const initialCalendarState: CalendarState = {
@@ -40,7 +41,7 @@ const initialCalendarState: CalendarState = {
 const initialShoppingState: ShoppingState = {
   searchTerm: '',
   filterMode: 'all',
-  sortOption: 'newest', // Use a string literal from SortOption type instead of enum value
+  sortOption: 'newest',
   selectedItems: [],
   isLoading: false
 };
@@ -65,6 +66,10 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       return { ...state, isLoading: action.payload };
     case 'SET_ERROR':
       return { ...state, error: action.payload };
+    case 'SET_CSRF_PROTECTION':
+      return { ...state, csrfProtectionEnabled: action.payload };
+    case 'SET_SECURITY_HEADERS':
+      return { ...state, securityHeadersEnabled: action.payload };
     default:
       return state;
   }
@@ -205,7 +210,11 @@ export const useAppState = () => {
     setLoading: (isLoading: boolean) => 
       dispatch({ type: 'APP', action: { type: 'SET_LOADING', payload: isLoading } }),
     setError: (error: string | null) => 
-      dispatch({ type: 'APP', action: { type: 'SET_ERROR', payload: error } })
+      dispatch({ type: 'APP', action: { type: 'SET_ERROR', payload: error } }),
+    setCsrfProtection: (enabled: boolean) => 
+      dispatch({ type: 'APP', action: { type: 'SET_CSRF_PROTECTION', payload: enabled } }),
+    setSecurityHeaders: (enabled: boolean) => 
+      dispatch({ type: 'APP', action: { type: 'SET_SECURITY_HEADERS', payload: enabled } })
   };
 
   return { 

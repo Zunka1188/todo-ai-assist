@@ -1,4 +1,3 @@
-
 import { Event } from '@/components/features/calendar/types/event';
 import { SortOption } from '@/components/features/shopping/useShoppingItems';
 import { ViewMode } from '@/components/features/calendar/types';
@@ -15,6 +14,10 @@ export interface AppState {
   // Global loading and error states
   isLoading: boolean;
   error: string | null;
+  
+  // Security state
+  csrfProtectionEnabled?: boolean;
+  securityHeadersEnabled?: boolean;
 }
 
 // Calendar state types
@@ -58,7 +61,9 @@ export type AppAction =
   | { type: 'SET_MOBILE'; payload: boolean }
   | { type: 'SET_DEBUG_MODE'; payload: boolean }
   | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: string | null };
+  | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'SET_CSRF_PROTECTION'; payload: boolean }
+  | { type: 'SET_SECURITY_HEADERS'; payload: boolean };
 
 export type CalendarAction = 
   | { type: 'SET_VIEW_MODE'; payload: ViewMode }
