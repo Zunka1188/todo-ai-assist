@@ -1,7 +1,7 @@
-
 import { GlobalState, GlobalAction } from './types';
 import { logger } from '@/utils/logger';
 import { performanceMonitor } from '@/utils/performance-monitor';
+import { rateLimitMiddleware } from './middleware/rateLimitMiddleware';
 
 /**
  * Middleware function type
@@ -133,6 +133,7 @@ export function combineMiddlewares(...middlewares: Middleware[]): Middleware {
  */
 export function createProductionMiddleware(): Middleware {
   return combineMiddlewares(
+    rateLimitMiddleware,
     performanceMiddleware,
     persistenceMiddleware,
     analyticsMiddleware
