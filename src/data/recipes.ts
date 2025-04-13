@@ -1,8 +1,40 @@
+
 import { Recipe } from "@/types/recipe";
 
 // Utility function to convert old format to new format
 const convertToNewFormat = (recipe: any): Recipe => {
-  // ... keep existing code (conversion function logic)
+  // This is a placeholder implementation
+  return {
+    id: recipe.id || "",
+    name: recipe.name || "",
+    cuisine: recipe.cuisine || "italian",
+    category: recipe.category || "main",
+    baseServings: recipe.baseServings || 1,
+    prepTime: recipe.prepTime || 0,
+    cookTime: recipe.cookTime || 0,
+    calories: recipe.calories || 0,
+    ingredients: recipe.ingredients || {
+      default: []
+    },
+    instructions: recipe.instructions || [],
+    image: recipe.image || "",
+    dietaryRestrictions: recipe.dietaryRestrictions || [],
+    dietaryInfo: recipe.dietaryInfo || {
+      isVegan: false,
+      isVegetarian: false,
+      isGlutenFree: false,
+      isDairyFree: false,
+      isLowCarb: false,
+      isNutFree: false
+    },
+    nutritionalInfo: recipe.nutritionalInfo || {
+      calories: 0,
+      protein: 0,
+      carbohydrates: 0,
+      fat: 0,
+      fiber: 0
+    }
+  };
 };
 
 export function getRecipes(): Recipe[] {
