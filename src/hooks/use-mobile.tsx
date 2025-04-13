@@ -5,8 +5,12 @@ const MOBILE_BREAKPOINT = 768
 
 export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean>(false)
-  const [windowWidth, setWindowWidth] = React.useState<number>(0)
-  const [windowHeight, setWindowHeight] = React.useState<number>(0)
+  const [windowWidth, setWindowWidth] = React.useState<number>(
+    typeof window !== 'undefined' ? window.innerWidth : 0
+  )
+  const [windowHeight, setWindowHeight] = React.useState<number>(
+    typeof window !== 'undefined' ? window.innerHeight : 0
+  )
   const [orientation, setOrientation] = React.useState<"portrait" | "landscape">("portrait")
   const [hasCamera, setHasCamera] = React.useState<boolean>(false)
   const [isIOS, setIsIOS] = React.useState<boolean>(false)
@@ -57,35 +61,40 @@ export function useIsMobile() {
       }
     };
     
-    // Run once on initial mount (after DOM is available)
-    checkDimensions()
-    checkTouchDevice()
-    checkPlatform()
-    checkCameraAvailability()
-    
-    // Add event listener with debounce for performance
-    let timeoutId: ReturnType<typeof setTimeout>
-    const handleResize = () => {
-      clearTimeout(timeoutId)
-      timeoutId = setTimeout(() => {
-        checkDimensions()
-      }, 100)
+    // Check if we're in a browser environment
+    if (typeof window !== 'undefined') {
+      // Run once on initial mount (after DOM is available)
+      checkDimensions()
+      checkTouchDevice()
+      checkPlatform()
+      checkCameraAvailability()
+      
+      // Add event listener with debounce for performance
+      let timeoutId: ReturnType<typeof setTimeout>
+      const handleResize = () => {
+        clearTimeout(timeoutId)
+        timeoutId = setTimeout(() => {
+          checkDimensions()
+        }, 100)
+      }
+      
+      window.addEventListener("resize", handleResize)
+      
+      // Add orientation change listener for mobile devices
+      window.addEventListener("orientationchange", () => {
+        // Delay slightly as dimensions may not update immediately
+        setTimeout(checkDimensions, 100)
+      })
+      
+      // Cleanup
+      return () => {
+        clearTimeout(timeoutId)
+        window.removeEventListener("resize", handleResize)
+        window.removeEventListener("orientationchange", checkDimensions)
+      }
     }
     
-    window.addEventListener("resize", handleResize)
-    
-    // Add orientation change listener for mobile devices
-    window.addEventListener("orientationchange", () => {
-      // Delay slightly as dimensions may not update immediately
-      setTimeout(checkDimensions, 100)
-    })
-    
-    // Cleanup
-    return () => {
-      clearTimeout(timeoutId)
-      window.removeEventListener("resize", handleResize)
-      window.removeEventListener("orientationchange", checkDimensions)
-    }
+    return undefined;
   }, [])
 
   return { 
