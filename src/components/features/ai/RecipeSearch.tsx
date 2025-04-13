@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Check, ChevronDown, X, Scroll, SlidersHorizontal, Clock, Users, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,28 +7,29 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { recipes } from '@/data/recipes';
-import { Recipe, DietaryRestriction, Cuisine } from '@/types/recipe';
+import { Recipe } from '@/data/recipes/types';
 import { useTheme } from '@/hooks/use-theme';
 import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { DietaryRestrictionType } from './types';
 
 interface RecipeSearchProps {
   onSelectRecipe: (recipe: Recipe) => void;
-  selectedDietaryRestrictions?: string[];
+  selectedDietaryRestrictions: DietaryRestrictionType[];
 }
 
 // Define dietary restrictions and cuisines
-const dietaryRestrictions: { value: DietaryRestriction; label: string }[] = [
+const dietaryRestrictions: { value: DietaryRestrictionType; label: string }[] = [
   { value: 'vegan', label: 'Vegan' },
   { value: 'vegetarian', label: 'Vegetarian' },
   { value: 'gluten-free', label: 'Gluten-Free' },
   { value: 'dairy-free', label: 'Dairy-Free' },
-  { value: 'nut-free', label: 'Nut-Free' },
-  { value: 'low-carb', label: 'Low-Carb' }
+  { value: 'low-carb', label: 'Low-Carb' },
+  { value: 'nut-free', label: 'Nut-Free' }
 ];
 
-const cuisines: { value: Cuisine; label: string }[] = [
+const cuisines = [
   { value: 'italian', label: 'Italian' },
   { value: 'french', label: 'French' },
   { value: 'japanese', label: 'Japanese' },
@@ -37,37 +37,31 @@ const cuisines: { value: Cuisine; label: string }[] = [
   { value: 'indian', label: 'Indian' },
   { value: 'mexican', label: 'Mexican' },
   { value: 'thai', label: 'Thai' },
-  { value: 'polish', label: 'Polish' },
-  { value: 'greek', label: 'Greek' },
-  { value: 'spanish', label: 'Spanish' },
-  { value: 'vietnamese', label: 'Vietnamese' },
-  { value: 'korean', label: 'Korean' },
-  { value: 'turkish', label: 'Turkish' },
-  { value: 'moroccan', label: 'Moroccan' },
-  { value: 'lebanese', label: 'Lebanese' }
+  { value: 'mediterranean', label: 'Mediterranean' }
 ];
 
 type SortOption = 'name' | 'prepTime' | 'cookTime' | 'totalTime';
 
-const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDietaryRestrictions = [] }) => {
-  const { theme } = useTheme();
+const RecipeSearch: React.FC<RecipeSearchProps> = ({
+  onSelectRecipe,
+  selectedDietaryRestrictions,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
   const [activeFilters, setActiveFilters] = useState<{
-    dietary: string[];
+    dietary: DietaryRestrictionType[];
     cuisines: string[];
   }>({
     dietary: selectedDietaryRestrictions,
     cuisines: [],
   });
-
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('name');
   const [servingSize, setServingSize] = useState<number>(4);
+  const { theme } = useTheme();
 
-  // Set up a proper debug mode log to help troubleshoot
   useEffect(() => {
     console.log("Active filters:", activeFilters);
     console.log("Filtered recipes length:", filteredRecipes.length);
@@ -76,33 +70,36 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
   }, [activeFilters, filteredRecipes, sortBy, servingSize]);
 
   useEffect(() => {
-    // First, grab all recipes
-    let filtered = recipes;
-    
-    // Then apply search term filter if present
+    let filtered = [...recipes];
+
+    // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(recipe => 
+      filtered = filtered.filter(recipe =>
         recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
         recipe.cuisine.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
-    // Then apply dietary restrictions if any are selected
-    if (activeFilters.dietary.length > 0) {
-      filtered = filtered.filter(recipe => 
-        activeFilters.dietary.every(restriction => 
-          recipe.dietaryRestrictions.includes(restriction)
-        )
-      );
-    }
-    
-    // Then apply cuisine filter if any are selected
+
+    // Filter by cuisine
     if (activeFilters.cuisines.length > 0) {
-      filtered = filtered.filter(recipe => 
+      filtered = filtered.filter(recipe =>
         activeFilters.cuisines.includes(recipe.cuisine)
       );
     }
-    
+
+    // Filter by dietary restrictions
+    if (activeFilters.dietary.length > 0) {
+      filtered = filtered.filter(recipe =>
+        activeFilters.dietary.every(restriction => 
+          recipe.dietaryInfo[restriction === 'dairy-free' ? 'isDairyFree' :
+                            restriction === 'gluten-free' ? 'isGlutenFree' :
+                            restriction === 'nut-free' ? 'isNutFree' :
+                            restriction === 'low-carb' ? 'isLowCarb' :
+                            `is${restriction.charAt(0).toUpperCase()}${restriction.slice(1)}` as keyof Recipe['dietaryInfo']]
+        )
+      );
+    }
+
     // Apply sorting
     filtered = [...filtered].sort((a, b) => {
       switch (sortBy) {
@@ -118,11 +115,10 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
           return 0;
       }
     });
-    
+
     setFilteredRecipes(filtered);
   }, [searchTerm, activeFilters, sortBy]);
 
-  // Check if we need to show the scroll indicator
   useEffect(() => {
     if (filteredRecipes.length > 4) {
       setShowScrollIndicator(true);
@@ -135,7 +131,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
     setSearchTerm(e.target.value);
   };
 
-  const toggleDietaryRestriction = (restriction: string) => {
+  const toggleDietaryRestriction = (restriction: DietaryRestrictionType) => {
     setActiveFilters(prev => {
       if (prev.dietary.includes(restriction)) {
         return { ...prev, dietary: prev.dietary.filter(r => r !== restriction) };
@@ -164,29 +160,18 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
     return activeFilters.dietary.length + activeFilters.cuisines.length;
   };
 
-  const calculateMatchingCount = (filter: string, type: 'dietary' | 'cuisine') => {
-    if (type === 'dietary') {
-      // Count recipes that match this dietary restriction AND all other active dietary restrictions
-      return recipes.filter(recipe => 
-        recipe.dietaryRestrictions.includes(filter) && 
-        activeFilters.dietary
-          .filter(r => r !== filter)
-          .every(r => recipe.dietaryRestrictions.includes(r)) &&
-        (activeFilters.cuisines.length === 0 || activeFilters.cuisines.includes(recipe.cuisine))
-      ).length;
-    } else {
-      // Count recipes that match this cuisine AND all active dietary restrictions
-      return recipes.filter(recipe => 
-        recipe.cuisine === filter && 
-        (activeFilters.dietary.length === 0 || 
-          activeFilters.dietary.every(r => recipe.dietaryRestrictions.includes(r)))
-      ).length;
-    }
+  const calculateMatchingCount = (filter: DietaryRestrictionType, type: 'dietary') => {
+    return recipes.filter(recipe => 
+      recipe.dietaryInfo[filter === 'dairy-free' ? 'isDairyFree' :
+                        filter === 'gluten-free' ? 'isGlutenFree' :
+                        filter === 'nut-free' ? 'isNutFree' :
+                        filter === 'low-carb' ? 'isLowCarb' :
+                        `is${filter.charAt(0).toUpperCase()}${filter.slice(1)}` as keyof Recipe['dietaryInfo']] &&
+      (activeFilters.cuisines.length === 0 || activeFilters.cuisines.includes(recipe.cuisine))
+    ).length;
   };
 
-  // Modified to handle serving size in recipe selection
   const handleSelectRecipe = (recipe: Recipe) => {
-    // Create a copy of the recipe with updated serving size
     const adjustedRecipe = {
       ...recipe,
       servings: servingSize
@@ -194,14 +179,12 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
     onSelectRecipe(adjustedRecipe);
   };
 
-  // Function to handle incrementing serving size
   const incrementServingSize = () => {
     if (servingSize < 10) {
       setServingSize(prev => prev + 1);
     }
   };
 
-  // Function to handle decrementing serving size
   const decrementServingSize = () => {
     if (servingSize > 1) {
       setServingSize(prev => prev - 1);
@@ -211,7 +194,6 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
   return (
     <div className="mb-4 w-full">
       <div className="flex flex-col space-y-3">
-        {/* Enhanced Serving Size Selector with +/- buttons */}
         <div className="flex items-center space-x-2 p-2 border border-dashed border-gray-300 dark:border-gray-700 rounded-md">
           <Users className="h-4 w-4 text-muted-foreground" />
           <div className="flex-1">
@@ -251,7 +233,6 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
           </div>
         </div>
       
-        {/* Search Input */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -262,7 +243,6 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
             className="pl-10 pr-24"
           />
           
-          {/* Sort Button */}
           <Popover open={isSortOpen} onOpenChange={setIsSortOpen}>
             <PopoverTrigger asChild>
               <Button 
@@ -308,7 +288,6 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
             </PopoverContent>
           </Popover>
           
-          {/* Filter Button */}
           <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
             <PopoverTrigger asChild>
               <Button 
@@ -380,7 +359,6 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
                   <ScrollArea className="h-48 overflow-y-auto">
                     <div className="grid grid-cols-2 gap-2 pr-4">
                       {cuisines.map((cuisine) => {
-                        const matchCount = calculateMatchingCount(cuisine.value, 'cuisine');
                         return (
                           <Button
                             key={cuisine.value}
@@ -392,13 +370,11 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
                               activeFilters.cuisines.includes(cuisine.value) && 
                               "bg-primary/10 border-primary/30 text-primary font-medium"
                             )}
-                            disabled={matchCount === 0 && !activeFilters.cuisines.includes(cuisine.value)}
                           >
                             {activeFilters.cuisines.includes(cuisine.value) && (
                               <Check className="mr-1 h-3 w-3 text-primary" />
                             )}
                             <span className="flex-1">{cuisine.label}</span>
-                            <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">{matchCount}</Badge>
                           </Button>
                         );
                       })}
@@ -410,7 +386,6 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
           </Popover>
         </div>
         
-        {/* Active Filters Display */}
         {getTotalActiveFilters() > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {activeFilters.dietary.map(filter => (
@@ -460,7 +435,6 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({ onSelectRecipe, selectedDie
         )}
       </div>
 
-      {/* Results List */}
       <div className="relative mt-3">
         <ScrollArea className="h-[280px] pr-3 rounded-md overflow-hidden">
           {filteredRecipes.length > 0 ? (
