@@ -60,8 +60,7 @@ export const SecurityProvider: React.FC<SecurityProviderProps> = ({
     toast({
       title: `Security Audit: ${results.score}%`,
       description: `Found ${results.issues.length} potential issues.`,
-      variant: results.score < 70 ? "destructive" : 
-               results.score < 90 ? "default" : "success",
+      variant: results.score < 70 ? "destructive" : "default",
     });
     
     return results;
