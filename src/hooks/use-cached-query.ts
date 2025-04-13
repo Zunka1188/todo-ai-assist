@@ -45,6 +45,6 @@ export function useCachedQuery<TData, TError = Error>(
     ...(options || {}), // Ensure options is always an object
   };
 
-  // Pass the options object to useQuery
+  // Pass the options object to useQuery with explicit type parameters
   return useQuery<TData, TError, TData>(queryOptions);
 }
