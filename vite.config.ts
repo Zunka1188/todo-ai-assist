@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => ({
     // Only include lovable-tagger in development mode if available
     mode === 'development' && (() => {
       try {
-        return require('lovable-tagger').componentTagger();
+        return require('lovable-tagger')?.componentTagger();
       } catch (e) {
         console.warn('lovable-tagger not found, skipping component tagging');
         return null;
