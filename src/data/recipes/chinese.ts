@@ -1,3 +1,4 @@
+
 import { Recipe } from './types';
 
 export const chineseRecipes: Recipe[] = [
@@ -114,6 +115,7 @@ export const chineseRecipes: Recipe[] = [
       carbohydrates: 15,
       fat: 28,
       fiber: 3
-    }
+    },
+    image: '/images/recipes/kung-pao-chicken.jpg'
   }
 ];

@@ -72,7 +72,8 @@ export const italianRecipes: Recipe[] = [
       carbohydrates: 65,
       fat: 22,
       fiber: 3
-    }
+    },
+    image: '/images/recipes/pasta-carbonara.jpg'
   },
   {
     id: 'margherita-pizza',
@@ -141,6 +142,7 @@ export const italianRecipes: Recipe[] = [
       carbohydrates: 75,
       fat: 25,
       fiber: 4
-    }
+    },
+    image: '/images/recipes/margherita-pizza.jpg'
   }
 ];

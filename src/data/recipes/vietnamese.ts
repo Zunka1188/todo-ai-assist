@@ -1,3 +1,4 @@
+
 import { Recipe } from './types';
 
 export const vietnameseRecipes: Recipe[] = [
@@ -106,6 +107,7 @@ export const vietnameseRecipes: Recipe[] = [
       carbohydrates: 45,
       fat: 12,
       fiber: 3
-    }
+    },
+    image: '/images/recipes/beef-pho.jpg'
   }
 ];

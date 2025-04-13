@@ -69,7 +69,8 @@ export const mexicanRecipes: Recipe[] = [
       carbohydrates: 35,
       fat: 20,
       fiber: 8
-    }
+    },
+    image: '/images/recipes/fish-tacos.jpg'
   },
   {
     id: 'chicken-enchiladas',
@@ -145,6 +146,7 @@ export const mexicanRecipes: Recipe[] = [
       carbohydrates: 40,
       fat: 25,
       fiber: 8
-    }
+    },
+    image: '/images/recipes/chicken-enchiladas.jpg'
   }
 ];

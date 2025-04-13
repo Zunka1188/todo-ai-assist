@@ -1,3 +1,4 @@
+
 import { Recipe } from './types';
 
 export const moroccanRecipes: Recipe[] = [
@@ -120,6 +121,7 @@ export const moroccanRecipes: Recipe[] = [
       carbohydrates: 45,
       fat: 25,
       fiber: 6
-    }
+    },
+    image: '/images/recipes/moroccan-tagine.jpg'
   }
 ];

@@ -1,3 +1,4 @@
+
 import { Recipe } from './types';
 
 export const lebaneseRecipes: Recipe[] = [
@@ -106,6 +107,7 @@ export const lebaneseRecipes: Recipe[] = [
       carbohydrates: 35,
       fat: 25,
       fiber: 4
-    }
+    },
+    image: '/images/recipes/chicken-shawarma.jpg'
   }
 ];

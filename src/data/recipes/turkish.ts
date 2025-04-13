@@ -1,3 +1,4 @@
+
 import { Recipe } from './types';
 
 export const turkishRecipes: Recipe[] = [
@@ -106,6 +107,7 @@ export const turkishRecipes: Recipe[] = [
       carbohydrates: 25,
       fat: 25,
       fiber: 3
-    }
+    },
+    image: '/images/recipes/adana-kebab.jpg'
   }
 ];

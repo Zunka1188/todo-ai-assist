@@ -1,3 +1,4 @@
+
 import { Recipe } from './types';
 
 export const koreanRecipes: Recipe[] = [
@@ -106,6 +107,7 @@ export const koreanRecipes: Recipe[] = [
       carbohydrates: 55,
       fat: 20,
       fiber: 6
-    }
+    },
+    image: '/images/recipes/bibimbap.jpg'
   }
 ];

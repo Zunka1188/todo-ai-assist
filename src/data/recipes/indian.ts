@@ -84,7 +84,8 @@ export const indianRecipes: Recipe[] = [
       carbohydrates: 30,
       fat: 28,
       fiber: 4
-    }
+    },
+    image: '/images/recipes/butter-chicken.jpg'
   },
   {
     id: 'chana-masala',
@@ -145,6 +146,7 @@ export const indianRecipes: Recipe[] = [
       carbohydrates: 45,
       fat: 12,
       fiber: 12
-    }
+    },
+    image: '/images/recipes/chana-masala.jpg'
   }
 ];
