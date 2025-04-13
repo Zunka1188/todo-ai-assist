@@ -4,6 +4,7 @@
 // expect(element).toBeInTheDocument();
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
 // Set up global mocks or test utilities here
 // This file will be run before each test file
