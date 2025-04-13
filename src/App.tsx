@@ -16,6 +16,9 @@ import React, { useEffect } from "react";
 import { getSecurityHeaders } from "./utils/security";
 import { logger } from "./utils/logger";
 import { performanceMonitor } from "./utils/performance-monitor";
+import { initErrorFeedback } from "./utils/error-feedback";
+import { AuthProvider } from "./hooks/use-auth";
+import { initBundleOptimizations } from "./utils/bundle-optimization";
 
 // Enable performance monitoring in development
 if (process.env.NODE_ENV === 'development') {
@@ -70,6 +73,20 @@ const SecurityMetaTags = () => {
     // Record performance mark for app initialization
     performanceMonitor.mark('app_initialized');
     
+    // Initialize bundle optimizations
+    initBundleOptimizations({
+      preconnect: [
+        'https://fonts.googleapis.com',
+        'https://fonts.gstatic.com'
+      ],
+      preloadImages: [
+        '/placeholder.svg'
+      ]
+    });
+    
+    // Initialize error feedback system
+    initErrorFeedback();
+    
     return () => {
       // Cleanup if needed
     };
@@ -90,28 +107,30 @@ const App = () => {
 
   return (
     <GlobalErrorBoundary>
-      <StoreProvider>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider>
-            <ToastProvider>
-              <SecurityProvider>
-                <SecurityMetaTags />
-                <TooltipProvider>
-                  <BrowserRouter {...routerOptions}>
-                    <Toaster />
-                    <Sonner />
-                    <AppLayout>
-                      <ErrorBoundary>
-                        <Router />
-                      </ErrorBoundary>
-                    </AppLayout>
-                  </BrowserRouter>
-                </TooltipProvider>
-              </SecurityProvider>
-            </ToastProvider>
-          </ThemeProvider>
-        </QueryClientProvider>
-      </StoreProvider>
+      <AuthProvider>
+        <StoreProvider>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider>
+              <ToastProvider>
+                <SecurityProvider>
+                  <SecurityMetaTags />
+                  <TooltipProvider>
+                    <BrowserRouter {...routerOptions}>
+                      <Toaster />
+                      <Sonner />
+                      <AppLayout>
+                        <ErrorBoundary>
+                          <Router />
+                        </ErrorBoundary>
+                      </AppLayout>
+                    </BrowserRouter>
+                  </TooltipProvider>
+                </SecurityProvider>
+              </ToastProvider>
+            </ThemeProvider>
+          </QueryClientProvider>
+        </StoreProvider>
+      </AuthProvider>
     </GlobalErrorBoundary>
   );
 };
