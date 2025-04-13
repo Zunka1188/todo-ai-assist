@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import BottomNavigation from './BottomNavigation';
@@ -30,14 +29,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   
   useEffect(() => {
-    // Check theme once on initial render
     if (localStorage.getItem('theme') === null) {
       setTheme('dark');
     }
   }, [setTheme]);
   
   useEffect(() => {
-    // Apply mobile device optimizations
     if (isIOS) {
       const viewportMeta = document.querySelector('meta[name="viewport"]');
       if (viewportMeta) {
@@ -52,7 +49,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
       document.body.classList.add('android-device');
     }
     
-    // Handle splash screen fading
     const splashScreen = document.getElementById('app-splash-screen');
     if (splashScreen) {
       setTimeout(() => {
@@ -64,21 +60,17 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
     }
   }, [isIOS, isAndroid]);
   
-  // Close menu on route change
   useEffect(() => {
     setMenuOpen(false);
   }, [location.pathname]);
 
-  // Ensure consistent text styling across themes
   const textColorClass = theme === 'light' ? "text-foreground" : "text-white";
   
-  // Updated mobile text classes based on LinkedIn benchmarks
-  const mobileHeadingClass = isMobile ? "text-[20px]" : ""; // Headings: 20px
-  const mobileSubheadingClass = isMobile ? "text-[16px]" : ""; // Subheadings: 16px
-  const mobileBodyTextClass = isMobile ? "text-[14px]" : ""; // Body text: 14px
-  const mobileCaptionTextClass = isMobile ? "text-[12px]" : ""; // Caption text: 12px
-  
-  // Check if current route is active
+  const mobileHeadingClass = isMobile ? "text-[20px]" : "";
+  const mobileSubheadingClass = isMobile ? "text-[16px]" : "";
+  const mobileBodyTextClass = isMobile ? "text-[14px]" : "";
+  const mobileCaptionTextClass = isMobile ? "text-[12px]" : "";
+
   const isRouteActive = (path: string) => {
     if (path === '/') {
       return location.pathname === path;

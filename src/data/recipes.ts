@@ -1,17 +1,56 @@
 import { Recipe, Ingredient } from '@/types/recipe';
 
 // Utility function to convert old format to new format
-const convertToIngredientFormat = (ingredients: {amount: string, unit: string, name: string}[]): Ingredient[] => {
-  return ingredients.map(ing => ({
-    name: ing.name,
-    quantity: parseFloat(ing.amount) || 1,
-    unit: ing.unit,
-    scalable: true // Setting default to true
-  }));
+const convertToNewFormat = (recipe: any): Recipe => {
+  // ... keep existing code (conversion function logic)
 };
 
 export const recipes: Recipe[] = [
-  // Italian Cuisine
+  {
+    id: "1",
+    name: "Spaghetti Carbonara",
+    cuisine: "italian",
+    category: "main",
+    baseServings: 4,
+    prepTime: 10,
+    cookTime: 20,
+    calories: 400,
+    ingredients: {
+      default: [
+        { name: "Spaghetti", quantity: 400, unit: "g", scalable: true },
+        { name: "Eggs", quantity: 4, unit: "", scalable: true },
+        { name: "Pecorino Romano", quantity: 100, unit: "g", scalable: true },
+        { name: "Guanciale", quantity: 150, unit: "g", scalable: true },
+        { name: "Black Pepper", quantity: 2, unit: "tsp", scalable: true }
+      ]
+    },
+    instructions: [
+      "Bring a large pot of salted water to boil and cook spaghetti according to package instructions.",
+      "In a bowl, whisk the eggs and grated pecorino cheese together.",
+      "Cut the guanciale into small pieces and cook in a pan until crispy.",
+      "Drain the pasta, reserving some cooking water.",
+      "With the heat off, quickly add the pasta to the pan with guanciale, then add the egg mixture, stirring constantly.",
+      "Add some pasta water if needed to create a creamy sauce.",
+      "Finish with freshly ground black pepper and serve immediately."
+    ],
+    image: "",
+    dietaryRestrictions: [],
+    dietaryInfo: {
+      isVegan: false,
+      isVegetarian: false,
+      isGlutenFree: false,
+      isDairyFree: false,
+      isLowCarb: false,
+      isNutFree: true
+    },
+    nutritionalInfo: {
+      calories: 400,
+      protein: 10,
+      carbohydrates: 60,
+      fat: 12,
+      fiber: 0
+    }
+  },
   {
     id: "italian-pasta-marinara",
     name: "Pasta Marinara",
@@ -683,7 +722,7 @@ export const recipes: Recipe[] = [
   },
   {
     id: "japanese-onigiri",
-    name: "Onigiri (Rice Balls)",
+    name: "Onigiri (Japanese Rice Balls)",
     cuisine: "japanese",
     category: "side",
     baseServings: 1,
@@ -705,4 +744,24 @@ export const recipes: Recipe[] = [
       "Make an indentation in the center and add filling if desired.",
       "Close the rice around the filling and shape into a triangle or ball.",
       "Wrap the bottom with a strip of nori.",
-      "Spr
+      "Sprinkle with furikake seasoning if desired."
+    ],
+    image: "",
+    dietaryRestrictions: ["vegetarian", "dairy-free", "nut-free"],
+    dietaryInfo: {
+      isVegan: false,
+      isVegetarian: true,
+      isGlutenFree: false,
+      isDairyFree: true,
+      isLowCarb: false,
+      isNutFree: true
+    },
+    nutritionalInfo: {
+      calories: 100,
+      protein: 3,
+      carbohydrates: 20,
+      fat: 1,
+      fiber: 0
+    }
+  }
+];
