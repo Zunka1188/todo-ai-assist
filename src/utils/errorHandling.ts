@@ -1,133 +1,210 @@
 
-import { toast } from '@/hooks/use-toast';
 import { logger } from './logger';
+import { performanceMonitor } from './performance-monitor';
+import { toast } from '@/hooks/use-toast';
 
-// Constants
-export const TOAST_DURATIONS = {
-  SHORT: 3000,
-  MEDIUM: 5000,
-  LONG: 8000
-};
+/**
+ * Types of errors for better categorization
+ */
+export enum ErrorType {
+  NETWORK = 'network',
+  VALIDATION = 'validation',
+  AUTHENTICATION = 'authentication',
+  AUTHORIZATION = 'authorization',
+  NOT_FOUND = 'not_found',
+  SERVER = 'server',
+  CLIENT = 'client',
+  UNKNOWN = 'unknown'
+}
 
-// Types
-export type ErrorSeverity = 'info' | 'warning' | 'error' | 'critical';
+/**
+ * Error with additional context for better handling
+ */
+export interface AppError extends Error {
+  type?: ErrorType;
+  statusCode?: number;
+  context?: Record<string, any>;
+  isFatal?: boolean;
+}
 
-export interface ErrorHandlingOptions {
-  context?: string;
-  message?: string;
+/**
+ * Options for handling errors
+ */
+interface ErrorHandlingOptions {
   showToast?: boolean;
-  severity?: ErrorSeverity;
-  retry?: {
-    callback: () => Promise<any>;
-    maxAttempts: number;
-    delay: number;
-  };
-  captureError?: boolean; // For error reporting services
+  logToService?: boolean;
+  rethrow?: boolean;
 }
 
 /**
- * Default options for error handling
+ * Central error handling utility
  */
-const defaultOptions: ErrorHandlingOptions = {
-  showToast: true,
-  severity: 'error',
-  captureError: false
+export const errorHandler = {
+  /**
+   * Handle an error with options for UI feedback and logging
+   */
+  handle: (error: Error | AppError, options: ErrorHandlingOptions = {}): void => {
+    const { showToast = true, logToService = true, rethrow = false } = options;
+    
+    // Default error type if not specified
+    const appError = error as AppError;
+    const errorType = appError.type || ErrorType.UNKNOWN;
+    
+    // Log the error
+    logger.error(`[${errorType.toUpperCase()}]`, error);
+    
+    // Record in performance monitoring
+    performanceMonitor.mark(`error_${errorType}`);
+    
+    // Show user-friendly toast
+    if (showToast) {
+      const toastMessages: Record<ErrorType, string> = {
+        [ErrorType.NETWORK]: 'Network connection issue. Please check your internet connection.',
+        [ErrorType.VALIDATION]: 'Please check your input and try again.',
+        [ErrorType.AUTHENTICATION]: 'Authentication failed. Please log in again.',
+        [ErrorType.AUTHORIZATION]: 'You do not have permission to perform this action.',
+        [ErrorType.NOT_FOUND]: 'The requested resource was not found.',
+        [ErrorType.SERVER]: 'Server error. Our team has been notified.',
+        [ErrorType.CLIENT]: 'An error occurred in the application.',
+        [ErrorType.UNKNOWN]: 'An unexpected error occurred.'
+      };
+      
+      toast({
+        title: appError.name || 'Error',
+        description: appError.message || toastMessages[errorType],
+        variant: 'destructive',
+        duration: 5000
+      });
+    }
+    
+    // Log to error tracking service
+    if (logToService) {
+      // Placeholder for external error tracking service
+      // errorTrackingService.captureException(error, { 
+      //   tags: { type: errorType },
+      //   extra: appError.context
+      // });
+    }
+    
+    // Rethrow if needed
+    if (rethrow) {
+      throw error;
+    }
+  },
+  
+  /**
+   * Create an AppError with context
+   */
+  createError: (
+    message: string, 
+    type: ErrorType = ErrorType.UNKNOWN, 
+    context?: Record<string, any>
+  ): AppError => {
+    const error = new Error(message) as AppError;
+    error.type = type;
+    error.context = context;
+    error.name = `${type.charAt(0).toUpperCase() + type.slice(1)}Error`;
+    return error;
+  },
+  
+  /**
+   * Try to parse error response from APIs
+   */
+  parseApiError: (error: any): AppError => {
+    try {
+      let errorMessage = 'An unknown error occurred';
+      let errorType = ErrorType.UNKNOWN;
+      let statusCode;
+      
+      if (error.response) {
+        // Server responded with error
+        statusCode = error.response.status;
+        errorMessage = error.response.data?.message || error.response.statusText || errorMessage;
+        
+        // Map status codes to error types
+        if (statusCode === 401) errorType = ErrorType.AUTHENTICATION;
+        else if (statusCode === 403) errorType = ErrorType.AUTHORIZATION;
+        else if (statusCode === 404) errorType = ErrorType.NOT_FOUND;
+        else if (statusCode >= 400 && statusCode < 500) errorType = ErrorType.CLIENT;
+        else if (statusCode >= 500) errorType = ErrorType.SERVER;
+      } else if (error.request) {
+        // No response received
+        errorType = ErrorType.NETWORK;
+        errorMessage = 'No response received from server';
+      }
+      
+      const appError = new Error(errorMessage) as AppError;
+      appError.type = errorType;
+      appError.statusCode = statusCode;
+      appError.context = { originalError: error };
+      appError.name = `${errorType.charAt(0).toUpperCase() + errorType.slice(1)}Error`;
+      
+      return appError;
+    } catch (parsingError) {
+      logger.error('[ErrorHandler] Failed to parse API error:', parsingError);
+      return error instanceof Error ? error as AppError : new Error(String(error)) as AppError;
+    }
+  }
 };
 
 /**
- * Generic error handler for consistent error handling across the app
- * @param error Error object
- * @param options Error handling options
+ * Higher-order function to wrap async functions with error handling
  */
-export function handleError(error: unknown, customOptions: Partial<ErrorHandlingOptions> = {}): void {
-  const options = { ...defaultOptions, ...customOptions };
-  const { context, message, showToast, severity, retry, captureError } = options;
-  
-  // Extract error message
-  const errorMessage = error instanceof Error ? error.message : String(error);
-  
-  // Format context for logging
-  const contextPrefix = context ? `[${context}] ` : '';
-  const userMessage = message || 'An unexpected error occurred';
-  
-  // Log error with appropriate severity
-  switch (severity) {
-    case 'info':
-      logger.info(`${contextPrefix}${userMessage}:`, error);
-      break;
-    case 'warning':
-      logger.warn(`${contextPrefix}${userMessage}:`, error);
-      break;
-    case 'critical':
-      logger.error(`${contextPrefix}CRITICAL ERROR - ${userMessage}:`, error);
-      break;
-    case 'error':
-    default:
-      logger.error(`${contextPrefix}${userMessage}:`, error);
-      break;
-  }
-  
-  // Show toast notification if requested
-  if (showToast) {
-    const toastType = severity === 'critical' || severity === 'error' ? 'destructive' : undefined;
-    const duration = severity === 'critical' ? TOAST_DURATIONS.LONG : 
-                     severity === 'error' ? TOAST_DURATIONS.MEDIUM : 
-                     TOAST_DURATIONS.SHORT;
-    
-    toast({
-      title: severity === 'critical' ? 'Critical Error' : 
-             severity === 'error' ? 'Error' : 
-             severity === 'warning' ? 'Warning' : 'Information',
-      description: userMessage,
-      variant: toastType,
-      duration,
-    });
-  }
-  
-  // Implement retry logic
-  if (retry && retry.callback) {
-    implementRetry(retry.callback, retry.maxAttempts, retry.delay);
-  }
-  
-  // Capture error for reporting (placeholder for integration with error reporting services)
-  if (captureError) {
-    // TODO: Implement error reporting service integration
-    // Example: Sentry.captureException(error);
-  }
+export function withErrorHandling<T>(
+  fn: (...args: any[]) => Promise<T>,
+  options: ErrorHandlingOptions = {}
+): (...args: any[]) => Promise<T> {
+  return async (...args: any[]): Promise<T> => {
+    try {
+      return await fn(...args);
+    } catch (error) {
+      errorHandler.handle(error instanceof Error ? error : new Error(String(error)), options);
+      if (options.rethrow) {
+        throw error;
+      }
+      // Return a rejected promise if not rethrowing
+      return Promise.reject(error);
+    }
+  };
 }
 
 /**
- * Implements a retry mechanism with exponential backoff
- * @param callback Function to retry
- * @param maxAttempts Maximum number of retry attempts
- * @param baseDelay Base delay in milliseconds
- * @param currentAttempt Current attempt number
+ * Higher-order function to wrap component props with error handling
  */
-export function implementRetry(
-  callback: () => Promise<any>, 
-  maxAttempts: number = 3, 
-  baseDelay: number = 1000,
-  currentAttempt: number = 0
-): void {
-  if (currentAttempt >= maxAttempts) {
-    logger.warn(`[Retry] Maximum retry attempts (${maxAttempts}) reached.`);
-    return;
-  }
+export function withComponentErrorHandling<T extends Record<string, any>>(
+  props: T,
+  errorHandlers: Record<string, ErrorHandlingOptions> = {}
+): T {
+  const result = { ...props };
   
-  // Calculate exponential backoff delay
-  const delay = baseDelay * Math.pow(2, currentAttempt);
+  Object.entries(props).forEach(([key, value]) => {
+    if (typeof value === 'function') {
+      const options = errorHandlers[key] || {};
+      result[key] = (...args: any[]) => {
+        try {
+          const result = value(...args);
+          
+          // Handle promise returns
+          if (result instanceof Promise) {
+            return result.catch(error => {
+              errorHandler.handle(error instanceof Error ? error : new Error(String(error)), options);
+              if (options.rethrow) {
+                throw error;
+              }
+              return Promise.reject(error);
+            });
+          }
+          
+          return result;
+        } catch (error) {
+          errorHandler.handle(error instanceof Error ? error : new Error(String(error)), options);
+          if (options.rethrow) {
+            throw error;
+          }
+        }
+      };
+    }
+  });
   
-  logger.info(`[Retry] Attempting retry ${currentAttempt + 1}/${maxAttempts} after ${delay}ms`);
-  
-  setTimeout(() => {
-    callback()
-      .then(() => {
-        logger.info(`[Retry] Attempt ${currentAttempt + 1} succeeded!`);
-      })
-      .catch(err => {
-        logger.warn(`[Retry] Attempt ${currentAttempt + 1} failed:`, err);
-        // Recursively retry with incremented attempt counter
-        implementRetry(callback, maxAttempts, baseDelay, currentAttempt + 1);
-      });
-  }, delay);
+  return result;
 }

@@ -11,14 +11,33 @@ import Router from "./routes/Router";
 import { StoreProvider } from "./state/useStore";
 import { SecurityProvider } from "./state/SecurityProvider";
 import ErrorBoundary from "./components/ui/error-boundary";
+import GlobalErrorBoundary from "./components/ui/global-error-boundary";
+import React, { useEffect } from "react";
+import { getSecurityHeaders } from "./utils/security";
+import { logger } from "./utils/logger";
+import { performanceMonitor } from "./utils/performance-monitor";
 
-// Create query client with default options and error handling
+// Enable performance monitoring in development
+if (process.env.NODE_ENV === 'development') {
+  performanceMonitor.enable(true);
+  logger.log('[App] Performance monitoring enabled');
+}
+
+// Create query client with enhanced options and error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
       staleTime: 5 * 60 * 1000, // 5 minutes
+      onError: (error) => {
+        logger.error('[QueryClient] Query error:', error);
+      }
+    },
+    mutations: {
+      onError: (error) => {
+        logger.error('[QueryClient] Mutation error:', error);
+      }
     }
   }
 });
@@ -31,20 +50,60 @@ const routerOptions = {
   }
 };
 
+// Apply CSP headers via meta tag
+const SecurityMetaTags = () => {
+  useEffect(() => {
+    // Apply security headers to meta tags
+    const headers = getSecurityHeaders();
+    Object.entries(headers).forEach(([name, content]) => {
+      if (name === 'Content-Security-Policy') {
+        const existingMeta = document.querySelector(`meta[http-equiv="${name}"]`);
+        if (!existingMeta) {
+          const meta = document.createElement('meta');
+          meta.httpEquiv = name;
+          meta.content = content;
+          document.head.appendChild(meta);
+        }
+      }
+    });
+
+    // Record performance mark for app initialization
+    performanceMonitor.mark('app_initialized');
+    
+    return () => {
+      // Cleanup if needed
+    };
+  }, []);
+
+  return null;
+};
+
 const App = () => {
+  // Record performance mark for app render start
+  React.useEffect(() => {
+    performanceMonitor.mark('app_render_start');
+    
+    return () => {
+      performanceMonitor.measure('app_render_time', 'app_render_start', 'app_initialized');
+    };
+  }, []);
+
   return (
-    <ErrorBoundary>
+    <GlobalErrorBoundary>
       <StoreProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider>
             <ToastProvider>
               <SecurityProvider>
+                <SecurityMetaTags />
                 <TooltipProvider>
                   <BrowserRouter {...routerOptions}>
                     <Toaster />
                     <Sonner />
                     <AppLayout>
-                      <Router />
+                      <ErrorBoundary>
+                        <Router />
+                      </ErrorBoundary>
                     </AppLayout>
                   </BrowserRouter>
                 </TooltipProvider>
@@ -53,7 +112,7 @@ const App = () => {
           </ThemeProvider>
         </QueryClientProvider>
       </StoreProvider>
-    </ErrorBoundary>
+    </GlobalErrorBoundary>
   );
 };
 
