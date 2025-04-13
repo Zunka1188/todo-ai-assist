@@ -28,7 +28,7 @@ export interface Recipe {
   name: string;
   category: 'main' | 'side' | 'dessert' | 'breakfast' | 'snack' | 'soup' | 'appetizer';
   cuisine: Cuisine;
-  baseServings: 1;
+  baseServings: number; // Changed from 1 to number to match @/types/recipe
   prepTime: number;
   cookTime: number;
   calories: number;
