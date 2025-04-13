@@ -11,15 +11,9 @@ import { useTheme } from '@/hooks/use-theme';
 import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { DietaryRestrictionType } from './types';
-import { RecipeService } from '@/services/recipe.service';
+import { DietaryRestrictionType, RecipeSearchProps } from './types';
 
 import { recipes } from '@/data/recipes';
-
-interface RecipeSearchProps {
-  onSelectRecipe: (recipe: Recipe) => void;
-  selectedDietaryRestrictions: DietaryRestrictionType[];
-}
 
 const dietaryRestrictions: { value: DietaryRestrictionType; label: string }[] = [
   { value: 'vegan', label: 'Vegan' },
@@ -71,7 +65,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
   }, [activeFilters, filteredRecipes, sortBy, servingSize]);
 
   useEffect(() => {
-    let filtered = [...recipes] as unknown as Recipe[];
+    let filtered = [...recipes];
 
     if (searchTerm) {
       filtered = filtered.filter(recipe =>

@@ -1,6 +1,6 @@
 
 import React, { FC } from 'react';
-import { CalendarEvent } from '../../types';
+import { CalendarEvent } from '../../../../components/calendar/types';
 
 interface AllDayEventsProps {
   daysInWeek: Date[];
