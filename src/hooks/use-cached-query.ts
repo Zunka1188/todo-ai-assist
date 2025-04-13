@@ -38,13 +38,13 @@ export function useCachedQuery<TData, TError = Error>(
     return data;
   };
 
-  // Create the options object with the required structure
+  // Create the options object with the required structure for TanStack Query v5+
   const queryOptions = {
     queryKey,
     queryFn: enhancedQueryFn,
     ...(options || {}), // Ensure options is always an object
   };
 
-  // Pass the options object to useQuery with explicit type parameters
-  return useQuery<TData, TError, TData>(queryOptions);
+  // Pass the complete queryOptions object to useQuery
+  return useQuery(queryOptions);
 }
