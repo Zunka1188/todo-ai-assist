@@ -115,7 +115,7 @@ export const koreanRecipes: Recipe[] = [
     name: 'Kimchi Jjigae (Kimchi Stew)',
     category: 'main',
     cuisine: 'korean',
-    baseServings: 2,
+    baseServings: 1, // Fixed from 2 to 1 to match the type definition
     prepTime: 15,
     cookTime: 30,
     calories: 350,
