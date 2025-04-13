@@ -1,3 +1,4 @@
+
 export interface Ingredient {
   name: string;
   quantity: number;
@@ -56,4 +57,5 @@ export interface Recipe {
     fat: number;
     fiber: number;
   };
+  image: string; // Add the required image property
 }

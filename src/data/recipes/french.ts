@@ -1,3 +1,4 @@
+
 import { Recipe } from './types';
 
 export const frenchRecipes: Recipe[] = [
@@ -104,6 +105,7 @@ export const frenchRecipes: Recipe[] = [
       carbohydrates: 15,
       fat: 28,
       fiber: 3
-    }
+    },
+    image: '/images/recipes/coq-au-vin.jpg' // Add default image path
   }
 ];

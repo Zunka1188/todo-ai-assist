@@ -1,3 +1,4 @@
+
 import { Recipe } from './types';
 
 export const spanishRecipes: Recipe[] = [
@@ -106,6 +107,7 @@ export const spanishRecipes: Recipe[] = [
       carbohydrates: 45,
       fat: 22,
       fiber: 3
-    }
+    },
+    image: '/images/recipes/seafood-paella.jpg' // Add default image path
   }
 ];

@@ -1,3 +1,4 @@
+
 import { Recipe } from './types';
 
 export const greekRecipes: Recipe[] = [
@@ -106,6 +107,7 @@ export const greekRecipes: Recipe[] = [
       carbohydrates: 35,
       fat: 35,
       fiber: 8
-    }
+    },
+    image: '/images/recipes/moussaka.jpg' // Add default image path
   }
 ];

@@ -65,7 +65,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
   }, [activeFilters, filteredRecipes, sortBy, servingSize]);
 
   useEffect(() => {
-    let filtered = [...recipes] as Recipe[];
+    let filtered = [...recipes] as unknown as Recipe[];
 
     if (searchTerm) {
       filtered = filtered.filter(recipe =>
@@ -149,7 +149,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
   };
 
   const calculateMatchingCount = (filter: DietaryRestrictionType, type: 'dietary') => {
-    return (recipes as Recipe[]).filter(recipe => {
+    return (recipes as unknown as Recipe[]).filter(recipe => {
       const key = mapRestrictionToKey(filter);
       return key ? recipe.dietaryInfo[key] : false;
     }).length;

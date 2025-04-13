@@ -1,3 +1,4 @@
+
 import { Recipe } from './types';
 
 export const thaiRecipes: Recipe[] = [
@@ -67,6 +68,7 @@ export const thaiRecipes: Recipe[] = [
       carbohydrates: 45,
       fat: 15,
       fiber: 3
-    }
+    },
+    image: '/images/recipes/thai-basil-chicken.jpg' // Add default image path
   }
 ];

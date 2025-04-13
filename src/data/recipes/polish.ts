@@ -1,3 +1,4 @@
+
 import { Recipe } from './types';
 
 export const polishRecipes: Recipe[] = [
@@ -94,6 +95,7 @@ export const polishRecipes: Recipe[] = [
       carbohydrates: 48,
       fat: 16,
       fiber: 3
-    }
+    },
+    image: '/images/recipes/pierogi.jpg' // Add default image path
   }
 ];

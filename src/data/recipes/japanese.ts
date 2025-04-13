@@ -1,3 +1,4 @@
+
 import { Recipe } from './types';
 
 export const japaneseRecipes: Recipe[] = [
@@ -91,6 +92,7 @@ export const japaneseRecipes: Recipe[] = [
       carbohydrates: 65,
       fat: 22,
       fiber: 4
-    }
+    },
+    image: '/images/recipes/miso-ramen.jpg' // Add default image path
   }
 ];
