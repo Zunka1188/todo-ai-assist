@@ -12,6 +12,16 @@ This is an advanced productivity application designed to streamline task managem
 - Document Scanning
 - Calendar Integration
 
+## 📚 Documentation
+Our documentation is organized into several sections for easier navigation:
+
+- [Installation Guide](./docs/INSTALLATION.md) - Setup instructions and requirements
+- [Contributing Guidelines](./docs/CONTRIBUTING.md) - How to contribute to this project
+- [Security Information](./docs/SECURITY.md) - Security features and best practices
+- [Performance](./docs/PERFORMANCE.md) - Performance optimizations and monitoring
+- [Testing Guide](./docs/TESTING.md) - How to run and write tests
+- [Roadmap](./docs/ROADMAP.md) - Future plans and features
+
 ## 📦 Technologies
 - React 18
 - TypeScript
@@ -22,14 +32,8 @@ This is an advanced productivity application designed to streamline task managem
 - AI Integration
 - Performance Monitoring
 
-## 🛠 Prerequisites
-- Node.js (v18+ recommended)
-- npm, yarn, or bun
-- Git
+## 🔧 Quick Start
 
-## 🔧 Installation & Setup
-
-### Local Development
 ```bash
 # Clone the repository
 git clone <your-repository-url>
@@ -42,75 +46,9 @@ npm install
 
 # Start development server
 npm run dev
-
-# Run tests
-npm test
 ```
 
-## 🤝 Contributing Guidelines
-
-### Code of Conduct
-- Be respectful and inclusive
-- Provide constructive feedback
-- Prioritize collaboration
-
-### Development Process
-1. Fork the repository
-2. Create a feature branch
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. Make your changes
-4. Write or update tests
-5. Run linters and tests
-   ```bash
-   npm run lint
-   npm test
-   ```
-6. Commit with a clear, descriptive message
-7. Push to your fork
-8. Open a Pull Request
-
-### Commit Message Convention
-- Use present tense
-- Start with a capital letter
-- Keep messages concise and descriptive
-  - Good: "Add user authentication middleware"
-  - Avoid: "fixed some stuff"
-
-### Pull Request Guidelines
-- Describe the purpose of the changes
-- Link to related issues
-- Include screenshots for UI changes
-- Ensure all checks pass
-
-## 🔒 Security
-- Route guards implemented
-- Input validation
-- Basic rate limiting
-
-## 📊 Performance
-- Lazy loading
-- Code splitting
-- Caching mechanisms
-
-## 📝 Testing
-- Unit tests with Vitest
-- E2E tests with Playwright
-- Component testing
-
-## 📦 State Management
-- React Query for data fetching
-- Custom middleware for performance tracking
-
-## 🌐 Deployment
-- Vite build optimizations
-- Performance monitoring
-
-## 📋 Roadmap
-- [ ] Advanced AI features
-- [ ] More third-party integrations
-- [ ] Enhanced security measures
+For detailed setup instructions, see our [Installation Guide](./docs/INSTALLATION.md).
 
 ## 📫 Support
 For issues, please open a GitHub issue with:

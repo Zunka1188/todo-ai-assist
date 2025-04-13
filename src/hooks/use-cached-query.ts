@@ -84,7 +84,7 @@ export function useInvalidateCache() {
     appCache.clear();
     
     // Clear React Query cache - Use empty object parameter for v5 API
-    return queryClient.clear();
+    return queryClient.clear({ });
   };
   
   return { invalidateQuery, clearAllQueries };
