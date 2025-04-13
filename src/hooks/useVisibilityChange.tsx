@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useIsMobile } from './use-mobile';
 import { loadItems } from '@/services/shoppingService';
 import { logger } from '@/utils/logger';
@@ -12,6 +12,7 @@ import { handleError } from '@/utils/errorHandling';
 export const useVisibilityChange = () => {
   const { isMobile } = useIsMobile();
   const { attemptDataRecovery } = useDataRecovery();
+  const visibilityHandler = useRef<((ev: Event) => void) | null>(null);
   
   useEffect(() => {
     // Using AbortController for clean teardown
@@ -42,27 +43,42 @@ export const useVisibilityChange = () => {
         }
       }
     };
+
+    // Store the handler in a ref to prevent recreation on each render
+    visibilityHandler.current = handleVisibilityChange;
+    
+    const eventListener = (event: Event) => {
+      if (visibilityHandler.current) {
+        visibilityHandler.current(event);
+      }
+    };
     
     try {
       // Add event listener with passive option for better performance
-      document.addEventListener('visibilitychange', handleVisibilityChange, { 
+      document.addEventListener('visibilitychange', eventListener, { 
         passive: true,
         signal: abortController.signal
       });
     } catch (error) {
       // Older browsers might not support AbortController with addEventListener
-      document.addEventListener('visibilitychange', handleVisibilityChange, { 
+      document.addEventListener('visibilitychange', eventListener, { 
         passive: true
       });
     }
     
+    // Proper cleanup function to remove event listeners
     return () => {
       try {
         abortController.abort();
       } catch (error) {
-        // Fallback cleanup
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        // Fallback cleanup for browsers without AbortController support
+        if (visibilityHandler.current) {
+          document.removeEventListener('visibilitychange', eventListener);
+        }
       }
+      
+      // Clear the ref on unmount
+      visibilityHandler.current = null;
     };
   }, [isMobile, attemptDataRecovery]);
 };

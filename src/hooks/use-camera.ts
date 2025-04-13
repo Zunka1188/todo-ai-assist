@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useRef, RefObject } from 'react';
+import { useDebounce } from './useDebounce';
 
 interface UseCameraOptions {
   facingMode?: 'environment' | 'user';
@@ -36,7 +37,13 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
+  
+  // Store stream in ref to properly clean up
+  const streamRef = useRef<MediaStream | null>(null);
   const initAttempts = useRef(0);
+  const initTimeoutRef = useRef<number | null>(null);
+  const permissionTimeoutRef = useRef<number | null>(null);
+  
   const { 
     facingMode = 'environment',
     onError,
@@ -44,14 +51,47 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
     onCameraReady
   } = options;
 
+  // Prevent rapid error messages
+  const debouncedSetCameraError = useDebounce((error: string | null) => {
+    setCameraError(error);
+  }, 300);
+
   const handleError = (error: string, isPermissionDenied: boolean = false) => {
     console.error("Camera error:", error);
-    setCameraError(error);
+    debouncedSetCameraError(error);
     if (isPermissionDenied) {
       setPermissionDenied(true);
     }
     if (onError) {
       onError(error, isPermissionDenied);
+    }
+  };
+
+  // Clean up all resources
+  const cleanupResources = () => {
+    if (streamRef.current) {
+      try {
+        const tracks = streamRef.current.getTracks();
+        tracks.forEach(track => track.stop());
+        streamRef.current = null;
+      } catch (err) {
+        console.error("Error stopping camera tracks:", err);
+      }
+    }
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    
+    // Clear any pending timeouts
+    if (initTimeoutRef.current) {
+      clearTimeout(initTimeoutRef.current);
+      initTimeoutRef.current = null;
+    }
+    
+    if (permissionTimeoutRef.current) {
+      clearTimeout(permissionTimeoutRef.current);
+      permissionTimeoutRef.current = null;
     }
   };
 
@@ -62,6 +102,10 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
         videoRefExists: !!videoRef.current,
         videoRefId: videoRef.current?.id || 'no-id'
       });
+      
+      // Clean up any existing resources first
+      cleanupResources();
+      
       initAttempts.current += 1;
       setCameraError(null);
       setPermissionDenied(false);
@@ -77,7 +121,7 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
       if (!videoRef.current) {
         console.error("Video reference not available, will retry");
         if (initAttempts.current < 3) {
-          setTimeout(() => startCamera(), 500);
+          initTimeoutRef.current = window.setTimeout(() => startCamera(), 500) as unknown as number;
           return;
         }
         handleError("Camera initialization failed - video element not found after retries", false);
@@ -122,6 +166,8 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
       
       try {
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        // Store stream in ref for cleanup
+        streamRef.current = stream;
         
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -130,7 +176,8 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
           videoRef.current.muted = true;
           videoRef.current.playsInline = true;
           
-          videoRef.current.onloadedmetadata = () => {
+          // Use promise-based approach with proper cleanup
+          const onMetadataLoaded = () => {
             console.log("Video metadata loaded, attempting to play");
             if (videoRef.current) {
               videoRef.current.play()
@@ -151,11 +198,16 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
             }
           };
           
-          videoRef.current.onerror = (e) => {
+          const onVideoError = (e: Event) => {
             console.error("Video element error:", e);
             handleError("Video element error", false);
             setIsInitializing(false);
           };
+          
+          // Add event listeners
+          videoRef.current.addEventListener('loadedmetadata', onMetadataLoaded, { once: true });
+          videoRef.current.addEventListener('error', onVideoError);
+          
         } else {
           console.error("Video reference not available after stream");
           handleError("Camera initialization failed - video element not found after obtaining stream", false);
@@ -183,6 +235,8 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
           
           console.log("Trying fallback constraints:", fallbackConstraints);
           const fallbackStream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+          // Store stream in ref for cleanup
+          streamRef.current = fallbackStream;
           
           if (videoRef.current) {
             videoRef.current.srcObject = fallbackStream;
@@ -191,7 +245,8 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
             videoRef.current.muted = true;
             videoRef.current.playsInline = true;
             
-            videoRef.current.onloadedmetadata = () => {
+            // Use promise-based approach with proper cleanup
+            const onMetadataLoaded = () => {
               console.log("Video metadata loaded with fallback constraints");
               if (videoRef.current) {
                 videoRef.current.play()
@@ -211,6 +266,10 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
                   });
               }
             };
+            
+            // Add event listeners with proper cleanup
+            videoRef.current.addEventListener('loadedmetadata', onMetadataLoaded, { once: true });
+            
           } else {
             console.error("Video reference not available for fallback");
             handleError("Camera initialization failed - video element not found for fallback", false);
@@ -244,18 +303,8 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
   };
   
   const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      const tracks = stream.getTracks();
-      
-      tracks.forEach(track => {
-        console.log("Stopping track:", track.kind);
-        track.stop();
-      });
-      
-      videoRef.current.srcObject = null;
-      setCameraActive(false);
-    }
+    cleanupResources();
+    setCameraActive(false);
   };
   
   const captureImage = () => {
@@ -288,7 +337,7 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
       // Ensure video and canvas elements exist
       if (!videoRef.current) {
         console.warn("Video ref not available during permission request, will delay");
-        setTimeout(() => requestCameraPermission(), 300);
+        permissionTimeoutRef.current = window.setTimeout(() => requestCameraPermission(), 300) as unknown as number;
         return;
       }
       
@@ -306,8 +355,8 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
             handleError("Camera permission is blocked. Please update your browser settings to allow camera access.", true);
           }
           
-          // Listen for permission changes
-          result.addEventListener('change', () => {
+          // Store listener references for cleanup
+          const permissionChangeHandler = () => {
             console.log("Camera permission changed to:", result.state);
             if (result.state === 'granted') {
               setPermissionDenied(false);
@@ -317,7 +366,15 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
             } else if (result.state === 'denied') {
               setPermissionDenied(true);
             }
-          });
+          };
+          
+          // Listen for permission changes
+          result.addEventListener('change', permissionChangeHandler);
+          
+          // Return cleanup function for this event listener
+          return () => {
+            result.removeEventListener('change', permissionChangeHandler);
+          };
         } catch (error) {
           console.log("Permission API not supported or other error", error);
           startCamera();
@@ -347,10 +404,11 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
     }
   }, [isReady, autoStart]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount - VERY IMPORTANT!
   useEffect(() => {
     return () => {
-      stopCamera();
+      console.log("Camera hook unmounting, cleaning up resources");
+      cleanupResources();
     };
   }, []);
 

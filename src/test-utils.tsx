@@ -68,9 +68,9 @@ export const mockUseNavigate = () => {
   const mockNavigate = vi.fn();
   
   vi.mock('react-router-dom', async () => {
-    const actual = await vi.importActual('react-router-dom');
+    const actual = await vi.importActual('react-router-dom') as any;
     return {
-      ...(actual as object),
+      ...actual,
       useNavigate: () => mockNavigate
     };
   });
