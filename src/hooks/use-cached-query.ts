@@ -45,6 +45,6 @@ export function useCachedQuery<TData, TError = Error>(
     ...(options || {})
   };
 
-  // Pass the queryOptions object as a single argument to useQuery
-  return useQuery<TData, TError>(queryOptions);
+  // Pass the queryOptions object to useQuery
+  return useQuery(queryOptions);
 }
