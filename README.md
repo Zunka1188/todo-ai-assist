@@ -1,73 +1,80 @@
-# Welcome to your Lovable project
 
-## Project info
+# AI-Powered Todo and Recipe Management App
 
-**URL**: https://lovable.dev/projects/2b5e2c77-f4b2-4032-b2a4-6c5215a35766
+## Overview
+This application is a comprehensive productivity tool integrating AI-driven features for task management, recipe planning, and personal organization.
 
-## How can I edit this code?
+## Technologies
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- Shadcn UI
+- React Query
+- Performance Monitoring
 
-There are several ways of editing your application.
+## Prerequisites
+- Node.js (v18+ recommended)
+- npm or yarn or bun
+- Git
 
-**Use Lovable**
+## Setup & Installation
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/2b5e2c77-f4b2-4032-b2a4-6c5215a35766) and start prompting.
+### Local Development
+```bash
+# Clone the repository
+git clone <your-repository-url>
 
-Changes made via Lovable will be committed automatically to this repo.
+# Navigate to project directory
+cd ai-todo-assistant
 
-**Use your preferred IDE**
+# Install dependencies
+npm install
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Environment Configuration
+No additional environment variables are required for basic functionality.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Contributing Guidelines
 
-**Use GitHub Codespaces**
+### Code Standards
+- Follow TypeScript strict mode
+- Use meaningful variable and function names
+- Write comprehensive JSDoc comments
+- Maintain consistent code formatting
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Pull Request Process
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes with descriptive messages
+4. Push to your branch
+5. Open a pull request
 
-## What technologies are used for this project?
+### Reporting Issues
+- Use GitHub Issues
+- Provide a clear and descriptive title
+- Include steps to reproduce
+- Share relevant code snippets or error logs
 
-This project is built with:
+## Performance Optimization
+- Lazy loading implemented
+- Code splitting enabled
+- Caching mechanisms in place
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Testing
+- E2E tests available
+- Component testing recommended
 
-## How can I deploy this project?
+## Security
+- Basic route guards implemented
+- CSRF protection
+- Input sanitization
 
-Simply open [Lovable](https://lovable.dev/projects/2b5e2c77-f4b2-4032-b2a4-6c5215a35766) and click on Share -> Publish.
+## License
+[Your License - e.g., MIT]
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes it is!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Contact
+[Your contact information or project maintainer details]
