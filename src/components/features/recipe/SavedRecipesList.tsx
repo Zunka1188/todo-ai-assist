@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 interface SavedRecipesListProps {
   showCustomOnly?: boolean;
   showFavoritesOnly?: boolean;
+  showSavedOnly?: boolean;
   showTitle?: boolean;
   className?: string;
 }
@@ -20,11 +21,13 @@ interface SavedRecipesListProps {
 const SavedRecipesList: React.FC<SavedRecipesListProps> = ({ 
   showCustomOnly = false,
   showFavoritesOnly = false,
+  showSavedOnly = false,
   showTitle = true,
   className
 }) => {
   const { 
     userRecipes, 
+    savedRecipes,
     customRecipes,
     favorites,
     isLoadingUserRecipes, 
@@ -44,6 +47,10 @@ const SavedRecipesList: React.FC<SavedRecipesListProps> = ({
     
     if (showFavoritesOnly && userRecipes) {
       return userRecipes.filter(recipe => favorites.includes(recipe.id));
+    }
+    
+    if (showSavedOnly) {
+      return savedRecipes;
     }
     
     return userRecipes || [];
@@ -84,7 +91,9 @@ const SavedRecipesList: React.FC<SavedRecipesListProps> = ({
               ? t('recipes.customRecipes')
               : showFavoritesOnly
                 ? t('recipes.favoriteRecipes')
-                : t('recipes.savedRecipes')
+                : showSavedOnly
+                  ? t('recipes.savedRecipes')
+                  : t('recipes.recipeCollection')
             }
           </h2>
         )}
@@ -122,7 +131,9 @@ const SavedRecipesList: React.FC<SavedRecipesListProps> = ({
             ? t('recipes.customRecipes')
             : showFavoritesOnly
               ? t('recipes.favoriteRecipes')
-              : t('recipes.savedRecipes')
+              : showSavedOnly
+                ? t('recipes.savedRecipes')
+                : t('recipes.recipeCollection')
           }
         </h2>
       )}

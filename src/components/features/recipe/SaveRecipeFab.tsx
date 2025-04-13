@@ -11,7 +11,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 interface SaveRecipeFabProps {
   recipe: Recipe;
@@ -20,6 +22,8 @@ interface SaveRecipeFabProps {
 
 const SaveRecipeFab: React.FC<SaveRecipeFabProps> = ({ recipe, className }) => {
   const { saveRecipe, removeSavedRecipe, isRecipeSaved, toggleFavorite, isRecipeFavorite } = useRecipes();
+  const { toast } = useToast();
+  const { t } = useTranslation();
   
   const isSaved = isRecipeSaved(recipe.id);
   const isFavorite = isRecipeFavorite(recipe.id);
@@ -46,7 +50,7 @@ const SaveRecipeFab: React.FC<SaveRecipeFabProps> = ({ recipe, className }) => {
       })
       .catch((error) => {
         toast({
-          title: 'Error',
+          title: t('common.error'),
           description: 'Failed to share recipe',
           variant: 'destructive'
         });
@@ -69,7 +73,7 @@ const SaveRecipeFab: React.FC<SaveRecipeFabProps> = ({ recipe, className }) => {
         variant={isSaved ? "default" : "secondary"} 
         className="h-14 w-14 rounded-full shadow-lg"
         onClick={handleSaveClick}
-        aria-label={isSaved ? "Remove from saved recipes" : "Save recipe"}
+        aria-label={isSaved ? t('recipes.removeRecipe') : t('recipes.saveRecipe')}
       >
         <Bookmark className={cn("h-6 w-6", isSaved ? "fill-white" : "")} />
       </Button>
@@ -87,9 +91,14 @@ const SaveRecipeFab: React.FC<SaveRecipeFabProps> = ({ recipe, className }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={handleFavoriteClick}>
-            {isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+            {isFavorite ? t('recipes.removeFromFavorites') : t('recipes.addToFavorites')}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleShare}>Share Recipe</DropdownMenuItem>
+          {isSaved && recipe.id?.startsWith('custom-') && (
+            <DropdownMenuItem asChild>
+              <Link to={`/recipes/${recipe.id}/edit`}>{t('recipes.editRecipe')}</Link>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
