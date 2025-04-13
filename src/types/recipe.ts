@@ -30,7 +30,8 @@ export type Cuisine =
   | "korean" 
   | "turkish" 
   | "moroccan" 
-  | "lebanese";
+  | "lebanese"
+  | "mediterranean";
 
 export interface Recipe {
   id: string;
