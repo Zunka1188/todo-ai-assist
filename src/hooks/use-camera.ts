@@ -43,6 +43,7 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
   const initAttempts = useRef(0);
   const initTimeoutRef = useRef<number | null>(null);
   const permissionTimeoutRef = useRef<number | null>(null);
+  const permissionChangeHandlerRef = useRef<((event: Event) => void) | null>(null);
   
   const { 
     facingMode = 'environment',
@@ -355,6 +356,11 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
             handleError("Camera permission is blocked. Please update your browser settings to allow camera access.", true);
           }
           
+          // Clean up previous listener if it exists
+          if (permissionChangeHandlerRef.current) {
+            result.removeEventListener('change', permissionChangeHandlerRef.current);
+          }
+          
           // Store listener references for cleanup
           const permissionChangeHandler = () => {
             console.log("Camera permission changed to:", result.state);
@@ -368,13 +374,11 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
             }
           };
           
+          // Set the new handler ref
+          permissionChangeHandlerRef.current = permissionChangeHandler;
+          
           // Listen for permission changes
           result.addEventListener('change', permissionChangeHandler);
-          
-          // Return cleanup function for this event listener
-          return () => {
-            result.removeEventListener('change', permissionChangeHandler);
-          };
         } catch (error) {
           console.log("Permission API not supported or other error", error);
           startCamera();
@@ -409,6 +413,27 @@ export const useCamera = (options: UseCameraOptions = {}): UseCameraReturn => {
     return () => {
       console.log("Camera hook unmounting, cleaning up resources");
       cleanupResources();
+      
+      // Clean up any event listeners
+      if (permissionChangeHandlerRef.current) {
+        try {
+          // We need to try/catch as we may not have access to the permissionStatus at this point
+          if (navigator.permissions) {
+            navigator.permissions.query({ name: 'camera' as PermissionName })
+              .then(status => {
+                if (permissionChangeHandlerRef.current) {
+                  status.removeEventListener('change', permissionChangeHandlerRef.current);
+                  permissionChangeHandlerRef.current = null;
+                }
+              })
+              .catch(() => {
+                // Ignore errors during cleanup
+              });
+          }
+        } catch (e) {
+          // Ignore errors during cleanup
+        }
+      }
     };
   }, []);
 

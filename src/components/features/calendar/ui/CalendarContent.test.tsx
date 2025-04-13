@@ -19,10 +19,10 @@ vi.mock('../views/AgendaView', () => ({
 }));
 
 // Mock the NewCalendarContext for specific test cases
-vi.mock('../NewCalendarContext', () => {
-  const original = vi.importActual('../NewCalendarContext');
+vi.mock('../NewCalendarContext', async () => {
+  const actual = await vi.importActual('../NewCalendarContext');
   return {
-    ...original,
+    ...actual,
     // The mock implementations will be overridden in specific tests
     CalendarProvider: vi.fn(({ children, initialView }) => (
       <div data-testid="calendar-provider" data-view={initialView}>{children}</div>
@@ -39,7 +39,8 @@ describe('CalendarContent', () => {
     vi.clearAllMocks();
     
     // Reset to default mock implementation
-    vi.mocked(vi.importMock('../NewCalendarContext').useCalendar).mockImplementation(() => ({
+    const mockModule = vi.mocked(vi.importActual('../NewCalendarContext'));
+    vi.mocked(mockModule.useCalendar).mockImplementation(() => ({
       viewMode: 'day',
       isLoading: false
     }));
@@ -57,7 +58,8 @@ describe('CalendarContent', () => {
   
   it('renders the month view when set to month mode', () => {
     // Override the mock for this specific test
-    vi.mocked(vi.importMock('../NewCalendarContext').useCalendar).mockImplementation(() => ({
+    const mockModule = vi.mocked(vi.importActual('../NewCalendarContext'));
+    vi.mocked(mockModule.useCalendar).mockImplementation(() => ({
       viewMode: 'month',
       isLoading: false
     }));
@@ -73,7 +75,8 @@ describe('CalendarContent', () => {
   
   it('renders the agenda view when set to agenda mode', () => {
     // Override the mock for this specific test
-    vi.mocked(vi.importMock('../NewCalendarContext').useCalendar).mockImplementation(() => ({
+    const mockModule = vi.mocked(vi.importActual('../NewCalendarContext'));
+    vi.mocked(mockModule.useCalendar).mockImplementation(() => ({
       viewMode: 'agenda',
       isLoading: false
     }));
@@ -89,7 +92,8 @@ describe('CalendarContent', () => {
   
   it('shows loading state when isLoading is true', () => {
     // Override the mock for this specific test
-    vi.mocked(vi.importMock('../NewCalendarContext').useCalendar).mockImplementation(() => ({
+    const mockModule = vi.mocked(vi.importActual('../NewCalendarContext'));
+    vi.mocked(mockModule.useCalendar).mockImplementation(() => ({
       viewMode: 'day',
       isLoading: true
     }));
@@ -102,7 +106,8 @@ describe('CalendarContent', () => {
   
   it('shows error state when pageError is present', () => {
     // Override the mock for this specific test
-    vi.mocked(vi.importMock('../NewCalendarContext').useCalendar).mockImplementation(() => ({
+    const mockModule = vi.mocked(vi.importActual('../NewCalendarContext'));
+    vi.mocked(mockModule.useCalendar).mockImplementation(() => ({
       viewMode: 'day',
       isLoading: false,
       pageError: 'Test error'
