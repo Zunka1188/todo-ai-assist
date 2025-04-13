@@ -3,7 +3,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import tsconfigPaths from "vite-tsconfig-paths";
-import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -17,7 +16,15 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     tsconfigPaths(),
-    mode === 'development' && componentTagger(),
+    // Only include lovable-tagger in development mode if available
+    mode === 'development' && (() => {
+      try {
+        return require('lovable-tagger').componentTagger();
+      } catch (e) {
+        console.warn('lovable-tagger not found, skipping component tagging');
+        return null;
+      }
+    })(),
   ].filter(Boolean),
   resolve: {
     alias: {
