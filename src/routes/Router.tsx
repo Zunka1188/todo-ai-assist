@@ -1,6 +1,6 @@
 
 import { useRoutes } from 'react-router-dom';
-import { enhancedRoutes, prefetchRoutes, routeImportMap } from './improved-routes';
+import { routes } from './improved-routes';
 import { useRouteGuard } from '@/hooks/use-route-guard';
 import { useEffect } from 'react';
 import { performanceMonitor } from '@/utils/performance-monitor';
@@ -19,22 +19,24 @@ const Router = () => {
   }, []);
   
   // useRoutes hook transforms our route config into route elements
-  const routeElements = useRoutes(enhancedRoutes);
+  const routeElements = useRoutes(routes);
   
   // Prefetch important routes for faster future navigation
   useEffect(() => {
     // Delay prefetching to prioritize current route rendering
     const prefetchTimer = setTimeout(() => {
-      prefetchRoutes(['/', '/scan', '/upload', '/shopping', '/calendar', '/documents', '/weather']);
+      const routesToPrefetch = ['/', '/shopping', '/calendar', '/scan', '/upload', '/documents', '/weather'];
       
-      // Actually prefetch the modules
-      const routesToPrefetch = ['/', '/shopping', '/calendar'];
+      console.log('Prefetching routes:', routesToPrefetch);
       
-      routesToPrefetch.forEach(route => {
-        if (routeImportMap[route]) {
-          prefetchModule(routeImportMap[route], `Route_${route}`);
-        }
-      });
+      // Actually prefetch the modules (only if the prefetchModule function exists)
+      if (typeof prefetchModule === 'function') {
+        routesToPrefetch.forEach(route => {
+          // Use a function that returns a promise instead of a string
+          const importFunc = () => import(`../pages${route === '/' ? '/Index' : route}`);
+          prefetchModule(importFunc, `Route_${route}`);
+        });
+      }
     }, 2000);
     
     return () => clearTimeout(prefetchTimer);
