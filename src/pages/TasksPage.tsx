@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import AppHeader from '@/components/layout/AppHeader';
 import { Input } from '@/components/ui/input';
+import SocialShareMenu from '@/components/features/shared/SocialShareMenu';
 
 type Task = {
   id: number;
@@ -31,6 +32,7 @@ const TasksPage = () => {
 
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const toggleTaskStatus = (taskId: number) => {
     setTasks(
@@ -74,6 +76,24 @@ const TasksPage = () => {
     setIsAddingTask(false);
   };
 
+  const handleTaskSelect = (task: Task) => {
+    setSelectedTask(selectedTask?.id === task.id ? null : task);
+  };
+
+  // Generate share text for tasks
+  const getTaskShareText = () => {
+    const pendingTasks = tasks.filter(task => !task.completed).map(task => task.title);
+    const completedTasks = tasks.filter(task => task.completed).map(task => task.title);
+    
+    const text = [
+      "My Task List:",
+      pendingTasks.length ? `To do: ${pendingTasks.join(", ")}` : "",
+      completedTasks.length ? `Completed: ${completedTasks.join(", ")}` : ""
+    ].filter(Boolean).join("\n");
+    
+    return text;
+  };
+
   // Filter to show incomplete tasks first, then by priority
   const sortedTasks = [...tasks].sort((a, b) => {
     if (a.completed !== b.completed) {
@@ -86,19 +106,29 @@ const TasksPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => navigate('/')}
-          className="mr-2"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <AppHeader 
-          title="Tasks" 
-          subtitle="Manage your to-do list and stay organized"
-        />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate('/')}
+            className="mr-2"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <AppHeader 
+            title="Tasks" 
+            subtitle="Manage your to-do list and stay organized"
+          />
+        </div>
+        <div>
+          <SocialShareMenu 
+            title="My Task List" 
+            text={getTaskShareText()}
+            showLabel={true}
+            buttonSize="sm" 
+          />
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -107,8 +137,10 @@ const TasksPage = () => {
             key={task.id} 
             className={cn(
               "flex items-center justify-between p-3 border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-700",
-              task.completed && "opacity-60"
+              task.completed && "opacity-60",
+              selectedTask?.id === task.id && "ring-2 ring-primary"
             )}
+            onClick={() => handleTaskSelect(task)}
           >
             <div className="flex items-center">
               <button 
@@ -121,7 +153,10 @@ const TasksPage = () => {
                     "border-green-400": !task.completed && task.priority === 'low',
                   }
                 )}
-                onClick={() => toggleTaskStatus(task.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTaskStatus(task.id);
+                }}
               >
                 {task.completed && (
                   <CheckSquare className="w-4 h-4 text-white" />
@@ -141,14 +176,28 @@ const TasksPage = () => {
                 )}
               </div>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="text-muted-foreground h-8 w-8"
-              onClick={() => deleteTask(task.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              {selectedTask?.id === task.id && (
+                <SocialShareMenu 
+                  title={`Task: ${task.title}`} 
+                  text={`${task.title} - Due: ${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}`}
+                  buttonSize="icon"
+                  buttonVariant="ghost"
+                  className="h-8 w-8"
+                />
+              )}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-muted-foreground h-8 w-8"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteTask(task.id);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         ))}
       </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import AppPage from '@/components/ui/app-page';
@@ -6,6 +7,8 @@ import { Recipe } from '@/types/recipe';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Clock, Flame, User } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import SaveRecipeFab from '@/components/features/recipe/SaveRecipeFab';
+import SocialShareMenu from '@/components/features/shared/SocialShareMenu';
 
 const RecipePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -93,12 +96,22 @@ const RecipePage: React.FC = () => {
       isLoading={loading}
       error={recipe ? null : "Recipe not found"}
       actions={
-        <Button variant="outline" size="sm" asChild>
-          <a href="/recipes">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            All Recipes
-          </a>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <a href="/recipes">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              All Recipes
+            </a>
+          </Button>
+          {recipe && (
+            <SocialShareMenu 
+              title={recipe.name} 
+              text={`Check out this delicious ${recipe.cuisine} ${recipe.name} recipe!`} 
+              buttonSize="sm"
+              showLabel={true}
+            />
+          )}
+        </div>
       }
     >
       {recipe && (
@@ -247,6 +260,9 @@ const RecipePage: React.FC = () => {
               </div>
             </div>
           </div>
+          
+          {/* Add Save FAB */}
+          <SaveRecipeFab recipe={recipe} />
         </div>
       )}
     </AppPage>
