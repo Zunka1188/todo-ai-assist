@@ -15,6 +15,7 @@ import AIModelsPage from '@/pages/AIModelsPage';
 import WeatherPage from '@/pages/WeatherPage';
 import { ShoppingItemsProvider } from '@/components/features/shopping/ShoppingItemsContext';
 import ProduceRecognitionPage from '@/pages/ProduceRecognitionPage';
+import RecipePage from '@/pages/RecipePage';
 
 const Router = () => {
   return (
@@ -37,6 +38,8 @@ const Router = () => {
       <Route path="/ai-models" element={<AIModelsPage />} />
       <Route path="/weather" element={<WeatherPage />} />
       <Route path="/produce-recognition" element={<ProduceRecognitionPage />} />
+      <Route path="/recipes" element={<RecipePage />} />
+      <Route path="/recipes/:id" element={<RecipePage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, ShoppingBag, FileText, Cpu, Cloud } from 'lucide-react';
+import { Home, Calendar, ShoppingBag, FileText, Cpu, Cloud, Utensils } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
@@ -17,6 +17,7 @@ const BottomNavigation: React.FC = () => {
     { to: '/', icon: <Home className="h-5 w-5" />, label: 'Home', ariaLabel: 'Navigate to home page' },
     { to: '/calendar', icon: <Calendar className="h-5 w-5" />, label: 'Calendar', ariaLabel: 'Navigate to calendar' },
     { to: '/shopping', icon: <ShoppingBag className="h-5 w-5" />, label: 'Shopping', ariaLabel: 'Navigate to shopping list' },
+    { to: '/recipes', icon: <Utensils className="h-5 w-5" />, label: 'Recipes', ariaLabel: 'Navigate to recipes' },
     { to: '/documents', icon: <FileText className="h-5 w-5" />, label: 'Documents', ariaLabel: 'Navigate to documents' },
     { to: '/weather', icon: <Cloud className="h-5 w-5" />, label: 'Weather', ariaLabel: 'Navigate to weather' },
     { to: '/produce-recognition', icon: <Cpu className="h-5 w-5" />, label: 'Produce', ariaLabel: 'Navigate to produce recognition' },
@@ -35,7 +36,7 @@ const BottomNavigation: React.FC = () => {
       aria-label="Bottom navigation"
       role="navigation"
     >
-      <div className="container mx-auto flex items-center justify-between p-2">
+      <div className="container mx-auto flex items-center justify-between p-2 overflow-x-auto">
         {navItems.map((item) => {
           // Check if this is the current route (exact match or starts with for nested routes)
           const isActive = location.pathname === item.to || 
@@ -55,7 +56,7 @@ const BottomNavigation: React.FC = () => {
               aria-current={isActive ? "page" : undefined}
             >
               {item.icon}
-              <span className="text-xs">{item.label}</span>
+              <span className="text-xs whitespace-nowrap">{item.label}</span>
             </Link>
           );
         })}

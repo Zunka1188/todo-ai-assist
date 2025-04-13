@@ -9,6 +9,7 @@ import TimeControls from './TimeControls';
 import WeekHeader from './WeekHeader';
 import AllDayEvents from './AllDayEvents';
 import TimeGrid from './TimeGrid';
+import Navigation from './Navigation';
 
 interface WeekViewProps {
   date: Date;
@@ -60,14 +61,31 @@ const WeekView: React.FC<WeekViewProps> = ({
     minCellHeight
   });
 
-  return <ResponsiveContainer fullWidth noGutters className="space-y-4">
-      <div className="grid grid-cols-7 gap-2 mb-4">
-        <div className="col-span-7">
-          
+  return (
+    <ResponsiveContainer fullWidth noGutters className="space-y-4">
+      <div className="grid grid-cols-1 gap-2 mb-4">
+        <div className="flex justify-between items-center">
+          <Navigation 
+            weekStart={weekStart}
+            weekEnd={weekEnd}
+            prevWeek={prevWeek}
+            nextWeek={nextWeek}
+            today={() => setDate(new Date())}
+          />
         </div>
       </div>
 
-      <TimeControls startHour={startHour} endHour={endHour} showFullDay={showFullDay} startInputValue={startInputValue} endInputValue={endInputValue} hiddenEvents={hiddenEvents} handleTimeRangeToggle={handleTimeRangeToggle} handleTimeRangeChange={handleTimeRangeChange} handleInputBlur={handleInputBlur} />
+      <TimeControls 
+        startHour={startHour} 
+        endHour={endHour} 
+        showFullDay={showFullDay} 
+        startInputValue={startInputValue} 
+        endInputValue={endInputValue} 
+        hiddenEvents={hiddenEvents} 
+        handleTimeRangeToggle={handleTimeRangeToggle} 
+        handleTimeRangeChange={handleTimeRangeChange} 
+        handleInputBlur={handleInputBlur} 
+      />
       
       <div className="border rounded-lg overflow-hidden shadow-sm w-full">
         <div className="sticky top-0 z-10 bg-background border-b">
@@ -75,9 +93,20 @@ const WeekView: React.FC<WeekViewProps> = ({
           <AllDayEvents daysInWeek={daysInWeek} events={events} handleViewEvent={handleViewEvent} />
         </div>
         
-        <TimeGrid daysInWeek={daysInWeek} hours={hours} events={daysEventGroups} handleViewEvent={handleViewEvent} scrollRef={scrollRef} currentTimePosition={currentTimePosition} getMultiHourEventStyle={getMultiHourEventStyle} minCellHeight={minCellHeight} scrollContainerHeight={scrollContainerHeight} />
+        <TimeGrid 
+          daysInWeek={daysInWeek} 
+          hours={hours} 
+          events={daysEventGroups} 
+          handleViewEvent={handleViewEvent} 
+          scrollRef={scrollRef} 
+          currentTimePosition={currentTimePosition} 
+          getMultiHourEventStyle={getMultiHourEventStyle} 
+          minCellHeight={minCellHeight} 
+          scrollContainerHeight={scrollContainerHeight} 
+        />
       </div>
-    </ResponsiveContainer>;
+    </ResponsiveContainer>
+  );
 };
 
 export default WeekView;

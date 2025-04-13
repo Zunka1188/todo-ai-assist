@@ -18,6 +18,14 @@ const queryClient = new QueryClient({
   }
 });
 
+// Add future flags to address React Router warnings
+const routerOptions = {
+  future: {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true
+  }
+};
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -25,7 +33,7 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          <BrowserRouter {...routerOptions}>
             <AppLayout>
               <Router />
             </AppLayout>

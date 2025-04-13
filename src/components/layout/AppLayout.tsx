@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, HelpCircle, Cloud, MessageSquare, Leaf } from 'lucide-react';
+import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, HelpCircle, Cloud, MessageSquare, Leaf, Utensils } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -165,6 +165,19 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
                 >
                   <FileText className="h-4 w-4" />
                   <span className={textColorClass}>Documents</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link 
+                  to="/recipes" 
+                  className={cn(
+                    "cursor-pointer flex items-center gap-2", 
+                    isMobile ? mobileBodyTextClass : "",
+                    isRouteActive('/recipes') && "bg-primary/10"
+                  )}
+                >
+                  <Utensils className="h-4 w-4" />
+                  <span className={textColorClass}>Recipes</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
