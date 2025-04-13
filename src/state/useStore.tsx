@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { initialEvents } from '@/components/features/calendar/data/initialEvents';
 import { 
@@ -43,12 +42,6 @@ const initialShoppingState: ShoppingState = {
   sortOption: SortOption.ByCategory,
   selectedItems: [],
   isLoading: false
-};
-
-const initialState: GlobalState = {
-  app: initialAppState,
-  calendar: initialCalendarState,
-  shopping: initialShoppingState
 };
 
 // Reducers
