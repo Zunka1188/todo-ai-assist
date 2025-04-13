@@ -83,8 +83,8 @@ export function useInvalidateCache() {
     // Clear local cache
     appCache.clear();
     
-    // Clear React Query cache - Pass an empty object to match the expected signature
-    return queryClient.clear({ });
+    // Clear React Query cache - In TanStack Query v5, clear() doesn't take arguments
+    return queryClient.clear();
   };
   
   return { invalidateQuery, clearAllQueries };
