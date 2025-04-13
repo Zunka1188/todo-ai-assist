@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { initialEvents } from '@/components/features/calendar/data/initialEvents';
 import { 
@@ -39,9 +40,16 @@ const initialCalendarState: CalendarState = {
 const initialShoppingState: ShoppingState = {
   searchTerm: '',
   filterMode: 'all',
-  sortOption: SortOption.ByCategory,
+  sortOption: 'newest', // Use a string literal from SortOption type instead of enum value
   selectedItems: [],
   isLoading: false
+};
+
+// Define the initialState that combines all the individual state objects
+const initialState: GlobalState = {
+  app: initialAppState,
+  calendar: initialCalendarState,
+  shopping: initialShoppingState
 };
 
 // Reducers
