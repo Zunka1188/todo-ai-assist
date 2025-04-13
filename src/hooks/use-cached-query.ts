@@ -39,12 +39,12 @@ export function useCachedQuery<TData, TError = Error>(
   };
 
   // Create the options object with the required structure
-  const queryOptions: UseQueryOptions<TData, TError> = {
+  const queryOptions = {
     queryKey,
     queryFn: enhancedQueryFn,
     ...(options || {}), // Ensure options is always an object
   };
 
-  // Pass a single options object with explicit type generics
-  return useQuery<TData, TError>(queryOptions);
+  // Pass the options object with all required type parameters
+  return useQuery<TData, TError, TData>(queryOptions);
 }
