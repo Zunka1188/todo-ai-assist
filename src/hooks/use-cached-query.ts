@@ -49,7 +49,7 @@ export function useCachedQuery<TData, TError = Error>(
   };
 
   // Use the object parameter syntax required by TanStack Query v5
-  return useQuery<TData, TError>({
+  return useQuery({
     queryKey,
     queryFn: enhancedQueryFn,
     staleTime: options?.staleTime ?? 5 * 60 * 1000, // Default 5 minutes
