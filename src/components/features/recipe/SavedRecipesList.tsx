@@ -11,18 +11,21 @@ import { cn } from '@/lib/utils';
 
 interface SavedRecipesListProps {
   showCustomOnly?: boolean;
+  showFavoritesOnly?: boolean;
   showTitle?: boolean;
   className?: string;
 }
 
 const SavedRecipesList: React.FC<SavedRecipesListProps> = ({ 
   showCustomOnly = false,
+  showFavoritesOnly = false,
   showTitle = true,
   className
 }) => {
   const { 
     userRecipes, 
     customRecipes,
+    favorites,
     isLoadingUserRecipes, 
     removeSavedRecipe, 
     isRemoving,
@@ -30,8 +33,20 @@ const SavedRecipesList: React.FC<SavedRecipesListProps> = ({
     isRecipeFavorite
   } = useRecipes();
   
-  // Show only custom recipes if requested
-  const recipesToShow = showCustomOnly ? customRecipes : userRecipes;
+  // Filter recipes based on the props
+  const getFilteredRecipes = () => {
+    if (showCustomOnly) {
+      return customRecipes;
+    }
+    
+    if (showFavoritesOnly) {
+      return userRecipes.filter(recipe => favorites.includes(recipe.id));
+    }
+    
+    return userRecipes;
+  };
+  
+  const recipesToShow = getFilteredRecipes();
   
   if (isLoadingUserRecipes) {
     return (
@@ -60,15 +75,32 @@ const SavedRecipesList: React.FC<SavedRecipesListProps> = ({
   if (!recipesToShow || recipesToShow.length === 0) {
     return (
       <div className="space-y-4">
-        {showTitle && <h2 className="text-2xl font-semibold">{showCustomOnly ? 'Your Custom Recipes' : 'Your Saved Recipes'}</h2>}
+        {showTitle && (
+          <h2 className="text-2xl font-semibold">
+            {showCustomOnly 
+              ? 'Your Custom Recipes' 
+              : showFavoritesOnly
+                ? 'Your Favorite Recipes'
+                : 'Your Saved Recipes'
+            }
+          </h2>
+        )}
         <Card className="text-center p-8">
           <CardContent className="pt-6">
             <BookmarkIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-medium">No recipes saved yet</h3>
+            <h3 className="text-xl font-medium">
+              {showCustomOnly 
+                ? "You haven't created any custom recipes yet."
+                : showFavoritesOnly
+                  ? "You haven't added any favorites yet."
+                  : "No recipes saved yet."}
+            </h3>
             <p className="text-muted-foreground mt-2">
               {showCustomOnly 
                 ? "You haven't created any custom recipes yet."
-                : "Save recipes you love to access them quickly later."}
+                : showFavoritesOnly
+                  ? "Mark recipes as favorites for quick access."
+                  : "Save recipes you love to access them quickly later."}
             </p>
             <Button asChild className="mt-4">
               <Link to="/recipes">Browse Recipes</Link>
@@ -83,7 +115,12 @@ const SavedRecipesList: React.FC<SavedRecipesListProps> = ({
     <div className={cn("space-y-4", className)}>
       {showTitle && (
         <h2 className="text-2xl font-semibold">
-          {showCustomOnly ? 'Your Custom Recipes' : 'Your Saved Recipes'}
+          {showCustomOnly 
+            ? 'Your Custom Recipes' 
+            : showFavoritesOnly
+              ? 'Your Favorite Recipes'
+              : 'Your Saved Recipes'
+          }
         </h2>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

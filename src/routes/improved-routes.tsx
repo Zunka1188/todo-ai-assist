@@ -103,3 +103,27 @@ export const routes: RouteObject[] = [
     element: <NotFound />,
   },
 ];
+
+// Add the required exports for Router.tsx
+export const enhancedRoutes = routes;
+
+// Function to prefetch routes
+export const prefetchRoutes = (routePaths: string[]) => {
+  console.log('Prefetching routes:', routePaths);
+  // Implementation would go here in a real app
+  // This is a placeholder implementation
+};
+
+// Map routes to their import paths for code-splitting
+export const routeImportMap: Record<string, string> = {
+  '/': './pages/Index',
+  '/scan': './pages/ScanPage',
+  '/upload': './pages/UploadPage',
+  '/documents': './pages/DocumentsPage',
+  '/shopping': './pages/ShoppingPage',
+  '/calendar': './pages/CalendarPage',
+  '/weather': './pages/WeatherPage',
+  '/recipes': './pages/RecipePage',
+  '/saved-recipes': './pages/SavedRecipesPage',
+  // Add more routes as needed
+};

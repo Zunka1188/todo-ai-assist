@@ -4,8 +4,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookmarkIcon } from 'lucide-react';
 import AppPage from '@/components/ui/app-page';
 import SavedRecipesList from '@/components/features/recipe/SavedRecipesList';
+import { useRecipes } from '@/hooks/useRecipes';
 
 const SavedRecipesPage: React.FC = () => {
+  const { favorites } = useRecipes();
+  
   return (
     <AppPage
       title="Saved Recipes"
@@ -28,14 +31,7 @@ const SavedRecipesPage: React.FC = () => {
         </TabsContent>
         
         <TabsContent value="favorites" className="space-y-6">
-          {/* Favorites will be implemented here */}
-          <div className="text-center p-8">
-            <BookmarkIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-medium">Favorite Recipes</h3>
-            <p className="text-muted-foreground mt-2">
-              Your favorite recipes will appear here for quick access.
-            </p>
-          </div>
+          <SavedRecipesList showFavoritesOnly showTitle={false} />
         </TabsContent>
       </Tabs>
     </AppPage>

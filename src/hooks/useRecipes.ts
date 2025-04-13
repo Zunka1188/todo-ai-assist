@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Recipe, DietaryRestriction } from '@/types/recipe';
 import { RecipeService } from '@/services/RecipeService';
+import { recipe } from '@/services/recipe.service'; // Import the recipe service with compatibility functions
 import { UserRecipeService } from '@/services/userRecipeService';
 import { useToast } from '@/hooks/use-toast';
 import { useCachedQuery, useCachingMutation } from '@/hooks/use-cached-query';
@@ -60,7 +61,11 @@ export const useRecipes = () => {
     
     if (filters.dietary && filters.dietary.length > 0) {
       recipes = recipes.filter(recipe => 
-        RecipeService.checkDietaryCompatibility(recipe, filters.dietary!)
+        filters.dietary!.every(requirement => {
+          // Using recipe service utility function for compatibility
+          const key = mapDietaryRestrictionToKey(requirement);
+          return key ? recipe.dietaryInfo[key] : true;
+        })
       );
     }
     
@@ -75,6 +80,19 @@ export const useRecipes = () => {
     return recipes;
   }, [filters]);
   
+  // Helper function to map dietary restriction to key
+  const mapDietaryRestrictionToKey = (restriction: DietaryRestriction): keyof Recipe['dietaryInfo'] | null => {
+    switch (restriction) {
+      case 'vegan': return 'isVegan';
+      case 'vegetarian': return 'isVegetarian';
+      case 'gluten-free': return 'isGlutenFree';
+      case 'dairy-free': return 'isDairyFree';
+      case 'low-carb': return 'isLowCarb';
+      case 'nut-free': return 'isNutFree';
+      default: return null;
+    }
+  };
+  
   // Use React Query to cache recipe data
   const { data: recipes, isLoading: isLoadingRecipes, error: recipesError } = useCachedQuery(
     ['recipes', filters],
@@ -83,7 +101,7 @@ export const useRecipes = () => {
   );
   
   // Save recipe mutation
-  const { mutate: saveRecipe, isLoading: isSaving } = useCachingMutation<Recipe[], Recipe>(
+  const { mutate: saveRecipe, isPending: isSaving } = useCachingMutation<Recipe[], Recipe>(
     async (recipe) => {
       const updatedRecipes = UserRecipeService.saveRecipe(recipe);
       setSavedRecipes(updatedRecipes);
@@ -108,7 +126,7 @@ export const useRecipes = () => {
   );
   
   // Remove saved recipe mutation
-  const { mutate: removeSavedRecipe, isLoading: isRemoving } = useCachingMutation<Recipe[], string>(
+  const { mutate: removeSavedRecipe, isPending: isRemoving } = useCachingMutation<Recipe[], string>(
     async (recipeId) => {
       const updatedRecipes = UserRecipeService.removeSavedRecipe(recipeId);
       setSavedRecipes(updatedRecipes);
@@ -165,7 +183,7 @@ export const useRecipes = () => {
   );
   
   // Save custom recipe mutation
-  const { mutate: saveCustomRecipe, isLoading: isSavingCustom } = useCachingMutation<Recipe[], Recipe>(
+  const { mutate: saveCustomRecipe, isPending: isSavingCustom } = useCachingMutation<Recipe[], Recipe>(
     async (recipe) => {
       const updatedRecipes = UserRecipeService.saveCustomRecipe(recipe);
       setCustomRecipes(updatedRecipes);
