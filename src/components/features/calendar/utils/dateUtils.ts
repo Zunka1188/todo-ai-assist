@@ -1,4 +1,3 @@
-
 /**
  * Calendar date utility functions
  * This file contains helper functions for date manipulation and formatting
@@ -157,3 +156,16 @@ export function getFormattedTime(
 ): string {
   return format(date, formatStr);
 }
+
+/**
+ * Array of week day names, starting from Sunday
+ */
+export const weekDays = [
+  'Sunday', 
+  'Monday', 
+  'Tuesday', 
+  'Wednesday', 
+  'Thursday', 
+  'Friday', 
+  'Saturday'
+];
