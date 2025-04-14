@@ -1,4 +1,3 @@
-
 // This file is fixing the syntax error in the performance tracking module
 
 // Placeholder for existing code as we don't have access to the original file
@@ -61,7 +60,6 @@ export const endTracking = (startMark: string, componentName: string, operation:
 
 // Fix for line 155 which had a syntax error - removing the unterminated regex
 // The issue was on line 63 with an unterminated regular expression
-const ExampleComponent = () => <div>Something</div>;
 
 export default {
   trackPerformance,
