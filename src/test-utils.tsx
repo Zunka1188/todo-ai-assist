@@ -1,6 +1,5 @@
-
 import React, { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+import { render as reactTestingLibraryRender, RenderOptions } from '@testing-library/react';
 import { ThemeProvider } from '@/hooks/use-theme';
 import { ToastProvider } from '@/hooks/use-toast';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -41,14 +40,14 @@ const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const customRender = (
+const render = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>,
-) => render(ui, { wrapper: AllTheProviders, ...options });
+) => reactTestingLibraryRender(ui, { wrapper: AllTheProviders, ...options });
 
 // Re-export everything
 export * from '@testing-library/react';
-export { customRender as render };
+export { render };
 
 // Mock utilities
 export const mockUseToast = () => {

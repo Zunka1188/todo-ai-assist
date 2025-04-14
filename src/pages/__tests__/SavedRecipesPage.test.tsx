@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import SavedRecipesPage from '../SavedRecipesPage';
-import { customRender } from '@/test-utils';
+import { render as customRender } from '@/test-utils';
 
 // Mock the useNavigate hook
 const mockNavigate = vi.fn();

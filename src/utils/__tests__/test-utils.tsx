@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+import { render as reactTestingLibraryRender, RenderOptions } from '@testing-library/react';
 import { vi } from 'vitest';
 import { ThemeProvider } from '@/hooks/use-theme';
 import { ToastProvider } from '@/components/ui/toast';
@@ -8,7 +7,7 @@ import { ToastProvider } from '@/components/ui/toast';
 /**
  * Custom render function that includes providers necessary for component testing
  */
-function customRender(
+function render(
   ui: React.ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
 ) {
@@ -22,12 +21,12 @@ function customRender(
     );
   };
 
-  return render(ui, { wrapper: AllProviders, ...options });
+  return reactTestingLibraryRender(ui, { wrapper: AllProviders, ...options });
 }
 
 // Re-export everything from testing-library
 export * from '@testing-library/react';
-export { customRender as render };
+export { render };
 
 /**
  * Create a mock function that returns a resolved promise with the given value

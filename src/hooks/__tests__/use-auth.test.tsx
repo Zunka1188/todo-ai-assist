@@ -24,7 +24,7 @@ describe('useAuth Hook', () => {
     expect(result.current.user).toBeNull();
     expect(typeof result.current.login).toBe('function');
     expect(typeof result.current.logout).toBe('function');
-    expect(typeof result.current.register).toBe('function');
+    expect(typeof result.current.signup).toBe('function');
   });
 
   it('should update auth state on login', async () => {
@@ -119,7 +119,7 @@ describe('useAuth Hook', () => {
     });
 
     await act(async () => {
-      await result.current.register({
+      await result.current.signup({
         email: 'newuser@example.com',
         password: 'password',
         name: 'New User'

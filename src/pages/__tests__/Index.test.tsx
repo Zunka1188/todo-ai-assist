@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import Index from '../Index';
-import { customRender } from '@/test-utils';
+import { render as customRender } from '@/test-utils';
 
 // Mock necessary hooks and components
 vi.mock('@/hooks/use-mobile', () => ({

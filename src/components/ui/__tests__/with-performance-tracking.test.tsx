@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { withPerformanceTracking } from '../with-performance-tracking';
-import { customRender } from '@/test-utils';
+import { render as customRender } from '@/test-utils';
 
 // Mock the performance monitor
 vi.mock('@/utils/performance-monitor', () => ({

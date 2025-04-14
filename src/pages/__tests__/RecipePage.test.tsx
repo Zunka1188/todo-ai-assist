@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import RecipePage from '../RecipePage';
-import { customRender } from '@/test-utils';
+import { render as customRender } from '@/test-utils';
 
 // Mock the useParams hook to return a recipe ID
 vi.mock('react-router-dom', () => ({

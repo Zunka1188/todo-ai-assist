@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import RecipeCollectionPage from '../RecipeCollectionPage';
-import { customRender } from '@/test-utils';
+import { render as customRender } from '@/test-utils';
 
 // Mock the useNavigate hook
 const mockNavigate = vi.fn();
@@ -92,7 +91,7 @@ describe('RecipeCollectionPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/recipes/italian-1');
   });
   
-  it('handles loading state', async () => {
+  it('handles loading state', () => {
     // Override the mock to simulate loading
     vi.mock('@/hooks/useRecipes', () => ({
       useRecipes: () => ({
@@ -100,14 +99,14 @@ describe('RecipeCollectionPage', () => {
         isLoading: true,
         error: null
       })
-    }), { virtual: true });
+    }));
     
     render(<RecipeCollectionPage />);
     
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
   
-  it('handles error state', async () => {
+  it('handles error state', () => {
     // Override the mock to simulate an error
     vi.mock('@/hooks/useRecipes', () => ({
       useRecipes: () => ({
@@ -115,7 +114,7 @@ describe('RecipeCollectionPage', () => {
         isLoading: false,
         error: 'Failed to fetch recipes'
       })
-    }), { virtual: true });
+    }));
     
     render(<RecipeCollectionPage />);
     
