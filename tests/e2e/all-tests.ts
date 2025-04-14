@@ -21,7 +21,8 @@ test.describe('All Application Tests', () => {
       'shopping-list-comprehensive.test.ts',
       'documents-page.test.ts',
       'ai-chat-integration.test.ts',
-      'accessibility.test.ts'
+      'accessibility.test.ts',
+      'feature-buttons.test.ts'
     ];
     
     logTestStep('Available test files:');
@@ -43,3 +44,4 @@ import './shopping-list-comprehensive.test.ts';
 import './documents-page.test.ts';
 import './ai-chat-integration.test.ts';
 import './accessibility.test.ts';
+import './feature-buttons.test.ts';

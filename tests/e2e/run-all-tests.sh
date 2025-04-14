@@ -46,6 +46,7 @@ run_test "documents-page.test.ts" "Documents Page Tests" && ((PASSED++)) || { ((
 echo -e "\n${BLUE}${BOLD}Running Integration Tests:${NC}"
 run_test "ai-chat-integration.test.ts" "AI Chat Integration Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("AI Chat Integration Tests"); }
 run_test "accessibility.test.ts" "Accessibility Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("Accessibility Tests"); }
+run_test "feature-buttons.test.ts" "Feature Buttons Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("Feature Buttons Tests"); }
 
 # Calculate elapsed time
 END_TIME=$(date +%s)
