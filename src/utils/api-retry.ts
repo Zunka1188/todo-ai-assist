@@ -154,11 +154,11 @@ export const fetchWithRetry = async (
 export function createRetryableFunction<T extends (...args: any[]) => Promise<any>>(
   apiFn: T,
   retryConfig: Partial<RetryConfig> = {}
-): T {
+): (...args: Parameters<T>) => ReturnType<T> {
   return ((...args: Parameters<T>): ReturnType<T> => {
     return withRetry(
       () => apiFn(...args),
       retryConfig
     ) as ReturnType<T>;
-  }) as T;
+  });
 }

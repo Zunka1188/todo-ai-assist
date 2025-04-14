@@ -46,7 +46,7 @@ const AppPage: React.FC<AppPageProps> = ({
   
   return (
     <ErrorBoundary
-      fallback={
+      fallbackUI={
         <ErrorState 
           error={error || "An unexpected error occurred"} 
           onRetry={onRetry} 

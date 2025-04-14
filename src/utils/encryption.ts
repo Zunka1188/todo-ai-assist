@@ -78,8 +78,8 @@ export const encryptFields = <T extends Record<string, any>>(
   const result = { ...data };
   
   for (const field of fieldsToEncrypt) {
-    if (result[field] !== undefined && typeof result[field] === 'string') {
-      result[field] = encrypt(result[field]);
+    if (result[field as keyof typeof result] !== undefined && typeof result[field as keyof typeof result] === 'string') {
+      result[field as keyof typeof result] = encrypt(result[field as keyof typeof result] as string) as any;
     }
   }
   
@@ -99,9 +99,9 @@ export const decryptFields = <T extends Record<string, any>>(
   const result = { ...data };
   
   for (const field of fieldsToDecrypt) {
-    if (result[field] !== undefined && typeof result[field] === 'string') {
+    if (result[field as keyof typeof result] !== undefined && typeof result[field as keyof typeof result] === 'string') {
       try {
-        result[field] = decrypt(result[field]);
+        result[field as keyof typeof result] = decrypt(result[field as keyof typeof result] as string) as any;
       } catch (e) {
         console.error(`Failed to decrypt field: ${field}`, e);
       }

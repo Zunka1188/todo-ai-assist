@@ -1,5 +1,5 @@
 
-import { trackRenderPerformance, getPerformanceData, clearPerformanceData } from '../utils/performanceTracking';
+import { trackPerformance as trackRenderPerformance, default as performanceUtils } from '../utils/performanceTracking';
 import { measureExecutionTime, createPerformanceLogger, createRenderMonitor } from '@/utils/performance-testing';
 
 /**
@@ -17,7 +17,7 @@ export const CalendarPerformanceTest = {
     numberOfMonths: number = 6
   ) => {
     // Clear existing performance data
-    clearPerformanceData('MonthView');
+    performanceUtils.clearPerformanceData('MonthView');
     
     const logger = createPerformanceLogger('MonthNavigation');
     logger.mark('start');
@@ -45,12 +45,14 @@ export const CalendarPerformanceTest = {
     logger.mark('end');
     
     // Collect performance data
-    const monthViewData = getPerformanceData()['MonthView'] || [];
+    const monthViewData = performanceUtils.getPerformanceData()['MonthView'] || [];
     const navigationReport = logger.getReport();
     
     return {
       renderTimes: monthViewData.map(data => data.renderTime),
-      averageRenderTime: monthViewData.reduce((sum, data) => sum + data.renderTime, 0) / monthViewData.length,
+      averageRenderTime: monthViewData.length > 0 
+        ? monthViewData.reduce((sum, data) => sum + data.renderTime, 0) / monthViewData.length 
+        : 0,
       navigationTimings: navigationReport.durations,
       totalNavigationTime: navigationReport.markers.end - navigationReport.markers.start
     };
@@ -66,11 +68,11 @@ export const CalendarPerformanceTest = {
     renderEvents: (count: number) => Promise<void>,
     eventCounts: number[] = [10, 50, 100, 500]
   ) => {
-    clearPerformanceData();
+    performanceUtils.clearPerformanceData();
     const results: Record<string, { renderTime: number, operations: number }> = {};
     
     for (const count of eventCounts) {
-      clearPerformanceData('EventRendering');
+      performanceUtils.clearPerformanceData('EventRendering');
       
       const { executionTime } = await measureExecutionTime(renderEvents, count);
       
@@ -120,7 +122,7 @@ export const CalendarPerformanceTest = {
       logger.mark(`switch_to_${view}_start`);
       await options.changeView(view);
       logger.mark(`switch_to_${view}_end`);
-      viewSwitchingTimes[view] = logger.measure(`switch_to_${view}_start`, `switch_to_${view}_end`);
+      viewSwitchingTimes[view] = logger.measure(`switch_to_${view}_start`, `switch_to_${view}_end`) || 0;
       
       // Wait between switches
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -130,7 +132,7 @@ export const CalendarPerformanceTest = {
     logger.measure('view_switching_test_start', 'view_switching_test_end', 'view_switching_test');
     
     logger.mark('suite_end');
-    const totalTestTime = logger.measure('suite_start', 'suite_end', 'total_test_time');
+    const totalTestTime = logger.measure('suite_start', 'suite_end', 'total_test_time') || 0;
     
     return {
       navigation: navigationResults,

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import MonthView from './MonthView';
 import { Event } from '../types/event';
-import { trackRenderPerformance } from '../utils/performanceTracking';
+import { trackPerformance } from '../utils/performanceTracking';
 import ErrorBoundary from '../ErrorBoundary';
 import { Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -30,10 +30,7 @@ const EnhancedMonthView: React.FC<EnhancedMonthViewProps> = (props) => {
   
   useEffect(() => {
     // Track performance after render
-    trackRenderPerformance('MonthView', startTime, {
-      eventsCount: props.events.length,
-      logToConsole: true
-    });
+    trackPerformance('MonthView', 'render', performance.now() - startTime);
     
     // Mark initial render as complete after a small delay
     const timer = setTimeout(() => {

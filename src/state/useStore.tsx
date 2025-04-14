@@ -5,14 +5,36 @@ import {
   CalendarState, 
   ShoppingState, 
   GlobalState,
-  AppAction,
-  CalendarAction,
-  ShoppingAction,
-  GlobalAction
 } from './types';
 import { SortOption } from '@/components/features/shopping/useShoppingItems';
 import { logger } from '@/utils/logger';
 import { Event } from '@/components/features/calendar/types/event';
+
+// Define action types since they weren't properly imported from types.ts
+type AppAction = {
+  type: string;
+  payload?: any;
+};
+
+type CalendarAction = {
+  type: string;
+  payload?: any;
+};
+
+type ShoppingAction = {
+  type: string;
+  payload?: any;
+};
+
+type GlobalAction = {
+  type: string;
+  action?: AppAction | CalendarAction | ShoppingAction;
+  error?: boolean;
+  meta?: {
+    analytics?: boolean;
+    persist?: boolean;
+  };
+};
 
 // Initial states
 const initialAppState: AppState = {
@@ -22,7 +44,10 @@ const initialAppState: AppState = {
   isLoading: false,
   error: null,
   csrfProtectionEnabled: true,
-  securityHeadersEnabled: true
+  securityHeadersEnabled: true,
+  lastUpdated: Date.now(),
+  version: '1.0.0',
+  features: {}
 };
 
 const initialCalendarState: CalendarState = {
@@ -35,7 +60,9 @@ const initialCalendarState: CalendarState = {
   isAddingEvent: false,
   isInviting: false,
   events: initialEvents,
-  selectedEvent: null
+  selectedEvent: null,
+  view: 'month',
+  selectedDate: null
 };
 
 const initialShoppingState: ShoppingState = {
@@ -43,14 +70,58 @@ const initialShoppingState: ShoppingState = {
   filterMode: 'all',
   sortOption: 'newest',
   selectedItems: [],
-  isLoading: false
+  isLoading: false,
+  items: [],
+  categories: [],
+  lastSynced: Date.now()
+};
+
+// Create placeholder states for the other required parts of the global state
+const initialAuthState = {
+  isAuthenticated: false,
+  token: null,
+  refreshToken: null,
+  expiresAt: null,
+  loginAttempts: 0
+};
+
+const initialUserState = {
+  id: null,
+  name: null,
+  email: null,
+  preferences: { theme: 'system', language: 'en', notifications: true, autoSync: true },
+  profile: { displayName: 'User', joinDate: Date.now() }
+};
+
+const initialNotificationsState = {
+  items: [],
+  unreadCount: 0,
+  settings: { email: true, push: true, inApp: true, desktop: true }
+};
+
+const initialRecipesState = {
+  items: [],
+  favorites: [],
+  recent: [],
+  filters: { cuisine: [], dietary: [] }
+};
+
+const initialDocumentsState = {
+  items: [],
+  selectedId: null,
+  isUploading: false
 };
 
 // Define the initialState that combines all the individual state objects
 const initialState: GlobalState = {
   app: initialAppState,
   calendar: initialCalendarState,
-  shopping: initialShoppingState
+  shopping: initialShoppingState,
+  auth: initialAuthState,
+  user: initialUserState,
+  notifications: initialNotificationsState,
+  recipes: initialRecipesState,
+  documents: initialDocumentsState
 };
 
 // Reducers
