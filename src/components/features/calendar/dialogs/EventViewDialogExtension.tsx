@@ -8,10 +8,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useIsMobile } from '@/hooks/use-mobile';
 import SocialShareMenu from '../../shared/SocialShareMenu';
 
-/**
- * Extension of the EventViewDialog component that adds share and RSVP functionality
- * with improved mobile responsiveness and tooltips
- */
 interface EventViewDialogExtensionProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
@@ -36,21 +32,18 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
   const { isMobile } = useIsMobile();
   const [actionButtonsVisible, setActionButtonsVisible] = useState(false);
   
-  // Handle sharing the event
   const handleShare = () => {
     if (selectedEvent && onShare) {
       onShare(selectedEvent);
     }
   };
   
-  // Handle RSVP to the event
   const handleRSVP = () => {
     if (selectedEvent && onRSVP) {
       onRSVP(selectedEvent);
     }
   };
   
-  // Show action buttons with a slight delay for better UX
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     if (isOpen && selectedEvent) {
@@ -66,7 +59,6 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
     };
   }, [isOpen, selectedEvent]);
   
-  // Render buttons in appropriate position based on screen size
   const renderActionButtons = () => {
     if (!actionButtonsVisible || !selectedEvent) return null;
     
@@ -87,7 +79,7 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
               <TooltipTrigger asChild>
                 {isMobile ? (
                   <Button 
-                    variant="secondary" 
+                    variant="outline"  // Changed from "secondary" to "outline"
                     onClick={handleShare} 
                     size="lg" 
                     className={buttonClasses}
@@ -100,7 +92,7 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
                   <SocialShareMenu
                     title={selectedEvent.title}
                     text={`Check out this event: ${selectedEvent.title}`}
-                    buttonVariant="secondary"
+                    buttonVariant="outline"  // Ensuring consistency
                     buttonSize="sm"
                     className={buttonClasses}
                     showLabel={true}
@@ -117,7 +109,7 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
-                  variant="secondary" 
+                  variant="outline"  // Changed from "secondary" to "outline"
                   onClick={handleRSVP} 
                   size={isMobile ? "lg" : "sm"} 
                   className={buttonClasses}
