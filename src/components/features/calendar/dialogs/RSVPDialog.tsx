@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,6 @@ import { Event, RSVPType } from '../types/event';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { v4 as uuidv4 } from 'uuid';
 
 interface RSVPDialogProps {
   isOpen: boolean;
@@ -33,10 +32,8 @@ const RSVPDialog: React.FC<RSVPDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  // Reset form when dialog opens or event changes
   useEffect(() => {
     if (isOpen && event) {
-      // If user has already RSVP'd, pre-fill the form
       if (existingRSVP) {
         setName(existingRSVP.name);
         setSelectedStatus(existingRSVP.status);
@@ -50,12 +47,10 @@ const RSVPDialog: React.FC<RSVPDialogProps> = ({
     }
   }, [isOpen, event, existingRSVP]);
 
-  // Handle RSVP selection
   const handleStatusSelect = (status: RSVPType['status']) => {
     setSelectedStatus(status);
   };
 
-  // Handle final RSVP submission
   const handleSubmitRSVP = async () => {
     if (!event) return;
     
@@ -76,13 +71,10 @@ const RSVPDialog: React.FC<RSVPDialogProps> = ({
     try {
       setIsSubmitting(true);
       
-      // In a real app, you'd get the actual userId from authentication
       const userId = existingRSVP?.userId || uuidv4();
       
-      // Submit RSVP response
       onRSVP(event.id, userId, name.trim(), selectedStatus, comment.trim() || undefined);
       
-      // Close dialog after successful submission
       setIsOpen(false);
     } catch (error) {
       console.error('[ERROR] Failed to submit RSVP:', error);
