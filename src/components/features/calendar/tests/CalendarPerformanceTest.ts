@@ -104,7 +104,7 @@ export const CalendarPerformanceTest = {
     
     // Test navigation
     logger.mark('navigation_test_start');
-    const navigationResults = await this.testMonthNavigation(options.navigate);
+    const navigationResults = await CalendarPerformanceTest.testMonthNavigation(options.navigate);
     logger.mark('navigation_test_end');
     
     // Use nullish coalescing to handle potential undefined values
@@ -112,7 +112,7 @@ export const CalendarPerformanceTest = {
     
     // Test event rendering
     logger.mark('event_rendering_test_start');
-    const renderingResults = await this.testEventRendering(options.renderEvents);
+    const renderingResults = await CalendarPerformanceTest.testEventRendering(options.renderEvents);
     logger.mark('event_rendering_test_end');
     
     // Use nullish coalescing to handle potential undefined values
