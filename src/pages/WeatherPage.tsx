@@ -34,7 +34,10 @@ const WeatherPage = () => {
             className="flex items-center gap-1"
             onClick={handleRefresh}
           >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw 
+              data-testid="refresh-icon"
+              className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} 
+            />
             <span>Refresh</span>
           </Button>
           <Button 
