@@ -10,6 +10,8 @@ import { useCalendarWidget } from './calendar/useCalendarWidget';
 import EventViewDialog from '../features/calendar/dialogs/EventViewDialog';
 import RSVPDialog from '../features/calendar/dialogs/RSVPDialog';
 import { Event, RSVPType } from '../features/calendar/types/event';
+import InviteDialog from '../features/calendar/dialogs/InviteDialog';
+import { useToast } from '@/hooks/use-toast';
 
 const CalendarWidget = () => {
   const {
@@ -34,6 +36,10 @@ const CalendarWidget = () => {
   // RSVP state
   const [isRSVPDialogOpen, setIsRSVPDialogOpen] = useState(false);
   const [existingRSVP, setExistingRSVP] = useState<RSVPType | undefined>(undefined);
+  
+  // Share state
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   // Handle opening RSVP dialog
   const handleOpenRSVP = (event: Event) => {
@@ -54,6 +60,23 @@ const CalendarWidget = () => {
     
     // For demo purposes, we'll just close the dialog
     setIsRSVPDialogOpen(false);
+  };
+
+  // Handle event sharing
+  const handleShareEvent = () => {
+    if (selectedEvent) {
+      setIsShareDialogOpen(true);
+    }
+  };
+
+  // Handle share link generation
+  const handleShareLink = (link: string) => {
+    console.log(`Share link created: ${link}`);
+    toast({
+      title: "Share link created",
+      description: "The link has been copied to clipboard"
+    });
+    setIsShareDialogOpen(false);
   };
 
   return (
@@ -99,6 +122,7 @@ const CalendarWidget = () => {
               setSelectedEvent(null);
             }}
             onRSVP={() => handleOpenRSVP(selectedEvent)}
+            onShare={handleShareEvent}
           />
           
           <RSVPDialog
@@ -107,6 +131,13 @@ const CalendarWidget = () => {
             event={selectedEvent}
             onRSVP={handleRSVP}
             existingRSVP={existingRSVP}
+          />
+          
+          <InviteDialog
+            isOpen={isShareDialogOpen}
+            setIsOpen={setIsShareDialogOpen}
+            event={selectedEvent}
+            onShareLink={handleShareLink}
           />
         </>
       )}

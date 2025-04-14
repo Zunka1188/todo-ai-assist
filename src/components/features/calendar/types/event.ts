@@ -25,6 +25,13 @@ export interface Event {
     email?: string;
   };
   participants?: ParticipantType[];
+  // Add sharing properties
+  shared?: boolean;
+  shareLink?: string;
+  sharedBy?: string;
+  sharedWith?: string[];
+  shareExpiration?: Date;
+  sharePermissions?: 'view' | 'edit' | 'admin';
 }
 
 export interface AttachmentType {

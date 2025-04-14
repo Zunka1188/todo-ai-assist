@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -60,7 +59,6 @@ const EventViewDialog: React.FC<EventViewDialogProps> = ({
   const handleViewAttachment = (attachment: AttachmentType) => {
     setSelectedAttachment(attachment);
     if (onViewImage && attachment.type === 'image') {
-      // Create a temporary event with the attachment as the main image
       const tempEvent = {
         ...selectedEvent,
         image: attachment.url
@@ -72,7 +70,6 @@ const EventViewDialog: React.FC<EventViewDialogProps> = ({
   const hasAttachments = selectedEvent.attachments && selectedEvent.attachments.length > 0;
   const hasRSVPs = selectedEvent.rsvp && selectedEvent.rsvp.length > 0;
   
-  // Count RSVPs by status
   const rsvpCounts = {
     yes: selectedEvent.rsvp?.filter(r => r.status === 'yes').length || 0,
     no: selectedEvent.rsvp?.filter(r => r.status === 'no').length || 0,
@@ -113,7 +110,6 @@ const EventViewDialog: React.FC<EventViewDialogProps> = ({
               </div>
             )}
 
-            {/* Display RSVPs summary if any */}
             {hasRSVPs && (
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
@@ -167,7 +163,6 @@ const EventViewDialog: React.FC<EventViewDialogProps> = ({
               </div>
             )}
 
-            {/* Display attachments if any */}
             {hasAttachments && (
               <div className="space-y-2">
                 <p className="text-sm font-medium flex items-center">
@@ -205,6 +200,24 @@ const EventViewDialog: React.FC<EventViewDialogProps> = ({
                   <ImagePlus className="mr-2 h-4 w-4" />
                   View Image
                 </Button>
+              </div>
+            )}
+            
+            {selectedEvent.shared && (
+              <div className="mt-2 text-sm">
+                <p className="font-medium">Shared</p>
+                <div className="bg-muted/30 rounded-md p-2 mt-1">
+                  {selectedEvent.sharedBy ? (
+                    <p>Shared by {selectedEvent.sharedBy}</p>
+                  ) : (
+                    <p>You shared this event</p>
+                  )}
+                  {selectedEvent.shareExpiration && (
+                    <p className="text-xs text-muted-foreground">
+                      Expires: {format(selectedEvent.shareExpiration, 'PPP')}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
             

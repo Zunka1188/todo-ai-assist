@@ -6,6 +6,7 @@ import { Event } from '../types/event';
 import EventViewDialog from './EventViewDialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
+import SocialShareMenu from '../../shared/SocialShareMenu';
 
 /**
  * Extension of the EventViewDialog component that adds share and RSVP functionality
@@ -84,16 +85,27 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
           {onShare && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="secondary" 
-                  onClick={handleShare} 
-                  size={isMobile ? "lg" : "sm"} 
-                  className={buttonClasses}
-                  aria-label="Share event"
-                >
-                  <Share2 className={`h-4 w-4 ${isMobile ? "mr-2" : "mr-2"}`} />
-                  Share
-                </Button>
+                {isMobile ? (
+                  <Button 
+                    variant="secondary" 
+                    onClick={handleShare} 
+                    size="lg" 
+                    className={buttonClasses}
+                    aria-label="Share event"
+                  >
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share
+                  </Button>
+                ) : (
+                  <SocialShareMenu
+                    title={selectedEvent.title}
+                    text={`Check out this event: ${selectedEvent.title}`}
+                    buttonVariant="secondary"
+                    buttonSize="sm"
+                    className={buttonClasses}
+                    showLabel={true}
+                  />
+                )}
               </TooltipTrigger>
               <TooltipContent side={isMobile ? "top" : "left"}>
                 Share this event with others
@@ -124,9 +136,6 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
       </TooltipProvider>
     );
   };
-  
-  // No need for custom DOM manipulation or client-side code injection
-  // We can just render buttons directly in this component that will call our handlers
   
   return (
     <div>
