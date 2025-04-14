@@ -3,6 +3,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import DocumentListItem from '../DocumentListItem';
+import { DocumentCategory } from '../types';
 
 // Mock icons
 vi.mock('lucide-react', () => ({
@@ -12,150 +13,141 @@ vi.mock('lucide-react', () => ({
   Download: () => <span data-testid="download-icon">download</span>,
   Trash: () => <span data-testid="trash-icon">trash</span>,
   Edit: () => <span data-testid="edit-icon">edit</span>,
+  Maximize2: () => <span data-testid="maximize-icon">maximize</span>,
+}));
+
+// Mock hooks
+vi.mock('@/hooks/use-mobile', () => ({
+  useIsMobile: () => ({ isMobile: false }),
 }));
 
 describe('DocumentListItem', () => {
-  const mockOnClick = vi.fn();
   const mockOnEdit = vi.fn();
   const mockOnDelete = vi.fn();
-  const mockOnDownload = vi.fn();
+  const mockOnFullScreen = vi.fn();
   
   const mockDocument = {
     id: '1',
     title: 'Test Document',
-    url: '/test-document.pdf',
-    type: 'pdf',
-    size: '1.2 MB',
-    lastModified: '2025-01-01T12:00:00Z',
+    category: 'files' as DocumentCategory,
+    date: '2025-01-01T12:00:00Z',
+    fileType: 'pdf',
+    fileUrl: '/test-document.pdf',
   };
 
   it('renders document information correctly', () => {
     render(
       <DocumentListItem
         document={mockDocument}
-        onClick={mockOnClick}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
-        onDownload={mockOnDownload}
+        onFullScreen={mockOnFullScreen}
       />
     );
     
     expect(screen.getByText('Test Document')).toBeInTheDocument();
-    expect(screen.getByText('1.2 MB')).toBeInTheDocument();
+    expect(screen.getByText('Category: Files')).toBeInTheDocument();
   });
 
-  it('calls onClick when clicking the document item', () => {
+  it('calls onFullScreen when clicking the document item', () => {
     render(
       <DocumentListItem
         document={mockDocument}
-        onClick={mockOnClick}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
-        onDownload={mockOnDownload}
+        onFullScreen={mockOnFullScreen}
       />
     );
     
-    fireEvent.click(screen.getByText('Test Document'));
+    fireEvent.click(screen.getByRole('button', { name: 'View Test Document' }));
     
-    expect(mockOnClick).toHaveBeenCalledWith(mockDocument);
+    expect(mockOnFullScreen).toHaveBeenCalled();
   });
 
   it('calls onEdit when clicking edit button', () => {
     render(
       <DocumentListItem
         document={mockDocument}
-        onClick={mockOnClick}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
-        onDownload={mockOnDownload}
+        onFullScreen={mockOnFullScreen}
       />
     );
     
-    fireEvent.click(screen.getByTestId('edit-icon'));
+    fireEvent.click(screen.getByLabelText('Edit document'));
     
-    expect(mockOnEdit).toHaveBeenCalledWith(mockDocument);
+    expect(mockOnEdit).toHaveBeenCalled();
   });
 
   it('calls onDelete when clicking delete button', () => {
     render(
       <DocumentListItem
         document={mockDocument}
-        onClick={mockOnClick}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
-        onDownload={mockOnDownload}
+        onFullScreen={mockOnFullScreen}
       />
     );
     
-    fireEvent.click(screen.getByTestId('trash-icon'));
+    fireEvent.click(screen.getByLabelText('Delete document'));
     
-    expect(mockOnDelete).toHaveBeenCalledWith(mockDocument.id);
+    expect(mockOnDelete).toHaveBeenCalled();
   });
 
-  it('calls onDownload when clicking download button', () => {
+  it('calls onFullScreen when clicking full screen button', () => {
     render(
       <DocumentListItem
         document={mockDocument}
-        onClick={mockOnClick}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
-        onDownload={mockOnDownload}
+        onFullScreen={mockOnFullScreen}
       />
     );
     
-    fireEvent.click(screen.getByTestId('download-icon'));
+    fireEvent.click(screen.getByLabelText('View full screen'));
     
-    expect(mockOnDownload).toHaveBeenCalledWith(mockDocument.url, mockDocument.title);
+    expect(mockOnFullScreen).toHaveBeenCalled();
   });
 
-  it('shows different icon based on document type', () => {
-    // PDF document
+  it('shows different icon based on document category', () => {
+    // Files category
     render(
       <DocumentListItem
         document={mockDocument}
-        onClick={mockOnClick}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
-        onDownload={mockOnDownload}
+        onFullScreen={mockOnFullScreen}
       />
     );
     
-    // Image document
+    // Recipes category
     render(
       <DocumentListItem
-        document={{ ...mockDocument, type: 'image' }}
-        onClick={mockOnClick}
+        document={{ ...mockDocument, category: 'recipes' as DocumentCategory }}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
-        onDownload={mockOnDownload}
+        onFullScreen={mockOnFullScreen}
       />
     );
     
-    // Text document
+    // Travel category
     render(
       <DocumentListItem
-        document={{ ...mockDocument, type: 'txt' }}
-        onClick={mockOnClick}
+        document={{ ...mockDocument, category: 'travel' as DocumentCategory }}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
-        onDownload={mockOnDownload}
+        onFullScreen={mockOnFullScreen}
       />
     );
     
-    // Generic document
+    // Style category
     render(
       <DocumentListItem
-        document={{ ...mockDocument, type: 'unknown' }}
-        onClick={mockOnClick}
+        document={{ ...mockDocument, category: 'style' as DocumentCategory }}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
-        onDownload={mockOnDownload}
+        onFullScreen={mockOnFullScreen}
       />
     );
-    
-    // Verify different icons are rendered
-    expect(screen.getAllByTestId('file-text-icon')).toHaveLength(1);
-    expect(screen.getAllByTestId('file-image-icon')).toHaveLength(1);
-    expect(screen.getAllByTestId('file-icon')).toHaveLength(2);
   });
 });

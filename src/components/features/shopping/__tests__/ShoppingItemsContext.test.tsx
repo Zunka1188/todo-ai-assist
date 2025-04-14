@@ -6,11 +6,19 @@ import { ShoppingItemsProvider, useShoppingItemsContext } from '../ShoppingItems
 
 // Test component that uses the context
 const TestComponent = () => {
-  const { items, addItem, toggleItem, removeItem, notPurchasedItems, purchasedItems } = useShoppingItemsContext();
+  const { 
+    notPurchasedItems,
+    purchasedItems,
+    addItem, 
+    toggleItem, 
+    removeItem 
+  } = useShoppingItemsContext();
+  
+  const allItems = [...notPurchasedItems, ...purchasedItems];
   
   return (
     <div>
-      <div data-testid="total-items">{items.length}</div>
+      <div data-testid="total-items">{allItems.length}</div>
       <div data-testid="not-purchased-items">{notPurchasedItems.length}</div>
       <div data-testid="purchased-items">{purchasedItems.length}</div>
       
@@ -21,18 +29,18 @@ const TestComponent = () => {
         Add Item
       </button>
       
-      {items.length > 0 && (
+      {allItems.length > 0 && (
         <>
           <button 
             data-testid="toggle-item-btn"
-            onClick={() => toggleItem(items[0].id)}
+            onClick={() => toggleItem(allItems[0].id)}
           >
             Toggle First Item
           </button>
           
           <button 
             data-testid="remove-item-btn"
-            onClick={() => removeItem(items[0].id)}
+            onClick={() => removeItem(allItems[0].id)}
           >
             Remove First Item
           </button>
@@ -40,7 +48,7 @@ const TestComponent = () => {
       )}
       
       <ul>
-        {items.map(item => (
+        {allItems.map(item => (
           <li key={item.id} data-testid={`item-${item.id}`}>
             {item.name} - {item.completed ? 'Completed' : 'Not Completed'}
           </li>
@@ -163,27 +171,30 @@ describe('ShoppingItemsContext', () => {
   });
 
   it('should filter items based on search term and filter mode', async () => {
+    const TestFilterComponent = () => {
+      const { updateSearchTerm, updateFilterMode, notPurchasedItems } = useShoppingItemsContext();
+      
+      React.useEffect(() => {
+        updateSearchTerm('Unique');
+        updateFilterMode('one-off');
+      }, [updateSearchTerm, updateFilterMode]);
+      
+      return (
+        <div>
+          <div data-testid="filtered-count">{notPurchasedItems.length}</div>
+        </div>
+      );
+    };
+
     render(
       <ShoppingItemsProvider>
-        <div data-testid="context-consumer">
-          {(contextValue) => {
-            contextValue.updateSearchTerm('Unique');
-            contextValue.updateFilterMode('one-off');
-            return (
-              <div>
-                <div data-testid="filtered-count">{contextValue.notPurchasedItems.length}</div>
-              </div>
-            );
-          }}
-        </div>
+        <TestFilterComponent />
       </ShoppingItemsProvider>
     );
     
-    // Verify that filtering works (since "Unique" is not in any default items,
-    // we expect the filtered count to be 0)
+    // Verify that filtering works
     await waitFor(() => {
-      const contextConsumer = screen.getByTestId('context-consumer');
-      expect(contextConsumer).toBeInTheDocument();
+      expect(screen.getByTestId('filtered-count')).toBeInTheDocument();
     });
   });
 });

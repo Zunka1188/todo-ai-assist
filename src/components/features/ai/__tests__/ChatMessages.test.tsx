@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import ChatMessages from '../components/ChatMessages';
+import { ChatMessages } from '../components/ChatMessages';
 
 describe('ChatMessages', () => {
   const mockMessages = [
@@ -31,13 +31,13 @@ describe('ChatMessages', () => {
   });
 
   it('renders empty message when no messages are provided', () => {
-    render(<ChatMessages messages={[]} isLoading={false} />);
+    render(<ChatMessages messages={[]} isTyping={false} />);
     
     expect(screen.getByText('No messages yet')).toBeInTheDocument();
   });
 
   it('renders all messages in the correct order', () => {
-    render(<ChatMessages messages={mockMessages} isLoading={false} />);
+    render(<ChatMessages messages={mockMessages} isTyping={false} />);
     
     const displayedMessages = screen.getAllByRole('listitem');
     expect(displayedMessages).toHaveLength(mockMessages.length);
@@ -48,7 +48,7 @@ describe('ChatMessages', () => {
   });
 
   it('applies different styles for user and assistant messages', () => {
-    render(<ChatMessages messages={mockMessages} isLoading={false} />);
+    render(<ChatMessages messages={mockMessages} isTyping={false} />);
     
     const assistantMessages = screen.getAllByText((content) => 
       content.includes('Hello, how can I help you?') || 
@@ -65,7 +65,7 @@ describe('ChatMessages', () => {
   });
 
   it('shows loading indicator when isLoading is true', () => {
-    render(<ChatMessages messages={mockMessages} isLoading={true} />);
+    render(<ChatMessages messages={mockMessages} isTyping={true} />);
     
     // Check for loading indicator
     expect(screen.getByText(/thinking|loading|typing/i)).toBeInTheDocument();

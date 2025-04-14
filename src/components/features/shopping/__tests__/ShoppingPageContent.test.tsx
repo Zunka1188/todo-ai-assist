@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ShoppingPageContent from '../ShoppingPageContent';
-import { ShoppingItemsProvider } from '../ShoppingItemsContext';
+import { ShoppingItemsProvider, useShoppingItemsContext } from '../ShoppingItemsContext';
 
 // Mock the hooks and components
 vi.mock('@/hooks/use-mobile', () => ({
@@ -21,17 +21,23 @@ vi.mock('@/components/ui/search-input', () => ({
   ),
 }));
 
-vi.mock('../ShoppingItemsContext', () => ({
-  useShoppingItemsContext: () => ({
-    addItem: vi.fn((item) => true),
-    isLoading: false,
-    updateSearchTerm: vi.fn(),
-    updateFilterMode: vi.fn(),
-    notPurchasedItems: [{ id: '1', name: 'Test Item', completed: false }],
-    purchasedItems: [],
-  }),
-  ShoppingItemsProvider: ({ children }) => <>{children}</>,
-}));
+// Mock the ShoppingItemsContext
+vi.mock('../ShoppingItemsContext', () => {
+  const actual = vi.importActual('../ShoppingItemsContext');
+  
+  return {
+    ...actual,
+    useShoppingItemsContext: vi.fn().mockReturnValue({
+      addItem: vi.fn((item) => true),
+      isLoading: false,
+      updateSearchTerm: vi.fn(),
+      updateFilterMode: vi.fn(),
+      notPurchasedItems: [{ id: '1', name: 'Test Item', completed: false }],
+      purchasedItems: [],
+    }),
+    ShoppingItemsProvider: ({ children }) => <>{children}</>,
+  };
+});
 
 vi.mock('../AddItemDialog', () => ({
   default: ({ open, onOpenChange, onSave }) => (
@@ -54,8 +60,30 @@ vi.mock('../ShoppingTabsSection', () => ({
 }));
 
 describe('ShoppingPageContent', () => {
+  const mockUpdateSearchTerm = vi.fn();
+  const mockUpdateFilterMode = vi.fn();
+  const mockAddItem = vi.fn().mockReturnValue(true);
+  
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Default mock implementation
+    vi.mocked(useShoppingItemsContext).mockReturnValue({
+      addItem: mockAddItem,
+      isLoading: false,
+      updateSearchTerm: mockUpdateSearchTerm,
+      updateFilterMode: mockUpdateFilterMode,
+      notPurchasedItems: [{ id: '1', name: 'Test Item', completed: false }],
+      purchasedItems: [],
+      toggleItem: vi.fn(),
+      removeItem: vi.fn(),
+      updateItem: vi.fn(),
+      sortOption: 'name',
+      setSortOption: vi.fn(),
+      selectedItems: [],
+      handleItemSelect: vi.fn(),
+      deleteSelectedItems: vi.fn(),
+    });
   });
 
   it('renders correctly with search input and add button', () => {
@@ -82,13 +110,6 @@ describe('ShoppingPageContent', () => {
   });
 
   it('handles search term changes', async () => {
-    const mockUpdateSearchTerm = vi.fn();
-    
-    vi.mocked(useShoppingItemsContext).mockReturnValue({
-      ...vi.mocked(useShoppingItemsContext)(),
-      updateSearchTerm: mockUpdateSearchTerm,
-    });
-    
     render(<ShoppingPageContent />);
     
     // Change search input
@@ -127,13 +148,6 @@ describe('ShoppingPageContent', () => {
   });
 
   it('handles tab changes correctly', async () => {
-    const mockUpdateFilterMode = vi.fn();
-    
-    vi.mocked(useShoppingItemsContext).mockReturnValue({
-      ...vi.mocked(useShoppingItemsContext)(),
-      updateFilterMode: mockUpdateFilterMode,
-    });
-    
     render(<ShoppingPageContent />);
     
     // Click on weekly tab
@@ -145,13 +159,6 @@ describe('ShoppingPageContent', () => {
   });
 
   it('handles adding an item through dialog', async () => {
-    const mockAddItem = vi.fn().mockReturnValue(true);
-    
-    vi.mocked(useShoppingItemsContext).mockReturnValue({
-      ...vi.mocked(useShoppingItemsContext)(),
-      addItem: mockAddItem,
-    });
-    
     render(<ShoppingPageContent />);
     
     // Open dialog
