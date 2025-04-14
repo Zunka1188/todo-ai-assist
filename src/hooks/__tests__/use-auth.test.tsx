@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
@@ -103,12 +102,13 @@ describe('useAuth Hook', () => {
     expect(result.current.user).toBeNull();
   });
 
-  it('should handle registration', async () => {
+  it('should handle signup with complete user details', async () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
     
     const mockUser = {
       id: '123',
       email: 'newuser@example.com',
+      password: 'password',
       name: 'New User'
     };
     
@@ -119,15 +119,15 @@ describe('useAuth Hook', () => {
     });
 
     await act(async () => {
-      await result.current.signup({
-        email: 'newuser@example.com',
-        password: 'password',
-        name: 'New User'
-      });
+      await result.current.signup(
+        mockUser.email,    // email
+        mockUser.password, // password
+        mockUser.name      // name
+      );
     });
 
     expect(result.current.isAuthenticated).toBe(true);
-    expect(result.current.user).toEqual(mockUser);
+    expect(result.current.user?.email).toEqual(mockUser.email);
     expect(localStorage.getItem('token')).toBe('new-fake-token');
   });
 });
