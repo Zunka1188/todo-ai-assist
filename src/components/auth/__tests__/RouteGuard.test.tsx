@@ -15,6 +15,32 @@ vi.mock('@/hooks/use-toast', () => ({
   toast: vi.fn()
 }));
 
+// Mock auth values - proper way to mock module variables
+const mockIsAuthenticated = vi.fn().mockReturnValue(true);
+const mockUserRoles = vi.fn().mockReturnValue(['user']);
+
+// Mock the auth values that would normally be imported
+vi.mock('@/components/auth/RouteGuard', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    // Override the default export to access the wrapper component
+    default: (props: any) => {
+      // Use the mocked auth values
+      const auth = {
+        isAuthenticated: mockIsAuthenticated(),
+        userRoles: mockUserRoles()
+      };
+      
+      // Apply auth values to original component
+      return actual.default({
+        ...props,
+        _testAuthValues: auth
+      });
+    }
+  };
+}, { actual: true });
+
 describe('RouteGuard', () => {
   const mockNavigate = vi.fn();
   const mockToast = vi.fn();
@@ -26,8 +52,8 @@ describe('RouteGuard', () => {
   });
 
   it('renders children when authenticated and no roles required', () => {
-    // Mock authentication as true
-    vi.spyOn(global, 'isAuthenticated', 'get').mockReturnValue(true);
+    // Set mock auth as authenticated
+    mockIsAuthenticated.mockReturnValue(true);
     
     render(
       <RouteGuard requireAuth={true}>
@@ -40,8 +66,8 @@ describe('RouteGuard', () => {
   });
   
   it('redirects to login when authentication required but not authenticated', () => {
-    // Mock authentication as false
-    vi.spyOn(global, 'isAuthenticated', 'get').mockReturnValue(false);
+    // Set mock auth as not authenticated
+    mockIsAuthenticated.mockReturnValue(false);
     
     render(
       <RouteGuard requireAuth={true}>
@@ -54,9 +80,9 @@ describe('RouteGuard', () => {
   });
   
   it('renders children when user has required role', () => {
-    // Mock authentication and user roles
-    vi.spyOn(global, 'isAuthenticated', 'get').mockReturnValue(true);
-    vi.spyOn(global, 'userRoles', 'get').mockReturnValue(['user', 'admin']);
+    // Set mock auth as authenticated with admin role
+    mockIsAuthenticated.mockReturnValue(true);
+    mockUserRoles.mockReturnValue(['user', 'admin']);
     
     render(
       <RouteGuard requireAuth={true} allowedRoles={['admin']}>
@@ -69,9 +95,9 @@ describe('RouteGuard', () => {
   });
   
   it('redirects to home when user doesn\'t have required role', () => {
-    // Mock authentication and user roles
-    vi.spyOn(global, 'isAuthenticated', 'get').mockReturnValue(true);
-    vi.spyOn(global, 'userRoles', 'get').mockReturnValue(['user']);
+    // Set mock auth as authenticated but without admin role
+    mockIsAuthenticated.mockReturnValue(true);
+    mockUserRoles.mockReturnValue(['user']);
     
     render(
       <RouteGuard requireAuth={true} allowedRoles={['admin']}>

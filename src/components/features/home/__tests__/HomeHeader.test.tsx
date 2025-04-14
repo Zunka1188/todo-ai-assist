@@ -14,7 +14,11 @@ describe('HomeHeader', () => {
   beforeEach(() => {
     vi.mocked(useTheme).mockReturnValue({
       theme: 'light',
-      setTheme: vi.fn()
+      setTheme: vi.fn(),
+      toggleTheme: vi.fn(),
+      systemTheme: 'light',
+      isUsingSystemTheme: false,
+      useSystemTheme: vi.fn()
     });
   });
 
@@ -27,7 +31,11 @@ describe('HomeHeader', () => {
   it('renders with the correct styles based on theme', () => {
     vi.mocked(useTheme).mockReturnValue({
       theme: 'dark',
-      setTheme: vi.fn()
+      setTheme: vi.fn(),
+      toggleTheme: vi.fn(),
+      systemTheme: 'dark',
+      isUsingSystemTheme: false,
+      useSystemTheme: vi.fn()
     });
     
     const { container } = render(<HomeHeader />);

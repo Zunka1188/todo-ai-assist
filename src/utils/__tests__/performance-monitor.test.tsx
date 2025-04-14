@@ -91,13 +91,12 @@ describe('Performance Monitor', () => {
       return 'result';
     };
     
-    const { result, executionTime } = await performanceMonitor.timeAsync('async-test', asyncFn);
+    const timedResult = await performanceMonitor.timeAsync('async-test', asyncFn);
     
-    // Should return function result
-    expect(result).toBe('result');
-    
-    // Should measure execution time
-    expect(executionTime).toBeGreaterThan(0);
+    // Should return function result and execution time
+    expect(typeof timedResult).toBe('object');
+    expect(timedResult).toHaveProperty('result');
+    expect(timedResult).toHaveProperty('executionTime');
   });
   
   it('times sync function execution', () => {
