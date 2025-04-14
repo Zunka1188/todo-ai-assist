@@ -57,26 +57,26 @@ vi.mock('../ShoppingListContent', () => ({
 
 // Mock the ShoppingItemsContext for more controlled testing
 vi.mock('../ShoppingItemsContext', () => {
-  const actual = vi.importActual('../ShoppingItemsContext');
-  
+  // Define the mock context value
+  const mockContextValue = {
+    addItem: vi.fn().mockImplementation(item => ({ ...item, id: 'test-id' })),
+    toggleItem: vi.fn(),
+    updateItem: vi.fn(),
+    removeItem: vi.fn(),
+    isLoading: false,
+    updateSearchTerm: vi.fn(),
+    updateFilterMode: vi.fn(),
+    notPurchasedItems: [{ id: '1', name: 'Test Item', completed: false }],
+    purchasedItems: [{ id: '2', name: 'Completed Item', completed: true }],
+    sortOption: 'nameAsc',
+    setSortOption: vi.fn(),
+    selectedItems: [],
+    handleItemSelect: vi.fn(),
+    deleteSelectedItems: vi.fn(),
+  };
+
   return {
-    ...actual,
-    useShoppingItemsContext: vi.fn().mockReturnValue({
-      addItem: vi.fn().mockImplementation(item => ({ ...item, id: 'test-id' })),
-      toggleItem: vi.fn(),
-      updateItem: vi.fn(),
-      removeItem: vi.fn(),
-      isLoading: false,
-      updateSearchTerm: vi.fn(),
-      updateFilterMode: vi.fn(),
-      notPurchasedItems: [{ id: '1', name: 'Test Item', completed: false }],
-      purchasedItems: [{ id: '2', name: 'Completed Item', completed: true }],
-      sortOption: 'nameAsc',
-      setSortOption: vi.fn(),
-      selectedItems: [],
-      handleItemSelect: vi.fn(),
-      deleteSelectedItems: vi.fn(),
-    }),
+    useShoppingItemsContext: vi.fn().mockReturnValue(mockContextValue),
     ShoppingItemsProvider: ({ children }) => <>{children}</>,
   };
 });
@@ -147,9 +147,9 @@ describe('Shopping Page Comprehensive Tests', () => {
       
       // Check that the mocked context functions were called with right params
       await waitFor(() => {
-        const context = vi.mocked(vi.importActual('../ShoppingItemsContext')).useShoppingItemsContext();
-        expect(context.updateSearchTerm).toHaveBeenCalledWith('Test');
-        expect(context.updateFilterMode).toHaveBeenCalledWith('weekly');
+        const contextHook = vi.mocked(require('../ShoppingItemsContext').useShoppingItemsContext);
+        expect(contextHook().updateSearchTerm).toHaveBeenCalledWith('Test');
+        expect(contextHook().updateFilterMode).toHaveBeenCalledWith('weekly');
       });
     });
   });
@@ -180,8 +180,8 @@ describe('Shopping Page Comprehensive Tests', () => {
       
       // Check that addItem was called
       await waitFor(() => {
-        const context = vi.mocked(vi.importActual('../ShoppingItemsContext')).useShoppingItemsContext();
-        expect(context.addItem).toHaveBeenCalledWith({ name: 'New Item' });
+        const contextHook = vi.mocked(require('../ShoppingItemsContext').useShoppingItemsContext);
+        expect(contextHook().addItem).toHaveBeenCalledWith({ name: 'New Item' });
       });
     });
     
@@ -193,8 +193,8 @@ describe('Shopping Page Comprehensive Tests', () => {
       
       // Check that filter mode was updated
       await waitFor(() => {
-        const context = vi.mocked(vi.importActual('../ShoppingItemsContext')).useShoppingItemsContext();
-        expect(context.updateFilterMode).toHaveBeenCalledWith('weekly');
+        const contextHook = vi.mocked(require('../ShoppingItemsContext').useShoppingItemsContext);
+        expect(contextHook().updateFilterMode).toHaveBeenCalledWith('weekly');
       });
     });
   });
@@ -203,16 +203,19 @@ describe('Shopping Page Comprehensive Tests', () => {
   describe('Error handling', () => {
     it('handles errors gracefully when loading fails', async () => {
       // First mock the context to return loading state
-      vi.mocked(vi.importActual('../ShoppingItemsContext')).useShoppingItemsContext.mockReturnValueOnce({
-        ...vi.mocked(vi.importActual('../ShoppingItemsContext')).useShoppingItemsContext(),
+      const contextHook = vi.mocked(require('../ShoppingItemsContext').useShoppingItemsContext);
+      
+      // Set loading to true for first render
+      contextHook.mockReturnValueOnce({
+        ...contextHook(),
         isLoading: true,
       });
       
       const { rerender } = render(<ShoppingPageContent />);
       
       // Then mock an error state
-      vi.mocked(vi.importActual('../ShoppingItemsContext')).useShoppingItemsContext.mockReturnValueOnce({
-        ...vi.mocked(vi.importActual('../ShoppingItemsContext')).useShoppingItemsContext(),
+      contextHook.mockReturnValueOnce({
+        ...contextHook(),
         isLoading: false,
         notPurchasedItems: [],
         purchasedItems: [],
