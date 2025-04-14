@@ -66,11 +66,21 @@ export const UnifiedCalendarProvider: React.FC<CalendarProviderProps> = ({
   children, 
   initialView = 'day' 
 }) => {
-  const { 
-    viewMode, currentDate, searchTerm, createDialogOpen, 
-    showFileUploader, inviteDialogOpen, isAddingEvent, 
-    isInviting, events, selectedEvent, actions 
-  } = useCalendarState();
+  const calendarState = useCalendarState();
+  const { actions } = calendarState;
+  
+  // Extract the properties from calendarState
+  // When using the returned object from useCalendarState, we need to access these from the returned object itself
+  const viewMode = calendarState.viewMode || initialView as ViewMode;
+  const currentDate = calendarState.currentDate || new Date();
+  const searchTerm = calendarState.searchTerm || '';
+  const createDialogOpen = calendarState.createDialogOpen || false;
+  const showFileUploader = calendarState.showFileUploader || false;
+  const inviteDialogOpen = calendarState.inviteDialogOpen || false;
+  const isAddingEvent = calendarState.isAddingEvent || false;
+  const isInviting = calendarState.isInviting || false;
+  const events = calendarState.events || [];
+  const selectedEvent = calendarState.selectedEvent || null;
   
   const { toast } = useToast();
   const { isMobile } = useIsMobile();

@@ -1,8 +1,101 @@
-// Extend the existing types.ts file to add needed types for rate limiting
 
-// This is a partial implementation as we don't have access to the full file
-// We're adding types that might be needed for the rate limiter
+// Extended type definitions for the application state management
 
+// Basic types for shopping items
+export interface ShoppingItem {
+  id: string;
+  name: string;
+  quantity: number;
+  category?: string;
+  purchased?: boolean;
+  createdAt: number;
+  image?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  color?: string;
+}
+
+// User-related types
+export interface UserPreferences {
+  theme: string;
+  language: string;
+  notifications: boolean;
+  autoSync: boolean;
+}
+
+export interface UserProfile {
+  displayName: string;
+  photoURL?: string;
+  joinDate: number;
+  bio?: string;
+}
+
+// Recipe-related types
+export interface Recipe {
+  id: string;
+  name: string;
+  description?: string;
+  ingredients: string[];
+  steps: string[];
+  time?: number;
+  image?: string;
+}
+
+export interface RecipeFilters {
+  cuisine: string[];
+  dietary: string[];
+  time?: number;
+  complexity?: string;
+}
+
+// Event type for calendar
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  location?: string;
+  attendees?: string[];
+  color?: string;
+  allDay?: boolean;
+  image?: string;
+}
+
+// Notification types
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  read: boolean;
+  timestamp: number;
+  type: 'info' | 'warning' | 'error' | 'success';
+  link?: string;
+}
+
+export interface NotificationSettings {
+  email: boolean;
+  push: boolean;
+  inApp: boolean;
+  desktop: boolean;
+}
+
+// Document types
+export interface Document {
+  id: string;
+  name: string;
+  type: string;
+  url: string;
+  size?: number;
+  createdAt: number;
+  category?: string;
+  tags?: string[];
+}
+
+// State types for the global state
 export interface GlobalState {
   app: AppState;
   shopping: ShoppingState;
@@ -22,6 +115,9 @@ export interface AppState {
   lastUpdated: number;
   version: string;
   features: Record<string, boolean>;
+  isMobile: boolean;
+  csrfProtectionEnabled: boolean;
+  securityHeadersEnabled: boolean;
 }
 
 export interface ShoppingState {
@@ -31,6 +127,8 @@ export interface ShoppingState {
   categories: Category[];
   selectedItems: string[];
   lastSynced: number;
+  searchTerm: string;
+  isLoading: boolean;
 }
 
 export interface AuthState {
@@ -64,8 +162,17 @@ export interface RecipeState {
 
 export interface CalendarState {
   events: CalendarEvent[];
-  view: 'day' | 'week' | 'month';
+  view: 'day' | 'week' | 'month' | 'agenda';
   selectedDate: string | null;
+  viewMode: 'day' | 'week' | 'month' | 'agenda';
+  currentDate: Date;
+  searchTerm: string;
+  createDialogOpen: boolean;
+  showFileUploader: boolean;
+  inviteDialogOpen: boolean;
+  isAddingEvent: boolean;
+  isInviting: boolean;
+  selectedEvent: CalendarEvent | null;
 }
 
 export interface DocumentState {
@@ -90,6 +197,22 @@ export type GlobalAction = {
     analytics?: boolean;
     persist?: boolean;
   };
+};
+
+// Define specific action types for each slice
+export type AppAction = {
+  type: string;
+  payload?: any;
+};
+
+export type CalendarAction = {
+  type: string;
+  payload?: any;
+};
+
+export type ShoppingAction = {
+  type: string;
+  payload?: any;
 };
 
 export enum ErrorType {

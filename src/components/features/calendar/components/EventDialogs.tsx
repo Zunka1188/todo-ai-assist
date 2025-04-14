@@ -64,6 +64,10 @@ const EventDialogs: React.FC<EventDialogsProps> = ({
   handleShareLink,
   submitRSVP
 }) => {
+  // Wrapper functions to match expected signatures
+  const onDelete = selectedEvent ? () => handleDeleteEvent(selectedEvent.id) : () => {};
+  const onDeleteForViewDialog = () => selectedEvent && handleDeleteEvent(selectedEvent.id);
+
   return (
     <>
       <EventFormDialog
@@ -75,7 +79,7 @@ const EventDialogs: React.FC<EventDialogsProps> = ({
         onSubmit={handleSaveEvent}
         selectedEvent={selectedEvent}
         isEditMode={isEditMode}
-        onDeleteEvent={handleDeleteEvent}
+        onDeleteEvent={onDelete}
       />
       
       <EventViewDialogExtension
@@ -83,7 +87,7 @@ const EventDialogs: React.FC<EventDialogsProps> = ({
         setIsOpen={setIsViewDialogOpen}
         selectedEvent={selectedEvent}
         onEdit={handleViewToEdit}
-        onDelete={handleDeleteEvent}
+        onDelete={onDeleteForViewDialog}
         onViewImage={handleOpenImagePreview}
         onShare={handleShareEvent}
         onRSVP={handleRSVP}

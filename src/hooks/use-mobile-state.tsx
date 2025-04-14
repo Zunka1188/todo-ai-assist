@@ -5,7 +5,10 @@ import { useAppState } from "@/state/useStore";
 const MOBILE_BREAKPOINT = 768;
 
 export function useMobileState() {
-  const { isMobile, actions } = useAppState();
+  const appState = useAppState();
+  // Access isMobile from the returned object directly
+  const isMobile = appState.isMobile ?? false;
+  const { actions } = appState;
   
   React.useEffect(() => {
     // Function to update state based on window dimensions

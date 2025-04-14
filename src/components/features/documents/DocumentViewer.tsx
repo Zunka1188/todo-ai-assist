@@ -72,7 +72,6 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
             onError={handleError}
             previewable={!!onFullscreen}
             onPreview={onFullscreen}
-            loading="lazy"
           />
         ) : isPdf ? (
           <iframe 
