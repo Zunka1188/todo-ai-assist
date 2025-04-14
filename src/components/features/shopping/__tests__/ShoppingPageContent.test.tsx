@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
@@ -33,10 +34,10 @@ describe('ShoppingPageContent', () => {
   const setSortOption = vi.fn();
   const toggleItem = vi.fn();
   const updateItem = vi.fn();
-  const deleteItem = vi.fn();
+  const removeItem = vi.fn(); // Added removeItem mock
   const handleItemSelect = vi.fn();
   const deleteSelectedItems = vi.fn();
-  const setSelectedItems = vi.fn(); // Added the missing property
+  const setSelectedItems = vi.fn();
   
   // Mock context value
   const mockContextValue = {
@@ -50,11 +51,11 @@ describe('ShoppingPageContent', () => {
     setSortOption,
     toggleItem,
     updateItem,
-    deleteItem,
+    removeItem, // Include removeItem in the mock context
     selectedItems: ['1'],
     handleItemSelect,
     deleteSelectedItems,
-    setSelectedItems // Added the missing property
+    setSelectedItems
   };
 
   it('renders correctly with initial data', () => {
@@ -98,3 +99,5 @@ describe('ShoppingPageContent', () => {
     expect(screen.getByText('Your shopping list is empty')).toBeInTheDocument();
   });
 });
+
+export default ShoppingPageContent;
