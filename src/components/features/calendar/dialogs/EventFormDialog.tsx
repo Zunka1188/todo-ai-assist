@@ -1,3 +1,4 @@
+
 import React, { useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
@@ -16,10 +17,11 @@ import { Calendar } from '@/components/ui/calendar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { formSchema, colorOptions, reminderOptions, recurringOptions } from '../types/form';
-import { Event } from '../types/event';
+import { Event, AttachmentType } from '../types/event';
 import { weekDays } from '../utils/dateUtils';
 import FileAttachmentField, { FileAttachment } from '../views/FileAttachmentField';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
 
 interface EventFormDialogProps {
   isOpen: boolean;
@@ -33,7 +35,9 @@ interface EventFormDialogProps {
 const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMode, onDeleteEvent }: EventFormDialogProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showImagePreview, setShowImagePreview] = useState(false);
+  const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -84,6 +88,19 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
       } else {
         setSelectedImage(null);
       }
+      
+      // Convert existing attachments to FileAttachment format if available
+      if (selectedEvent.attachments?.length) {
+        const convertedAttachments: FileAttachment[] = selectedEvent.attachments.map(att => ({
+          id: att.id,
+          name: att.name,
+          fileContent: att.url,
+          fileType: att.type === 'image' ? 'image' : 'document'
+        }));
+        setAttachments(convertedAttachments);
+      } else {
+        setAttachments([]);
+      }
     } else if (!isEditMode) {
       form.reset({
         title: '',
@@ -101,6 +118,7 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
         reminder: '30'
       });
       setSelectedImage(null);
+      setAttachments([]);
     }
   }, [selectedEvent, isEditMode, form, isOpen]);
 
@@ -126,6 +144,10 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
     fileInputRef.current?.click();
   };
 
+  const handleAttachmentsChange = (newAttachments: FileAttachment[]) => {
+    setAttachments(newAttachments);
+  };
+
   const handleFormSubmit = (values: z.infer<typeof formSchema>) => {
     try {
       const startTimeParts = values.startTime ? values.startTime.split(':').map(Number) : [0, 0];
@@ -148,6 +170,15 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
         };
       }
       
+      // Convert attachments to the expected format
+      const eventAttachments: AttachmentType[] = attachments.map(att => ({
+        id: att.id,
+        name: att.name,
+        type: att.fileType === 'image' ? 'image' : 'document',
+        url: att.fileContent,
+        thumbnailUrl: att.fileType === 'image' ? att.fileContent : undefined
+      }));
+      
       const newEvent: Event = {
         id: selectedEvent && isEditMode ? selectedEvent.id : Date.now().toString(),
         title: values.title,
@@ -159,19 +190,32 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
         color: values.color,
         image: values.image,
         recurring,
-        reminder: values.reminder
+        reminder: values.reminder,
+        attachments: eventAttachments.length > 0 ? eventAttachments : undefined
       };
+      
+      toast({
+        title: isEditMode ? "Event updated" : "Event created",
+        description: isEditMode ? 
+          `"${values.title}" has been updated successfully` : 
+          `"${values.title}" has been added to your calendar`
+      });
       
       onSubmit(newEvent);
       setIsOpen(false);
     } catch (error) {
       console.error('Error creating/updating event:', error);
+      toast({
+        title: "Error",
+        description: `Failed to ${isEditMode ? 'update' : 'create'} event`,
+        variant: "destructive"
+      });
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden bg-background text-foreground" preventNavigateOnClose>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden bg-background text-foreground">
         <DialogHeader>
           <DialogTitle>
             {isEditMode ? 'Edit Event' : 'Add New Event'}
@@ -281,63 +325,12 @@ const EventFormDialog = ({ isOpen, setIsOpen, onSubmit, selectedEvent, isEditMod
                 </FormItem>
               )} />
               
-              <FormField control={form.control} name="image" render={({field}) => (
-                <FormItem>
-                  <FormLabel>Attachment</FormLabel>
-                  <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="*/*" />
-                  
-                  <div className="flex flex-col gap-3">
-                    {selectedImage ? (
-                      <div className="flex items-center gap-3 border rounded-md p-3">
-                        <Avatar className="h-14 w-14 rounded-md">
-                          <AvatarImage src={selectedImage} alt="Attachment preview" />
-                          <AvatarFallback className="bg-muted rounded-md">
-                            <Image className="h-6 w-6 text-muted-foreground" />
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col flex-1">
-                          <span className="text-sm font-medium">Attachment</span>
-                          <div className="mt-1 flex gap-2">
-                            <Button 
-                              type="button" 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setShowImagePreview(!showImagePreview)}
-                              className="h-7 text-xs"
-                            >
-                              {showImagePreview ? 'Hide preview' : 'Preview'}
-                            </Button>
-                            <Button 
-                              type="button" 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={handleRemoveImage}
-                              className="h-7 text-xs text-destructive"
-                            >
-                              Remove
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <FormControl>
-                        <Button type="button" variant="outline" className="w-full h-12 border-dashed flex gap-2" onClick={handleImageButtonClick}>
-                          <Upload className="h-4 w-4" />
-                          <span>Upload Attachment</span>
-                        </Button>
-                      </FormControl>
-                    )}
-
-                    {selectedImage && showImagePreview && (
-                      <div className="mt-2">
-                        <img src={selectedImage} alt="Preview" className="w-full max-h-48 object-contain rounded-md border" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  <FormMessage />
-                </FormItem>
-              )} />
+              {/* Replace the old attachment field with the new FileAttachmentField */}
+              <FileAttachmentField 
+                attachments={attachments}
+                onAttachmentsChange={handleAttachmentsChange}
+                maxFiles={5}
+              />
               
               <FormField control={form.control} name="description" render={({field}) => (
                 <FormItem>

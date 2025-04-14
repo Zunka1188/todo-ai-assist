@@ -18,6 +18,7 @@ export interface Event {
   };
   reminder?: string;
   attachments?: AttachmentType[];
+  rsvp?: RSVPType[];
 }
 
 export interface AttachmentType {
@@ -26,4 +27,13 @@ export interface AttachmentType {
   type: 'image' | 'document';
   url: string;
   thumbnailUrl?: string;
+  size?: number;
+  lastModified?: Date;
+}
+
+export interface RSVPType {
+  userId: string;
+  name: string;
+  status: 'yes' | 'no' | 'maybe' | 'pending';
+  timestamp: Date;
 }

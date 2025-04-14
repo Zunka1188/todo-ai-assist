@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useMemo } from 'react';
-import { Event } from '../types/event';
+import { Event, AttachmentType } from '../types/event';
 import { initialEvents } from '../data/initialEvents';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -16,14 +16,14 @@ export const useCalendarEvents = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Memoized view event handler - removed unnecessary try/catch
+  // Memoized view event handler
   const handleViewEvent = useCallback((event: Event) => {
     logger.log("[Calendar] Viewing event", event.id);
     setSelectedEvent(event);
     setIsViewDialogOpen(true);
   }, []);
 
-  // Memoized edit event handler - removed unnecessary try/catch
+  // Memoized edit event handler
   const handleEditEvent = useCallback(() => {
     setIsEditMode(true);
     setIsViewDialogOpen(false);
@@ -31,19 +31,19 @@ export const useCalendarEvents = () => {
   }, []);
 
   // Memoized delete event handler
-  const handleDeleteEvent = useCallback(() => {
-    if (!selectedEvent) return;
-    
+  const handleDeleteEvent = useCallback((eventId: string) => {
     setIsLoading(true);
     
     try {
       // This is an async-like operation that could fail
-      setEvents(prev => prev.filter(event => event.id !== selectedEvent.id));
+      setEvents(prev => prev.filter(event => event.id !== eventId));
       setIsViewDialogOpen(false);
+      
+      const deletedEvent = events.find(e => e.id === eventId);
       
       toast({
         title: "Event deleted",
-        description: `"${selectedEvent.title}" has been removed from your calendar.`,
+        description: `"${deletedEvent?.title || 'Event'}" has been removed from your calendar.`,
         role: "status",
         "aria-live": "polite"
       });
@@ -61,20 +61,39 @@ export const useCalendarEvents = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedEvent, toast]);
+  }, [events, toast]);
 
-  // Memoized create event handler - removed unnecessary try/catch
+  // Memoized create event handler
   const handleCreateEvent = useCallback((date: Date) => {
     setSelectedEvent(null);
     setIsEditMode(false);
     setIsCreateDialogOpen(true);
   }, []);
 
-  // Memoized save event handler
+  // Memoized save event handler with improved attachment handling
   const handleSaveEvent = useCallback((newEvent: Event) => {
     setIsLoading(true);
     
     try {
+      // Process and store attachments if needed
+      if (newEvent.attachments && newEvent.attachments.length > 0) {
+        // In a real app, you might upload these to a storage service
+        // For now we'll just ensure the URLs are properly stored
+        
+        const processedAttachments: AttachmentType[] = newEvent.attachments.map(attachment => {
+          // Ensure each attachment has all required fields
+          return {
+            id: attachment.id || Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            name: attachment.name,
+            type: attachment.type,
+            url: attachment.url,
+            thumbnailUrl: attachment.thumbnailUrl || (attachment.type === 'image' ? attachment.url : undefined)
+          };
+        });
+        
+        newEvent.attachments = processedAttachments;
+      }
+      
       // This operation could potentially fail (API call in real app)
       if (isEditMode && selectedEvent) {
         setEvents(prev => prev.map(event => 
