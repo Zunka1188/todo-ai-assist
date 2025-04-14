@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -139,7 +138,6 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
     }
   };
 
-  // If in fullscreen preview mode, render that instead of the dialog
   if (fullScreenPreview && formData.imageUrl) {
     return (
       <FullScreenPreview 
@@ -150,7 +148,6 @@ const EditItemDialog = ({ isOpen, onClose, item, onSave, onDelete }: EditItemDia
     );
   }
 
-  // Mobile drawer or desktop dialog
   return (
     <>
       {isMobile ? (

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
 import ShoppingItemGrid from './ShoppingItemGrid';
@@ -11,12 +10,16 @@ interface ShoppingListProps {
   searchTerm?: string;
   filterMode?: 'all' | 'one-off' | 'weekly' | 'monthly';
   onImagePreview?: (item: any) => void;
+  readOnly?: boolean;
+  onEditItem?: (id: string, name?: string, item?: any) => void;
 }
 
 const ShoppingList: React.FC<ShoppingListProps> = ({ 
   searchTerm = '',
   filterMode = 'all',
-  onImagePreview = () => {}
+  onImagePreview = () => {},
+  readOnly = false,
+  onEditItem
 }) => {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -35,6 +38,11 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
   };
 
   const handleEdit = (id: string, item: any) => {
+    if (onEditItem) {
+      onEditItem(id, item?.name, item);
+      return;
+    }
+    
     setEditingItem(item);
     setIsEditDialogOpen(true);
   };
@@ -62,7 +70,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
   return (
     <div className="w-full space-y-6">
       {/* Batch actions bar */}
-      {isBatchModeActive && (
+      {isBatchModeActive && !readOnly && (
         <div className="bg-muted p-2 rounded-md flex items-center justify-between sticky top-0 z-10">
           <div className="text-sm font-medium">
             {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''} selected
@@ -100,6 +108,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
             onToggleItemCompletion={handleToggleCompletion}
             onEditItem={handleEdit}
             onImagePreview={handleImagePreview}
+            readOnly={readOnly}
             batchMode={isBatchModeActive}
             selectedItems={selectedItems}
             onItemSelect={handleItemSelect}
@@ -118,6 +127,7 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
             onEditItem={handleEdit}
             onImagePreview={handleImagePreview}
             className="opacity-70"
+            readOnly={readOnly}
             batchMode={isBatchModeActive}
             selectedItems={selectedItems}
             onItemSelect={handleItemSelect}
@@ -126,8 +136,8 @@ const ShoppingList: React.FC<ShoppingListProps> = ({
       )}
 
       <EditItemDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
         item={editingItem}
         onSave={handleSaveEdit}
       />

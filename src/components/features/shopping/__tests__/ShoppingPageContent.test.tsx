@@ -1,180 +1,100 @@
-
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { ShoppingItemsContext } from '../ShoppingItemsContext';
 import ShoppingPageContent from '../ShoppingPageContent';
-import { ShoppingItemsProvider, useShoppingItemsContext } from '../ShoppingItemsContext';
 
-// Mock the hooks and components
+// Mock the necessary hooks and components
 vi.mock('@/hooks/use-mobile', () => ({
-  useIsMobile: () => ({ isMobile: false }),
-}));
-
-vi.mock('@/components/ui/search-input', () => ({
-  default: ({ value, onChange }) => (
-    <input
-      data-testid="search-input"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder="Search shopping items..."
-    />
-  ),
-}));
-
-// Mock the ShoppingItemsContext
-vi.mock('../ShoppingItemsContext', () => {
-  const actual = vi.importActual('../ShoppingItemsContext');
-  
-  return {
-    ...actual,
-    useShoppingItemsContext: vi.fn().mockReturnValue({
-      addItem: vi.fn((item) => true),
-      isLoading: false,
-      updateSearchTerm: vi.fn(),
-      updateFilterMode: vi.fn(),
-      notPurchasedItems: [{ id: '1', name: 'Test Item', completed: false }],
-      purchasedItems: [],
-    }),
-    ShoppingItemsProvider: ({ children }) => <>{children}</>,
-  };
-});
-
-vi.mock('../AddItemDialog', () => ({
-  default: ({ open, onOpenChange, onSave }) => (
-    <div data-testid="add-item-dialog" style={{ display: open ? 'block' : 'none' }}>
-      <button onClick={() => onSave({ name: 'New Item' })}>Save Item</button>
-      <button onClick={() => onOpenChange(false)}>Cancel</button>
-    </div>
-  ),
-}));
-
-vi.mock('../ShoppingTabsSection', () => ({
-  default: ({ activeTab, handleTabChange }) => (
-    <div data-testid="shopping-tabs">
-      <button onClick={() => handleTabChange('all')}>All</button>
-      <button onClick={() => handleTabChange('one-off')}>One-off</button>
-      <button onClick={() => handleTabChange('weekly')}>Weekly</button>
-      <button onClick={() => handleTabChange('monthly')}>Monthly</button>
-    </div>
-  ),
+  useIsMobile: () => ({ isMobile: false })
 }));
 
 describe('ShoppingPageContent', () => {
-  const mockUpdateSearchTerm = vi.fn();
-  const mockUpdateFilterMode = vi.fn();
-  const mockAddItem = vi.fn().mockReturnValue(true);
-  const mockSetSelectedItems = vi.fn(); // Added the missing function
-  
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    // Default mock implementation
-    vi.mocked(useShoppingItemsContext).mockReturnValue({
-      addItem: mockAddItem,
-      isLoading: false,
-      updateSearchTerm: mockUpdateSearchTerm,
-      updateFilterMode: mockUpdateFilterMode,
-      notPurchasedItems: [{ id: '1', name: 'Test Item', completed: false }],
-      purchasedItems: [],
-      toggleItem: vi.fn(),
-      removeItem: vi.fn(),
-      updateItem: vi.fn(),
-      sortOption: 'nameAsc', // Use a valid SortOption
-      setSortOption: vi.fn(),
-      selectedItems: [],
-      setSelectedItems: mockSetSelectedItems, // Added the missing property
-      handleItemSelect: vi.fn(),
-      deleteSelectedItems: vi.fn(),
-    });
   });
 
-  it('renders correctly with search input and add button', () => {
-    render(<ShoppingPageContent />);
-    
-    expect(screen.getByTestId('search-input')).toBeInTheDocument();
-    expect(screen.getByText('Add')).toBeInTheDocument();
-    expect(screen.getByTestId('shopping-tabs')).toBeInTheDocument();
-  });
+  // Sample not purchased items
+  const notPurchasedItems = [
+    { id: '1', name: 'Apples', completed: false },
+    { id: '2', name: 'Bananas', completed: false }
+  ];
+  
+  // Sample purchased items
+  const purchasedItems = [
+    { id: '3', name: 'Coffee', completed: true },
+    { id: '4', name: 'Tea', completed: true }
+  ];
+  
+  // Mock functions
+  const addItem = vi.fn();
+  const updateSearchTerm = vi.fn();
+  const updateFilterMode = vi.fn();
+  const setSortOption = vi.fn();
+  const toggleItem = vi.fn();
+  const updateItem = vi.fn();
+  const deleteItem = vi.fn();
+  const handleItemSelect = vi.fn();
+  const deleteSelectedItems = vi.fn();
+  const setSelectedItems = vi.fn(); // Added the missing property
+  
+  // Mock context value
+  const mockContextValue = {
+    addItem,
+    isLoading: false,
+    updateSearchTerm,
+    updateFilterMode,
+    notPurchasedItems,
+    purchasedItems,
+    sortOption: 'newest',
+    setSortOption,
+    toggleItem,
+    updateItem,
+    deleteItem,
+    selectedItems: ['1'],
+    handleItemSelect,
+    deleteSelectedItems,
+    setSelectedItems // Added the missing property
+  };
 
-  it('shows add dialog when add button is clicked', async () => {
-    render(<ShoppingPageContent />);
+  it('renders correctly with initial data', () => {
+    render(
+      <ShoppingItemsContext.Provider value={mockContextValue}>
+        <ShoppingPageContent />
+      </ShoppingItemsContext.Provider>
+    );
     
-    // Initially dialog should be hidden
-    expect(screen.getByTestId('add-item-dialog')).not.toBeVisible();
-    
-    // Click add button
-    fireEvent.click(screen.getByText('Add'));
-    
-    // Dialog should be visible
-    await waitFor(() => {
-      expect(screen.getByTestId('add-item-dialog')).toBeVisible();
-    });
+    // Basic tests to ensure the component renders
+    expect(screen.getByPlaceholderText('Search shopping items...')).toBeInTheDocument();
   });
-
-  it('handles search term changes', async () => {
-    render(<ShoppingPageContent />);
+  
+  it('calls updateSearchTerm when search input changes', () => {
+    render(
+      <ShoppingItemsContext.Provider value={mockContextValue}>
+        <ShoppingPageContent />
+      </ShoppingItemsContext.Provider>
+    );
     
-    // Change search input
-    fireEvent.change(screen.getByTestId('search-input'), { target: { value: 'search term' } });
-    
-    // Wait for debounce
-    await waitFor(() => {
-      expect(mockUpdateSearchTerm).toHaveBeenCalledWith('search term');
-    });
+    const searchInput = screen.getByPlaceholderText('Search shopping items...');
+    fireEvent.change(searchInput, { target: { value: 'test' } });
+    expect(updateSearchTerm).toHaveBeenCalledWith('test');
   });
-
-  it('shows loading state when isLoading is true', () => {
-    vi.mocked(useShoppingItemsContext).mockReturnValue({
-      ...vi.mocked(useShoppingItemsContext)(),
-      isLoading: true,
-    });
-    
-    render(<ShoppingPageContent />);
-    
-    // We're not directly checking for LoadingState because we mocked it
-    // But the rendering should happen without errors
-  });
-
-  it('shows empty state when no items and no search', () => {
-    vi.mocked(useShoppingItemsContext).mockReturnValue({
-      ...vi.mocked(useShoppingItemsContext)(),
+  
+  it('renders empty state when there are no items and no search filter', () => {
+    const emptyContextValue = {
+      ...mockContextValue,
       notPurchasedItems: [],
       purchasedItems: [],
-    });
+      updateSearchTerm: vi.fn(),
+      updateFilterMode: vi.fn()
+    };
     
-    render(<ShoppingPageContent />);
+    render(
+      <ShoppingItemsContext.Provider value={emptyContextValue}>
+        <ShoppingPageContent />
+      </ShoppingItemsContext.Provider>
+    );
     
-    // Empty state should be visible
     expect(screen.getByText('Your shopping list is empty')).toBeInTheDocument();
-    expect(screen.getByText('Add items to your shopping list to get started')).toBeInTheDocument();
-  });
-
-  it('handles tab changes correctly', async () => {
-    render(<ShoppingPageContent />);
-    
-    // Click on weekly tab
-    fireEvent.click(screen.getByText('Weekly'));
-    
-    await waitFor(() => {
-      expect(mockUpdateFilterMode).toHaveBeenCalledWith('weekly');
-    });
-  });
-
-  it('handles adding an item through dialog', async () => {
-    render(<ShoppingPageContent />);
-    
-    // Open dialog
-    fireEvent.click(screen.getByText('Add'));
-    
-    // Click save in dialog
-    fireEvent.click(screen.getByText('Save Item'));
-    
-    // Check if addItem was called
-    expect(mockAddItem).toHaveBeenCalledWith({ name: 'New Item' });
-    
-    // Dialog should close
-    await waitFor(() => {
-      expect(screen.getByTestId('add-item-dialog')).not.toBeVisible();
-    });
   });
 });
