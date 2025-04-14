@@ -3,8 +3,9 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import Index from '../Index';
+import { customRender } from '@/test-utils';
 
-// Mock the necessary hooks and components
+// Mock necessary hooks and components
 vi.mock('@/hooks/use-mobile', () => ({
   useIsMobile: () => ({ isMobile: false })
 }));
@@ -22,7 +23,12 @@ vi.mock('@/hooks/use-security', () => ({
 }));
 
 vi.mock('react-router-dom', () => ({
-  useNavigate: () => vi.fn()
+  useNavigate: () => vi.fn(),
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+    <a href={to} data-testid="mock-link">
+      {children}
+    </a>
+  )
 }));
 
 vi.mock('@/utils/performance-monitor', () => ({
@@ -114,5 +120,17 @@ describe('Index Page', () => {
     expect(sessionStorageMock.removeItem).toHaveBeenCalledWith('returnToAfterScan');
     expect(sessionStorageMock.removeItem).toHaveBeenCalledWith('scanAction');
     expect(sessionStorageMock.removeItem).toHaveBeenCalledWith('preferredScanMode');
+  });
+
+  it('handles responsive layout', () => {
+    // Test with mobile view
+    vi.mocked(require('@/hooks/use-mobile').useIsMobile).mockReturnValue({ isMobile: true });
+    
+    render(<Index />);
+    
+    // Test with desktop view
+    vi.mocked(require('@/hooks/use-mobile').useIsMobile).mockReturnValue({ isMobile: false });
+    
+    render(<Index />);
   });
 });
