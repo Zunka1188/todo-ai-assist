@@ -1,5 +1,4 @@
-
-import { trackPerformance as trackRenderPerformance, default as performanceUtils } from '../utils/performanceTracking';
+import { trackPerformance, getPerformanceData, clearPerformanceData } from '../utils/performanceTracking';
 import { measureExecutionTime, createPerformanceLogger, createRenderMonitor } from '@/utils/performance-testing';
 
 /**
@@ -17,7 +16,7 @@ export const CalendarPerformanceTest = {
     numberOfMonths: number = 6
   ) => {
     // Clear existing performance data
-    performanceUtils.clearPerformanceData('MonthView');
+    clearPerformanceData('MonthView');
     
     const logger = createPerformanceLogger('MonthNavigation');
     logger.mark('start');
@@ -45,7 +44,7 @@ export const CalendarPerformanceTest = {
     logger.mark('end');
     
     // Collect performance data
-    const monthViewData = performanceUtils.getPerformanceData()['MonthView'] || [];
+    const monthViewData = getPerformanceData()['MonthView'] || [];
     const navigationReport = logger.getReport();
     
     return {
@@ -68,11 +67,11 @@ export const CalendarPerformanceTest = {
     renderEvents: (count: number) => Promise<void>,
     eventCounts: number[] = [10, 50, 100, 500]
   ) => {
-    performanceUtils.clearPerformanceData();
+    clearPerformanceData();
     const results: Record<string, { renderTime: number, operations: number }> = {};
     
     for (const count of eventCounts) {
-      performanceUtils.clearPerformanceData('EventRendering');
+      clearPerformanceData('EventRendering');
       
       const { executionTime } = await measureExecutionTime(renderEvents, count);
       
@@ -106,13 +105,17 @@ export const CalendarPerformanceTest = {
     logger.mark('navigation_test_start');
     const navigationResults = await this.testMonthNavigation(options.navigate);
     logger.mark('navigation_test_end');
-    logger.measure('navigation_test_start', 'navigation_test_end', 'navigation_test');
+    
+    // Safely handle potential undefined logger results
+    const navigationTestDuration = logger.measure('navigation_test_start', 'navigation_test_end', 'navigation_test') || 0;
     
     // Test event rendering
     logger.mark('event_rendering_test_start');
     const renderingResults = await this.testEventRendering(options.renderEvents);
     logger.mark('event_rendering_test_end');
-    logger.measure('event_rendering_test_start', 'event_rendering_test_end', 'event_rendering_test');
+    
+    // Safely handle potential undefined logger results
+    const renderingTestDuration = logger.measure('event_rendering_test_start', 'event_rendering_test_end', 'event_rendering_test') || 0;
     
     // Test view switching
     logger.mark('view_switching_test_start');
@@ -122,6 +125,8 @@ export const CalendarPerformanceTest = {
       logger.mark(`switch_to_${view}_start`);
       await options.changeView(view);
       logger.mark(`switch_to_${view}_end`);
+      
+      // Use optional chaining and nullish coalescing to handle potential undefined
       viewSwitchingTimes[view] = logger.measure(`switch_to_${view}_start`, `switch_to_${view}_end`) || 0;
       
       // Wait between switches
@@ -129,7 +134,9 @@ export const CalendarPerformanceTest = {
     }
     
     logger.mark('view_switching_test_end');
-    logger.measure('view_switching_test_start', 'view_switching_test_end', 'view_switching_test');
+    
+    // Safely handle potential undefined logger results
+    const viewSwitchingTestDuration = logger.measure('view_switching_test_start', 'view_switching_test_end', 'view_switching_test') || 0;
     
     logger.mark('suite_end');
     const totalTestTime = logger.measure('suite_start', 'suite_end', 'total_test_time') || 0;
@@ -139,7 +146,12 @@ export const CalendarPerformanceTest = {
       eventRendering: renderingResults,
       viewSwitching: viewSwitchingTimes,
       renderCounts: monitor.getRenderCounts(),
-      testDuration: totalTestTime,
+      testDurations: {
+        navigationTest: navigationTestDuration,
+        renderingTest: renderingTestDuration,
+        viewSwitchingTest: viewSwitchingTestDuration
+      },
+      totalTestDuration: totalTestTime,
       fullReport: logger.getReport()
     };
   }
