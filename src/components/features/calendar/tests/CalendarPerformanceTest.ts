@@ -1,3 +1,4 @@
+
 import { trackPerformance, getPerformanceData, clearPerformanceData } from '../utils/performanceTracking';
 import { measureExecutionTime, createPerformanceLogger, createRenderMonitor } from '@/utils/performance-testing';
 
@@ -106,16 +107,16 @@ export const CalendarPerformanceTest = {
     const navigationResults = await this.testMonthNavigation(options.navigate);
     logger.mark('navigation_test_end');
     
-    // Safely handle potential undefined logger results
-    const navigationTestDuration = logger.measure('navigation_test_start', 'navigation_test_end', 'navigation_test') || 0;
+    // Ensure we have a value even if measure returns undefined
+    const navigationTestDuration = logger.measure('navigation_test_start', 'navigation_test_end', 'navigation_test') ?? 0;
     
     // Test event rendering
     logger.mark('event_rendering_test_start');
     const renderingResults = await this.testEventRendering(options.renderEvents);
     logger.mark('event_rendering_test_end');
     
-    // Safely handle potential undefined logger results
-    const renderingTestDuration = logger.measure('event_rendering_test_start', 'event_rendering_test_end', 'event_rendering_test') || 0;
+    // Ensure we have a value even if measure returns undefined
+    const renderingTestDuration = logger.measure('event_rendering_test_start', 'event_rendering_test_end', 'event_rendering_test') ?? 0;
     
     // Test view switching
     logger.mark('view_switching_test_start');
@@ -126,8 +127,8 @@ export const CalendarPerformanceTest = {
       await options.changeView(view);
       logger.mark(`switch_to_${view}_end`);
       
-      // Use optional chaining and nullish coalescing to handle potential undefined
-      viewSwitchingTimes[view] = logger.measure(`switch_to_${view}_start`, `switch_to_${view}_end`) || 0;
+      // Use nullish coalescing to handle potential undefined
+      viewSwitchingTimes[view] = logger.measure(`switch_to_${view}_start`, `switch_to_${view}_end`) ?? 0;
       
       // Wait between switches
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -135,11 +136,11 @@ export const CalendarPerformanceTest = {
     
     logger.mark('view_switching_test_end');
     
-    // Safely handle potential undefined logger results
-    const viewSwitchingTestDuration = logger.measure('view_switching_test_start', 'view_switching_test_end', 'view_switching_test') || 0;
+    // Ensure we have a value even if measure returns undefined
+    const viewSwitchingTestDuration = logger.measure('view_switching_test_start', 'view_switching_test_end', 'view_switching_test') ?? 0;
     
     logger.mark('suite_end');
-    const totalTestTime = logger.measure('suite_start', 'suite_end', 'total_test_time') || 0;
+    const totalTestTime = logger.measure('suite_start', 'suite_end', 'total_test_time') ?? 0;
     
     return {
       navigation: navigationResults,

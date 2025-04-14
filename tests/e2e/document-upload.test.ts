@@ -1,11 +1,11 @@
 
+import { test, expect } from '@playwright/test';
+import path from 'path';
+
 /**
  * End-to-end test for document upload functionality
  * This test simulates the entire document upload flow from a user perspective
  */
-import { test, expect } from '@playwright/test';
-import path from 'path';
-
 test.describe('Document Upload Flow', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to documents page
