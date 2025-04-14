@@ -15,31 +15,9 @@ vi.mock('@/hooks/use-toast', () => ({
   toast: vi.fn()
 }));
 
-// Mock auth values - proper way to mock module variables
+// Create mock functions for auth values
 const mockIsAuthenticated = vi.fn().mockReturnValue(true);
 const mockUserRoles = vi.fn().mockReturnValue(['user']);
-
-// Mock the auth values that would normally be imported
-vi.mock('@/components/auth/RouteGuard', async (importOriginal) => {
-  const actual = await importOriginal();
-  return {
-    ...actual,
-    // Override the default export to access the wrapper component
-    default: (props: any) => {
-      // Use the mocked auth values
-      const auth = {
-        isAuthenticated: mockIsAuthenticated(),
-        userRoles: mockUserRoles()
-      };
-      
-      // Apply auth values to original component
-      return actual.default({
-        ...props,
-        _testAuthValues: auth
-      });
-    }
-  };
-}, { actual: true });
 
 describe('RouteGuard', () => {
   const mockNavigate = vi.fn();
@@ -48,15 +26,22 @@ describe('RouteGuard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useNavigate).mockReturnValue(mockNavigate);
-    vi.mocked(require('@/hooks/use-toast').toast).mockReturnValue(mockToast);
+    vi.mocked(require('@/hooks/use-toast').toast).mockImplementation(mockToast);
   });
 
   it('renders children when authenticated and no roles required', () => {
     // Set mock auth as authenticated
-    mockIsAuthenticated.mockReturnValue(true);
+    const isAuthenticated = true;
+    const userRoles = ['user'];
     
     render(
-      <RouteGuard requireAuth={true}>
+      <RouteGuard 
+        requireAuth={true}
+        _testAuthValues={{
+          isAuthenticated,
+          userRoles
+        }}
+      >
         <div data-testid="protected-content">Protected Content</div>
       </RouteGuard>
     );
@@ -67,10 +52,17 @@ describe('RouteGuard', () => {
   
   it('redirects to login when authentication required but not authenticated', () => {
     // Set mock auth as not authenticated
-    mockIsAuthenticated.mockReturnValue(false);
+    const isAuthenticated = false;
+    const userRoles = ['user'];
     
     render(
-      <RouteGuard requireAuth={true}>
+      <RouteGuard 
+        requireAuth={true}
+        _testAuthValues={{
+          isAuthenticated,
+          userRoles
+        }}
+      >
         <div data-testid="protected-content">Protected Content</div>
       </RouteGuard>
     );
@@ -81,11 +73,18 @@ describe('RouteGuard', () => {
   
   it('renders children when user has required role', () => {
     // Set mock auth as authenticated with admin role
-    mockIsAuthenticated.mockReturnValue(true);
-    mockUserRoles.mockReturnValue(['user', 'admin']);
+    const isAuthenticated = true;
+    const userRoles = ['user', 'admin'];
     
     render(
-      <RouteGuard requireAuth={true} allowedRoles={['admin']}>
+      <RouteGuard 
+        requireAuth={true} 
+        allowedRoles={['admin']}
+        _testAuthValues={{
+          isAuthenticated,
+          userRoles
+        }}
+      >
         <div data-testid="admin-content">Admin Content</div>
       </RouteGuard>
     );
@@ -96,11 +95,18 @@ describe('RouteGuard', () => {
   
   it('redirects to home when user doesn\'t have required role', () => {
     // Set mock auth as authenticated but without admin role
-    mockIsAuthenticated.mockReturnValue(true);
-    mockUserRoles.mockReturnValue(['user']);
+    const isAuthenticated = true;
+    const userRoles = ['user'];
     
     render(
-      <RouteGuard requireAuth={true} allowedRoles={['admin']}>
+      <RouteGuard 
+        requireAuth={true} 
+        allowedRoles={['admin']}
+        _testAuthValues={{
+          isAuthenticated,
+          userRoles
+        }}
+      >
         <div data-testid="admin-content">Admin Content</div>
       </RouteGuard>
     );
