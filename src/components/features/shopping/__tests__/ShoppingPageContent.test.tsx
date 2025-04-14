@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { useShoppingItemsContext } from '../ShoppingItemsContext';
+import { ShoppingItemsProvider, useShoppingItemsContext } from '../ShoppingItemsContext';
 import ShoppingPageContent from '../ShoppingPageContent';
 
 // Mock the necessary hooks and components
@@ -39,30 +39,34 @@ describe('ShoppingPageContent', () => {
   const deleteSelectedItems = vi.fn();
   const setSelectedItems = vi.fn();
   
-  // Mock context value
-  const mockContextValue = {
-    addItem,
-    isLoading: false,
-    updateSearchTerm,
-    updateFilterMode,
-    notPurchasedItems,
-    purchasedItems,
-    sortOption: 'newest', // Explicitly set to a valid SortOption
-    setSortOption,
-    toggleItem,
-    updateItem,
-    removeItem, 
-    selectedItems: ['1'],
-    handleItemSelect,
-    deleteSelectedItems,
-    setSelectedItems
+  // Use a custom test component that provides the mock context
+  const TestComponent = () => {
+    const mockContextValue = {
+      addItem,
+      isLoading: false,
+      updateSearchTerm,
+      updateFilterMode,
+      notPurchasedItems,
+      purchasedItems,
+      sortOption: 'newest',
+      setSortOption,
+      toggleItem,
+      updateItem,
+      removeItem, 
+      selectedItems: ['1'],
+      handleItemSelect,
+      deleteSelectedItems,
+      setSelectedItems
+    };
+
+    return <ShoppingPageContent />;
   };
 
   it('renders correctly with initial data', () => {
     render(
-      <ShoppingItemsContext.Provider value={mockContextValue}>
-        <ShoppingPageContent />
-      </ShoppingItemsContext.Provider>
+      <ShoppingItemsProvider>
+        <TestComponent />
+      </ShoppingItemsProvider>
     );
     
     // Basic tests to ensure the component renders
@@ -71,9 +75,9 @@ describe('ShoppingPageContent', () => {
   
   it('calls updateSearchTerm when search input changes', () => {
     render(
-      <ShoppingItemsContext.Provider value={mockContextValue}>
-        <ShoppingPageContent />
-      </ShoppingItemsContext.Provider>
+      <ShoppingItemsProvider>
+        <TestComponent />
+      </ShoppingItemsProvider>
     );
     
     const searchInput = screen.getByPlaceholderText('Search shopping items...');
@@ -82,18 +86,20 @@ describe('ShoppingPageContent', () => {
   });
   
   it('renders empty state when there are no items and no search filter', () => {
-    const emptyContextValue = {
-      ...mockContextValue,
-      notPurchasedItems: [],
-      purchasedItems: [],
-      updateSearchTerm: vi.fn(),
-      updateFilterMode: vi.fn()
+    const EmptyTestComponent = () => {
+      const mockContextValue = {
+        ...useShoppingItemsContext(),
+        notPurchasedItems: [],
+        purchasedItems: [],
+      };
+
+      return <ShoppingPageContent />;
     };
     
     render(
-      <ShoppingItemsContext.Provider value={emptyContextValue}>
-        <ShoppingPageContent />
-      </ShoppingItemsContext.Provider>
+      <ShoppingItemsProvider>
+        <EmptyTestComponent />
+      </ShoppingItemsProvider>
     );
     
     expect(screen.getByText('Your shopping list is empty')).toBeInTheDocument();
@@ -101,3 +107,4 @@ describe('ShoppingPageContent', () => {
 });
 
 export default ShoppingPageContent;
+
