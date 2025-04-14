@@ -1,4 +1,3 @@
-
 import { expect, Page } from '@playwright/test';
 import { 
   test, 
@@ -422,6 +421,134 @@ test.describe('Feature Button and Preview Functionality', () => {
       }
     } catch (error) {
       logTestStep('Settings page not found or not accessible');
+    }
+  });
+
+  test('should test global navigation elements', async ({ page }) => {
+    await setupPageTest(page, '/');
+    logTestStep('Testing global navigation elements');
+    
+    // Test language selector
+    const languageButton = page.getByRole('button', { name: /language|translations/i });
+    if (await languageButton.isVisible()) {
+      await languageButton.click();
+      await waitForStableUI(page);
+      // Close dropdown
+      await page.keyboard.press('Escape');
+    }
+    
+    // Test menu dropdown
+    const menuButton = page.getByRole('button', { name: /menu/i });
+    if (await menuButton.isVisible()) {
+      await menuButton.click();
+      await waitForStableUI(page);
+      
+      // Test menu items
+      const menuItems = page.getByRole('menuitem');
+      if (await menuItems.count() > 0) {
+        await menuItems.first().click();
+        await waitForStableUI(page);
+      }
+    }
+    
+    // Test bottom navigation
+    const bottomNav = page.locator('nav').filter({ has: page.getByRole('link') }).last();
+    if (await bottomNav.isVisible()) {
+      const navLinks = bottomNav.getByRole('link');
+      for (let i = 0; i < Math.min(await navLinks.count(), 2); i++) {
+        await navLinks.nth(i).click();
+        await waitForStableUI(page);
+        await page.goBack();
+      }
+    }
+  });
+
+  test('should test home page widgets and cards', async ({ page }) => {
+    await setupPageTest(page, '/');
+    logTestStep('Testing home page widgets and cards');
+    
+    // Test widget quick add buttons
+    const quickAddButtons = page.getByRole('button', { name: /\+|add/i });
+    if (await quickAddButtons.count() > 0) {
+      for (let i = 0; i < Math.min(await quickAddButtons.count(), 2); i++) {
+        await quickAddButtons.nth(i).click();
+        await waitForStableUI(page);
+        await closeOpenDialogs(page);
+      }
+    }
+    
+    // Test feature cards
+    const featureCards = page.getByRole('link').filter({ has: page.locator('.hover-scale') });
+    if (await featureCards.count() > 0) {
+      for (let i = 0; i < Math.min(await featureCards.count(), 2); i++) {
+        const href = await featureCards.nth(i).getAttribute('href');
+        await featureCards.nth(i).click();
+        await waitForStableUI(page);
+        await page.goBack();
+      }
+    }
+  });
+
+  test('should test detection engine features', async ({ page }) => {
+    await setupPageTest(page, '/scan');
+    logTestStep('Testing detection engine features');
+    
+    // Test barcode scanner interface
+    const scanButton = page.getByRole('button', { name: /scan|barcode/i });
+    if (await scanButton.isVisible()) {
+      await scanButton.click();
+      await waitForStableUI(page);
+      
+      // Test camera controls
+      const flashButton = page.getByRole('button', { name: /flash|light/i });
+      if (await flashButton.isVisible()) {
+        await flashButton.click();
+      }
+      
+      // Test capture button
+      const captureButton = page.getByRole('button', { name: /capture|take photo/i });
+      if (await captureButton.isVisible()) {
+        await captureButton.click();
+        await waitForStableUI(page);
+      }
+      
+      // Close scanner
+      await closeOpenDialogs(page);
+    }
+    
+    // Test document classification
+    const uploadButton = page.getByRole('button', { name: /upload|choose file/i });
+    if (await uploadButton.isVisible()) {
+      await uploadButton.click();
+      await waitForStableUI(page);
+      await closeOpenDialogs(page);
+    }
+  });
+
+  test('should test enhanced weather interactions', async ({ page }) => {
+    await setupPageTest(page, '/weather');
+    logTestStep('Testing weather page interactions');
+    
+    // Test map view toggle if available
+    const mapToggle = page.getByRole('button', { name: /map|view/i });
+    if (await mapToggle.isVisible()) {
+      await mapToggle.click();
+      await waitForStableUI(page);
+    }
+    
+    // Test forecast cards
+    const forecastCards = page.locator('[data-testid="forecast-card"]');
+    if (await forecastCards.count() > 0) {
+      for (let i = 0; i < Math.min(await forecastCards.count(), 2); i++) {
+        await forecastCards.nth(i).hover();
+        await waitForStableUI(page);
+        
+        const expandButton = forecastCards.nth(i).getByRole('button', { name: /details|expand/i });
+        if (await expandButton.isVisible()) {
+          await expandButton.click();
+          await waitForStableUI(page);
+        }
+      }
     }
   });
 });
