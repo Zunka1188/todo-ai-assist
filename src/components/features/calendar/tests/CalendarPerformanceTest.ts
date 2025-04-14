@@ -127,7 +127,7 @@ export const CalendarPerformanceTest = {
       await options.changeView(view);
       logger.mark(`switch_to_${view}_end`);
       
-      // Use nullish coalescing to handle potential undefined
+      // Use nullish coalescing to handle potential undefined values
       viewSwitchingTimes[view] = logger.measure(`switch_to_${view}_start`, `switch_to_${view}_end`) ?? 0;
       
       // Wait between switches

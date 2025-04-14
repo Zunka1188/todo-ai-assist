@@ -1,69 +1,101 @@
 
-import { measureRenderTime, measureExecutionTime } from '../performance-testing';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { 
+  measureRenderTime, 
+  measureExecutionTime, 
+  createPerformanceLogger,
+  createRenderMonitor
+} from '../performance-testing';
 
 describe('Performance Testing Utilities', () => {
+  beforeEach(() => {
+    // Mock performance.now() to ensure consistent results in tests
+    let perfCounter = 0;
+    vi.spyOn(performance, 'now').mockImplementation(() => {
+      perfCounter += 10; // Each call advances by 10ms
+      return perfCounter;
+    });
+  });
+
   describe('measureRenderTime', () => {
-    // Mock performance.now
-    const originalPerformanceNow = performance.now;
-    let nowMock: jest.Mock;
-    
-    beforeEach(() => {
-      nowMock = jest.fn();
-      nowMock.mockReturnValueOnce(100).mockReturnValueOnce(110);
-      performance.now = nowMock;
-    });
-    
-    afterEach(() => {
-      performance.now = originalPerformanceNow;
-    });
-    
     it('correctly measures render time', () => {
-      const mockCallback = jest.fn();
-      const result = measureRenderTime(mockCallback, 1);
+      const mockRenderFn = vi.fn();
       
-      expect(mockCallback).toHaveBeenCalledTimes(2); // Warmup + 1 iteration
+      const result = measureRenderTime(mockRenderFn, 3);
+      
+      // Each render should take 10ms due to our mocked performance.now
+      expect(result.times).toHaveLength(3);
+      expect(mockRenderFn).toHaveBeenCalledTimes(4); // 1 warmup + 3 measured calls
       expect(result.average).toBe(10);
       expect(result.min).toBe(10);
       expect(result.max).toBe(10);
-      expect(result.times).toEqual([10]);
+      expect(result.total).toBe(30);
     });
   });
-  
+
   describe('measureExecutionTime', () => {
-    // Mock performance.now
-    const originalPerformanceNow = performance.now;
-    let nowMock: jest.Mock;
-    
-    beforeEach(() => {
-      nowMock = jest.fn();
-      nowMock.mockReturnValueOnce(200).mockReturnValueOnce(220);
-      performance.now = nowMock;
-    });
-    
-    afterEach(() => {
-      performance.now = originalPerformanceNow;
-    });
-    
     it('correctly measures execution time of synchronous functions', async () => {
-      const mockFn = jest.fn().mockReturnValue('result');
-      const result = await measureExecutionTime(mockFn, 'arg1', 'arg2');
+      const syncFn = vi.fn(() => 'result');
       
-      expect(mockFn).toHaveBeenCalledWith('arg1', 'arg2');
-      expect(result).toEqual({
-        result: 'result',
-        executionTime: 20
-      });
+      const result = await measureExecutionTime(syncFn, 'arg1', 'arg2');
+      
+      expect(syncFn).toHaveBeenCalledWith('arg1', 'arg2');
+      expect(result.result).toBe('result');
+      expect(result.executionTime).toBe(10);
     });
-    
+
     it('correctly measures execution time of asynchronous functions', async () => {
-      const mockAsyncFn = jest.fn().mockResolvedValue('async result');
-      const result = await measureExecutionTime(mockAsyncFn, 'arg1', 'arg2');
-      
-      expect(mockAsyncFn).toHaveBeenCalledWith('arg1', 'arg2');
-      expect(result).toEqual({
-        result: 'async result',
-        executionTime: 20
+      const asyncFn = vi.fn(async () => {
+        return 'async result';
       });
+      
+      const result = await measureExecutionTime(asyncFn);
+      
+      expect(asyncFn).toHaveBeenCalled();
+      expect(result.result).toBe('async result');
+      expect(result.executionTime).toBe(10);
+    });
+  });
+
+  describe('createPerformanceLogger', () => {
+    it('creates a logger that tracks markers and measures durations', () => {
+      const logger = createPerformanceLogger('TestLogger');
+      
+      logger.mark('start');
+      logger.mark('middle');
+      logger.mark('end');
+      
+      const duration = logger.measure('start', 'end', 'total');
+      
+      expect(duration).toBe(20);
+      
+      const report = logger.getReport();
+      expect(report.name).toBe('TestLogger');
+      expect(report.markers).toHaveProperty('start');
+      expect(report.markers).toHaveProperty('middle');
+      expect(report.markers).toHaveProperty('end');
+      expect(report.durations).toHaveProperty('total', 20);
+    });
+  });
+
+  describe('createRenderMonitor', () => {
+    it('tracks component render counts', () => {
+      const monitor = createRenderMonitor();
+      
+      monitor.onRender('ComponentA');
+      monitor.onRender('ComponentB');
+      monitor.onRender('ComponentA');
+      
+      const counts = monitor.getRenderCounts();
+      
+      expect(counts).toEqual({
+        ComponentA: 2,
+        ComponentB: 1
+      });
+      
+      // Test reset functionality
+      monitor.reset();
+      expect(monitor.getRenderCounts()).toEqual({});
     });
   });
 });
