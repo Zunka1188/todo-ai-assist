@@ -1,4 +1,3 @@
-
 import { test, expect } from '@playwright/test';
 
 /**
@@ -118,3 +117,23 @@ test.describe('Shopping List E2E Tests', () => {
     await expect(page.getByText('Apples')).toBeVisible();
     await expect(page.getByText('Milk')).not.toBeVisible();
   });
+  
+  test('should delete an item from the shopping list', async ({ page }) => {
+    // First add an item to delete
+    await page.getByRole('button', { name: 'Add Item' }).click();
+    await page.waitForSelector('div[role="dialog"]');
+    await page.getByLabel('Name').fill('Item to Delete');
+    await page.getByRole('button', { name: 'Save' }).click();
+    
+    // Verify item is added
+    await expect(page.getByText('Item to Delete')).toBeVisible();
+    
+    // Open delete confirmation dialog
+    await page.getByText('Item to Delete').click();
+    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
+    
+    // Verify item is removed
+    await expect(page.getByText('Item to Delete')).not.toBeVisible();
+  });
+});
