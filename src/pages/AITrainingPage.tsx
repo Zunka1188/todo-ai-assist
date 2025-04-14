@@ -7,6 +7,7 @@ import AppHeader from '@/components/layout/AppHeader';
 import AIModelTraining from '@/components/features/ai/AIModelTraining';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ModelUpdateManager from '@/components/features/ai/ModelUpdateManager';
+import ErrorBoundary from '@/components/ui/error-boundary';
 
 const AITrainingPage = () => {
   const navigate = useNavigate();
@@ -34,20 +35,24 @@ const AITrainingPage = () => {
         />
       </div>
       
-      <Tabs defaultValue="training">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="training">Training & Metrics</TabsTrigger>
-          <TabsTrigger value="models">Model Management</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="training">
-          <AIModelTraining />
-        </TabsContent>
-        
-        <TabsContent value="models">
-          <ModelUpdateManager />
-        </TabsContent>
-      </Tabs>
+      <ErrorBoundary>
+        <Tabs defaultValue="training">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="training">Training & Metrics</TabsTrigger>
+            <TabsTrigger value="models">Model Management</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="training">
+            <AIModelTraining />
+          </TabsContent>
+          
+          <TabsContent value="models">
+            <ErrorBoundary>
+              <ModelUpdateManager />
+            </ErrorBoundary>
+          </TabsContent>
+        </Tabs>
+      </ErrorBoundary>
     </div>
   );
 };

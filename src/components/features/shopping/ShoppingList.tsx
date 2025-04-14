@@ -9,6 +9,7 @@ import ShoppingListContent from './ShoppingListContent';
 import ImagePreviewDialog from './ImagePreviewDialog';
 import EditItemDialog from './EditItemDialog';
 import { SortOption } from './useShoppingItems';
+import ShoppingListErrorBoundary from './ShoppingListErrorBoundary';
 
 import './shoppingList.css';
 
@@ -92,55 +93,57 @@ const ShoppingList = ({
   }
 
   return (
-    <div className={cn('w-full min-h-[60vh] shopping-list-container', className)}>
-      <ShoppingListContent
-        notPurchasedItems={notPurchasedItems}
-        purchasedItems={purchasedItems}
-        searchTerm={searchTerm}
-        onToggleItemCompletion={handleToggleItemCompletion}
-        onEditItem={handleOpenEditDialog}
-        onImagePreview={handleImagePreview}
-        readOnly={readOnly}
-      />
-
-      <ImagePreviewDialog 
-        imageUrl={selectedItem?.imageUrl || null}
-        item={selectedItem}
-        onClose={handleCloseImageDialog}
-        onSaveItem={(capturedText) => {
-          if (selectedItem) {
-            return handleSaveItemFromCapture({
-              id: selectedItem.id,
-              capturedText
-            });
-          }
-          return false;
-        }}
-        onEdit={() => {
-          handleCloseImageDialog();
-          if (selectedItem) {
-            handleOpenEditDialog(selectedItem.id, selectedItem);
-          }
-        }}
-        onDelete={onEditItem ? undefined : () => {
-          if (selectedItem) {
-            handleDeleteItem(selectedItem.id);
-            handleCloseImageDialog();
-          }
-        }}
-        readOnly={readOnly}
-      />
-      
-      {itemToEdit && (
-        <EditItemDialog
-          isOpen={isEditDialogOpen}
-          onClose={handleCloseEditDialog}
-          item={itemToEdit}
-          onSave={handleSaveItem}
-          onDelete={handleDeleteItem}
+    <ShoppingListErrorBoundary>
+      <div className={cn('w-full min-h-[60vh] shopping-list-container', className)}>
+        <ShoppingListContent
+          notPurchasedItems={notPurchasedItems}
+          purchasedItems={purchasedItems}
+          searchTerm={searchTerm}
+          onToggleItemCompletion={handleToggleItemCompletion}
+          onEditItem={handleOpenEditDialog}
+          onImagePreview={handleImagePreview}
+          readOnly={readOnly}
         />
-      )}
-    </div>
+
+        <ImagePreviewDialog 
+          imageUrl={selectedItem?.imageUrl || null}
+          item={selectedItem}
+          onClose={handleCloseImageDialog}
+          onSaveItem={(capturedText) => {
+            if (selectedItem) {
+              return handleSaveItemFromCapture({
+                id: selectedItem.id,
+                capturedText
+              });
+            }
+            return false;
+          }}
+          onEdit={() => {
+            handleCloseImageDialog();
+            if (selectedItem) {
+              handleOpenEditDialog(selectedItem.id, selectedItem);
+            }
+          }}
+          onDelete={onEditItem ? undefined : () => {
+            if (selectedItem) {
+              handleDeleteItem(selectedItem.id);
+              handleCloseImageDialog();
+            }
+          }}
+          readOnly={readOnly}
+        />
+        
+        {itemToEdit && (
+          <EditItemDialog
+            isOpen={isEditDialogOpen}
+            onClose={handleCloseEditDialog}
+            item={itemToEdit}
+            onSave={handleSaveItem}
+            onDelete={handleDeleteItem}
+          />
+        )}
+      </div>
+    </ShoppingListErrorBoundary>
   );
 };
 

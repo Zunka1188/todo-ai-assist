@@ -19,6 +19,7 @@ import {
   ArrowUp,
   Loader2
 } from 'lucide-react';
+import AIModelTrainingErrorBoundary from './AIModelTrainingErrorBoundary';
 
 interface AIModelTrainingProps {
   className?: string;
@@ -100,84 +101,86 @@ const AIModelTraining: React.FC<AIModelTrainingProps> = ({ className }) => {
   );
 
   return (
-    <Card className={className}>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Brain className="h-5 w-5 text-primary" /> 
-            <CardTitle>AI Model Training & Performance</CardTitle>
-          </div>
-          {isLoading && (
+    <AIModelTrainingErrorBoundary>
+      <Card className={className}>
+        <CardHeader>
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <span className="text-sm">{progress}%</span>
+              <Brain className="h-5 w-5 text-primary" /> 
+              <CardTitle>AI Model Training & Performance</CardTitle>
             </div>
-          )}
-        </div>
-        <CardDescription>
-          Monitor model performance and help improve detection by providing feedback
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="feedback" value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="feedback">User Feedback</TabsTrigger>
-            <TabsTrigger value="metrics">Model Metrics</TabsTrigger>
-          </TabsList>
-          
-          {isLoading ? (
-            <div className="pt-4">
-              <Progress value={progress} className="h-2 mb-4" />
-              <LoadingSkeleton />
-            </div>
-          ) : (
-            <>
-              <TabsContent value="feedback" className="pt-4">
-                <Suspense fallback={<LoadingSkeleton />}>
-                  <UserFeedbackPanel 
-                    feedbackItems={feedbackItems}
-                    handleFeedbackToggle={handleFeedbackToggle}
-                  />
-                </Suspense>
-              </TabsContent>
-              
-              <TabsContent value="metrics" className="pt-4">
-                <Suspense fallback={<LoadingSkeleton />}>
-                  <ModelPerformanceMetrics 
-                    metrics={metrics}
-                    recentImprovements={recentImprovements}
-                  />
-                </Suspense>
-              </TabsContent>
-            </>
-          )}
-        </Tabs>
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <div className="text-xs text-muted-foreground flex items-center">
-          <AlertTriangle className="h-3 w-3 mr-1" />
-          Data used only to improve detection accuracy
-        </div>
-        <div className="space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefreshData}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                Updating...
-              </>
-            ) : (
-              'Refresh Data'
+            {isLoading && (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <span className="text-sm">{progress}%</span>
+              </div>
             )}
-          </Button>
-          <Button variant="outline" size="sm">Manage AI Settings</Button>
-        </div>
-      </CardFooter>
-    </Card>
+          </div>
+          <CardDescription>
+            Monitor model performance and help improve detection by providing feedback
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="feedback" value={selectedTab} onValueChange={setSelectedTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="feedback">User Feedback</TabsTrigger>
+              <TabsTrigger value="metrics">Model Metrics</TabsTrigger>
+            </TabsList>
+            
+            {isLoading ? (
+              <div className="pt-4">
+                <Progress value={progress} className="h-2 mb-4" />
+                <LoadingSkeleton />
+              </div>
+            ) : (
+              <>
+                <TabsContent value="feedback" className="pt-4">
+                  <Suspense fallback={<LoadingSkeleton />}>
+                    <UserFeedbackPanel 
+                      feedbackItems={feedbackItems}
+                      handleFeedbackToggle={handleFeedbackToggle}
+                    />
+                  </Suspense>
+                </TabsContent>
+                
+                <TabsContent value="metrics" className="pt-4">
+                  <Suspense fallback={<LoadingSkeleton />}>
+                    <ModelPerformanceMetrics 
+                      metrics={metrics}
+                      recentImprovements={recentImprovements}
+                    />
+                  </Suspense>
+                </TabsContent>
+              </>
+            )}
+          </Tabs>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <div className="text-xs text-muted-foreground flex items-center">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            Data used only to improve detection accuracy
+          </div>
+          <div className="space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefreshData}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Refresh Data'
+              )}
+            </Button>
+            <Button variant="outline" size="sm">Manage AI Settings</Button>
+          </div>
+        </CardFooter>
+      </Card>
+    </AIModelTrainingErrorBoundary>
   );
 };
 

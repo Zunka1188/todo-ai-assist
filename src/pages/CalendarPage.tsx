@@ -7,6 +7,7 @@ import CalendarHeader from '@/components/features/calendar/ui/CalendarHeader';
 import CalendarContent from '@/components/features/calendar/ui/CalendarContent';
 import InviteDialog from '@/components/features/calendar/dialogs/InviteDialog';
 import { Toaster } from '@/components/ui/toaster';
+import ErrorBoundary from '@/components/ui/error-boundary';
 
 /**
  * Calendar Page Content Component
@@ -34,20 +35,22 @@ const CalendarPageContent: React.FC = () => {
       fullHeight
       noPadding
     >
-      <div className="flex flex-col h-full">
-        <CalendarHeader />
-        <div className="flex-1 overflow-auto">
-          <CalendarContent />
+      <ErrorBoundary>
+        <div className="flex flex-col h-full">
+          <CalendarHeader />
+          <div className="flex-1 overflow-auto">
+            <CalendarContent />
+          </div>
         </div>
-      </div>
-      
-      <InviteDialog 
-        isOpen={inviteDialogOpen}
-        setIsOpen={setInviteDialogOpen}
-        onShareLink={handleInviteSent}
-      />
-      
-      <Toaster />
+        
+        <InviteDialog 
+          isOpen={inviteDialogOpen}
+          setIsOpen={setInviteDialogOpen}
+          onShareLink={handleInviteSent}
+        />
+        
+        <Toaster />
+      </ErrorBoundary>
     </AppPage>
   );
 };

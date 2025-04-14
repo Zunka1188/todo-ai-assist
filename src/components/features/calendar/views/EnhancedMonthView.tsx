@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import MonthView from './MonthView';
 import { Event } from '../types/event';
 import { trackRenderPerformance } from '../utils/performanceTracking';
+import ErrorBoundary from '../ErrorBoundary';
 
 interface EnhancedMonthViewProps {
   date: Date;
@@ -25,7 +26,11 @@ const EnhancedMonthView: React.FC<EnhancedMonthViewProps> = (props) => {
     });
   });
   
-  return <MonthView {...props} />;
+  return (
+    <ErrorBoundary>
+      <MonthView {...props} />
+    </ErrorBoundary>
+  );
 };
 
 export default EnhancedMonthView;
