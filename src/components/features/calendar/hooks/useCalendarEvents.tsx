@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useMemo } from 'react';
-import { Event, AttachmentType } from '../types/event';
+import { Event, AttachmentType, RSVPType } from '../types/event';
 import { initialEvents } from '../data/initialEvents';
 import { useToast } from '@/hooks/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -14,6 +14,7 @@ export const useCalendarEvents = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isRSVPDialogOpen, setIsRSVPDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Memoized view event handler
@@ -134,6 +135,69 @@ export const useCalendarEvents = () => {
     }
   }, [isEditMode, selectedEvent, toast]);
 
+  // New function to handle RSVP responses
+  const handleRSVP = useCallback((eventId: string, userId: string, name: string, status: RSVPType['status'], comment?: string) => {
+    setIsLoading(true);
+    
+    try {
+      const now = new Date();
+      const response: RSVPType = {
+        userId,
+        name,
+        status,
+        timestamp: now,
+        comment
+      };
+      
+      setEvents(prev => prev.map(event => {
+        if (event.id === eventId) {
+          // Filter out any previous responses from the same user
+          const filteredRSVPs = event.rsvp?.filter(r => r.userId !== userId) || [];
+          
+          return {
+            ...event,
+            rsvp: [...filteredRSVPs, response]
+          };
+        }
+        return event;
+      }));
+      
+      toast({
+        title: "RSVP Recorded",
+        description: `You've responded ${status} to the event.`,
+        role: "status",
+        "aria-live": "polite"
+      });
+      
+      setIsRSVPDialogOpen(false);
+    } catch (err) {
+      logger.error("[Calendar] Failed to record RSVP", err);
+      toast({
+        title: "Error",
+        description: "Failed to record your RSVP",
+        variant: "destructive",
+        role: "alert",
+        "aria-live": "assertive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  // Function to get RSVP counts for an event
+  const getRSVPCounts = useCallback((eventId: string) => {
+    const event = events.find(e => e.id === eventId);
+    if (!event || !event.rsvp) return { yes: 0, no: 0, maybe: 0, pending: 0, total: 0 };
+    
+    return {
+      yes: event.rsvp.filter(r => r.status === 'yes').length,
+      no: event.rsvp.filter(r => r.status === 'no').length,
+      maybe: event.rsvp.filter(r => r.status === 'maybe').length,
+      pending: event.rsvp.filter(r => r.status === 'pending').length,
+      total: event.rsvp.length
+    };
+  }, [events]);
+
   // Memoized filter function - optimized for performance
   const filterEvents = useCallback((searchTerm: string) => {
     if (!searchTerm) return events;
@@ -156,6 +220,8 @@ export const useCalendarEvents = () => {
     setIsEditMode,
     isCreateDialogOpen,
     setIsCreateDialogOpen,
+    isRSVPDialogOpen,
+    setIsRSVPDialogOpen,
     isLoading,
     error,
     handleViewEvent,
@@ -163,6 +229,8 @@ export const useCalendarEvents = () => {
     handleDeleteEvent,
     handleCreateEvent,
     handleSaveEvent,
+    handleRSVP,
+    getRSVPCounts,
     filterEvents
   };
 };

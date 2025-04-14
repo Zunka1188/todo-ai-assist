@@ -1,5 +1,5 @@
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,8 @@ import { useCalendarViewHandlers } from './hooks/useCalendarViewHandlers';
 import FileUploader from '../scanning/FileUploader';
 import CalendarViewContent from './components/CalendarViewContent';
 import EventDialogs from './components/EventDialogs';
+import RSVPDialog from './dialogs/RSVPDialog';
+import { Event, RSVPType } from './types/event';
 
 interface ViewDimensions {
   minCellHeight: number;
@@ -52,6 +54,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     setIsViewDialogOpen,
     isEditMode,
     setIsEditMode,
+    isRSVPDialogOpen,
+    setIsRSVPDialogOpen,
     isLoading,
     error,
     isCreateDialogOpen: localCreateDialogOpen,
@@ -59,6 +63,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     handleViewEvent,
     handleDeleteEvent,
     handleSaveEvent,
+    handleRSVP,
     filterEvents
   } = useCalendarEvents();
   
@@ -67,6 +72,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     shareEvent,
     recordRSVP
   } = useCalendarSharing();
+  
+  // Event to perform RSVP for
+  const [eventToRSVP, setEventToRSVP] = useState<Event | null>(null);
+  const [existingRSVP, setExistingRSVP] = useState<RSVPType | undefined>(undefined);
   
   // Set up effective dialog state
   const effectiveCreateDialogOpen = isCreateDialogOpen !== undefined ? isCreateDialogOpen : localCreateDialogOpen;
@@ -90,7 +99,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     handleFileUploadSuccess,
     handleOpenImagePreview,
     handleShareEvent,
-    handleRSVP,
     handleSetDate
   } = useCalendarViewHandlers({
     handleViewEvent,
@@ -104,26 +112,32 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   // Filter events based on search term
   const filteredEvents = filterEvents(searchTerm);
   
-  // Reset view error when changing view mode
-  useEffect(() => {
-    setViewLoadError(null);
-  }, [viewMode, setViewLoadError]);
-
-  // Handle share link generation
-  const handleShareLink = useCallback((link: string) => {
-    console.log("[DEBUG] Share link generated:", link);
-  }, []);
-
-  // Handle RSVP submission
-  const submitRSVP = useCallback((status: 'yes' | 'no' | 'maybe', name: string) => {
+  // Handle RSVP button click
+  const handleOpenRSVP = useCallback((event: Event) => {
+    setEventToRSVP(event);
+    setIsRSVPDialogOpen(true);
+    
+    // Check if the user has already RSVP'd to this event
+    // In a real app, this would use the user's actual ID
+    const mockUserId = "current-user";
+    const existingResponse = event.rsvp?.find(r => r.userId === mockUserId);
+    setExistingRSVP(existingResponse);
+  }, [setIsRSVPDialogOpen]);
+  
+  // Handle submitting an RSVP
+  const handleSubmitRSVP = useCallback((eventId: string, userId: string, name: string, status: RSVPType['status'], comment?: string) => {
     try {
-      if (!eventToShare) return;
-      recordRSVP(eventToShare.id, name, status);
+      handleRSVP(eventId, userId, name, status, comment);
     } catch (err) {
       console.error("[ERROR] CalendarView - Error submitting RSVP:", err);
       setViewLoadError("Failed to submit RSVP. Please try again.");
     }
-  }, [eventToShare, recordRSVP, setViewLoadError]);
+  }, [handleRSVP, setViewLoadError]);
+  
+  // Reset view error when changing view mode
+  useEffect(() => {
+    setViewLoadError(null);
+  }, [viewMode, setViewLoadError]);
 
   // Display loading state
   if (isLoading) {
@@ -190,9 +204,18 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         handleViewToEdit={handleViewToEdit}
         handleOpenImagePreview={handleOpenImagePreview}
         handleShareEvent={handleShareEvent}
-        handleRSVP={handleRSVP}
-        handleShareLink={handleShareLink}
-        submitRSVP={submitRSVP}
+        handleRSVP={handleOpenRSVP}
+        handleShareLink={() => {}}
+        submitRSVP={() => {}}
+      />
+      
+      {/* RSVP Dialog */}
+      <RSVPDialog
+        isOpen={isRSVPDialogOpen}
+        setIsOpen={setIsRSVPDialogOpen}
+        event={eventToRSVP}
+        onRSVP={handleSubmitRSVP}
+        existingRSVP={existingRSVP}
       />
       
       {/* Calendar view content */}

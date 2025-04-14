@@ -4,8 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
-import { CalendarIcon, Clock, MapPin, ImagePlus, Share2, MessageSquare, Paperclip } from 'lucide-react';
-import { Event, AttachmentType } from '../types/event';
+import { CalendarIcon, Clock, MapPin, ImagePlus, Share2, MessageSquare, Paperclip, UserCheck, UserX, HelpCircle } from 'lucide-react';
+import { Event, AttachmentType, RSVPType } from '../types/event';
 import FilePreview from '../../documents/FilePreview';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -33,6 +33,7 @@ const EventViewDialog: React.FC<EventViewDialogProps> = ({
 }) => {
   const { isMobile } = useIsMobile();
   const [selectedAttachment, setSelectedAttachment] = useState<AttachmentType | null>(null);
+  const [showRSVPs, setShowRSVPs] = useState(false);
   
   if (!selectedEvent) return null;
 
@@ -69,6 +70,16 @@ const EventViewDialog: React.FC<EventViewDialogProps> = ({
   };
 
   const hasAttachments = selectedEvent.attachments && selectedEvent.attachments.length > 0;
+  const hasRSVPs = selectedEvent.rsvp && selectedEvent.rsvp.length > 0;
+  
+  // Count RSVPs by status
+  const rsvpCounts = {
+    yes: selectedEvent.rsvp?.filter(r => r.status === 'yes').length || 0,
+    no: selectedEvent.rsvp?.filter(r => r.status === 'no').length || 0,
+    maybe: selectedEvent.rsvp?.filter(r => r.status === 'maybe').length || 0,
+    pending: selectedEvent.rsvp?.filter(r => r.status === 'pending').length || 0,
+    total: selectedEvent.rsvp?.length || 0
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -99,6 +110,60 @@ const EventViewDialog: React.FC<EventViewDialogProps> = ({
               <div className="space-y-2">
                 <p className="text-sm font-medium">Description</p>
                 <p className="text-sm text-muted-foreground">{selectedEvent.description}</p>
+              </div>
+            )}
+
+            {/* Display RSVPs summary if any */}
+            {hasRSVPs && (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm font-medium flex items-center">
+                    <UserCheck className="h-3.5 w-3.5 mr-1.5" />
+                    Responses
+                  </p>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowRSVPs(!showRSVPs)}
+                    className="text-xs"
+                  >
+                    {showRSVPs ? "Hide" : "Show"}
+                  </Button>
+                </div>
+                
+                <div className="flex space-x-2 text-xs">
+                  <div className="px-2 py-1 bg-green-100 text-green-800 rounded-full flex items-center">
+                    <UserCheck className="h-3 w-3 mr-1" />
+                    <span>{rsvpCounts.yes} Yes</span>
+                  </div>
+                  <div className="px-2 py-1 bg-red-100 text-red-800 rounded-full flex items-center">
+                    <UserX className="h-3 w-3 mr-1" />
+                    <span>{rsvpCounts.no} No</span>
+                  </div>
+                  <div className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full flex items-center">
+                    <HelpCircle className="h-3 w-3 mr-1" />
+                    <span>{rsvpCounts.maybe} Maybe</span>
+                  </div>
+                </div>
+                
+                {showRSVPs && (
+                  <div className="mt-2 border rounded-md p-2 bg-muted/20 space-y-2 max-h-28 overflow-y-auto">
+                    {selectedEvent.rsvp?.map((rsvp, index) => (
+                      <div key={index} className="flex justify-between items-center text-sm">
+                        <div>{rsvp.name}</div>
+                        <div className={cn(
+                          "px-2 py-0.5 rounded-full text-xs",
+                          rsvp.status === 'yes' ? "bg-green-100 text-green-800" :
+                          rsvp.status === 'no' ? "bg-red-100 text-red-800" :
+                          rsvp.status === 'maybe' ? "bg-yellow-100 text-yellow-800" :
+                          "bg-gray-100 text-gray-800"
+                        )}>
+                          {rsvp.status}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

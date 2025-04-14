@@ -5,7 +5,7 @@ import EventViewDialogExtension from '../dialogs/EventViewDialogExtension';
 import FullScreenPreview from '../../documents/FullScreenPreview';
 import InviteDialog from '../dialogs/InviteDialog';
 import RSVPDialog from '../dialogs/RSVPDialog';
-import { Event } from '../types/event';
+import { Event, RSVPType } from '../types/event';
 
 interface EventDialogsProps {
   isFileUploaderOpen: boolean;
@@ -68,6 +68,11 @@ const EventDialogs: React.FC<EventDialogsProps> = ({
   const onDelete = selectedEvent ? () => handleDeleteEvent(selectedEvent.id) : () => {};
   const onDeleteForViewDialog = () => selectedEvent && handleDeleteEvent(selectedEvent.id);
 
+  // Handle RSVP submission with the correct signature
+  const handleRSVPSubmit = (eventId: string, userId: string, name: string, status: RSVPType['status'], comment?: string) => {
+    submitRSVP(status as 'yes' | 'no' | 'maybe', name);
+  };
+
   return (
     <>
       <EventFormDialog
@@ -113,7 +118,7 @@ const EventDialogs: React.FC<EventDialogsProps> = ({
         isOpen={rsvpDialogOpen}
         setIsOpen={setRsvpDialogOpen}
         event={eventToShare}
-        onRSVP={submitRSVP}
+        onRSVP={handleRSVPSubmit}
       />
     </>
   );

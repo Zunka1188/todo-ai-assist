@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CalendarIcon, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,8 @@ import CalendarDatePicker from './calendar/CalendarDatePicker';
 import CalendarWidgetContent from './calendar/CalendarWidgetContent';
 import { useCalendarWidget } from './calendar/useCalendarWidget';
 import EventViewDialog from '../features/calendar/dialogs/EventViewDialog';
+import RSVPDialog from '../features/calendar/dialogs/RSVPDialog';
+import { Event, RSVPType } from '../features/calendar/types/event';
 
 const CalendarWidget = () => {
   const {
@@ -28,6 +30,31 @@ const CalendarWidget = () => {
     handleViewToEdit,
     handleCloseEventDialog
   } = useCalendarWidget();
+
+  // RSVP state
+  const [isRSVPDialogOpen, setIsRSVPDialogOpen] = useState(false);
+  const [existingRSVP, setExistingRSVP] = useState<RSVPType | undefined>(undefined);
+
+  // Handle opening RSVP dialog
+  const handleOpenRSVP = (event: Event) => {
+    // Check if user has already RSVP'd (in real app, use actual user ID)
+    const mockUserId = "current-user";
+    const existingResponse = event.rsvp?.find(r => r.userId === mockUserId);
+    setExistingRSVP(existingResponse);
+    
+    setIsRSVPDialogOpen(true);
+  };
+  
+  // Handle RSVP submission
+  const handleRSVP = (eventId: string, userId: string, name: string, status: RSVPType['status'], comment?: string) => {
+    if (!selectedEvent) return;
+    
+    // In a real app, this would call an API to store the RSVP
+    console.log(`RSVP submitted for ${eventId}: ${name} - ${status}`);
+    
+    // For demo purposes, we'll just close the dialog
+    setIsRSVPDialogOpen(false);
+  };
 
   return (
     <WidgetWrapper
@@ -61,16 +88,27 @@ const CalendarWidget = () => {
       </div>
 
       {selectedEvent && (
-        <EventViewDialog
-          isOpen={isViewDialogOpen}
-          setIsOpen={setIsViewDialogOpen}
-          selectedEvent={selectedEvent}
-          onEdit={handleViewToEdit}
-          onDelete={() => {
-            setIsViewDialogOpen(false);
-            setSelectedEvent(null);
-          }}
-        />
+        <>
+          <EventViewDialog
+            isOpen={isViewDialogOpen}
+            setIsOpen={setIsViewDialogOpen}
+            selectedEvent={selectedEvent}
+            onEdit={handleViewToEdit}
+            onDelete={() => {
+              setIsViewDialogOpen(false);
+              setSelectedEvent(null);
+            }}
+            onRSVP={() => handleOpenRSVP(selectedEvent)}
+          />
+          
+          <RSVPDialog
+            isOpen={isRSVPDialogOpen}
+            setIsOpen={setIsRSVPDialogOpen}
+            event={selectedEvent}
+            onRSVP={handleRSVP}
+            existingRSVP={existingRSVP}
+          />
+        </>
       )}
     </WidgetWrapper>
   );

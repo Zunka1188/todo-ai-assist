@@ -19,6 +19,12 @@ export interface Event {
   reminder?: string;
   attachments?: AttachmentType[];
   rsvp?: RSVPType[];
+  organizer?: {
+    userId: string;
+    name: string;
+    email?: string;
+  };
+  participants?: ParticipantType[];
 }
 
 export interface AttachmentType {
@@ -36,4 +42,13 @@ export interface RSVPType {
   name: string;
   status: 'yes' | 'no' | 'maybe' | 'pending';
   timestamp: Date;
+  comment?: string;
+}
+
+export interface ParticipantType {
+  userId: string;
+  name: string;
+  email?: string;
+  role?: 'attendee' | 'optional' | 'organizer';
+  status?: 'invited' | 'accepted' | 'declined' | 'tentative';
 }
