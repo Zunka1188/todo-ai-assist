@@ -54,7 +54,7 @@ export const CalendarPerformanceTest = {
         ? monthViewData.reduce((sum, data) => sum + data.renderTime, 0) / monthViewData.length 
         : 0,
       navigationTimings: navigationReport.durations || {},
-      totalNavigationTime: (navigationReport.markers?.end || 0) - (navigationReport.markers?.start || 0)
+      totalNavigationTime: (navigationReport.markers?.end ?? 0) - (navigationReport.markers?.start ?? 0)
     };
   },
   
