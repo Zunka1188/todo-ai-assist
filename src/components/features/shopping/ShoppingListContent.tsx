@@ -6,7 +6,6 @@ import ShoppingItemGrid from './ShoppingItemGrid';
 import EmptyState from '@/components/ui/empty-state';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ShoppingBag } from 'lucide-react';
-import ContentGrid from '@/components/ui/content-grid';
 
 interface ShoppingListContentProps {
   notPurchasedItems: any[];
@@ -16,6 +15,9 @@ interface ShoppingListContentProps {
   onEditItem: (itemId: string, item: any) => void;
   onImagePreview: (item: any) => void;
   readOnly: boolean;
+  batchMode?: boolean;
+  selectedItems?: string[];
+  onItemSelect?: (itemId: string) => void;
 }
 
 const ShoppingListContent: React.FC<ShoppingListContentProps> = ({
@@ -25,7 +27,10 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = ({
   onToggleItemCompletion,
   onEditItem,
   onImagePreview,
-  readOnly
+  readOnly,
+  batchMode = false,
+  selectedItems = [],
+  onItemSelect = () => {}
 }) => {
   const { isMobile } = useIsMobile();
   
@@ -56,6 +61,9 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = ({
             onEditItem={onEditItem}
             onImagePreview={onImagePreview}
             readOnly={readOnly}
+            batchMode={batchMode}
+            selectedItems={selectedItems}
+            onItemSelect={onItemSelect}
           />
         )}
         
@@ -71,6 +79,9 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = ({
               onEditItem={onEditItem}
               onImagePreview={onImagePreview}
               readOnly={readOnly}
+              batchMode={batchMode}
+              selectedItems={selectedItems}
+              onItemSelect={onItemSelect}
             />
           </div>
         )}

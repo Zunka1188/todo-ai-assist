@@ -1,59 +1,52 @@
 
 import React from 'react';
+import { cn } from '@/lib/utils';
 import ShoppingItemCard from './ShoppingItemCard';
-import ContentGrid from '@/components/ui/content-grid';
 import { useIsMobile } from '@/hooks/use-mobile';
-
+import ContentGrid from '@/components/ui/content-grid';
+ 
 interface ShoppingItemGridProps {
   items: any[];
-  onToggleItemCompletion: (id: string) => void;
-  onEditItem: (id: string, item: any) => void;
+  onToggleItemCompletion: (itemId: string) => void;
+  onEditItem: (itemId: string, item: any) => void;
   onImagePreview: (item: any) => void;
+  className?: string;
   readOnly?: boolean;
+  batchMode?: boolean;
+  selectedItems?: string[];
+  onItemSelect?: (itemId: string) => void;
 }
-
-const ShoppingItemGrid: React.FC<ShoppingItemGridProps> = ({ 
-  items, 
-  onToggleItemCompletion, 
-  onEditItem, 
+ 
+const ShoppingItemGrid: React.FC<ShoppingItemGridProps> = ({
+  items,
+  onToggleItemCompletion,
+  onEditItem,
   onImagePreview,
-  readOnly = false
+  className,
+  readOnly = false,
+  batchMode = false,
+  selectedItems = [],
+  onItemSelect = () => {}
 }) => {
   const { isMobile } = useIsMobile();
-
+  
   return (
-    <ContentGrid
-      itemCount={items.length}
-      columns={{
-        default: 1,
-        sm: isMobile ? 1 : 2,
-        md: 3,
-        lg: 4
-      }}
-      gap="md"
-      emptyState={{
-        title: "No items",
-        description: "There are no items in this category"
-      }}
-    >
-      {items.map(item => (
+    <ContentGrid className={cn('gap-3', className)} columns={isMobile ? 1 : 2}>
+      {items.map((item) => (
         <ShoppingItemCard
           key={item.id}
-          id={item.id}
-          name={item.name}
-          completed={item.completed}
-          quantity={item.amount}
-          repeatOption={item.repeatOption}
-          imageUrl={item.imageUrl}
-          notes={item.notes}
-          onClick={() => onToggleItemCompletion(item.id)}
+          item={item}
+          onToggleCompletion={() => onToggleItemCompletion(item.id)}
           onEdit={() => onEditItem(item.id, item)}
           onImagePreview={() => onImagePreview(item)}
           readOnly={readOnly}
+          batchMode={batchMode}
+          isSelected={selectedItems.includes(item.id)}
+          onSelect={() => onItemSelect(item.id)}
         />
       ))}
     </ContentGrid>
   );
 };
-
+ 
 export default ShoppingItemGrid;

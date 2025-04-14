@@ -41,6 +41,7 @@ run_test "home-page.test.ts" "Home Page Tests" && ((PASSED++)) || { ((FAILED++))
 run_test "calendar-page.test.ts" "Calendar Page Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("Calendar Page Tests"); }
 run_test "shopping-page.test.ts" "Shopping Page Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("Shopping Page Tests"); }
 run_test "shopping-list-comprehensive.test.ts" "Shopping List Comprehensive Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("Shopping List Comprehensive Tests"); }
+run_test "shopping-batch-operations.test.ts" "Shopping Batch Operations Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("Shopping Batch Operations Tests"); }
 run_test "documents-page.test.ts" "Documents Page Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("Documents Page Tests"); }
 run_test "feature-buttons.test.ts" "Feature Buttons Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("Feature Buttons Tests"); }
 run_test "ai-chat-integration.test.ts" "AI Chat Integration Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("AI Chat Integration Tests"); }

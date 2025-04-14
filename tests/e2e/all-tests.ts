@@ -19,6 +19,7 @@ test.describe('All Application Tests', () => {
       'calendar-page.test.ts',
       'shopping-page.test.ts',
       'shopping-list-comprehensive.test.ts',
+      'shopping-batch-operations.test.ts',
       'documents-page.test.ts',
       'ai-chat-integration.test.ts',
       'accessibility.test.ts',
@@ -41,6 +42,7 @@ import './home-page.test.ts';
 import './calendar-page.test.ts';
 import './shopping-page.test.ts';
 import './shopping-list-comprehensive.test.ts';
+import './shopping-batch-operations.test.ts';
 import './documents-page.test.ts';
 import './ai-chat-integration.test.ts';
 import './accessibility.test.ts';

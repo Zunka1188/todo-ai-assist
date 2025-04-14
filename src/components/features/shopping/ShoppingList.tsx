@@ -10,6 +10,9 @@ import ImagePreviewDialog from './ImagePreviewDialog';
 import EditItemDialog from './EditItemDialog';
 import { SortOption } from './useShoppingItems';
 import ShoppingListErrorBoundary from './ShoppingListErrorBoundary';
+import BatchOperationsToolbar from './BatchOperationsToolbar';
+import { Button } from '@/components/ui/button';
+import { Eye, Check, Trash, X } from 'lucide-react';
 
 import './shoppingList.css';
 
@@ -36,7 +39,11 @@ const ShoppingList = ({
     updateFilterMode,
     isLoading,
     sortOption,
-    setSortOption
+    setSortOption,
+    selectedItems,
+    setSelectedItems,
+    handleItemSelect,
+    deleteSelectedItems
   } = useShoppingItemsContext();
   
   const {
@@ -63,6 +70,8 @@ const ShoppingList = ({
   
   // State for image options
   const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
+  const [isBatchMode, setIsBatchMode] = useState(false);
+  const [imagePreviewZoom, setImagePreviewZoom] = useState(1);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Implementation for file change handling
@@ -88,6 +97,37 @@ const ShoppingList = ({
     setSortOption(newSortOption);
   };
   
+  const toggleBatchMode = () => {
+    setIsBatchMode(!isBatchMode);
+    if (isBatchMode) {
+      // Clear selections when exiting batch mode
+      setSelectedItems([]);
+    }
+  };
+  
+  const handleMarkSelectedAsCompleted = () => {
+    selectedItems.forEach((id) => {
+      handleToggleItemCompletion(id);
+    });
+    setSelectedItems([]);
+  };
+  
+  const handleDeleteSelected = () => {
+    deleteSelectedItems();
+  };
+  
+  const handleImageZoomIn = () => {
+    setImagePreviewZoom(prev => Math.min(prev + 0.25, 3));
+  };
+  
+  const handleImageZoomOut = () => {
+    setImagePreviewZoom(prev => Math.max(prev - 0.25, 0.5));
+  };
+  
+  const handleImageZoomReset = () => {
+    setImagePreviewZoom(1);
+  };
+  
   if (isLoading) {
     return <LoadingState />;
   }
@@ -95,6 +135,28 @@ const ShoppingList = ({
   return (
     <ShoppingListErrorBoundary>
       <div className={cn('w-full min-h-[60vh] shopping-list-container', className)}>
+        {isBatchMode && (
+          <BatchOperationsToolbar
+            selectedCount={selectedItems.length}
+            onMarkCompleted={handleMarkSelectedAsCompleted}
+            onDelete={handleDeleteSelected}
+            onCancel={toggleBatchMode}
+          />
+        )}
+        
+        {!isBatchMode && !readOnly && (
+          <div className="mb-4 flex justify-end">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={toggleBatchMode}
+              className="text-xs"
+            >
+              Select Items
+            </Button>
+          </div>
+        )}
+        
         <ShoppingListContent
           notPurchasedItems={notPurchasedItems}
           purchasedItems={purchasedItems}
@@ -103,6 +165,9 @@ const ShoppingList = ({
           onEditItem={handleOpenEditDialog}
           onImagePreview={handleImagePreview}
           readOnly={readOnly}
+          batchMode={isBatchMode}
+          selectedItems={selectedItems}
+          onItemSelect={handleItemSelect}
         />
 
         <ImagePreviewDialog 
@@ -131,6 +196,10 @@ const ShoppingList = ({
             }
           }}
           readOnly={readOnly}
+          zoom={imagePreviewZoom}
+          onZoomIn={handleImageZoomIn}
+          onZoomOut={handleImageZoomOut}
+          onZoomReset={handleImageZoomReset}
         />
         
         {itemToEdit && (

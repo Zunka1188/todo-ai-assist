@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, ShoppingBag } from 'lucide-react';
+import { Plus, ShoppingBag, ArrowUpDown } from 'lucide-react';
 import HeaderActions from '@/components/ui/header-actions';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
 import ShoppingList from './ShoppingList';
@@ -11,8 +11,9 @@ import SearchInput from '@/components/ui/search-input';
 import ResponsiveContainer from '@/components/ui/responsive-container';
 import LoadingState from './LoadingState';
 import EmptyState from '@/components/ui/empty-state';
-import ContentGrid from '@/components/ui/content-grid';
 import ShoppingTabsSection from './ShoppingTabsSection';
+import SortingMenuDropdown from './SortingMenuDropdown';
+import { SortOption } from './useShoppingItems';
 
 const ShoppingPageContent: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,10 +24,12 @@ const ShoppingPageContent: React.FC = () => {
   const { 
     addItem, 
     isLoading, 
-    updateSearchTerm, 
-    updateFilterMode, 
+    updateSearchTerm,
+    updateFilterMode,
     notPurchasedItems, 
-    purchasedItems 
+    purchasedItems,
+    sortOption,
+    setSortOption
   } = useShoppingItemsContext();
   
   // Update context when filter changes
@@ -51,6 +54,10 @@ const ShoppingPageContent: React.FC = () => {
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     setFilterMode(value as 'all' | 'one-off' | 'weekly' | 'monthly');
+  };
+  
+  const handleSortChange = (value: SortOption) => {
+    setSortOption(value);
   };
 
   const headerActions = {
@@ -77,7 +84,13 @@ const ShoppingPageContent: React.FC = () => {
             placeholder="Search shopping items..."
           />
         </div>
-        <HeaderActions {...headerActions} />
+        <div className="flex gap-2 items-center">
+          <SortingMenuDropdown 
+            value={sortOption}
+            onChange={handleSortChange}
+          />
+          <HeaderActions {...headerActions} />
+        </div>
       </div>
       
       {/* Always show the tabs section */}
@@ -99,6 +112,14 @@ const ShoppingPageContent: React.FC = () => {
           actionLabel="Add Item"
           onAction={() => setIsAddDialogOpen(true)}
           centered={true}
+        />
+      )}
+
+      {/* Show shopping list content */}
+      {(notPurchasedItems.length > 0 || purchasedItems.length > 0 || searchTerm) && (
+        <ShoppingList 
+          searchTerm={searchTerm}
+          filterMode={filterMode}
         />
       )}
 
