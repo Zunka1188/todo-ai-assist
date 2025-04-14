@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode, useCallback, useState, useEffect } from 'react';
 import { SortOption, ShoppingItem, useShoppingItems } from './useShoppingItems';
 import { logger } from '@/utils/logger';
@@ -22,7 +21,7 @@ interface ShoppingItemsContextProps {
   deleteSelectedItems: () => number;
 }
 
-const ShoppingItemsContext = createContext<ShoppingItemsContextProps | undefined>(undefined);
+export const ShoppingItemsContext = createContext<ShoppingItemsContextProps | undefined>(undefined);
 
 interface ShoppingItemsProviderProps {
   children: ReactNode;
