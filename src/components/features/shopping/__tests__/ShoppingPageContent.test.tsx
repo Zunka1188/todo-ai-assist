@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { ShoppingItemsContext } from '../ShoppingItemsContext';
+import { useShoppingItemsContext } from '../ShoppingItemsContext';
 import ShoppingPageContent from '../ShoppingPageContent';
 
 // Mock the necessary hooks and components
@@ -34,7 +34,7 @@ describe('ShoppingPageContent', () => {
   const setSortOption = vi.fn();
   const toggleItem = vi.fn();
   const updateItem = vi.fn();
-  const removeItem = vi.fn(); // Added removeItem mock
+  const removeItem = vi.fn(); 
   const handleItemSelect = vi.fn();
   const deleteSelectedItems = vi.fn();
   const setSelectedItems = vi.fn();
@@ -47,11 +47,11 @@ describe('ShoppingPageContent', () => {
     updateFilterMode,
     notPurchasedItems,
     purchasedItems,
-    sortOption: 'newest',
+    sortOption: 'newest', // Explicitly set to a valid SortOption
     setSortOption,
     toggleItem,
     updateItem,
-    removeItem, // Include removeItem in the mock context
+    removeItem, 
     selectedItems: ['1'],
     handleItemSelect,
     deleteSelectedItems,
