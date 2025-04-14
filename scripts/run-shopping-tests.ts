@@ -22,6 +22,7 @@ try {
     'src/components/features/shopping/__tests__/ShoppingItemsContext.test.tsx',
     'src/components/features/shopping/__tests__/useShoppingItems.test.tsx',
     'src/components/features/shopping/__tests__/shopping-comprehensive.test.tsx',
+    'src/components/features/shopping/__tests__/ShoppingPage.performance.test.tsx'
   ];
 
   // Run each test file
