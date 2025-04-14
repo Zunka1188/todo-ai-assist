@@ -61,10 +61,16 @@ describe('Performance Monitor Integration Tests', () => {
       return 'result';
     });
 
-    const { result, executionTime } = await performanceMonitor.timeAsync('async_test', mockAsyncFunction);
+    // Properly type the return value from timeAsync
+    interface TimedResult<T> {
+      result: T;
+      executionTime: number;
+    }
 
-    expect(result).toBe('result');
-    expect(executionTime).toBeGreaterThan(0);
+    const timedResult = await performanceMonitor.timeAsync('async_test', mockAsyncFunction) as TimedResult<string>;
+
+    expect(timedResult.result).toBe('result');
+    expect(timedResult.executionTime).toBeGreaterThan(0);
     expect(mockAsyncFunction).toHaveBeenCalledTimes(1);
   });
 

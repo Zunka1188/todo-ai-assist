@@ -18,6 +18,12 @@ interface PerformanceMeasure {
   timestamp: number;
 }
 
+// Add an interface for timeAsync return type
+interface TimedAsyncResult<T> {
+  result: T;
+  executionTime: number;
+}
+
 class PerformanceMonitor {
   private marks: Map<string, PerformanceMark> = new Map();
   private measures: PerformanceMeasure[] = [];
@@ -175,9 +181,10 @@ class PerformanceMonitor {
   /**
    * Time a function execution asynchronously
    */
-  async timeAsync<T>(name: string, fn: () => Promise<T>): Promise<T> {
+  async timeAsync<T>(name: string, fn: () => Promise<T>): Promise<TimedAsyncResult<T>> {
     if (!this.enabled) {
-      return fn();
+      const result = await fn();
+      return { result, executionTime: 0 };
     }
     
     const startMark = `${name}_start_${Date.now()}`;
@@ -187,8 +194,8 @@ class PerformanceMonitor {
     try {
       const result = await fn();
       this.mark(endMark);
-      this.measure(name, startMark, endMark);
-      return result;
+      const executionTime = this.measure(name, startMark, endMark) || 0;
+      return { result, executionTime };
     } catch (error) {
       this.mark(endMark);
       this.measure(`${name}_error`, startMark, endMark);
