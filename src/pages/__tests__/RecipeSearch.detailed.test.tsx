@@ -55,19 +55,22 @@ describe('RecipeSearch Functionality', () => {
     vi.clearAllMocks();
   });
 
+  // Mock onSelectRecipe function
+  const mockOnSelectRecipe = vi.fn();
+
   it('renders the search input', () => {
-    render(<RecipeSearch />);
+    render(<RecipeSearch onSelectRecipe={mockOnSelectRecipe} />);
     expect(screen.getByPlaceholderText(/search recipes/i)).toBeInTheDocument();
   });
 
   it('displays recipes on initial load', () => {
-    render(<RecipeSearch />);
+    render(<RecipeSearch onSelectRecipe={mockOnSelectRecipe} />);
     expect(screen.getByText('Spaghetti Carbonara')).toBeInTheDocument();
     expect(screen.getByText('Chicken Curry')).toBeInTheDocument();
   });
 
   it('filters recipes when searching by name', async () => {
-    render(<RecipeSearch />);
+    render(<RecipeSearch onSelectRecipe={mockOnSelectRecipe} />);
     
     const searchInput = screen.getByPlaceholderText(/search recipes/i);
     fireEvent.change(searchInput, { target: { value: 'carbonara' } });
@@ -79,7 +82,7 @@ describe('RecipeSearch Functionality', () => {
   });
 
   it('filters recipes when searching by ingredient', async () => {
-    render(<RecipeSearch />);
+    render(<RecipeSearch onSelectRecipe={mockOnSelectRecipe} />);
     
     const searchInput = screen.getByPlaceholderText(/search recipes/i);
     fireEvent.change(searchInput, { target: { value: 'chicken' } });
@@ -91,7 +94,7 @@ describe('RecipeSearch Functionality', () => {
   });
 
   it('filters recipes when searching by cuisine', async () => {
-    render(<RecipeSearch />);
+    render(<RecipeSearch onSelectRecipe={mockOnSelectRecipe} />);
     
     const searchInput = screen.getByPlaceholderText(/search recipes/i);
     fireEvent.change(searchInput, { target: { value: 'italian' } });
@@ -103,7 +106,7 @@ describe('RecipeSearch Functionality', () => {
   });
 
   it('shows no results message when no recipes match search', async () => {
-    render(<RecipeSearch />);
+    render(<RecipeSearch onSelectRecipe={mockOnSelectRecipe} />);
     
     const searchInput = screen.getByPlaceholderText(/search recipes/i);
     fireEvent.change(searchInput, { target: { value: 'nonexistentrecipe' } });
