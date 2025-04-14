@@ -60,6 +60,7 @@ export const endTracking = (startMark: string, componentName: string, operation:
 };
 
 // Fix for line 155 which had a syntax error - removing the unterminated regex
+// The issue was on line 63 with an unterminated regular expression
 const ExampleComponent = () => <div>Something</div>;
 
 export default {
