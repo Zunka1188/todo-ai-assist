@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -44,35 +43,32 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  // Track mounted state to prevent memory leaks
   const isMounted = useRef(true);
-  
-  // Safe setState functions that check mounted status
+
   const safeSetError = useCallback((value: string | null) => {
     if (isMounted.current) {
       setError(value);
     }
   }, []);
-  
+
   const safeSetIsProcessing = useCallback((value: boolean) => {
     if (isMounted.current) {
       setIsProcessing(value);
     }
   }, []);
-  
+
   const safeSetIsTyping = useCallback((value: boolean) => {
     if (isMounted.current) {
       setIsTyping(value);
     }
   }, []);
-  
+
   const safeSetIsLoading = useCallback((value: boolean) => {
     if (isMounted.current) {
       setIsLoading(value);
     }
   }, []);
 
-  // Handle component unmount
   useEffect(() => {
     return () => {
       isMounted.current = false;
@@ -81,7 +77,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      // Add welcome message
       setTimeout(() => {
         if (isMounted.current) {
           addAssistantMessage(
@@ -104,7 +99,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     };
   }, [messages]);
 
-  // Input validation helper
   const validateInput = (text: string): boolean => {
     if (!text.trim()) {
       safeSetError("Please enter a message.");
@@ -122,7 +116,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Input validation
     const sanitizedInput = sanitizeTextInput(input, 500);
     if (!validateInput(sanitizedInput)) return;
 
@@ -133,7 +126,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     safeSetError(null);
 
     try {
-      // Process user input based on context
       setTimeout(() => {
         if (!isMounted.current) return;
         
@@ -143,14 +135,12 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         const lowerInput = sanitizedInput.toLowerCase();
         
         if (lowerInput.includes('recipe') || lowerInput.includes('cook') || lowerInput.includes('make')) {
-          // User is looking for recipes
           addAssistantMessage("Great! Let's find some recipes. Please tell me what dish you're interested in making, or just browse our options below.");
           setFoodContext(prev => ({
             ...prev,
             conversationState: 'recipe_search'
           }));
         } else if (lowerInput.includes('diet') || lowerInput.includes('vegan') || lowerInput.includes('vegetarian')) {
-          // User asking about dietary restrictions
           addAssistantMessage(
             "Let me know your dietary preferences. I can filter recipes based on dietary restrictions.",
             undefined,
@@ -164,7 +154,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
             ]
           );
         } else {
-          // General response
           addAssistantMessage(
             "I can help you find recipes, plan meals, or answer cooking questions. What would you like to do?",
             undefined,
@@ -211,7 +200,6 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
         conversationState: 'serving_size'
       }));
       
-      // Show recipe details
       setTimeout(() => {
         if (!isMounted.current) return;
         
@@ -280,7 +268,6 @@ ${recipe.instructions.map((step, i) => `${i+1}. ${step}`).join("\n")}
 
   const saveRecipe = useCallback((recipe: Recipe) => {
     try {
-      // Simulate saving the recipe
       setFoodContext(prev => ({
         ...prev,
         recipeSaved: true
@@ -315,7 +302,6 @@ ${recipe.instructions.map((step, i) => `${i+1}. ${step}`).join("\n")}
     }));
   }, []);
 
-  // Clear all error states
   const clearError = useCallback(() => {
     safeSetError(null);
   }, [safeSetError]);
