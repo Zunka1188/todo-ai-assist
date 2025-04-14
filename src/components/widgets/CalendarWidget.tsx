@@ -7,8 +7,7 @@ import { WidgetWrapper } from './shared/WidgetWrapper';
 import CalendarDatePicker from './calendar/CalendarDatePicker';
 import CalendarWidgetContent from './calendar/CalendarWidgetContent';
 import { useCalendarWidget } from './calendar/useCalendarWidget';
-import EventViewDialog from '../features/calendar/dialogs/EventViewDialog';
-import RSVPDialog from '../features/calendar/dialogs/RSVPDialog';
+import EventViewDialogExtension from '../features/calendar/dialogs/EventViewDialogExtension';
 import { Event, RSVPType } from '../features/calendar/types/event';
 import InviteDialog from '../features/calendar/dialogs/InviteDialog';
 import { useToast } from '@/hooks/use-toast';
@@ -33,38 +32,13 @@ const CalendarWidget = () => {
     handleCloseEventDialog
   } = useCalendarWidget();
 
-  // RSVP state
-  const [isRSVPDialogOpen, setIsRSVPDialogOpen] = useState(false);
-  const [existingRSVP, setExistingRSVP] = useState<RSVPType | undefined>(undefined);
-  
   // Share state
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  // Handle opening RSVP dialog
-  const handleOpenRSVP = (event: Event) => {
-    // Check if user has already RSVP'd (in real app, use actual user ID)
-    const mockUserId = "current-user";
-    const existingResponse = event.rsvp?.find(r => r.userId === mockUserId);
-    setExistingRSVP(existingResponse);
-    
-    setIsRSVPDialogOpen(true);
-  };
-  
-  // Handle RSVP submission
-  const handleRSVP = (eventId: string, userId: string, name: string, status: RSVPType['status'], comment?: string) => {
-    if (!selectedEvent) return;
-    
-    // In a real app, this would call an API to store the RSVP
-    console.log(`RSVP submitted for ${eventId}: ${name} - ${status}`);
-    
-    // For demo purposes, we'll just close the dialog
-    setIsRSVPDialogOpen(false);
-  };
-
   // Handle event sharing
-  const handleShareEvent = () => {
-    if (selectedEvent) {
+  const handleShareEvent = (event: Event) => {
+    if (event) {
       setIsShareDialogOpen(true);
     }
   };
@@ -77,6 +51,15 @@ const CalendarWidget = () => {
       description: "The link has been copied to clipboard"
     });
     setIsShareDialogOpen(false);
+  };
+  
+  // Handle RSVP
+  const handleRSVP = (eventId: string, userId: string, name: string, status: RSVPType['status'], comment?: string) => {
+    console.log(`RSVP submitted for ${eventId}: ${name} - ${status}`);
+    toast({
+      title: "RSVP Submitted",
+      description: `Your response: ${status.toUpperCase()}`
+    });
   };
 
   return (
@@ -112,7 +95,7 @@ const CalendarWidget = () => {
 
       {selectedEvent && (
         <>
-          <EventViewDialog
+          <EventViewDialogExtension
             isOpen={isViewDialogOpen}
             setIsOpen={setIsViewDialogOpen}
             selectedEvent={selectedEvent}
@@ -121,16 +104,8 @@ const CalendarWidget = () => {
               setIsViewDialogOpen(false);
               setSelectedEvent(null);
             }}
-            onRSVP={() => handleOpenRSVP(selectedEvent)}
+            onRSVP={handleShareEvent}
             onShare={handleShareEvent}
-          />
-          
-          <RSVPDialog
-            isOpen={isRSVPDialogOpen}
-            setIsOpen={setIsRSVPDialogOpen}
-            event={selectedEvent}
-            onRSVP={handleRSVP}
-            existingRSVP={existingRSVP}
           />
           
           <InviteDialog

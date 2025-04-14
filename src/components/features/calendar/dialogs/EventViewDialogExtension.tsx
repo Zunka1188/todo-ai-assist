@@ -7,6 +7,7 @@ import EventViewDialog from './EventViewDialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import SocialShareMenu from '../../shared/SocialShareMenu';
+import RSVPDialog from './RSVPDialog';
 
 interface EventViewDialogExtensionProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
 }) => {
   const { isMobile } = useIsMobile();
   const [actionButtonsVisible, setActionButtonsVisible] = useState(false);
+  const [isRSVPDialogOpen, setIsRSVPDialogOpen] = useState(false);
   
   const handleShare = () => {
     if (selectedEvent && onShare) {
@@ -41,6 +43,8 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
   const handleRSVP = () => {
     if (selectedEvent && onRSVP) {
       onRSVP(selectedEvent);
+    } else if (selectedEvent) {
+      setIsRSVPDialogOpen(true);
     }
   };
   
@@ -58,6 +62,13 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
       clearTimeout(timer);
     };
   }, [isOpen, selectedEvent]);
+
+  // Close RSVP dialog when main dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      setIsRSVPDialogOpen(false);
+    }
+  }, [isOpen]);
   
   const renderActionButtons = () => {
     if (!actionButtonsVisible || !selectedEvent) return null;
@@ -79,7 +90,7 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
               <TooltipTrigger asChild>
                 {isMobile ? (
                   <Button 
-                    variant="outline"  // Changed from "secondary" to "outline"
+                    variant="outline"
                     onClick={handleShare} 
                     size="lg" 
                     className={buttonClasses}
@@ -92,7 +103,7 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
                   <SocialShareMenu
                     title={selectedEvent.title}
                     text={`Check out this event: ${selectedEvent.title}`}
-                    buttonVariant="outline"  // Ensuring consistency
+                    buttonVariant="outline"
                     buttonSize="sm"
                     className={buttonClasses}
                     showLabel={true}
@@ -105,28 +116,33 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
             </Tooltip>
           )}
           
-          {onRSVP && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="outline"  // Changed from "secondary" to "outline"
-                  onClick={handleRSVP} 
-                  size={isMobile ? "lg" : "sm"} 
-                  className={buttonClasses}
-                  aria-label="RSVP to event"
-                >
-                  <MessageSquare className={`h-4 w-4 ${isMobile ? "mr-2" : "mr-2"}`} />
-                  RSVP
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side={isMobile ? "top" : "left"}>
-                Respond to this event invitation
-              </TooltipContent>
-            </Tooltip>
-          )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="outline"
+                onClick={handleRSVP} 
+                size={isMobile ? "lg" : "sm"} 
+                className={buttonClasses}
+                aria-label="RSVP to event"
+              >
+                <MessageSquare className={`h-4 w-4 ${isMobile ? "mr-2" : "mr-2"}`} />
+                RSVP
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side={isMobile ? "top" : "left"}>
+              Respond to this event invitation
+            </TooltipContent>
+          </Tooltip>
         </div>
       </TooltipProvider>
     );
+  };
+  
+  // Handle RSVP submission
+  const handleRSVPSubmit = (eventId: string, userId: string, name: string, status: any, comment?: string) => {
+    // Here you would typically call an API to submit the RSVP
+    console.log("RSVP submitted:", { eventId, userId, name, status, comment });
+    setIsRSVPDialogOpen(false);
   };
   
   return (
@@ -143,6 +159,16 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
       />
       
       {renderActionButtons()}
+      
+      {selectedEvent && (
+        <RSVPDialog
+          isOpen={isRSVPDialogOpen}
+          setIsOpen={setIsRSVPDialogOpen}
+          event={selectedEvent}
+          onRSVP={handleRSVPSubmit}
+          existingRSVP={selectedEvent.rsvp?.[0]} // Just passing the first RSVP for simplicity
+        />
+      )}
     </div>
   );
 };

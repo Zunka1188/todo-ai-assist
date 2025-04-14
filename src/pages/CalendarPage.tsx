@@ -10,7 +10,7 @@ import { Toaster } from '@/components/ui/toaster';
 import ErrorBoundary from '@/components/ui/error-boundary';
 import { useCalendarSharing } from '@/components/features/calendar/hooks/useCalendarSharing';
 import { useToast } from '@/hooks/use-toast';
-import { Event } from '@/components/features/calendar/types/event';
+import { Event, RSVPType } from '@/components/features/calendar/types/event';
 
 /**
  * Calendar Page Content Component
@@ -28,7 +28,7 @@ const CalendarPageContent: React.FC = () => {
   } = useCalendar();
 
   const [shareEvent, setShareEvent] = useState<Event | null>(null);
-  const { shareEvent: generateShareLink } = useCalendarSharing();
+  const { shareEvent: generateShareLink, recordRSVP } = useCalendarSharing();
   const { toast } = useToast();
 
   // Handle sharing an event
@@ -62,6 +62,28 @@ const CalendarPageContent: React.FC = () => {
     // Call the original handler for any additional functionality
     if (handleInviteSent) {
       handleInviteSent(link);
+    }
+  };
+  
+  // Handle RSVP submission
+  const handleRSVP = (eventId: string, userId: string, name: string, status: RSVPType['status'], comment?: string) => {
+    if (shareEvent) {
+      try {
+        const success = recordRSVP(eventId, name, status, userId);
+        if (success) {
+          toast({
+            title: "RSVP Submitted",
+            description: `Your response: ${status.toUpperCase()}`
+          });
+        }
+      } catch (error) {
+        console.error("Failed to record RSVP:", error);
+        toast({
+          title: "Error",
+          description: "Failed to submit your RSVP",
+          variant: "destructive"
+        });
+      }
     }
   };
 
