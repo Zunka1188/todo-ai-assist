@@ -1,219 +1,138 @@
 
-import React, { memo, useEffect, useRef, useState } from 'react';
-import { cn } from '@/lib/utils';
+import React, { useState } from 'react';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
-import { useShoppingItemOperations } from './hooks/useShoppingItemOperations';
-import { useShoppingDialogs } from './hooks/useShoppingDialogs';
-import LoadingState from './LoadingState';
-import ShoppingListContent from './ShoppingListContent';
-import ImagePreviewDialog from './ImagePreviewDialog';
+import ShoppingItemGrid from './ShoppingItemGrid';
 import EditItemDialog from './EditItemDialog';
-import { SortOption } from './useShoppingItems';
-import ShoppingListErrorBoundary from './ShoppingListErrorBoundary';
-import BatchOperationsToolbar from './BatchOperationsToolbar';
+import { Trash2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Eye, Check, Trash, X } from 'lucide-react';
+import SectionDivider from '@/components/ui/section-divider';
 
-import './shoppingList.css';
-
-type ShoppingListProps = {
+interface ShoppingListProps {
   searchTerm?: string;
   filterMode?: 'all' | 'one-off' | 'weekly' | 'monthly';
-  className?: string;
-  onEditItem?: (id: string, name?: string, item?: any) => void;
-  readOnly?: boolean;
-};
+  onImagePreview?: (item: any) => void;
+}
 
-const ShoppingList = ({
+const ShoppingList: React.FC<ShoppingListProps> = ({ 
   searchTerm = '',
   filterMode = 'all',
-  className,
-  onEditItem,
-  readOnly = false
-}: ShoppingListProps) => {
-  
+  onImagePreview = () => {}
+}) => {
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { 
     notPurchasedItems, 
     purchasedItems, 
-    updateSearchTerm,
-    updateFilterMode,
-    isLoading,
-    sortOption,
-    setSortOption,
+    toggleItem,
+    updateItem,
     selectedItems,
-    setSelectedItems,
     handleItemSelect,
     deleteSelectedItems
   } = useShoppingItemsContext();
-  
-  const {
-    selectedItem,
-    itemToEdit,
-    isEditDialogOpen,
-    isImagePreviewOpen,
-    handleImagePreview,
-    handleCloseImageDialog,
-    handleOpenEditDialog,
-    handleCloseEditDialog
-  } = useShoppingDialogs(filterMode);
 
-  const {
-    handleToggleItemCompletion,
-    handleDeleteItem,
-    handleSaveItem,
-    handleSaveItemFromCapture
-  } = useShoppingItemOperations({ readOnly, onEditItem });
-  
-  // File input references
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const newItemFileInputRef = useRef<HTMLInputElement>(null);
-  
-  // State for image options
-  const [imageOptionsOpen, setImageOptionsOpen] = useState(false);
-  const [isBatchMode, setIsBatchMode] = useState(false);
-  const [imagePreviewZoom, setImagePreviewZoom] = useState(1);
-  
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Implementation for file change handling
-    console.log("File change detected");
+  const handleToggleCompletion = (id: string) => {
+    toggleItem(id);
   };
-  
-  const clearEditImage = () => {
-    // Implementation for clearing edit image
-    console.log("Clearing edit image");
+
+  const handleEdit = (id: string, item: any) => {
+    setEditingItem(item);
+    setIsEditDialogOpen(true);
   };
-  
-  const clearImage = () => {
-    // Implementation for clearing image
-    console.log("Clearing image");
-  };
-  
-  useEffect(() => {
-    updateSearchTerm(searchTerm);
-    updateFilterMode(filterMode);
-  }, [searchTerm, filterMode, updateSearchTerm, updateFilterMode]);
-  
-  const handleSortChange = (newSortOption: SortOption) => {
-    setSortOption(newSortOption);
-  };
-  
-  const toggleBatchMode = () => {
-    setIsBatchMode(!isBatchMode);
-    if (isBatchMode) {
-      // Clear selections when exiting batch mode
-      setSelectedItems([]);
+
+  const handleSaveEdit = (editedItem: any): boolean => {
+    if (editingItem) {
+      updateItem(editingItem.id, editedItem);
+      setIsEditDialogOpen(false);
+      return true;
     }
+    return false;
   };
-  
-  const handleMarkSelectedAsCompleted = () => {
-    selectedItems.forEach((id) => {
-      handleToggleItemCompletion(id);
-    });
-    setSelectedItems([]);
-  };
-  
-  const handleDeleteSelected = () => {
-    deleteSelectedItems();
-  };
-  
-  const handleImageZoomIn = () => {
-    setImagePreviewZoom(prev => Math.min(prev + 0.25, 3));
-  };
-  
-  const handleImageZoomOut = () => {
-    setImagePreviewZoom(prev => Math.max(prev - 0.25, 0.5));
-  };
-  
-  const handleImageZoomReset = () => {
-    setImagePreviewZoom(1);
-  };
-  
-  if (isLoading) {
-    return <LoadingState />;
-  }
 
+  const handleDeleteSelected = () => {
+    const deletedCount = deleteSelectedItems();
+    console.log(`Deleted ${deletedCount} items`);
+  };
+
+  const handleImagePreview = (item: any) => {
+    onImagePreview(item);
+  };
+
+  const isBatchModeActive = selectedItems.length > 0;
+  
   return (
-    <ShoppingListErrorBoundary>
-      <div className={cn('w-full min-h-[60vh] shopping-list-container', className)}>
-        {isBatchMode && (
-          <BatchOperationsToolbar
-            selectedCount={selectedItems.length}
-            onMarkCompleted={handleMarkSelectedAsCompleted}
-            onDelete={handleDeleteSelected}
-            onCancel={toggleBatchMode}
-          />
-        )}
-        
-        {!isBatchMode && !readOnly && (
-          <div className="mb-4 flex justify-end">
+    <div className="w-full space-y-6">
+      {/* Batch actions bar */}
+      {isBatchModeActive && (
+        <div className="bg-muted p-2 rounded-md flex items-center justify-between sticky top-0 z-10">
+          <div className="text-sm font-medium">
+            {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''} selected
+          </div>
+          <div className="flex gap-2">
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={toggleBatchMode}
-              className="text-xs"
+              onClick={handleDeleteSelected}
+              className="text-red-600 hover:text-red-700"
             >
-              Select Items
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                selectedItems.forEach(id => toggleItem(id));
+              }}
+            >
+              <Check className="h-4 w-4 mr-1" />
+              Mark as purchased
             </Button>
           </div>
-        )}
-        
-        <ShoppingListContent
-          notPurchasedItems={notPurchasedItems}
-          purchasedItems={purchasedItems}
-          searchTerm={searchTerm}
-          onToggleItemCompletion={handleToggleItemCompletion}
-          onEditItem={handleOpenEditDialog}
-          onImagePreview={handleImagePreview}
-          readOnly={readOnly}
-          batchMode={isBatchMode}
-          selectedItems={selectedItems}
-          onItemSelect={handleItemSelect}
-        />
-
-        <ImagePreviewDialog 
-          imageUrl={selectedItem?.imageUrl || null}
-          item={selectedItem}
-          onClose={handleCloseImageDialog}
-          onSaveItem={(capturedText) => {
-            if (selectedItem) {
-              return handleSaveItemFromCapture({
-                id: selectedItem.id,
-                capturedText
-              });
-            }
-            return false;
-          }}
-          onEdit={() => {
-            handleCloseImageDialog();
-            if (selectedItem) {
-              handleOpenEditDialog(selectedItem.id, selectedItem);
-            }
-          }}
-          onDelete={onEditItem ? undefined : () => {
-            if (selectedItem) {
-              handleDeleteItem(selectedItem.id);
-              handleCloseImageDialog();
-            }
-          }}
-          readOnly={readOnly}
-          zoom={imagePreviewZoom}
-          onZoomIn={handleImageZoomIn}
-          onZoomOut={handleImageZoomOut}
-          onZoomReset={handleImageZoomReset}
-        />
-        
-        {itemToEdit && (
-          <EditItemDialog
-            isOpen={isEditDialogOpen}
-            onClose={handleCloseEditDialog}
-            item={itemToEdit}
-            onSave={handleSaveItem}
-            onDelete={handleDeleteItem}
+        </div>
+      )}
+      
+      {/* Not purchased items */}
+      {notPurchasedItems.length > 0 && (
+        <div>
+          <h2 className="text-lg font-medium mb-3">Shopping List</h2>
+          <ShoppingItemGrid 
+            items={notPurchasedItems}
+            onToggleItemCompletion={handleToggleCompletion}
+            onEditItem={handleEdit}
+            onImagePreview={handleImagePreview}
+            batchMode={isBatchModeActive}
+            selectedItems={selectedItems}
+            onItemSelect={handleItemSelect}
           />
-        )}
-      </div>
-    </ShoppingListErrorBoundary>
+        </div>
+      )}
+      
+      {/* Purchased items */}
+      {purchasedItems.length > 0 && (
+        <div>
+          {notPurchasedItems.length > 0 && <SectionDivider />}
+          <h2 className="text-lg font-medium mb-3 text-muted-foreground">Purchased Items</h2>
+          <ShoppingItemGrid 
+            items={purchasedItems}
+            onToggleItemCompletion={handleToggleCompletion}
+            onEditItem={handleEdit}
+            onImagePreview={handleImagePreview}
+            className="opacity-70"
+            batchMode={isBatchModeActive}
+            selectedItems={selectedItems}
+            onItemSelect={handleItemSelect}
+          />
+        </div>
+      )}
+
+      <EditItemDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        item={editingItem}
+        onSave={handleSaveEdit}
+      />
+    </div>
   );
 };
 
-export default memo(ShoppingList);
+export default ShoppingList;

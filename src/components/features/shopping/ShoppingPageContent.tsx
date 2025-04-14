@@ -14,12 +14,16 @@ import EmptyState from '@/components/ui/empty-state';
 import ShoppingTabsSection from './ShoppingTabsSection';
 import SortingMenuDropdown from './SortingMenuDropdown';
 import { SortOption } from './useShoppingItems';
+import ImagePreviewDialog from './ImagePreviewDialog';
 
 const ShoppingPageContent: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMode, setFilterMode] = useState<'all' | 'one-off' | 'weekly' | 'monthly'>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
+  const [selectedImageItem, setSelectedImageItem] = useState<any>(null);
+  
   const { isMobile } = useIsMobile();
   const { 
     addItem, 
@@ -58,6 +62,13 @@ const ShoppingPageContent: React.FC = () => {
   
   const handleSortChange = (value: SortOption) => {
     setSortOption(value);
+  };
+
+  const handleImagePreview = (item: any) => {
+    if (item && item.imageUrl) {
+      setSelectedImageItem(item);
+      setIsImagePreviewOpen(true);
+    }
   };
 
   const headerActions = {
@@ -120,6 +131,7 @@ const ShoppingPageContent: React.FC = () => {
         <ShoppingList 
           searchTerm={searchTerm}
           filterMode={filterMode}
+          onImagePreview={handleImagePreview}
         />
       )}
 
@@ -127,6 +139,13 @@ const ShoppingPageContent: React.FC = () => {
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
         onSave={handleSaveItem}
+      />
+      
+      <ImagePreviewDialog
+        open={isImagePreviewOpen}
+        onOpenChange={setIsImagePreviewOpen}
+        imageUrl={selectedImageItem?.imageUrl}
+        itemName={selectedImageItem?.name}
       />
     </ResponsiveContainer>
   );

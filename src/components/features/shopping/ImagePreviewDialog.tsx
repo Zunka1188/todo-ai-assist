@@ -1,216 +1,169 @@
 
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash, ZoomIn, ZoomOut, RotateCw, Download, CopyCheck } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { toast } from '@/components/ui/use-toast';
+import { Copy, Download, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
+import useErrorHandler from '@/hooks/useErrorHandler';
 
 interface ImagePreviewDialogProps {
-  imageUrl: string | null;
-  item?: any;
-  onClose: () => void;
-  onDelete?: () => void;
-  onEdit?: () => void;
-  onSaveItem?: (capturedText?: string) => boolean;
-  readOnly?: boolean;
-  zoom?: number;
-  onZoomIn?: () => void;
-  onZoomOut?: () => void;
-  onZoomReset?: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  imageUrl?: string;
+  itemName?: string;
 }
 
 const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
+  open,
+  onOpenChange,
   imageUrl,
-  item,
-  onClose,
-  onDelete,
-  onEdit,
-  onSaveItem,
-  readOnly = false,
-  zoom = 1,
-  onZoomIn = () => {},
-  onZoomOut = () => {},
-  onZoomReset = () => {},
+  itemName = 'Item'
 }) => {
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [capturedText, setCapturedText] = useState<string>('');
-  const itemName = item?.name || 'Image';
+  const [zoomLevel, setZoomLevel] = useState(100);
+  const [rotation, setRotation] = useState(0);
+  const { toast } = useToast();
+  const { isMobile } = useIsMobile();
+  const { handleError } = useErrorHandler();
 
-  // Function to handle image download
-  const handleDownload = () => {
-    if (!imageUrl) return;
-    
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = `${itemName.replace(/\s+/g, '-').toLowerCase()}-image.jpg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast({
-      title: "Image downloaded",
-      description: "The image has been saved to your device",
-      duration: 3000,
-    });
-  };
-  
-  // Function to copy image to clipboard
-  const copyImageToClipboard = async () => {
-    if (!imageUrl) return;
-    
-    try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          [blob.type]: blob
-        })
-      ]);
-      
-      toast({
-        title: "Image copied",
-        description: "The image has been copied to clipboard",
-        duration: 3000,
-      });
-    } catch (error) {
-      console.error('Failed to copy image:', error);
-      toast({
-        title: "Copy failed",
-        description: "Could not copy the image to clipboard",
-        variant: "destructive",
-        duration: 3000,
-      });
+  // Handle zoom actions
+  const handleZoomIn = () => {
+    if (zoomLevel < 200) {
+      setZoomLevel(zoomLevel + 25);
     }
   };
 
+  const handleZoomOut = () => {
+    if (zoomLevel > 50) {
+      setZoomLevel(zoomLevel - 25);
+    }
+  };
+
+  // Handle rotation
+  const handleRotate = () => {
+    setRotation((rotation + 90) % 360);
+  };
+
+  // Handle image copy
+  const handleCopyImage = async () => {
+    if (!imageUrl) return;
+    
+    try {
+      // Fetch the image and copy to clipboard
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      
+      // Chrome and modern browsers support copying images
+      if (navigator.clipboard && navigator.clipboard.write) {
+        const item = new ClipboardItem({
+          [blob.type]: blob
+        });
+        await navigator.clipboard.write([item]);
+        toast({
+          title: "Image copied",
+          description: "Image copied to clipboard"
+        });
+      } else {
+        // Fallback for browsers that don't support copying images
+        toast({
+          title: "Cannot copy image",
+          description: "Your browser doesn't support copying images",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      handleError(`Failed to copy image: ${error instanceof Error ? error.message : String(error)}`, 'ImagePreview');
+    }
+  };
+
+  // Handle image download
+  const handleDownload = () => {
+    if (!imageUrl) return;
+    
+    try {
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.download = `${itemName.replace(/\s+/g, '_').toLowerCase()}_image.jpg`;
+      link.click();
+    } catch (error) {
+      handleError(`Failed to download image: ${error instanceof Error ? error.message : String(error)}`, 'ImagePreview');
+    }
+  };
+
+  // Reset zoom and rotation when dialog opens/closes
+  React.useEffect(() => {
+    if (!open) {
+      // Reset on close
+      setZoomLevel(100);
+      setRotation(0);
+    }
+  }, [open]);
+
   return (
-    <Dialog open={!!imageUrl} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl max-w-[95vw] max-h-[90vh] h-auto overflow-hidden">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md md:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-lg">{itemName}</DialogTitle>
-          
-          {/* Zoom controls */}
-          <div className="flex items-center gap-2 mt-2">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="h-8 w-8" 
-              onClick={onZoomOut}
-              disabled={zoom <= 0.5}
-            >
-              <ZoomOut className="h-4 w-4" />
-              <span className="sr-only">Zoom out</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs px-2 h-8"
-              onClick={onZoomReset}
-            >
-              {Math.round(zoom * 100)}%
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="h-8 w-8" 
-              onClick={onZoomIn}
-              disabled={zoom >= 3}
-            >
-              <ZoomIn className="h-4 w-4" />
-              <span className="sr-only">Zoom in</span>
-            </Button>
-          </div>
+          <DialogTitle>{itemName} Image</DialogTitle>
+          <Button 
+            className="absolute right-4 top-4" 
+            size="sm" 
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </DialogHeader>
         
-        <div className="relative overflow-auto max-h-[60vh] flex items-center justify-center p-2">
+        <div className="overflow-hidden relative">
           {imageUrl ? (
-            <div 
-              className="relative"
-              style={{
-                overflow: 'auto',
-                maxHeight: '60vh',
-              }}
-            >
-              <img
-                src={imageUrl}
+            <div className="flex justify-center min-h-[200px] items-center bg-black/5 rounded-md">
+              <img 
+                src={imageUrl} 
                 alt={itemName}
-                className="object-contain transition-transform"
-                style={{
-                  transform: `scale(${zoom})`,
-                  transformOrigin: 'center',
-                  transitionProperty: 'transform',
-                  transitionDuration: '150ms',
+                className="max-h-[60vh] object-contain transition-all duration-200"
+                style={{ 
+                  transform: `scale(${zoomLevel / 100}) rotate(${rotation}deg)`,
                 }}
               />
             </div>
           ) : (
-            <div className="w-full h-40 bg-muted flex items-center justify-center text-muted-foreground">
-              No image available
+            <div className="h-60 flex items-center justify-center bg-muted rounded-md">
+              <p className="text-muted-foreground">No image available</p>
             </div>
           )}
         </div>
-
-        <DialogFooter className={cn("flex-col sm:flex-row sm:justify-between gap-2", isAnalyzing && "opacity-50 pointer-events-none")}>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleDownload}
-              disabled={!imageUrl || isAnalyzing}
-              className="flex-1 text-xs"
-            >
-              <Download className="mr-1 h-3.5 w-3.5" />
-              Download
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={copyImageToClipboard}
-              disabled={!imageUrl || isAnalyzing}
-              className="flex-1 text-xs"
-            >
-              <CopyCheck className="mr-1 h-3.5 w-3.5" />
-              Copy
-            </Button>
-          </div>
-          
-          <div className="flex flex-1 sm:flex-none gap-2 justify-end">
-            {onEdit && !readOnly && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onEdit}
-                disabled={isAnalyzing}
-                className="text-xs"
-              >
-                <Edit className="mr-1 h-3.5 w-3.5" />
-                Edit
+        
+        {imageUrl && (
+          <div className="flex flex-wrap gap-2 justify-between">
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleZoomIn} disabled={zoomLevel >= 200}>
+                <ZoomIn className="h-4 w-4 mr-1" />
+                {!isMobile && "Zoom In"}
               </Button>
-            )}
-            
-            {onDelete && !readOnly && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onDelete}
-                disabled={isAnalyzing}
-                className="text-xs text-destructive hover:text-destructive"
-              >
-                <Trash className="mr-1 h-3.5 w-3.5" />
-                Delete
+              <Button variant="outline" size="sm" onClick={handleZoomOut} disabled={zoomLevel <= 50}>
+                <ZoomOut className="h-4 w-4 mr-1" />
+                {!isMobile && "Zoom Out"}
               </Button>
-            )}
+              <Button variant="outline" size="sm" onClick={handleRotate}>
+                <RotateCcw className="h-4 w-4 mr-1" />
+                {!isMobile && "Rotate"}
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleCopyImage}>
+                <Copy className="h-4 w-4 mr-1" />
+                {!isMobile && "Copy"}
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDownload}>
+                <Download className="h-4 w-4 mr-1" />
+                {!isMobile && "Download"}
+              </Button>
+            </div>
           </div>
+        )}
+        
+        <DialogFooter>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
