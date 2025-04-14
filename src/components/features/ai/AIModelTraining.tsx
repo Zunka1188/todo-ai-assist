@@ -1,10 +1,12 @@
-import React from 'react';
+
+import React, { Suspense, lazy, useState } from 'react';
 import { useModelUpdates } from '@/utils/detectionEngine/hooks/useModelUpdates';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Brain, 
   Database, 
@@ -14,17 +16,24 @@ import {
   Check, 
   X, 
   AlertTriangle,
-  ArrowUp 
+  ArrowUp,
+  Loader2
 } from 'lucide-react';
 
 interface AIModelTrainingProps {
   className?: string;
 }
 
+// Lazy-loaded components for code splitting
+const ModelPerformanceMetrics = lazy(() => import('./components/ModelPerformanceMetrics'));
+const UserFeedbackPanel = lazy(() => import('./components/UserFeedbackPanel'));
+
 const AIModelTraining: React.FC<AIModelTrainingProps> = ({ className }) => {
   const { status, addFeedback } = useModelUpdates();
-  const [selectedTab, setSelectedTab] = React.useState('feedback');
-  const [feedbackItems, setFeedbackItems] = React.useState([
+  const [selectedTab, setSelectedTab] = useState('feedback');
+  const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [feedbackItems, setFeedbackItems] = useState([
     { id: 1, type: 'product', timestamp: '2023-04-02T14:32:00Z', correct: true },
     { id: 2, type: 'document', timestamp: '2023-04-01T10:15:00Z', correct: false },
     { id: 3, type: 'barcode', timestamp: '2023-03-30T16:45:00Z', correct: true },
@@ -53,19 +62,58 @@ const AIModelTraining: React.FC<AIModelTrainingProps> = ({ className }) => {
     'Reduced false positives for document classification (-1.8%)',
   ];
 
+  // Simulate loading data with progress indicator
+  const handleRefreshData = () => {
+    setIsLoading(true);
+    setProgress(0);
+    
+    // Simulate progress updates
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setIsLoading(false);
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 150);
+  };
+
   const handleFeedbackToggle = (id: number, newValue: boolean) => {
     setFeedbackItems(items => 
       items.map(item => item.id === id ? { ...item, correct: newValue } : item)
     );
   };
 
+  // Loading fallback component
+  const LoadingSkeleton = () => (
+    <div className="space-y-4">
+      <Skeleton className="h-12 w-full" />
+      <div className="grid grid-cols-2 gap-3">
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
+      <Skeleton className="h-48 w-full" />
+      <Skeleton className="h-24 w-full" />
+    </div>
+  );
+
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Brain className="h-5 w-5 text-primary" /> 
-          AI Model Training & Performance
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-primary" /> 
+            <CardTitle>AI Model Training & Performance</CardTitle>
+          </div>
+          {isLoading && (
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span className="text-sm">{progress}%</span>
+            </div>
+          )}
+        </div>
         <CardDescription>
           Monitor model performance and help improve detection by providing feedback
         </CardDescription>
@@ -77,118 +125,32 @@ const AIModelTraining: React.FC<AIModelTrainingProps> = ({ className }) => {
             <TabsTrigger value="metrics">Model Metrics</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="feedback" className="pt-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium">Recent Detections</h3>
-                <span className="text-xs text-muted-foreground">
-                  Your feedback helps improve our models
-                </span>
-              </div>
-              
-              <ScrollArea className="h-[240px] rounded-md border">
-                <div className="p-4 space-y-3">
-                  {feedbackItems.map(item => (
-                    <div key={item.id} className="flex items-center justify-between border-b pb-2 last:border-0">
-                      <div>
-                        <p className="font-medium capitalize">{item.type} Detection</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(item.timestamp).toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          size="sm" 
-                          variant={item.correct ? "default" : "outline"}
-                          className="h-8 px-2"
-                          onClick={() => handleFeedbackToggle(item.id, true)}
-                        >
-                          <ThumbsUp className="h-4 w-4 mr-1" />
-                          Correct
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant={!item.correct ? "default" : "outline"}
-                          className="h-8 px-2"
-                          onClick={() => handleFeedbackToggle(item.id, false)}
-                        >
-                          <ThumbsDown className="h-4 w-4 mr-1" />
-                          Incorrect
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-
-                  {feedbackItems.length === 0 && (
-                    <div className="py-8 text-center text-muted-foreground">
-                      <Database className="h-10 w-10 mx-auto opacity-20 mb-2" />
-                      <p>No recent detections to review</p>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
+          {isLoading ? (
+            <div className="pt-4">
+              <Progress value={progress} className="h-2 mb-4" />
+              <LoadingSkeleton />
             </div>
-          </TabsContent>
-          
-          <TabsContent value="metrics" className="pt-4">
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="border rounded-lg p-3">
-                  <div className="text-muted-foreground text-xs mb-2">Overall Accuracy</div>
-                  <div className="flex items-end gap-2">
-                    <div className="text-2xl font-bold">{(metrics.overall.accuracy * 100).toFixed(1)}%</div>
-                    <div className="text-xs text-green-600 flex items-center">
-                      <ArrowUp className="h-3 w-3 mr-0.5" /> 2.5%
-                    </div>
-                  </div>
-                  <Progress className="mt-2 h-1" value={metrics.overall.accuracy * 100} />
-                </div>
-                
-                <div className="border rounded-lg p-3">
-                  <div className="text-muted-foreground text-xs mb-2">Precision</div>
-                  <div className="flex items-end gap-2">
-                    <div className="text-2xl font-bold">{(metrics.overall.precision * 100).toFixed(1)}%</div>
-                    <div className="text-xs text-green-600 flex items-center">
-                      <ArrowUp className="h-3 w-3 mr-0.5" /> 1.8%
-                    </div>
-                  </div>
-                  <Progress className="mt-2 h-1" value={metrics.overall.precision * 100} />
-                </div>
-              </div>
+          ) : (
+            <>
+              <TabsContent value="feedback" className="pt-4">
+                <Suspense fallback={<LoadingSkeleton />}>
+                  <UserFeedbackPanel 
+                    feedbackItems={feedbackItems}
+                    handleFeedbackToggle={handleFeedbackToggle}
+                  />
+                </Suspense>
+              </TabsContent>
               
-              <div className="border rounded-md p-3">
-                <h4 className="font-medium text-sm mb-3">Model Performance</h4>
-                <div className="space-y-3">
-                  {Object.entries(metrics.byModel).map(([model, data]) => (
-                    <div key={model} className="space-y-1">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="capitalize">{model}</span>
-                        <span className="font-medium flex items-center">
-                          {(data.accuracy * 100).toFixed(1)}%
-                          <span className="text-xs text-green-600 ml-1">
-                            +{(data.improvement * 100).toFixed(1)}%
-                          </span>
-                        </span>
-                      </div>
-                      <Progress value={data.accuracy * 100} className="h-1.5" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="font-medium text-sm mb-2">Recent Improvements</h4>
-                <ul className="space-y-1 text-sm">
-                  {recentImprovements.map((improvement, index) => (
-                    <li key={index} className="flex items-start">
-                      <Check className="h-4 w-4 text-green-600 mr-1 mt-0.5 flex-shrink-0" />
-                      <span>{improvement}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </TabsContent>
+              <TabsContent value="metrics" className="pt-4">
+                <Suspense fallback={<LoadingSkeleton />}>
+                  <ModelPerformanceMetrics 
+                    metrics={metrics}
+                    recentImprovements={recentImprovements}
+                  />
+                </Suspense>
+              </TabsContent>
+            </>
+          )}
         </Tabs>
       </CardContent>
       <CardFooter className="flex justify-between">
@@ -196,7 +158,24 @@ const AIModelTraining: React.FC<AIModelTrainingProps> = ({ className }) => {
           <AlertTriangle className="h-3 w-3 mr-1" />
           Data used only to improve detection accuracy
         </div>
-        <Button variant="outline" size="sm">Manage AI Settings</Button>
+        <div className="space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefreshData}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              'Refresh Data'
+            )}
+          </Button>
+          <Button variant="outline" size="sm">Manage AI Settings</Button>
+        </div>
       </CardFooter>
     </Card>
   );

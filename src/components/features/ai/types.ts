@@ -1,14 +1,18 @@
 
-import { Recipe } from '@/types/recipe';
-import { ReactNode } from 'react';
+import { Recipe } from '@/data/recipes/types';
+
+export interface AIFoodAssistantProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
 export type DietaryRestrictionType = 
   | 'vegan' 
   | 'vegetarian' 
   | 'gluten-free' 
   | 'dairy-free' 
-  | 'nut-free' 
-  | 'low-carb';
+  | 'low-carb'
+  | 'nut-free';
 
 export interface DietaryOption {
   id: DietaryRestrictionType;
@@ -16,43 +20,50 @@ export interface DietaryOption {
   checked: boolean;
 }
 
+export interface RecipeSearchProps {
+  onSelectRecipe: (recipe: Recipe) => void;
+  selectedDietaryRestrictions?: DietaryRestrictionType[];
+}
+
+export type ConversationStateType = 
+  | 'initial'
+  | 'recipe_search'
+  | 'serving_size'
+  | 'dietary_restrictions'
+  | 'recipe_details'
+  | 'schedule_event';
+
 export interface FoodContext {
-  conversationState: 'initial' | 'recipe_search' | 'dish_selection' | 'serving_size' | 'dietary_restrictions' | 'ingredient_list' | 'decision_point' | 'recipe_generation' | 'schedule_event' | 'closing';
+  conversationState: ConversationStateType;
+  dietaryRestrictions: DietaryRestrictionType[];
+  ingredientsAdded?: boolean;
+  recipeSaved?: boolean;
+  eventScheduled?: boolean;
   dishName?: string;
   selectedRecipe?: Recipe;
   servingSize?: number;
-  dietaryRestrictions: DietaryRestrictionType[];
-  dateTime?: Date;
-  eventNotes?: string;
-  ingredientsAdded: boolean;
-  recipeSaved: boolean;
-  eventScheduled: boolean;
 }
 
-export interface ButtonOption {
+export interface MessageAction {
   id: string;
   label: string;
-  icon?: ReactNode;
-  variant?: 'default' | 'secondary' | 'outline';
+  variant?: 'default' | 'outline' | 'ghost';
   action: () => void;
 }
 
 export interface ChatMessage {
   id: string;
-  role: 'system' | 'user' | 'assistant';
+  role: 'user' | 'assistant';
   content: string;
+  image?: string;
   timestamp: Date;
-  imageUrl?: string;
-  options?: ButtonOption[];
-  buttons?: ButtonOption[];
+  actions?: MessageAction[];
 }
 
-export interface AIFoodAssistantProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export interface RecipeSearchProps {
-  onSelectRecipe: (recipe: Recipe) => void;
-  selectedDietaryRestrictions: DietaryRestrictionType[];
+export interface ModelPerformanceMetrics {
+  accuracy: number;
+  precision: number;
+  recall: number;
+  f1Score: number;
+  improvementRate: number;
 }

@@ -1,8 +1,8 @@
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { X, Send } from 'lucide-react';
+import { X, Send, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import RecipeSearch from './RecipeSearch';
 import { DietaryCheckboxes } from './components/DietaryCheckboxes';
@@ -14,6 +14,8 @@ import { AIFoodAssistantProps, DietaryOption, FoodContext, DietaryRestrictionTyp
 import { useChatMessages } from './hooks/useChatMessages';
 import { Recipe } from '@/data/recipes/types';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { sanitizeTextInput } from '@/utils/input-validation';
 
 const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) => {
   const { toast } = useToast();
@@ -42,14 +44,50 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Track mounted state to prevent memory leaks
+  const isMounted = useRef(true);
+  
+  // Safe setState functions that check mounted status
+  const safeSetError = useCallback((value: string | null) => {
+    if (isMounted.current) {
+      setError(value);
+    }
+  }, []);
+  
+  const safeSetIsProcessing = useCallback((value: boolean) => {
+    if (isMounted.current) {
+      setIsProcessing(value);
+    }
+  }, []);
+  
+  const safeSetIsTyping = useCallback((value: boolean) => {
+    if (isMounted.current) {
+      setIsTyping(value);
+    }
+  }, []);
+  
+  const safeSetIsLoading = useCallback((value: boolean) => {
+    if (isMounted.current) {
+      setIsLoading(value);
+    }
+  }, []);
+
+  // Handle component unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       // Add welcome message
       setTimeout(() => {
-        addAssistantMessage(
-          "👋 Hi there! I'm your AI Food Assistant. I can help you find recipes, plan meals, and answer cooking questions. What would you like to cook today?"
-        );
+        if (isMounted.current) {
+          addAssistantMessage(
+            "👋 Hi there! I'm your AI Food Assistant. I can help you find recipes, plan meals, and answer cooking questions. What would you like to cook today?"
+          );
+        }
       }, 500);
     }
   }, [isOpen, messages.length, addAssistantMessage]);
@@ -66,23 +104,43 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     };
   }, [messages]);
 
+  // Input validation helper
+  const validateInput = (text: string): boolean => {
+    if (!text.trim()) {
+      safeSetError("Please enter a message.");
+      return false;
+    }
+    
+    if (text.length > 500) {
+      safeSetError("Message is too long (maximum 500 characters).");
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim() || isProcessing) return;
+    
+    // Input validation
+    const sanitizedInput = sanitizeTextInput(input, 500);
+    if (!validateInput(sanitizedInput)) return;
 
-    addUserMessage(input);
+    addUserMessage(sanitizedInput);
     setInput('');
-    setIsProcessing(true);
-    setIsTyping(true);
-    setError(null);
+    safeSetIsProcessing(true);
+    safeSetIsTyping(true);
+    safeSetError(null);
 
     try {
       // Process user input based on context
       setTimeout(() => {
-        setIsProcessing(false);
-        setIsTyping(false);
+        if (!isMounted.current) return;
+        
+        safeSetIsProcessing(false);
+        safeSetIsTyping(false);
 
-        const lowerInput = input.toLowerCase();
+        const lowerInput = sanitizedInput.toLowerCase();
         
         if (lowerInput.includes('recipe') || lowerInput.includes('cook') || lowerInput.includes('make')) {
           // User is looking for recipes
@@ -123,22 +181,26 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       }, 1000);
     } catch (err) {
       console.error("Error processing input:", err);
-      setError("Something went wrong. Please try again.");
-      setIsProcessing(false);
-      setIsTyping(false);
+      safeSetError("Something went wrong. Please try again.");
+      safeSetIsProcessing(false);
+      safeSetIsTyping(false);
     }
   };
 
-  const handleDishNameInput = () => {
+  const handleDishNameInput = useCallback(() => {
+    if (!isMounted.current) return;
+    
     setFoodContext(prev => ({
       ...prev,
       conversationState: 'recipe_search'
     }));
     addAssistantMessage("What kind of dish would you like to make? You can search below or tell me.");
-  };
+  }, [addAssistantMessage]);
 
-  const handleRecipeSelection = (recipe: Recipe) => {
-    setIsLoading(true);
+  const handleRecipeSelection = useCallback((recipe: Recipe) => {
+    if (!isMounted.current) return;
+    
+    safeSetIsLoading(true);
     try {
       addUserMessage(`I want to make ${recipe.name}`);
       
@@ -151,6 +213,8 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
       
       // Show recipe details
       setTimeout(() => {
+        if (!isMounted.current) return;
+        
         addAssistantMessage(
           `Great choice! ${recipe.name} is a delicious ${recipe.cuisine} ${recipe.category}. Would you like me to adjust the recipe for any dietary restrictions or serving size?`,
           recipe.image,
@@ -169,16 +233,16 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
             }
           ]
         );
-        setIsLoading(false);
+        safeSetIsLoading(false);
       }, 500);
     } catch (err) {
       console.error("Error selecting recipe:", err);
-      setError("Failed to load recipe details. Please try again.");
-      setIsLoading(false);
+      safeSetError("Failed to load recipe details. Please try again.");
+      safeSetIsLoading(false);
     }
-  };
+  }, [addUserMessage, addAssistantMessage]);
 
-  const showRecipeDetails = (recipe: Recipe) => {
+  const showRecipeDetails = useCallback((recipe: Recipe) => {
     try {
       const dietaryInfo = [];
       if (recipe.dietaryInfo.isVegan) dietaryInfo.push("Vegan");
@@ -212,9 +276,9 @@ ${recipe.instructions.map((step, i) => `${i+1}. ${step}`).join("\n")}
         variant: "destructive"
       });
     }
-  };
+  }, [addAssistantMessage, toast]);
 
-  const saveRecipe = (recipe: Recipe) => {
+  const saveRecipe = useCallback((recipe: Recipe) => {
     try {
       // Simulate saving the recipe
       setFoodContext(prev => ({
@@ -236,9 +300,9 @@ ${recipe.instructions.map((step, i) => `${i+1}. ${step}`).join("\n")}
         variant: "destructive"
       });
     }
-  };
+  }, [addAssistantMessage, toast]);
 
-  const handleDietaryChange = (options: DietaryOption[]) => {
+  const handleDietaryChange = useCallback((options: DietaryOption[]) => {
     setDietaryOptions(options);
     
     const selectedDiets: DietaryRestrictionType[] = options
@@ -249,7 +313,12 @@ ${recipe.instructions.map((step, i) => `${i+1}. ${step}`).join("\n")}
       ...prev,
       dietaryRestrictions: selectedDiets
     }));
-  };
+  }, []);
+
+  // Clear all error states
+  const clearError = useCallback(() => {
+    safeSetError(null);
+  }, [safeSetError]);
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -271,9 +340,18 @@ ${recipe.instructions.map((step, i) => `${i+1}. ${step}`).join("\n")}
         </SheetHeader>
 
         {error && (
-          <div className="bg-destructive/10 text-destructive px-4 py-2 text-sm">
-            {error}
-          </div>
+          <Alert variant="destructive" className="mx-4 my-2 py-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-sm">{error}</AlertDescription>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-4 w-4 absolute right-2 top-2"
+              onClick={clearError}
+            >
+              <X size={10} />
+            </Button>
+          </Alert>
         )}
 
         <ChatMessages messages={messages} isTyping={isTyping} />

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Filter, Check, ChevronDown, X, Scroll, SlidersHorizontal, Clock, Users, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,8 +13,12 @@ import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { DietaryRestrictionType, RecipeSearchProps } from './types';
+import { useDebounce } from '@/hooks/useDebounce';
 
 import { recipes } from '@/data/recipes';
+
+// Cache for search results
+const recipeSearchCache = new Map<string, Recipe[]>();
 
 const dietaryRestrictions: { value: DietaryRestrictionType; label: string }[] = [
   { value: 'vegan', label: 'Vegan' },
@@ -37,6 +42,21 @@ const cuisines = [
 
 type SortOption = 'name' | 'prepTime' | 'cookTime' | 'totalTime';
 
+// Generate cache key from search parameters
+const generateCacheKey = (
+  searchTerm: string, 
+  dietary: DietaryRestrictionType[], 
+  cuisines: string[], 
+  sortBy: SortOption
+): string => {
+  return [
+    searchTerm.toLowerCase().trim(),
+    dietary.sort().join(','),
+    cuisines.sort().join(','),
+    sortBy
+  ].join('|');
+};
+
 const RecipeSearch: React.FC<RecipeSearchProps> = ({
   onSelectRecipe,
   selectedDietaryRestrictions,
@@ -56,6 +76,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
   const [sortBy, setSortBy] = useState<SortOption>('name');
   const [servingSize, setServingSize] = useState<number>(4);
   const { theme } = useTheme();
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   useEffect(() => {
     if (selectedDietaryRestrictions && selectedDietaryRestrictions.length > 0) {
@@ -66,13 +87,34 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
     }
   }, [selectedDietaryRestrictions]);
 
-  useEffect(() => {
+  // Memoize the filtering and sorting logic to improve performance
+  const getFilteredRecipes = useCallback((
+    searchTerm: string,
+    activeFilters: { dietary: DietaryRestrictionType[]; cuisines: string[] },
+    sortBy: SortOption
+  ) => {
+    // Generate cache key
+    const cacheKey = generateCacheKey(
+      searchTerm,
+      activeFilters.dietary,
+      activeFilters.cuisines,
+      sortBy
+    );
+    
+    // Check cache first
+    if (recipeSearchCache.has(cacheKey)) {
+      return recipeSearchCache.get(cacheKey)!;
+    }
+
+    // If not in cache, perform filtering
     let filtered = [...recipes] as Recipe[];
+    const lowerSearchTerm = searchTerm.toLowerCase();
 
     if (searchTerm) {
       filtered = filtered.filter(recipe =>
-        recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        recipe.cuisine.toLowerCase().includes(searchTerm.toLowerCase())
+        recipe.name.toLowerCase().includes(lowerSearchTerm) || 
+        recipe.cuisine.toLowerCase().includes(lowerSearchTerm) ||
+        recipe.category.toLowerCase().includes(lowerSearchTerm)
       );
     }
 
@@ -91,6 +133,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
       });
     }
 
+    // Apply sorting
     filtered = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'name':
@@ -106,22 +149,30 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
       }
     });
 
-    setFilteredRecipes(filtered);
-  }, [searchTerm, activeFilters, sortBy, selectedDietaryRestrictions]);
+    // Store in cache (limit cache size to prevent memory issues)
+    if (recipeSearchCache.size > 50) {
+      // Clear oldest entry if cache is too large
+      const oldestKey = recipeSearchCache.keys().next().value;
+      recipeSearchCache.delete(oldestKey);
+    }
+    recipeSearchCache.set(cacheKey, filtered);
+
+    return filtered;
+  }, []);
 
   useEffect(() => {
-    if (filteredRecipes.length > 4) {
-      setShowScrollIndicator(true);
-    } else {
-      setShowScrollIndicator(false);
-    }
-  }, [filteredRecipes]);
+    const results = getFilteredRecipes(debouncedSearchTerm, activeFilters, sortBy);
+    setFilteredRecipes(results);
+    
+    // Update scroll indicator
+    setShowScrollIndicator(results.length > 4);
+  }, [debouncedSearchTerm, activeFilters, sortBy, getFilteredRecipes]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
-  const toggleDietaryRestriction = (restriction: DietaryRestrictionType) => {
+  const toggleDietaryRestriction = useCallback((restriction: DietaryRestrictionType) => {
     setActiveFilters(prev => {
       if (prev.dietary.includes(restriction)) {
         return { ...prev, dietary: prev.dietary.filter(r => r !== restriction) };
@@ -129,9 +180,9 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
         return { ...prev, dietary: [...prev.dietary, restriction] };
       }
     });
-  };
+  }, []);
 
-  const toggleCuisine = (cuisine: string) => {
+  const toggleCuisine = useCallback((cuisine: string) => {
     setActiveFilters(prev => {
       if (prev.cuisines.includes(cuisine)) {
         return { ...prev, cuisines: prev.cuisines.filter(c => c !== cuisine) };
@@ -139,43 +190,43 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
         return { ...prev, cuisines: [...prev.cuisines, cuisine] };
       }
     });
-  };
+  }, []);
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     setActiveFilters({ dietary: [], cuisines: [] });
     setSearchTerm('');
-  };
+  }, []);
 
-  const getTotalActiveFilters = () => {
+  const getTotalActiveFilters = useCallback(() => {
     return activeFilters.dietary.length + activeFilters.cuisines.length;
-  };
+  }, [activeFilters.dietary.length, activeFilters.cuisines.length]);
 
-  const calculateMatchingCount = (filter: DietaryRestrictionType) => {
+  const calculateMatchingCount = useCallback((filter: DietaryRestrictionType) => {
     return (recipes as Recipe[]).filter(recipe => {
       const key = mapRestrictionToKey(filter);
       return key ? recipe.dietaryInfo[key] : false;
     }).length;
-  };
+  }, []);
 
-  const handleSelectRecipe = (recipe: Recipe) => {
+  const handleSelectRecipe = useCallback((recipe: Recipe) => {
     const adjustedRecipe = {
       ...recipe,
       servings: servingSize
     };
     onSelectRecipe(adjustedRecipe);
-  };
+  }, [servingSize, onSelectRecipe]);
 
-  const incrementServingSize = () => {
+  const incrementServingSize = useCallback(() => {
     if (servingSize < 10) {
       setServingSize(prev => prev + 1);
     }
-  };
+  }, [servingSize]);
 
-  const decrementServingSize = () => {
+  const decrementServingSize = useCallback(() => {
     if (servingSize > 1) {
       setServingSize(prev => prev - 1);
     }
-  };
+  }, [servingSize]);
 
   const mapRestrictionToKey = (restriction: DietaryRestrictionType): keyof Recipe['dietaryInfo'] | null => {
     switch (restriction) {
@@ -188,6 +239,9 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
       default: return null;
     }
   };
+
+  // Compute memoized values to avoid unnecessary rerenders
+  const totalActiveFilters = useMemo(() => getTotalActiveFilters(), [getTotalActiveFilters]);
 
   return (
     <div className="mb-4 w-full">
@@ -293,13 +347,13 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
                 size="icon" 
                 className={cn(
                   "absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8",
-                  getTotalActiveFilters() > 0 && "text-primary"
+                  totalActiveFilters > 0 && "text-primary"
                 )}
               >
                 <Filter className="h-4 w-4" />
-                {getTotalActiveFilters() > 0 && (
+                {totalActiveFilters > 0 && (
                   <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] text-white flex items-center justify-center">
-                    {getTotalActiveFilters()}
+                    {totalActiveFilters}
                   </span>
                 )}
               </Button>
@@ -384,7 +438,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
           </Popover>
         </div>
         
-        {getTotalActiveFilters() > 0 && (
+        {totalActiveFilters > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {activeFilters.dietary.map(filter => (
               <Badge 
@@ -420,7 +474,7 @@ const RecipeSearch: React.FC<RecipeSearchProps> = ({
                 </Button>
               </Badge>
             ))}
-            {getTotalActiveFilters() > 0 && (
+            {totalActiveFilters > 0 && (
               <Button 
                 variant="ghost" 
                 className="text-xs h-6 px-2 py-0"
