@@ -14,6 +14,7 @@ npx vitest run src/components/features/shopping/__tests__/ShoppingList.test.tsx
 npx vitest run src/components/features/shopping/__tests__/ShoppingItemsContext.test.tsx
 npx vitest run src/components/features/shopping/__tests__/useShoppingItems.test.tsx
 npx vitest run src/components/features/shopping/__tests__/shopping-comprehensive.test.tsx
+npx vitest run src/components/features/shopping/__tests__/ShoppingPage.performance.test.tsx
 
 # Run E2E tests if they exist
 if [ -f "src/tests/e2e/shopping-list.test.ts" ]; then
