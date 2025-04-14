@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SaveRecipeButtonProps {
   recipe: Recipe;
@@ -16,10 +17,23 @@ interface SaveRecipeButtonProps {
   className?: string;
   onSaveSuccess?: () => void;
   onSaveError?: (error: Error) => void;
+  testId?: string; // Added for testing purposes
 }
 
 /**
  * Button component for saving a recipe to the user's collection
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <SaveRecipeButton 
+ *   recipe={recipe} 
+ *   variant="outline" 
+ *   size="default" 
+ *   onSaveSuccess={handleSaveSuccess} 
+ *   onSaveError={handleSaveError} 
+ * />
+ * ```
  */
 const SaveRecipeButton: React.FC<SaveRecipeButtonProps> = ({ 
   recipe, 
@@ -27,11 +41,13 @@ const SaveRecipeButton: React.FC<SaveRecipeButtonProps> = ({
   size = 'default',
   className,
   onSaveSuccess,
-  onSaveError
+  onSaveError,
+  testId = 'save-recipe-button'
 }) => {
   const { saveRecipe, removeSavedRecipe, isRecipeSaved, isSaving, isRemoving } = useRecipes();
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { isMobile } = useIsMobile();
   
   const isSaved = isRecipeSaved(recipe.id);
   const isLoading = isSaving || isRemoving;
@@ -65,22 +81,30 @@ const SaveRecipeButton: React.FC<SaveRecipeButtonProps> = ({
     }
   };
   
+  // Adjust size for mobile devices
+  const effectiveSize = isMobile && size !== 'icon' ? 'lg' : size;
+  
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
             variant={variant}
-            size={size}
+            size={effectiveSize}
             onClick={handleClick}
             disabled={isLoading}
-            className={cn(className)}
+            className={cn(
+              isMobile ? 'w-full justify-center' : '',
+              className
+            )}
             aria-label={isSaved ? t('recipes.removeFromFavorites') : t('recipes.saveRecipe')}
+            data-testid={testId}
+            data-state={isSaved ? 'saved' : 'not-saved'}
           >
             {isLoading ? (
-              <Loader2 className={cn("h-4 w-4", size !== 'icon' && "mr-2")} />
+              <Loader2 className={cn("h-4 w-4 animate-spin", size !== 'icon' && "mr-2")} />
             ) : (
-              size === 'icon' ? (
+              effectiveSize === 'icon' ? (
                 isSaved ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />
               ) : (
                 <>

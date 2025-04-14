@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { format, isSameDay } from 'date-fns';
 import { Event } from '@/components/features/calendar/types/event';
@@ -5,6 +6,12 @@ import { initialEvents } from '@/components/features/calendar/data/initialEvents
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/utils/logger';
 
+/**
+ * Custom hook for calendar widget functionality with loading states
+ * and error handling
+ * 
+ * @returns Calendar widget state and handlers
+ */
 export const useCalendarWidget = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [open, setOpen] = useState(false);
@@ -13,6 +20,7 @@ export const useCalendarWidget = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
 
   // Load events initially
@@ -87,6 +95,28 @@ export const useCalendarWidget = () => {
     setIsViewDialogOpen(false);
   }, []);
 
+  // Handle refreshing events
+  const handleRefresh = useCallback(async () => {
+    try {
+      setIsRefreshing(true);
+      // Simulate API call for refreshing data
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setIsRefreshing(false);
+      toast({
+        title: "Success",
+        description: "Calendar events refreshed",
+      });
+    } catch (err) {
+      logger.error('[CalendarWidget] Failed to refresh events', err);
+      setIsRefreshing(false);
+      toast({
+        title: "Error",
+        description: "Failed to refresh events",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
+
   return {
     date,
     open,
@@ -97,12 +127,14 @@ export const useCalendarWidget = () => {
     setIsViewDialogOpen,
     isEditMode,
     isLoading,
+    isRefreshing,
     error,
     eventsForToday,
     formattedDate,
     handleSelect,
     handleEventClick,
     handleViewToEdit,
-    handleCloseEventDialog
+    handleCloseEventDialog,
+    handleRefresh
   };
 };
