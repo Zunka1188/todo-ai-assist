@@ -2,13 +2,26 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { ShoppingItemsProvider, useShoppingItemsContext } from '../ShoppingItemsContext';
+import { ShoppingItemsContext, ShoppingItemsProvider } from '../ShoppingItemsContext';
 import ShoppingPageContent from '../ShoppingPageContent';
+import { SortOption } from '../useShoppingItems';
 
 // Mock the necessary hooks and components
 vi.mock('@/hooks/use-mobile', () => ({
   useIsMobile: () => ({ isMobile: false })
 }));
+
+// Mock the useShoppingItemsContext hook
+vi.mock('../ShoppingItemsContext', () => {
+  const actual = vi.importActual('../ShoppingItemsContext');
+  return {
+    ...actual,
+    useShoppingItemsContext: vi.fn(),
+    ShoppingItemsContext: {
+      Provider: ({ children, value }) => children
+    }
+  };
+});
 
 describe('ShoppingPageContent', () => {
   beforeEach(() => {
@@ -38,47 +51,42 @@ describe('ShoppingPageContent', () => {
   const handleItemSelect = vi.fn();
   const deleteSelectedItems = vi.fn();
   const setSelectedItems = vi.fn();
-  
-  // Use a custom test component that provides the mock context
-  const TestComponent = () => {
-    const mockContextValue = {
-      addItem,
-      isLoading: false,
-      updateSearchTerm,
-      updateFilterMode,
-      notPurchasedItems,
-      purchasedItems,
-      sortOption: 'newest',
-      setSortOption,
-      toggleItem,
-      updateItem,
-      removeItem, 
-      selectedItems: ['1'],
-      handleItemSelect,
-      deleteSelectedItems,
-      setSelectedItems
-    };
 
-    return <ShoppingPageContent />;
+  const mockContextValue = {
+    addItem,
+    isLoading: false,
+    updateSearchTerm,
+    updateFilterMode,
+    notPurchasedItems,
+    purchasedItems,
+    sortOption: 'newest' as SortOption,  // Use type assertion here
+    setSortOption,
+    toggleItem,
+    updateItem,
+    removeItem, 
+    selectedItems: ['1'],
+    handleItemSelect,
+    deleteSelectedItems,
+    setSelectedItems
   };
 
   it('renders correctly with initial data', () => {
-    render(
-      <ShoppingItemsProvider>
-        <TestComponent />
-      </ShoppingItemsProvider>
-    );
+    // Set up the mock implementation for this test
+    const { useShoppingItemsContext } = require('../ShoppingItemsContext');
+    useShoppingItemsContext.mockReturnValue(mockContextValue);
+
+    render(<ShoppingPageContent />);
     
     // Basic tests to ensure the component renders
     expect(screen.getByPlaceholderText('Search shopping items...')).toBeInTheDocument();
   });
   
   it('calls updateSearchTerm when search input changes', () => {
-    render(
-      <ShoppingItemsProvider>
-        <TestComponent />
-      </ShoppingItemsProvider>
-    );
+    // Set up the mock implementation for this test
+    const { useShoppingItemsContext } = require('../ShoppingItemsContext');
+    useShoppingItemsContext.mockReturnValue(mockContextValue);
+
+    render(<ShoppingPageContent />);
     
     const searchInput = screen.getByPlaceholderText('Search shopping items...');
     fireEvent.change(searchInput, { target: { value: 'test' } });
@@ -86,25 +94,16 @@ describe('ShoppingPageContent', () => {
   });
   
   it('renders empty state when there are no items and no search filter', () => {
-    const EmptyTestComponent = () => {
-      const mockContextValue = {
-        ...useShoppingItemsContext(),
-        notPurchasedItems: [],
-        purchasedItems: [],
-      };
+    // Set up the mock implementation for this test with empty arrays
+    const { useShoppingItemsContext } = require('../ShoppingItemsContext');
+    useShoppingItemsContext.mockReturnValue({
+      ...mockContextValue,
+      notPurchasedItems: [],
+      purchasedItems: []
+    });
 
-      return <ShoppingPageContent />;
-    };
-    
-    render(
-      <ShoppingItemsProvider>
-        <EmptyTestComponent />
-      </ShoppingItemsProvider>
-    );
+    render(<ShoppingPageContent />);
     
     expect(screen.getByText('Your shopping list is empty')).toBeInTheDocument();
   });
 });
-
-export default ShoppingPageContent;
-
