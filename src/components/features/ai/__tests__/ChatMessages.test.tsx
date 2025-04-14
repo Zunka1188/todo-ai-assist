@@ -3,9 +3,10 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ChatMessages } from '../components/ChatMessages';
+import { ChatMessage } from '../types';
 
 describe('ChatMessages', () => {
-  const mockMessages = [
+  const mockMessages: ChatMessage[] = [
     {
       id: '1',
       content: 'Hello, how can I help you?',

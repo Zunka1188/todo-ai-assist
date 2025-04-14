@@ -78,7 +78,7 @@ describe('ShoppingPageContent', () => {
       toggleItem: vi.fn(),
       removeItem: vi.fn(),
       updateItem: vi.fn(),
-      sortOption: 'name',
+      sortOption: 'alphabetical',
       setSortOption: vi.fn(),
       selectedItems: [],
       handleItemSelect: vi.fn(),
