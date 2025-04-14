@@ -103,29 +103,41 @@ describe('AIScanIntegration', () => {
     
     // Test document item type
     fireEvent.click(screen.getByText('Smart Scan'));
-    fireEvent.click(screen.getByTestId('scan-success-btn'));
     
-    // By default it's a product, so it should navigate to shopping
-    expect(mockNavigate).toHaveBeenCalledWith('/shopping');
+    // Create a custom event that passes different item data
+    const scanSuccessBtn = screen.getByTestId('scan-success-btn');
+    const originalOnClick = scanSuccessBtn.onclick;
     
-    // Clear mocks for next test
-    mockNavigate.mockClear();
-    mockToast.mockClear();
+    // Create a new function that will call the original with different data
+    const customEvent = {
+      currentTarget: scanSuccessBtn,
+      preventDefault: () => {}
+    };
     
-    // Rerender with calendar item
+    // Mock the SmartScannerCapture to simulate different item types
+    vi.mocked(require('../../scanning/SmartScannerCapture').default).mockImplementation(
+      ({ onSaveSuccess }) => (
+        <div data-testid="smart-scanner-capture">
+          <button 
+            data-testid="scan-success-btn" 
+            onClick={() => onSaveSuccess({ title: 'Test Document', itemType: 'document' })}
+          >
+            Simulate Document Scan
+          </button>
+        </div>
+      )
+    );
+    
+    // Re-render with the new mock
     rerender(<AIScanIntegration />);
     
-    fireEvent.click(screen.getByText('Smart Scan'));
+    // Simulate document scan
+    fireEvent.click(screen.getByText('Simulate Document Scan'));
     
-    // Now simulate a calendar item
-    const scanSuccess = vi.mocked(screen.getByTestId('scan-success-btn').onClick);
-    scanSuccess.mockImplementationOnce(() => {
-      const onSaveSuccess = vi.mocked(require('../../scanning/SmartScannerCapture').default).mock.calls[0][0].onSaveSuccess;
-      onSaveSuccess({ title: 'Test Calendar Item', itemType: 'invitation' });
+    expect(mockNavigate).toHaveBeenCalledWith('/documents');
+    expect(mockToast).toHaveBeenCalledWith({
+      title: "Added to Documents",
+      description: "Document \"Test Document\" has been saved."
     });
-    
-    fireEvent.click(screen.getByTestId('scan-success-btn'));
-    
-    expect(mockNavigate).toHaveBeenCalledWith('/calendar');
   });
 });

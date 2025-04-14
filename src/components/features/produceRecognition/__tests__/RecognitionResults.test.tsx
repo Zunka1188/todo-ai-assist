@@ -10,16 +10,22 @@ vi.mock('@/hooks/use-toast', () => ({
 }));
 
 describe('RecognitionResults', () => {
-  const mockResults = {
-    image: 'test-image-url',
-    items: [
-      { label: 'Apple', confidence: 0.95 },
-      { label: 'Banana', confidence: 0.85 }
-    ]
+  const mockItem = {
+    name: 'Apple',
+    confidence: 0.95,
+    price: 1.99,
+    weightGrams: 185,
+    nutritionData: {
+      calories: 95,
+      protein: 0.5,
+      carbs: 25,
+      fat: 0.3
+    },
+    imageUrl: 'test-image-url'
   };
   
-  const mockOnSave = vi.fn();
-  const mockOnRetry = vi.fn();
+  const mockOnEdit = vi.fn();
+  const mockOnConfirm = vi.fn();
   
   beforeEach(() => {
     vi.clearAllMocks();
@@ -28,76 +34,80 @@ describe('RecognitionResults', () => {
   it('renders recognition results correctly', () => {
     render(
       <RecognitionResults 
-        results={mockResults}
-        onSave={mockOnSave}
-        onRetry={mockOnRetry}
+        item={mockItem}
+        onEdit={mockOnEdit}
+        onConfirm={mockOnConfirm}
       />
     );
     
-    // Should show the detected items
+    // Should show the detected item
     expect(screen.getByText('Apple')).toBeInTheDocument();
-    expect(screen.getByText('Banana')).toBeInTheDocument();
     
-    // Should show confidence levels
-    expect(screen.getByText('95%')).toBeInTheDocument();
-    expect(screen.getByText('85%')).toBeInTheDocument();
+    // Should show confidence level
+    expect(screen.getByText('95% - High Confidence')).toBeInTheDocument();
     
-    // Should show save and retry buttons
-    expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
+    // Should show edit and confirm buttons
+    expect(screen.getByRole('button', { name: /override/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /confirm/i })).toBeInTheDocument();
   });
   
-  it('calls onSave when save button is clicked', () => {
+  it('calls onEdit when edit button is clicked', () => {
     render(
       <RecognitionResults 
-        results={mockResults}
-        onSave={mockOnSave}
-        onRetry={mockOnRetry}
+        item={mockItem}
+        onEdit={mockOnEdit}
+        onConfirm={mockOnConfirm}
       />
     );
     
-    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    fireEvent.click(screen.getByRole('button', { name: /override/i }));
     
-    expect(mockOnSave).toHaveBeenCalledWith(mockResults);
+    expect(mockOnEdit).toHaveBeenCalled();
   });
   
-  it('calls onRetry when retry button is clicked', () => {
+  it('calls onConfirm when confirm button is clicked', () => {
     render(
       <RecognitionResults 
-        results={mockResults}
-        onSave={mockOnSave}
-        onRetry={mockOnRetry}
+        item={mockItem}
+        onEdit={mockOnEdit}
+        onConfirm={mockOnConfirm}
       />
     );
     
-    fireEvent.click(screen.getByRole('button', { name: /try again/i }));
+    fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
     
-    expect(mockOnRetry).toHaveBeenCalled();
+    expect(mockOnConfirm).toHaveBeenCalled();
   });
   
-  it('handles empty results gracefully', () => {
+  it('displays price information correctly', () => {
     render(
       <RecognitionResults 
-        results={{ image: 'test-image-url', items: [] }}
-        onSave={mockOnSave}
-        onRetry={mockOnRetry}
+        item={mockItem}
+        onEdit={mockOnEdit}
+        onConfirm={mockOnConfirm}
       />
     );
     
-    expect(screen.getByText(/no items detected/i)).toBeInTheDocument();
+    // Check price is displayed
+    expect(screen.getByText('$1.99')).toBeInTheDocument();
+    
+    // Check weight information is displayed
+    expect(screen.getByText('185g')).toBeInTheDocument();
   });
   
-  it('displays the captured image', () => {
+  it('displays nutrition information correctly', () => {
     render(
       <RecognitionResults 
-        results={mockResults}
-        onSave={mockOnSave}
-        onRetry={mockOnRetry}
+        item={mockItem}
+        onEdit={mockOnEdit}
+        onConfirm={mockOnConfirm}
       />
     );
     
-    const image = screen.getByRole('img');
-    expect(image).toBeInTheDocument();
-    expect(image).toHaveAttribute('src', 'test-image-url');
+    // Check nutrition data is displayed
+    expect(screen.getByText('Calories')).toBeInTheDocument();
+    expect(screen.getByText('95')).toBeInTheDocument();
+    expect(screen.getByText('Protein')).toBeInTheDocument();
+    expect(screen.getByText('0.5g')).toBeInTheDocument();
   });
 });

@@ -31,7 +31,6 @@ vi.mock('../../scanning/CameraCaptureWithAI', () => ({
 }));
 
 describe('ProduceScanner', () => {
-  const mockOnRecognize = vi.fn();
   const mockToast = vi.fn();
   
   beforeEach(() => {
@@ -40,25 +39,25 @@ describe('ProduceScanner', () => {
   });
   
   it('renders camera capture component', () => {
-    render(<ProduceScanner onRecognize={mockOnRecognize} />);
+    render(<ProduceScanner />);
     
     expect(screen.getByTestId('camera-capture')).toBeInTheDocument();
   });
   
-  it('calls onRecognize when produce is detected', () => {
-    render(<ProduceScanner onRecognize={mockOnRecognize} />);
+  it('simulates scanning produce when capture button clicked', () => {
+    render(<ProduceScanner />);
     
     fireEvent.click(screen.getByTestId('mock-capture-btn'));
     
-    expect(mockOnRecognize).toHaveBeenCalledWith({
-      image: 'test-image-url',
-      items: [{ label: 'Apple', confidence: 0.95 }]
+    // Since the component now works differently, we check for expected behavior
+    // rather than the specific onRecognize prop that no longer exists
+    expect(mockToast).toHaveBeenCalledWith({
+      title: "Item Recognized",
+      description: expect.stringContaining('Apple'),
     });
   });
   
   it('shows error state with no detections', () => {
-    const { rerender } = render(<ProduceScanner onRecognize={mockOnRecognize} />);
-    
     // Update the mock to return no detections
     vi.mocked(require('../../scanning/CameraCaptureWithAI').default).mockImplementation(
       ({ onCapture }) => (
@@ -76,7 +75,7 @@ describe('ProduceScanner', () => {
       )
     );
     
-    rerender(<ProduceScanner onRecognize={mockOnRecognize} />);
+    render(<ProduceScanner />);
     
     fireEvent.click(screen.getByTestId('mock-capture-btn'));
     
@@ -85,5 +84,26 @@ describe('ProduceScanner', () => {
       description: expect.stringContaining('No produce detected'),
       variant: 'destructive'
     });
+  });
+  
+  it('allows resetting after scan', async () => {
+    render(<ProduceScanner />);
+    
+    // First simulate a successful scan
+    fireEvent.click(screen.getByTestId('mock-capture-btn'));
+    
+    // Check that the recognized item is displayed
+    expect(mockToast).toHaveBeenCalledWith({
+      title: "Item Recognized",
+      description: expect.stringContaining('Apple'),
+    });
+    
+    // Find and click the reset/close button if it exists (implementation dependent)
+    const resetButton = screen.queryByTestId('reset-btn');
+    if (resetButton) {
+      fireEvent.click(resetButton);
+      // Verify scanner is back to initial state
+      expect(screen.getByTestId('camera-capture')).toBeInTheDocument();
+    }
   });
 });

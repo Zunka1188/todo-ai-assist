@@ -36,10 +36,18 @@ vi.mock('@/components/ui/input', () => ({
 describe('EditProduceDialog', () => {
   const mockOnSave = vi.fn();
   const mockOnCancel = vi.fn();
-  const mockItems = [
-    { label: 'Apple', confidence: 0.95 },
-    { label: 'Banana', confidence: 0.85 }
-  ];
+  const mockItem = {
+    name: 'Apple',
+    confidence: 0.95,
+    price: 1.99,
+    weightGrams: 150,
+    nutritionData: {
+      calories: 95,
+      protein: 0.5,
+      carbs: 25,
+      fat: 0.3
+    }
+  };
   
   beforeEach(() => {
     vi.clearAllMocks();
@@ -49,45 +57,43 @@ describe('EditProduceDialog', () => {
     render(
       <EditProduceDialog
         isOpen={true}
-        items={mockItems}
+        item={mockItem}
         onSave={mockOnSave}
-        onCancel={mockOnCancel}
+        onClose={mockOnCancel}
       />
     );
     
     expect(screen.getByTestId('dialog-content')).toBeInTheDocument();
-    expect(screen.getByText('Apple')).toBeInTheDocument();
-    expect(screen.getByText('Banana')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Apple')).toBeInTheDocument();
   });
   
   it('does not render when closed', () => {
     render(
       <EditProduceDialog
         isOpen={false}
-        items={mockItems}
+        item={mockItem}
         onSave={mockOnSave}
-        onCancel={mockOnCancel}
+        onClose={mockOnCancel}
       />
     );
     
     expect(screen.queryByTestId('dialog-content')).not.toBeInTheDocument();
   });
   
-  it('calls onSave with edited items when save button is clicked', () => {
+  it('calls onSave with edited item when save button is clicked', () => {
     render(
       <EditProduceDialog
         isOpen={true}
-        items={mockItems}
+        item={mockItem}
         onSave={mockOnSave}
-        onCancel={mockOnCancel}
+        onClose={mockOnCancel}
       />
     );
     
-    // Find all inputs (one for each item)
+    // Find all inputs (one for each field)
     const inputs = screen.getAllByTestId('input');
-    expect(inputs).toHaveLength(mockItems.length);
     
-    // Change the value of the first input
+    // Change the value of the name input (assuming it's the first input)
     fireEvent.change(inputs[0], { target: { value: 'Green Apple' } });
     
     // Click the save button
@@ -95,20 +101,20 @@ describe('EditProduceDialog', () => {
     const saveButton = saveButtons.find(button => button.textContent?.includes('Save'));
     fireEvent.click(saveButton!);
     
-    // Expect onSave to be called with the updated items
-    expect(mockOnSave).toHaveBeenCalledWith([
-      { label: 'Green Apple', confidence: 0.95 },
-      { label: 'Banana', confidence: 0.85 }
-    ]);
+    // Expect onSave to be called with the updated item
+    expect(mockOnSave).toHaveBeenCalledWith({
+      ...mockItem,
+      name: 'Green Apple'
+    });
   });
   
   it('calls onCancel when cancel button is clicked', () => {
     render(
       <EditProduceDialog
         isOpen={true}
-        items={mockItems}
+        item={mockItem}
         onSave={mockOnSave}
-        onCancel={mockOnCancel}
+        onClose={mockOnCancel}
       />
     );
     
@@ -120,16 +126,17 @@ describe('EditProduceDialog', () => {
     expect(mockOnCancel).toHaveBeenCalled();
   });
   
-  it('handles empty items array gracefully', () => {
+  it('handles null item gracefully', () => {
     render(
       <EditProduceDialog
         isOpen={true}
-        items={[]}
+        item={null}
         onSave={mockOnSave}
-        onCancel={mockOnCancel}
+        onClose={mockOnCancel}
       />
     );
     
-    expect(screen.getByText(/no items to edit/i)).toBeInTheDocument();
+    // Should not render anything when item is null
+    expect(screen.queryByText(/edit produce information/i)).not.toBeInTheDocument();
   });
 });
