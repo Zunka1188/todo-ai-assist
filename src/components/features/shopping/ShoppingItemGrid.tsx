@@ -31,7 +31,14 @@ const ShoppingItemGrid: React.FC<ShoppingItemGridProps> = ({
   const { isMobile } = useIsMobile();
   
   return (
-    <ContentGrid className={cn('gap-3', className)} columns={isMobile ? 1 : 2}>
+    <ContentGrid 
+      className={cn('gap-3', className)}
+      columns={{ 
+        default: 1, 
+        sm: isMobile ? 1 : 2 
+      }}
+      itemCount={items.length}
+    >
       {items.map((item) => (
         <ShoppingItemCard
           key={item.id}

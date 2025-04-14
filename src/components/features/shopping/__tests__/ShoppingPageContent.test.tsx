@@ -63,6 +63,7 @@ describe('ShoppingPageContent', () => {
   const mockUpdateSearchTerm = vi.fn();
   const mockUpdateFilterMode = vi.fn();
   const mockAddItem = vi.fn().mockReturnValue(true);
+  const mockSetSelectedItems = vi.fn(); // Added the missing function
   
   beforeEach(() => {
     vi.clearAllMocks();
@@ -81,6 +82,7 @@ describe('ShoppingPageContent', () => {
       sortOption: 'nameAsc', // Use a valid SortOption
       setSortOption: vi.fn(),
       selectedItems: [],
+      setSelectedItems: mockSetSelectedItems, // Added the missing property
       handleItemSelect: vi.fn(),
       deleteSelectedItems: vi.fn(),
     });
