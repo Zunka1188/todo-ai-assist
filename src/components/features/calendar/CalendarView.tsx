@@ -1,26 +1,16 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { format } from 'date-fns';
-import { useTheme } from '@/hooks/use-theme';
-import { useIsMobile } from '@/hooks/use-mobile';
+
+import React, { useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-import MonthView from './views/MonthView';
-import WeekView from './views/week-view/index';
-import DayView from './views/day-view';
-import EnhancedAgendaView from './views/EnhancedAgendaView';
-import AgendaView from './views/AgendaView';
-import EventFormDialog from './dialogs/EventFormDialog';
+import { useTheme } from '@/hooks/use-theme';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useCalendarEvents } from './hooks/useCalendarEvents';
 import { useCalendarSharing } from './hooks/useCalendarSharing';
+import { useCalendarViewHandlers } from './hooks/useCalendarViewHandlers';
 import FileUploader from '../scanning/FileUploader';
-import FullScreenPreview from '../documents/FullScreenPreview';
-import InviteDialog from './dialogs/InviteDialog';
-import RSVPDialog from './dialogs/RSVPDialog';
-import { Event, AttachmentType } from './types/event';
-import EventViewDialogExtension from './dialogs/EventViewDialogExtension';
-import ErrorBoundary from './ErrorBoundary';
+import CalendarViewContent from './components/CalendarViewContent';
+import EventDialogs from './components/EventDialogs';
 
 interface ViewDimensions {
   minCellHeight: number;
@@ -51,15 +41,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   setIsFileUploaderOpen = () => {},
   dimensions
 }) => {
-  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
-  const [previewItem, setPreviewItem] = useState<any>(null);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  const [rsvpDialogOpen, setRsvpDialogOpen] = useState(false);
-  const [eventToShare, setEventToShare] = useState<Event | null>(null);
-  const [viewLoadError, setViewLoadError] = useState<string | null>(null);
   const { theme } = useTheme();
   const { isMobile } = useIsMobile();
   
+  // Get calendar events state and functions
   const {
     events,
     selectedEvent,
@@ -72,116 +57,64 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     isCreateDialogOpen: localCreateDialogOpen,
     setIsCreateDialogOpen: setLocalCreateDialogOpen,
     handleViewEvent,
-    handleEditEvent,
     handleDeleteEvent,
-    handleCreateEvent,
     handleSaveEvent,
     filterEvents
   } = useCalendarEvents();
   
+  // Get calendar sharing functionality
   const {
     shareEvent,
     recordRSVP
   } = useCalendarSharing();
   
+  // Set up effective dialog state
   const effectiveCreateDialogOpen = isCreateDialogOpen !== undefined ? isCreateDialogOpen : localCreateDialogOpen;
   const effectiveSetCreateDialogOpen = setIsCreateDialogOpen || setLocalCreateDialogOpen;
   
+  // Get calendar view handlers
+  const {
+    isImagePreviewOpen,
+    setIsImagePreviewOpen,
+    previewItem,
+    setPreviewItem,
+    shareDialogOpen,
+    setShareDialogOpen,
+    rsvpDialogOpen,
+    setRsvpDialogOpen,
+    eventToShare,
+    setEventToShare,
+    viewLoadError,
+    setViewLoadError,
+    handleViewToEdit,
+    handleFileUploadSuccess,
+    handleOpenImagePreview,
+    handleShareEvent,
+    handleRSVP,
+    handleSetDate
+  } = useCalendarViewHandlers({
+    handleViewEvent,
+    handleSaveEvent,
+    handleDeleteEvent,
+    setIsViewDialogOpen,
+    setIsEditMode,
+    setIsFileUploaderOpen
+  });
+  
+  // Filter events based on search term
   const filteredEvents = filterEvents(searchTerm);
-
+  
+  // Reset view error when changing view mode
   useEffect(() => {
     setViewLoadError(null);
-  }, [viewMode]);
+  }, [viewMode, setViewLoadError]);
 
-  const handleViewToEdit = useCallback(() => {
-    try {
-      setIsViewDialogOpen(false);
-      setIsEditMode(true);
-      setTimeout(() => {
-        effectiveSetCreateDialogOpen(true);
-      }, 100);
-    } catch (err) {
-      console.error("[ERROR] CalendarView - Error transitioning from view to edit:", err);
-      setViewLoadError("Failed to edit event. Please try again.");
-    }
-  }, [setIsViewDialogOpen, setIsEditMode, effectiveSetCreateDialogOpen]);
-
-  const handleFileUploadSuccess = useCallback((data: any) => {
-    try {
-      setIsFileUploaderOpen(false);
-      
-      const attachments: AttachmentType[] = [];
-      
-      if (data.file || data.content) {
-        const attachment: AttachmentType = {
-          id: `attachment-${Date.now()}`,
-          name: data.title || 'Uploaded file',
-          type: 'image',
-          url: data.file || data.content || '',
-          thumbnailUrl: data.thumbnailUrl || undefined
-        };
-        
-        attachments.push(attachment);
-      }
-      
-      const newEvent: Event = {
-        id: `event-${Date.now()}`,
-        title: data.title || 'Event from file',
-        description: data.description || '',
-        startDate: data.date ? new Date(data.date) : new Date(),
-        endDate: data.endDate ? new Date(data.endDate) : new Date(Date.now() + 3600000),
-        location: data.location || '',
-        color: data.color || '#4285F4',
-        allDay: false,
-        reminder: '30',
-        attachments: attachments
-      };
-      
-      handleSaveEvent(newEvent);
-    } catch (err) {
-      console.error("[ERROR] CalendarView - Error handling file upload:", err);
-      setViewLoadError("Failed to process uploaded file. Please try again.");
-    }
-  }, [setIsFileUploaderOpen, handleSaveEvent]);
-
-  const handleOpenImagePreview = useCallback((event: any) => {
-    try {
-      if (event.image) {
-        setPreviewItem({
-          id: event.id,
-          title: event.title,
-          type: 'image',
-          content: event.image,
-          fileName: `${event.title}-image`
-        });
-        setIsImagePreviewOpen(true);
-      }
-    } catch (err) {
-      console.error("[ERROR] CalendarView - Error opening image preview:", err);
-      setViewLoadError("Failed to open image preview. Please try again.");
-    }
+  // Handle share link generation
+  const handleShareLink = useCallback((link: string) => {
+    console.log("[DEBUG] Share link generated:", link);
   }, []);
 
-  const handleShareEvent = useCallback((event: Event) => {
-    try {
-      setEventToShare(event);
-      setShareDialogOpen(true);
-    } catch (err) {
-      console.error("[ERROR] CalendarView - Error opening share dialog:", err);
-      setViewLoadError("Failed to open sharing options. Please try again.");
-    }
-  }, []);
-
-  const handleRSVP = useCallback((event: Event) => {
-    try {
-      setEventToShare(event);
-      setRsvpDialogOpen(true);
-    } catch (err) {
-      console.error("[ERROR] CalendarView - Error opening RSVP dialog:", err);
-      setViewLoadError("Failed to open RSVP options. Please try again.");
-    }
-  }, []);
-
+  // Handle RSVP submission
   const submitRSVP = useCallback((status: 'yes' | 'no' | 'maybe', name: string) => {
     try {
       if (!eventToShare) return;
@@ -190,22 +123,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       console.error("[ERROR] CalendarView - Error submitting RSVP:", err);
       setViewLoadError("Failed to submit RSVP. Please try again.");
     }
-  }, [eventToShare, recordRSVP]);
+  }, [eventToShare, recordRSVP, setViewLoadError]);
 
-  const handleShareLink = useCallback((link: string) => {
-    console.log("[DEBUG] Share link generated:", link);
-  }, []);
-
-  // Function to handle date changes in all views, this will be passed to the view components
-  const handleSetDate = useCallback((newDate: Date) => {
-    // This function will propagate the date change to the CalendarContent parent
-    if (setIsCreateDialogOpen) {
-      // Since we're in CalendarView component, we want to let the parent know about date changes
-      console.log("[DEBUG] Date changed:", format(newDate, 'yyyy-MM-dd'));
-      // The actual date change logic is handled by useCalendar context in the parent
-    }
-  }, [setIsCreateDialogOpen]);
-
+  // Display loading state
   if (isLoading) {
     return (
       <div className="flex justify-center items-center p-12">
@@ -217,6 +137,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     );
   }
 
+  // Display error state
   if (error || viewLoadError) {
     return (
       <div className="text-center py-12 px-4" role="alert" aria-live="assertive">
@@ -236,6 +157,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     role="region"
     aria-label={`Calendar ${viewMode} view`}
     >
+      {/* File uploader component */}
       {isFileUploaderOpen && (
         <FileUploader
           onClose={() => setIsFileUploaderOpen(false)}
@@ -243,104 +165,48 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         />
       )}
       
-      <EventFormDialog
-        isOpen={(effectiveCreateDialogOpen || isEditMode) && !isFileUploaderOpen && !isViewDialogOpen}
-        setIsOpen={(open) => {
-          effectiveSetCreateDialogOpen(open);
-          if (!open) setIsEditMode(false);
-        }}
-        onSubmit={handleSaveEvent}
-        selectedEvent={selectedEvent}
+      {/* Event dialogs */}
+      <EventDialogs
+        isFileUploaderOpen={isFileUploaderOpen}
+        effectiveCreateDialogOpen={effectiveCreateDialogOpen}
         isEditMode={isEditMode}
-        onDeleteEvent={handleDeleteEvent}
-      />
-      
-      <EventViewDialogExtension
-        isOpen={isViewDialogOpen && !isFileUploaderOpen}
-        setIsOpen={setIsViewDialogOpen}
+        isViewDialogOpen={isViewDialogOpen}
         selectedEvent={selectedEvent}
-        onEdit={handleViewToEdit}
-        onDelete={handleDeleteEvent}
-        onViewImage={handleOpenImagePreview}
-        onShare={handleShareEvent}
-        onRSVP={handleRSVP}
+        eventToShare={eventToShare}
+        previewItem={previewItem}
+        isImagePreviewOpen={isImagePreviewOpen}
+        shareDialogOpen={shareDialogOpen}
+        rsvpDialogOpen={rsvpDialogOpen}
+        setIsFileUploaderOpen={setIsFileUploaderOpen}
+        effectiveSetCreateDialogOpen={effectiveSetCreateDialogOpen}
+        setIsEditMode={setIsEditMode}
+        setIsViewDialogOpen={setIsViewDialogOpen}
+        setIsImagePreviewOpen={setIsImagePreviewOpen}
+        setPreviewItem={setPreviewItem}
+        setShareDialogOpen={setShareDialogOpen}
+        setRsvpDialogOpen={setRsvpDialogOpen}
+        handleSaveEvent={handleSaveEvent}
+        handleDeleteEvent={handleDeleteEvent}
+        handleViewToEdit={handleViewToEdit}
+        handleOpenImagePreview={handleOpenImagePreview}
+        handleShareEvent={handleShareEvent}
+        handleRSVP={handleRSVP}
+        handleShareLink={handleShareLink}
+        submitRSVP={submitRSVP}
       />
       
-      <FullScreenPreview 
-        item={previewItem}
-        onClose={() => {
-          setIsImagePreviewOpen(false);
-          setPreviewItem(null);
-        }}
-        readOnly={false}
+      {/* Calendar view content */}
+      <CalendarViewContent
+        viewMode={viewMode}
+        date={date}
+        filteredEvents={filteredEvents}
+        handleViewEvent={handleViewEvent}
+        handleSetDate={handleSetDate}
+        theme={theme}
+        weekStartsOn={weekStartsOn}
+        dimensions={dimensions}
+        isFileUploaderOpen={isFileUploaderOpen}
       />
-
-      <InviteDialog
-        isOpen={shareDialogOpen}
-        setIsOpen={setShareDialogOpen}
-        event={eventToShare}
-        onShareLink={handleShareLink}
-      />
-      
-      <RSVPDialog
-        isOpen={rsvpDialogOpen}
-        setIsOpen={setRsvpDialogOpen}
-        event={eventToShare}
-        onRSVP={submitRSVP}
-      />
-      
-      {!isFileUploaderOpen && (
-        <ErrorBoundary>
-          <div className="border rounded-lg overflow-hidden shadow-sm">
-            {viewMode === 'month' && (
-              <MonthView
-                date={date}
-                setDate={handleSetDate}
-                events={filteredEvents}
-                handleViewEvent={handleViewEvent}
-                theme={theme}
-                weekStartsOn={weekStartsOn}
-                minCellHeight={dimensions.minCellHeight}
-              />
-            )}
-            
-            {viewMode === 'week' && (
-              <WeekView
-                date={date}
-                setDate={handleSetDate}
-                events={filteredEvents}
-                handleViewEvent={handleViewEvent}
-                theme={theme}
-                weekStartsOn={weekStartsOn}
-                minCellHeight={dimensions.minCellHeight}
-                timeColumnWidth={dimensions.timeWidth}
-              />
-            )}
-            
-            {viewMode === 'day' && (
-              <DayView
-                date={date}
-                events={filteredEvents}
-                handleViewEvent={handleViewEvent}
-                theme={theme}
-                minCellHeight={dimensions.minCellHeight}
-                timeColumnWidth={dimensions.timeWidth}
-              />
-            )}
-            
-            {viewMode === 'agenda' && (
-              <AgendaView
-                date={date}
-                setDate={handleSetDate}
-                events={filteredEvents}
-                handleViewEvent={handleViewEvent}
-                theme={theme}
-                itemHeight={dimensions.minCellHeight}
-              />
-            )}
-          </div>
-        </ErrorBoundary>
-      )}
     </div>
   );
 };

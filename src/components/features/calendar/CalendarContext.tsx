@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode, useMemo } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { format, startOfWeek, endOfWeek, addDays, subDays, addMonths, subMonths } from 'date-fns';
-import { Event } from './types/event';
-import { useCalendarEvents } from './hooks/useCalendarEvents';
-import { logger } from '@/utils/logger';
+
+import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useCalendarEvents } from './hooks/useCalendarEvents';
+import { useCalendarState } from './hooks/useCalendarState';
+import { useCalendarNavigation } from './hooks/useCalendarNavigation';
+import { useCalendarDimensions } from './hooks/useCalendarDimensions';
+import { useCalendarDialogs } from './hooks/useCalendarDialogs';
 
 // Define our context types
 export type ViewMode = 'month' | 'week' | 'day' | 'agenda';
@@ -64,242 +65,56 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({
   children, 
   initialView = 'day' 
 }) => {
-  // State declarations
-  const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState<ViewMode>(initialView);
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [showFileUploader, setShowFileUploader] = useState(false);
-  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [pageError, setPageError] = useState<string | null>(null);
-  const [isAddingEvent, setIsAddingEvent] = useState(false);
-  const [isInviting, setIsInviting] = useState(false);
-
-  // Get toast functionality
-  const { toast } = useToast();
+  // Use extracted hooks for better organization and performance
   const { isMobile } = useIsMobile();
+  
+  const {
+    searchTerm,
+    setSearchTerm,
+    viewMode,
+    setViewMode,
+    currentDate,
+    setCurrentDate,
+    createDialogOpen,
+    setCreateDialogOpen,
+    showFileUploader,
+    setShowFileUploader,
+    inviteDialogOpen,
+    setInviteDialogOpen,
+    isLoading,
+    pageError,
+    isAddingEvent,
+    setIsAddingEvent,
+    isInviting,
+    setIsInviting,
+    retryDataFetch
+  } = useCalendarState({ initialView });
+  
+  // Get calendar navigation functions
+  const navigation = useCalendarNavigation({ 
+    viewMode, 
+    currentDate, 
+    setCurrentDate,
+    isMobile 
+  });
+  
+  // Calculate view dimensions based on view mode
+  const dimensions = useCalendarDimensions({ viewMode, isMobile });
+  
+  // Get dialog management functions
+  const dialogs = useCalendarDialogs({
+    setCreateDialogOpen,
+    setShowFileUploader,
+    setIsAddingEvent,
+    setInviteDialogOpen,
+    setIsInviting
+  });
   
   // Get calendar events functionality
   const eventsState = useCalendarEvents();
 
-  // Calculate view dimensions based on view mode
-  const dimensions = useMemo(() => {
-    switch(viewMode) {
-      case 'day':
-        return {
-          minCellHeight: isMobile ? 48 : 64,
-          headerHeight: 40,
-          timeWidth: 60
-        };
-      case 'week':
-        return {
-          minCellHeight: isMobile ? 24 : 32, 
-          headerHeight: 40,
-          timeWidth: 60
-        };
-      case 'month':
-        return {
-          minCellHeight: isMobile ? 60 : 100,
-          headerHeight: 32,
-          timeWidth: 0
-        };
-      case 'agenda':
-        return {
-          minCellHeight: 64,
-          headerHeight: 0,
-          timeWidth: 120
-        };
-      default:
-        return {
-          minCellHeight: isMobile ? 60 : 100,
-          headerHeight: 40,
-          timeWidth: 60
-        };
-    }
-  }, [viewMode, isMobile]);
-
-  // Navigation functions
-  const todayButtonClick = useCallback(() => {
-    setCurrentDate(new Date());
-    toast({
-      title: "Today selected",
-      description: "Calendar showing today's events",
-      role: "status",
-      "aria-live": "polite"
-    });
-  }, [toast]);
-  
-  const nextPeriod = useCallback(() => {
-    let newDate = new Date(currentDate);
-    
-    switch(viewMode) {
-      case 'day':
-        newDate = addDays(currentDate, 1);
-        break;
-      case 'week':
-        newDate = addDays(currentDate, 7);
-        break;
-      case 'month':
-        newDate = addMonths(currentDate, 1);
-        break;
-      default:
-        newDate = addDays(currentDate, 1);
-        break;
-    }
-    
-    setCurrentDate(newDate);
-  }, [currentDate, viewMode]);
-  
-  const prevPeriod = useCallback(() => {
-    let newDate = new Date(currentDate);
-    
-    switch(viewMode) {
-      case 'day':
-        newDate = subDays(currentDate, 1);
-        break;
-      case 'week':
-        newDate = subDays(currentDate, 7);
-        break;
-      case 'month':
-        newDate = subMonths(currentDate, 1);
-        break;
-      default:
-        newDate = subDays(currentDate, 1);
-        break;
-    }
-    
-    setCurrentDate(newDate);
-  }, [currentDate, viewMode]);
-  
-  const getViewTitle = useCallback(() => {
-    switch(viewMode) {
-      case 'day':
-        return format(currentDate, isMobile ? 'EEE, MMM d' : 'EEEE, MMMM d, yyyy');
-      case 'week': {
-        const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
-        const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
-        
-        if (isMobile) {
-          return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`;
-        }
-        
-        return `${format(weekStart, 'MMMM d')} - ${format(weekEnd, 'MMMM d, yyyy')}`;
-      }
-      case 'month':
-        return format(currentDate, 'MMMM yyyy');
-      case 'agenda':
-        return 'Upcoming Events';
-      default:
-        return format(currentDate, 'MMMM yyyy');
-    }
-  }, [currentDate, viewMode, isMobile]);
-
-  // Load calendar data
-  React.useEffect(() => {
-    let isMounted = true;
-    
-    const loadCalendarData = async () => {
-      try {
-        setIsLoading(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500));
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      } catch (error) {
-        if (isMounted) {
-          const errorMessage = "Failed to load calendar data. Please try again.";
-          logger.error("[Calendar] Failed to load calendar data", error);
-          setPageError(errorMessage);
-          setIsLoading(false);
-          
-          toast({
-            title: "Error",
-            description: errorMessage,
-            variant: "destructive",
-            role: "alert",
-            "aria-live": "assertive"
-          });
-        }
-      }
-    };
-
-    loadCalendarData();
-    
-    // Cleanup function to prevent state updates after unmount
-    return () => {
-      isMounted = false;
-    };
-  }, [toast]);
-
-  // Retry function for error handling
-  const retryDataFetch = useCallback(() => {
-    setPageError(null);
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      toast({
-        title: "Success",
-        description: "Calendar data refreshed successfully",
-        role: "status",
-        "aria-live": "polite"
-      });
-    }, 1000);
-  }, [toast]);
-
-  // Event handlers without unnecessary try/catch blocks
-  const handleAddItem = useCallback(() => {
-    setCreateDialogOpen(true);
-    setShowFileUploader(false);
-    setIsAddingEvent(true);
-  }, []);
-
-  const handleDialogClose = useCallback((open: boolean) => {
-    setCreateDialogOpen(open);
-    if (!open) {
-      setIsAddingEvent(false);
-      // Improve focus management for accessibility
-      setTimeout(() => {
-        document.getElementById('add-event-button')?.focus();
-      }, 0);
-    }
-  }, []);
-
-  const handleFileUploaderChange = useCallback((open: boolean) => {
-    setShowFileUploader(open);
-  }, []);
-  
-  // Modified: Removed the toast notification when changing view mode
-  const handleViewModeChange = useCallback((value: ViewMode) => {
-    if (viewMode !== value) {
-      setViewMode(value);
-      // Toast notification removed as requested
-    }
-  }, [viewMode]);
-
-  const handleShareCalendar = useCallback(() => {
-    setInviteDialogOpen(true);
-    setIsInviting(true);
-  }, []);
-
-  const handleInviteSent = useCallback((link: string) => {
-    setInviteDialogOpen(false);
-    setIsInviting(false);
-    
-    toast({
-      title: "Invitation Link Generated",
-      description: "The link has been created and is ready to share",
-      role: "status",
-      "aria-live": "polite"
-    });
-  }, [toast]);
-
-  // Provide the context value
-  const contextValue: CalendarContextType = {
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo<CalendarContextType>(() => ({
     // State
     viewMode,
     searchTerm,
@@ -314,19 +129,12 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({
     dimensions,
     
     // Navigation
-    todayButtonClick,
-    nextPeriod,
-    prevPeriod,
-    getViewTitle,
+    ...navigation,
     
     // Setters and handlers
-    setViewMode: handleViewModeChange,
+    setViewMode,
     setSearchTerm,
-    handleAddItem,
-    handleDialogClose,
-    handleFileUploaderChange,
-    handleShareCalendar,
-    handleInviteSent,
+    ...dialogs,
     setInviteDialogOpen,
     setAddingEvent: setIsAddingEvent,
     setIsInviting,
@@ -335,7 +143,29 @@ export const CalendarProvider: React.FC<CalendarProviderProps> = ({
     
     // Calendar events functionality
     eventsState
-  };
+  }), [
+    viewMode,
+    searchTerm,
+    isLoading,
+    pageError,
+    createDialogOpen,
+    showFileUploader,
+    inviteDialogOpen,
+    isAddingEvent,
+    isInviting,
+    currentDate,
+    dimensions,
+    navigation,
+    setViewMode,
+    setSearchTerm,
+    dialogs,
+    setInviteDialogOpen,
+    setIsAddingEvent,
+    setIsInviting,
+    retryDataFetch,
+    setCurrentDate,
+    eventsState
+  ]);
 
   return (
     <CalendarContext.Provider value={contextValue}>
