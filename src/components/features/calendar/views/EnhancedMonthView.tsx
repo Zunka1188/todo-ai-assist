@@ -5,6 +5,10 @@ import { Event } from '../types/event';
 import { trackRenderPerformance } from '../utils/performanceTracking';
 import ErrorBoundary from '../ErrorBoundary';
 
+/**
+ * Enhanced month view that adds performance tracking and error handling
+ * to the standard month view.
+ */
 interface EnhancedMonthViewProps {
   date: Date;
   setDate: (date: Date) => void;
@@ -24,7 +28,12 @@ const EnhancedMonthView: React.FC<EnhancedMonthViewProps> = (props) => {
       eventsCount: props.events.length,
       logToConsole: true
     });
-  });
+    
+    // Clean up any resources if needed
+    return () => {
+      // Cleanup code if needed
+    };
+  }, [props.events.length]);
   
   return (
     <ErrorBoundary>
@@ -33,4 +42,4 @@ const EnhancedMonthView: React.FC<EnhancedMonthViewProps> = (props) => {
   );
 };
 
-export default EnhancedMonthView;
+export default React.memo(EnhancedMonthView);

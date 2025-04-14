@@ -1,116 +1,173 @@
 
-import { logger } from '@/utils/logger';
-import React from 'react';
+// Performance tracking utilities for calendar components
+import { Component, ComponentType, forwardRef } from 'react';
 
-interface RenderTimings {
-  componentName: string;
-  renderTime: number;
-  operationsCount?: number;
+interface PerformanceTrackingOptions {
+  componentName?: string;
+  logToConsole?: boolean;
+  logToAnalytics?: boolean;
   eventsCount?: number;
+  threshold?: number;
 }
 
-// Performance data store to track performance across renders
-const performanceData: Record<string, Array<RenderTimings>> = {};
-
 /**
- * Utility for tracking component render performance
+ * Tracks render performance of a component
+ * @param componentName Name of the component being tracked
+ * @param startTime Performance start time
+ * @param options Additional tracking options
  */
 export const trackRenderPerformance = (
   componentName: string, 
   startTime: number,
-  options?: { 
-    operationsCount?: number;
-    eventsCount?: number;
-    logToConsole?: boolean;
-  }
-) => {
+  options: PerformanceTrackingOptions = {}
+): void => {
   const endTime = performance.now();
   const renderTime = endTime - startTime;
+  const { 
+    logToConsole = false, 
+    logToAnalytics = false,
+    eventsCount,
+    threshold = 100 
+  } = options;
   
-  // Store timing data
-  if (!performanceData[componentName]) {
-    performanceData[componentName] = [];
-  }
-  
-  performanceData[componentName].push({
-    componentName,
-    renderTime,
-    operationsCount: options?.operationsCount,
-    eventsCount: options?.eventsCount
-  });
-  
-  // Trim data to keep only last 100 records
-  if (performanceData[componentName].length > 100) {
-    performanceData[componentName].shift();
-  }
-  
-  // Optionally log to console for immediate feedback
-  if (options?.logToConsole) {
-    logger.debug(
-      `[Performance] ${componentName} render: ${renderTime.toFixed(2)}ms` + 
-      (options.operationsCount ? `, Operations: ${options.operationsCount}` : '') +
-      (options.eventsCount ? `, Events: ${options.eventsCount}` : '')
-    );
-  }
-  
-  return renderTime;
-};
-
-/**
- * Get average render time for a component
- */
-export const getAverageRenderTime = (componentName: string): number => {
-  if (!performanceData[componentName] || performanceData[componentName].length === 0) {
-    return 0;
-  }
-  
-  const sum = performanceData[componentName].reduce(
-    (acc, record) => acc + record.renderTime, 
-    0
-  );
-  
-  return sum / performanceData[componentName].length;
-};
-
-/**
- * Get all performance data for analysis
- */
-export const getPerformanceData = () => performanceData;
-
-/**
- * Clear performance data
- */
-export const clearPerformanceData = (componentName?: string) => {
-  if (componentName) {
-    performanceData[componentName] = [];
-  } else {
-    Object.keys(performanceData).forEach(key => {
-      performanceData[key] = [];
-    });
-  }
-};
-
-/**
- * Higher order component for performance tracking
- */
-export const withPerformanceTracking = <P extends object>(
-  WrappedComponent: React.ComponentType<P>,
-  componentName: string,
-  options?: { logToConsole?: boolean }
-) => {
-  const WithPerformanceTracking: React.FC<P> = (props) => {
-    const startTime = performance.now();
+  // Only log if render time exceeds threshold
+  if (renderTime > threshold) {
+    if (logToConsole) {
+      console.warn(`[Performance] ${componentName} took ${renderTime.toFixed(2)}ms to render${eventsCount ? ` with ${eventsCount} events` : ''}`);
+    }
     
-    // Use effect to measure render completion
-    React.useEffect(() => {
-      trackRenderPerformance(componentName, startTime, {
-        logToConsole: options?.logToConsole
+    if (logToAnalytics) {
+      // Send to analytics service
+      try {
+        const analyticsData = {
+          component: componentName,
+          renderTime,
+          timestamp: new Date().toISOString(),
+          eventsCount
+        };
+        
+        // Analytics tracking code would go here
+        // analyticsService.trackMetric('component_render_time', analyticsData);
+        
+      } catch (error) {
+        console.error('[Performance] Failed to send analytics:', error);
+      }
+    }
+  }
+};
+
+interface PerformanceData {
+  componentName: string;
+  renderCount: number;
+  totalRenderTime: number;
+  lastRenderTime: number;
+  averageRenderTime: number;
+  worstRenderTime: number;
+  renderTimestamps: number[];
+}
+
+const performanceStore: Record<string, PerformanceData> = {};
+
+/**
+ * Records performance data for a component
+ * @param componentName Name of the component
+ * @param renderTime Time it took to render in milliseconds
+ */
+export const recordPerformance = (componentName: string, renderTime: number): void => {
+  if (!performanceStore[componentName]) {
+    performanceStore[componentName] = {
+      componentName,
+      renderCount: 0,
+      totalRenderTime: 0,
+      lastRenderTime: 0,
+      averageRenderTime: 0,
+      worstRenderTime: 0,
+      renderTimestamps: []
+    };
+  }
+  
+  const data = performanceStore[componentName];
+  data.renderCount++;
+  data.totalRenderTime += renderTime;
+  data.lastRenderTime = renderTime;
+  data.averageRenderTime = data.totalRenderTime / data.renderCount;
+  data.worstRenderTime = Math.max(data.worstRenderTime, renderTime);
+  data.renderTimestamps.push(Date.now());
+};
+
+/**
+ * Gets performance data for a specific component
+ * @param componentName Name of the component
+ * @returns Performance data for the component
+ */
+export const getComponentPerformance = (componentName: string): PerformanceData | null => {
+  return performanceStore[componentName] || null;
+};
+
+/**
+ * Gets all recorded performance data
+ * @returns Object with all performance data
+ */
+export const getAllPerformanceData = (): Record<string, PerformanceData> => {
+  return { ...performanceStore };
+};
+
+/**
+ * Higher-order component that tracks render performance
+ * @param WrappedComponent Component to track
+ * @param options Performance tracking options
+ * @returns Enhanced component with performance tracking
+ */
+export function withPerformanceTracking<P extends object>(
+  WrappedComponent: ComponentType<P>,
+  options: PerformanceTrackingOptions = {}
+): ComponentType<P> {
+  const componentName = options.componentName || WrappedComponent.displayName || WrappedComponent.name || 'UnknownComponent';
+  
+  class WithPerformance extends Component<P> {
+    displayName = `WithPerformance(${componentName})`;
+    renderStartTime: number = 0;
+    
+    componentWillMount() {
+      this.renderStartTime = performance.now();
+    }
+    
+    componentDidMount() {
+      const renderTime = performance.now() - this.renderStartTime;
+      trackRenderPerformance(componentName, this.renderStartTime, {
+        ...options,
+        logToConsole: true
       });
-    });
+      recordPerformance(componentName, renderTime);
+    }
     
-    return <WrappedComponent {...props} />;
-  };
+    componentWillUpdate() {
+      this.renderStartTime = performance.now();
+    }
+    
+    componentDidUpdate() {
+      const renderTime = performance.now() - this.renderStartTime;
+      trackRenderPerformance(componentName, this.renderStartTime, options);
+      recordPerformance(componentName, renderTime);
+    }
+    
+    render() {
+      return <WrappedComponent {...this.props} />;
+    }
+  }
   
-  WithPerformanceTracking.displayName = `WithPerformanceTracking(${componentName})`;
-  return WithPerformanceTracking;
+  return WithPerformance;
+}
+
+/**
+ * Tracks load time for calendar views
+ * @param viewName Name of the view (month, week, day)
+ * @param startTime Performance start time
+ */
+export const trackCalendarViewLoad = (viewName: string, startTime: number): void => {
+  const loadTime = performance.now() - startTime;
+  console.log(`[Calendar] ${viewName} view loaded in ${loadTime.toFixed(2)}ms`);
+  
+  // Could also send this to analytics
+  recordPerformance(`CalendarView_${viewName}`, loadTime);
 };

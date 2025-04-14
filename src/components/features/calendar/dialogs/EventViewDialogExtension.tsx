@@ -5,6 +5,9 @@ import { Share2, MessageSquare } from 'lucide-react';
 import { Event } from '../types/event';
 import EventViewDialog from './EventViewDialog';
 
+/**
+ * Extension of the EventViewDialog component that adds share and RSVP functionality
+ */
 interface EventViewDialogExtensionProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
@@ -26,38 +29,22 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
   onShare,
   onRSVP
 }) => {
-  // We'll render the original EventViewDialog but intercept it to add our buttons
-  
+  // Handle sharing the event
   const handleShare = () => {
     if (selectedEvent && onShare) {
       onShare(selectedEvent);
     }
   };
   
+  // Handle RSVP to the event
   const handleRSVP = () => {
     if (selectedEvent && onRSVP) {
       onRSVP(selectedEvent);
     }
   };
   
-  // Add our custom share and RSVP buttons in addition to standard functionality
-  const additionalButtons = selectedEvent ? (
-    <div className="flex space-x-2 mt-4">
-      {onShare && (
-        <Button variant="outline" onClick={handleShare} size="sm">
-          <Share2 className="h-4 w-4 mr-2" />
-          Share
-        </Button>
-      )}
-      
-      {onRSVP && (
-        <Button variant="outline" onClick={handleRSVP} size="sm">
-          <MessageSquare className="h-4 w-4 mr-2" />
-          RSVP
-        </Button>
-      )}
-    </div>
-  ) : null;
+  // No need for custom DOM manipulation or client-side code injection
+  // We can just render buttons directly in this component that will call our handlers
   
   return (
     <div>
@@ -68,14 +55,38 @@ const EventViewDialogExtension: React.FC<EventViewDialogExtensionProps> = ({
         onEdit={onEdit}
         onDelete={onDelete}
         onViewImage={onViewImage}
-        onShare={onShare}
-        onRSVP={onRSVP}
+        onShare={handleShare}
+        onRSVP={handleRSVP}
       />
-      {/* We'll inject our buttons via CSS and JavaScript on the client side */}
-      {/* This is a workaround since we can't directly modify EventViewDialog */}
+      
+      {/* We render these buttons separately to allow for customization without modifying EventViewDialog */}
       {isOpen && selectedEvent && (
-        <div id="event-view-dialog-extension-buttons" className="hidden">
-          {additionalButtons}
+        <div className="fixed bottom-20 right-6 flex flex-col space-y-2 z-50">
+          {onShare && (
+            <Button 
+              variant="secondary" 
+              onClick={handleShare} 
+              size="sm" 
+              className="shadow-md"
+              aria-label="Share event"
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              Share
+            </Button>
+          )}
+          
+          {onRSVP && (
+            <Button 
+              variant="secondary" 
+              onClick={handleRSVP} 
+              size="sm" 
+              className="shadow-md"
+              aria-label="RSVP to event"
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              RSVP
+            </Button>
+          )}
         </div>
       )}
     </div>
