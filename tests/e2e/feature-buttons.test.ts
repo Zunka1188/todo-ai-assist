@@ -1,3 +1,4 @@
+
 import { expect, Page } from '@playwright/test';
 import { 
   test, 
@@ -489,6 +490,299 @@ test.describe('Feature Button and Preview Functionality', () => {
     }
   });
 
+  // NEW TEST: Main scan button test
+  test('should test main scan button functionality', async ({ page }) => {
+    await setupPageTest(page, '/');
+    logTestStep('Testing main scan button');
+    
+    // Find and test main scan button
+    const mainScanButton = page.getByTestId('scan-button');
+    if (await mainScanButton.isVisible()) {
+      logTestStep('Found main scan button, clicking it');
+      await mainScanButton.click();
+      
+      // Verify navigation to scan page
+      await page.waitForURL('**/scan');
+      
+      // Verify scan interface options are shown
+      const scanOptions = [
+        page.getByRole('button', { name: /camera|scan/i }),
+        page.getByRole('button', { name: /upload/i })
+      ];
+      
+      for (const option of scanOptions) {
+        await expect(option).toBeVisible();
+      }
+      
+      // Go back to home
+      await page.goBack();
+    } else {
+      logTestStep('Main scan button not found, looking for alternatives');
+      
+      // Try alternative selectors
+      const altScanButtons = [
+        page.getByRole('button', { name: /scan/i }),
+        page.locator('button').filter({ hasText: /scan/i }),
+        page.locator('[class*="scan-button"]')
+      ];
+      
+      for (const button of altScanButtons) {
+        if (await button.isVisible()) {
+          await button.click();
+          await waitForStableUI(page);
+          const currentUrl = page.url();
+          if (currentUrl.includes('scan')) {
+            logTestStep('Successfully navigated to scan page');
+            await page.goBack();
+            break;
+          }
+        }
+      }
+    }
+  });
+
+  // NEW TEST: Test home page widget details
+  test('should test home page widget functionality', async ({ page }) => {
+    await setupPageTest(page, '/');
+    logTestStep('Testing home page widget functionality');
+    
+    // Test Calendar widget
+    logTestStep('Testing calendar widget');
+    const calendarWidget = page.locator('[class*="calendar-widget"], [data-testid="calendar-widget"]');
+    if (await calendarWidget.isVisible()) {
+      // Test today's date display
+      const dateDisplay = calendarWidget.locator('.date, [class*="date"]');
+      await expect(dateDisplay).toBeVisible();
+      
+      // Test next event preview
+      const eventPreview = calendarWidget.locator('.event, [class*="event"]');
+      if (await eventPreview.isVisible()) {
+        await eventPreview.hover();
+      }
+      
+      // Test quick add event button
+      const addEventButton = calendarWidget.getByRole('button', { name: /\+|add/i });
+      if (await addEventButton.isVisible()) {
+        await addEventButton.click();
+        await waitForStableUI(page);
+        await closeOpenDialogs(page);
+      }
+    }
+    
+    // Test Task widget
+    logTestStep('Testing task widget');
+    const taskWidget = page.locator('[class*="task-widget"], [data-testid="task-widget"]');
+    if (await taskWidget.isVisible()) {
+      // Test task list preview
+      const taskList = taskWidget.locator('li, .task-item, [class*="task-item"]');
+      if (await taskList.count() > 0) {
+        await taskList.first().hover();
+        
+        // Test task checkboxes
+        const checkbox = taskList.first().locator('input[type="checkbox"], [role="checkbox"]');
+        if (await checkbox.isVisible()) {
+          await checkbox.click();
+          await waitForStableUI(page);
+          // Uncheck to restore state
+          await checkbox.click();
+        }
+      }
+      
+      // Test quick add task button
+      const addTaskButton = taskWidget.getByRole('button', { name: /\+|add/i });
+      if (await addTaskButton.isVisible()) {
+        await addTaskButton.click();
+        await waitForStableUI(page);
+        await closeOpenDialogs(page);
+      }
+    }
+  });
+
+  // NEW TEST: Test notes expansion in shopping list
+  test('should test notes expansion in shopping list', async ({ page }) => {
+    await setupPageTest(page, '/shopping');
+    logTestStep('Testing notes expansion in shopping list');
+    
+    // Ensure there's at least one item with notes
+    let hasItemWithNotes = false;
+    
+    // First check if any existing item has notes
+    const shoppingItems = page.locator('[data-testid="shopping-item"], .shopping-item');
+    const count = await shoppingItems.count();
+    
+    for (let i = 0; i < count; i++) {
+      const item = shoppingItems.nth(i);
+      const notesExpander = item.getByRole('button', { name: /notes|expand|show more/i });
+      
+      if (await notesExpander.isVisible()) {
+        logTestStep('Found item with notes, testing expansion');
+        await notesExpander.click();
+        await waitForStableUI(page);
+        
+        // Verify notes are shown
+        const expandedNotes = item.locator('.notes-content, [class*="notes"]');
+        await expect(expandedNotes).toBeVisible();
+        
+        // Collapse notes
+        await notesExpander.click();
+        hasItemWithNotes = true;
+        break;
+      }
+    }
+    
+    // If no item with notes found, create one
+    if (!hasItemWithNotes) {
+      logTestStep('No item with notes found, creating test item');
+      
+      await page.getByRole('button', { name: /add item/i }).click();
+      const dialog = page.getByRole('dialog');
+      
+      await dialog.getByLabel(/name/i).fill('Test Item With Notes');
+      
+      // Add notes
+      const notesField = dialog.getByLabel(/notes/i);
+      if (await notesField.isVisible()) {
+        await notesField.fill('These are test notes that should be expandable');
+        
+        // Save the item
+        await dialog.getByRole('button', { name: /save|add/i }).click();
+        await waitForStableUI(page);
+        
+        // Find the new item and test notes expansion
+        const newItem = page.getByText('Test Item With Notes').first();
+        await newItem.click();
+        
+        // Look for notes expander in item or details view
+        const notesExpander = page.getByRole('button', { name: /notes|expand|show more/i });
+        if (await notesExpander.isVisible()) {
+          await notesExpander.click();
+          await waitForStableUI(page);
+          
+          // Verify notes are shown
+          await expect(page.getByText('These are test notes that should be expandable')).toBeVisible();
+        }
+      }
+    }
+  });
+
+  // NEW TEST: Test calendar share features
+  test('should test calendar share functionality in detail', async ({ page }) => {
+    await setupPageTest(page, '/calendar');
+    logTestStep('Testing calendar share functionality');
+    
+    // First try to find and click share button in the calendar header
+    const shareButtons = page.getByRole('button', { name: /share/i });
+    if (await shareButtons.count() > 0) {
+      logTestStep('Found share button in calendar, clicking it');
+      await shareButtons.first().click();
+      await waitForStableUI(page);
+      
+      // Test share options
+      const shareDialog = page.getByRole('dialog');
+      if (await shareDialog.isVisible()) {
+        // Test generate link button
+        const generateLinkButton = shareDialog.getByRole('button', { name: /generate|create link/i });
+        if (await generateLinkButton.isVisible()) {
+          await generateLinkButton.click();
+          await waitForStableUI(page);
+        }
+        
+        // Test copy link button
+        const copyLinkButton = shareDialog.getByRole('button', { name: /copy/i });
+        if (await copyLinkButton.isVisible()) {
+          await copyLinkButton.click();
+          await waitForStableUI(page);
+        }
+        
+        // Close dialog
+        await shareDialog.getByRole('button', { name: /close|cancel/i }).click();
+      }
+    } else {
+      // If no general share button, test sharing an individual event
+      logTestStep('No calendar-wide share button, testing event sharing');
+      
+      // Create event if needed
+      const events = page.getByText(/meeting|appointment|event/i);
+      if (await events.count() === 0) {
+        await page.getByRole('button', { name: /add event/i }).click();
+        const dialog = page.getByRole('dialog');
+        await dialog.getByLabel(/title/i).fill('Event To Share');
+        await dialog.getByRole('button', { name: /save/i }).click();
+        await waitForStableUI(page);
+      }
+      
+      // Open event
+      const event = await page.getByText(/meeting|appointment|event/i).first();
+      await event.click();
+      await waitForStableUI(page);
+      
+      // Test event share button
+      const eventShareButton = page.getByRole('button', { name: /share/i });
+      if (await eventShareButton.isVisible()) {
+        await eventShareButton.click();
+        await waitForStableUI(page);
+        
+        // Look for share options
+        const shareOptions = page.locator('[role="menu"], [role="dialog"]');
+        if (await shareOptions.isVisible()) {
+          // Close options
+          await page.keyboard.press('Escape');
+        }
+      }
+      
+      // Close event dialog
+      await closeOpenDialogs(page);
+    }
+  });
+
+  // NEW TEST: Test document template categories and zoom controls
+  test('should test document categories and zoom controls', async ({ page }) => {
+    await setupPageTest(page, '/documents');
+    logTestStep('Testing document categories and zoom controls');
+    
+    // Test document categories tabs
+    const categoryTabs = [
+      page.getByRole('tab', { name: /all/i }),
+      page.getByRole('tab', { name: /style/i }),
+      page.getByRole('tab', { name: /shared/i }),
+      page.getByRole('tab', { name: /templates/i })
+    ];
+    
+    for (const tab of categoryTabs) {
+      if (await tab.isVisible()) {
+        const tabText = await tab.textContent();
+        logTestStep(`Clicking category tab: ${tabText}`);
+        await tab.click();
+        await waitForStableUI(page);
+      }
+    }
+    
+    // Open a document to test zoom controls
+    const documents = page.locator('.document-item, [data-testid="document-item"]');
+    if (await documents.count() > 0) {
+      await documents.first().click();
+      await waitForStableUI(page);
+      
+      // Test zoom controls in document viewer
+      const zoomControls = [
+        page.getByRole('button', { name: /zoom in/i }),
+        page.getByRole('button', { name: /zoom out/i }),
+        page.getByRole('button', { name: /fit/i })
+      ];
+      
+      for (const control of zoomControls) {
+        if (await control.isVisible()) {
+          await control.click();
+          await waitForStableUI(page);
+        }
+      }
+      
+      // Close document viewer
+      await closeOpenDialogs(page);
+    }
+  });
+
+  // NEW TEST: Test detection engine features more thoroughly
   test('should test detection engine features', async ({ page }) => {
     await setupPageTest(page, '/scan');
     logTestStep('Testing detection engine features');
@@ -525,6 +819,7 @@ test.describe('Feature Button and Preview Functionality', () => {
     }
   });
 
+  // NEW TEST: Test enhanced weather interactions
   test('should test enhanced weather interactions', async ({ page }) => {
     await setupPageTest(page, '/weather');
     logTestStep('Testing weather page interactions');
@@ -547,6 +842,174 @@ test.describe('Feature Button and Preview Functionality', () => {
         if (await expandButton.isVisible()) {
           await expandButton.click();
           await waitForStableUI(page);
+        }
+      }
+    }
+  });
+
+  // NEW TEST: Test help tooltips and keyboard shortcuts
+  test('should test help tooltips and keyboard shortcuts', async ({ page }) => {
+    await setupPageTest(page, '/');
+    logTestStep('Testing help tooltips and keyboard shortcuts');
+    
+    // Test help tooltips if present
+    const helpButtons = page.getByRole('button', { name: /help|\?/i });
+    if (await helpButtons.count() > 0) {
+      for (let i = 0; i < Math.min(await helpButtons.count(), 2); i++) {
+        await helpButtons.nth(i).hover();
+        await waitForStableUI(page);
+        
+        // Try clicking to see if it opens help dialog
+        await helpButtons.nth(i).click();
+        await closeOpenDialogs(page);
+      }
+    }
+    
+    // Test keyboard shortcuts modal if available
+    await page.keyboard.press('?');
+    await waitForStableUI(page);
+    
+    // Check if keyboard shortcuts dialog appeared
+    const shortcutsDialog = page.getByRole('dialog').filter({
+      hasText: /keyboard shortcuts|shortcuts|hotkeys/i
+    });
+    
+    if (await shortcutsDialog.isVisible()) {
+      logTestStep('Keyboard shortcuts dialog opened successfully');
+      await shortcutsDialog.getByRole('button', { name: /close|×/i }).click();
+    }
+    
+    // Test common keyboard shortcuts
+    const shortcuts = ['/', 'n', 'h'];
+    for (const key of shortcuts) {
+      await page.keyboard.press(key);
+      await waitForStableUI(page);
+    }
+  });
+
+  // NEW TEST: Test settings with all options
+  test('should test all settings options', async ({ page }) => {
+    await setupPageTest(page, '/settings');
+    logTestStep('Testing all settings options');
+    
+    // Test language auto-detect toggle
+    const autoDetectToggle = page.locator('label').filter({ hasText: /auto-detect/i }).first();
+    if (await autoDetectToggle.isVisible()) {
+      await autoDetectToggle.click();
+      await waitForStableUI(page);
+    }
+    
+    // Test system preference toggle for theme
+    const systemPrefToggle = page.locator('label').filter({ hasText: /system|preference/i }).first();
+    if (await systemPrefToggle.isVisible()) {
+      await systemPrefToggle.click();
+      await waitForStableUI(page);
+    }
+    
+    // Test notification settings
+    const notificationToggles = page.locator('label').filter({ hasText: /notification/i });
+    if (await notificationToggles.count() > 0) {
+      await notificationToggles.first().click();
+      await waitForStableUI(page);
+    }
+    
+    // Test preference controls
+    const preferenceDropdowns = page.getByRole('combobox');
+    if (await preferenceDropdowns.count() > 0) {
+      await preferenceDropdowns.first().click();
+      await waitForStableUI(page);
+      
+      // Select first option
+      const options = page.getByRole('option');
+      if (await options.count() > 0) {
+        await options.first().click();
+      } else {
+        // Close dropdown by clicking elsewhere
+        await page.mouse.click(10, 10);
+      }
+    }
+    
+    // Test privacy controls
+    const privacySection = page.getByText(/privacy|data/i).first();
+    if (await privacySection.isVisible()) {
+      await privacySection.click();
+      await waitForStableUI(page);
+      
+      // Check for toggles in this section
+      const privacyToggles = page.locator('input[type="checkbox"]').nth(0);
+      if (await privacyToggles.isVisible()) {
+        await privacyToggles.click();
+        await waitForStableUI(page);
+      }
+    }
+  });
+  
+  // NEW TEST: Test AI special features
+  test('should test AI special features', async ({ page }) => {
+    // Try to navigate to AI food page if it exists
+    try {
+      await setupPageTest(page, '/ai');
+      logTestStep('Testing AI special features');
+      
+      // Test food recognition features
+      const uploadPhotoButton = page.getByRole('button', { name: /upload|photo/i });
+      if (await uploadPhotoButton.isVisible()) {
+        await uploadPhotoButton.click();
+        await waitForStableUI(page);
+        await closeOpenDialogs(page);
+      }
+      
+      // Send a test prompt about food
+      const chatInput = page.getByRole('textbox');
+      if (await chatInput.isVisible()) {
+        await chatInput.fill('What can I cook with potatoes and chicken?');
+        await page.getByRole('button', { name: /send/i }).click();
+        await waitForStableUI(page);
+        
+        // Wait for response cards
+        await page.waitForTimeout(1000);
+        
+        // Test recipe suggestion cards
+        const recipeCards = page.locator('.recipe-card, [class*="recipe"]');
+        if (await recipeCards.count() > 0) {
+          // Click on first recipe card
+          await recipeCards.first().click();
+          await waitForStableUI(page);
+          
+          // Test save/share buttons on recipe detail
+          const actionButtons = page.getByRole('button').filter({ 
+            hasText: /save|share|favorite|like/i 
+          });
+          
+          if (await actionButtons.count() > 0) {
+            await actionButtons.first().click();
+            await waitForStableUI(page);
+          }
+        }
+      }
+    } catch (error) {
+      logTestStep('AI page not found, trying alternate approach');
+      
+      // Open AI assistant from home page
+      await setupPageTest(page, '/');
+      const chatButton = page.locator('header button').filter({ hasText: '' }).first();
+      
+      if (await chatButton.isVisible()) {
+        await chatButton.click();
+        await waitForStableUI(page);
+        
+        // Test chat input with food question
+        const chatPanel = page.locator('[role="dialog"]').filter({ hasText: /AI|Assistant/i });
+        if (await chatPanel.isVisible()) {
+          const chatInput = chatPanel.getByRole('textbox');
+          await chatInput.fill('What can I cook with potatoes and chicken?');
+          await chatPanel.getByRole('button', { name: /send/i }).click();
+          
+          // Wait for response
+          await page.waitForTimeout(1000);
+          
+          // Close chat
+          await chatPanel.getByRole('button', { name: /close|×/i }).click();
         }
       }
     }

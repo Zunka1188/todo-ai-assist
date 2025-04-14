@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Set colors for better visibility
@@ -42,6 +43,8 @@ run_test "shopping-page.test.ts" "Shopping Page Tests" && ((PASSED++)) || { ((FA
 run_test "shopping-list-comprehensive.test.ts" "Shopping List Comprehensive Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("Shopping List Comprehensive Tests"); }
 run_test "documents-page.test.ts" "Documents Page Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("Documents Page Tests"); }
 run_test "feature-buttons.test.ts" "Feature Buttons Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("Feature Buttons Tests"); }
+run_test "ai-chat-integration.test.ts" "AI Chat Integration Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("AI Chat Integration Tests"); }
+run_test "accessibility.test.ts" "Accessibility Tests" && ((PASSED++)) || { ((FAILED++)); FAILED_TESTS+=("Accessibility Tests"); }
 
 # Calculate elapsed time
 END_TIME=$(date +%s)
