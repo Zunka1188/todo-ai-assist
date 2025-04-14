@@ -143,3 +143,17 @@ export function getFormattedTimeRange(
 ): string {
   return `${format(startDate, formatStr)} - ${format(endDate, formatStr)}`;
 }
+
+/**
+ * Get a formatted time string
+ * 
+ * @param date - Date to format
+ * @param formatStr - The date-fns format string to use for time
+ * @returns Formatted time string
+ */
+export function getFormattedTime(
+  date: Date,
+  formatStr: string = 'h:mm a'
+): string {
+  return format(date, formatStr);
+}
