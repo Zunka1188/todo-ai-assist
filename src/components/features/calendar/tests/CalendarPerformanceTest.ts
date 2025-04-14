@@ -53,8 +53,8 @@ export const CalendarPerformanceTest = {
       averageRenderTime: monthViewData.length > 0 
         ? monthViewData.reduce((sum, data) => sum + data.renderTime, 0) / monthViewData.length 
         : 0,
-      navigationTimings: navigationReport.durations,
-      totalNavigationTime: navigationReport.markers.end - navigationReport.markers.start
+      navigationTimings: navigationReport.durations || {},
+      totalNavigationTime: (navigationReport.markers?.end ?? 0) - (navigationReport.markers?.start ?? 0)
     };
   },
   
@@ -107,7 +107,7 @@ export const CalendarPerformanceTest = {
     const navigationResults = await this.testMonthNavigation(options.navigate);
     logger.mark('navigation_test_end');
     
-    // Ensure we have a value even if measure returns undefined
+    // Use nullish coalescing to handle potential undefined values
     const navigationTestDuration = logger.measure('navigation_test_start', 'navigation_test_end', 'navigation_test') ?? 0;
     
     // Test event rendering
@@ -115,7 +115,7 @@ export const CalendarPerformanceTest = {
     const renderingResults = await this.testEventRendering(options.renderEvents);
     logger.mark('event_rendering_test_end');
     
-    // Ensure we have a value even if measure returns undefined
+    // Use nullish coalescing to handle potential undefined values
     const renderingTestDuration = logger.measure('event_rendering_test_start', 'event_rendering_test_end', 'event_rendering_test') ?? 0;
     
     // Test view switching
@@ -136,7 +136,7 @@ export const CalendarPerformanceTest = {
     
     logger.mark('view_switching_test_end');
     
-    // Ensure we have a value even if measure returns undefined
+    // Use nullish coalescing to handle potential undefined values
     const viewSwitchingTestDuration = logger.measure('view_switching_test_start', 'view_switching_test_end', 'view_switching_test') ?? 0;
     
     logger.mark('suite_end');
