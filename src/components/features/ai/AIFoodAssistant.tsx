@@ -126,48 +126,7 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
     safeSetError(null);
 
     try {
-      setTimeout(() => {
-        if (!isMounted.current) return;
-        
-        safeSetIsProcessing(false);
-        safeSetIsTyping(false);
-
-        const lowerInput = sanitizedInput.toLowerCase();
-        
-        if (lowerInput.includes('recipe') || lowerInput.includes('cook') || lowerInput.includes('make')) {
-          addAssistantMessage("Great! Let's find some recipes. Please tell me what dish you're interested in making, or just browse our options below.");
-          setFoodContext(prev => ({
-            ...prev,
-            conversationState: 'recipe_search'
-          }));
-        } else if (lowerInput.includes('diet') || lowerInput.includes('vegan') || lowerInput.includes('vegetarian')) {
-          addAssistantMessage(
-            "Let me know your dietary preferences. I can filter recipes based on dietary restrictions.",
-            undefined,
-            [
-              {
-                id: 'set-dietary',
-                label: 'Set Dietary Preferences',
-                variant: 'default',
-                action: () => handleDishNameInput()
-              }
-            ]
-          );
-        } else {
-          addAssistantMessage(
-            "I can help you find recipes, plan meals, or answer cooking questions. What would you like to do?",
-            undefined,
-            [
-              {
-                id: 'find-recipes',
-                label: 'Find Recipes',
-                variant: 'default',
-                action: () => handleDishNameInput()
-              }
-            ]
-          );
-        }
-      }, 1000);
+      // ... keep existing code (AI response logic)
     } catch (err) {
       console.error("Error processing input:", err);
       safeSetError("Something went wrong. Please try again.");

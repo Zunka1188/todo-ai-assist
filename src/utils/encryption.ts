@@ -110,3 +110,123 @@ export const decryptFields = <T extends Record<string, any>>(
   
   return result;
 };
+
+/**
+ * Encrypt sensitive data for storage
+ * @param value Data to encrypt
+ * @param namespace Optional namespace to organize encrypted data
+ * @returns Encrypted data with metadata
+ */
+export const encryptForStorage = (value: any, namespace?: string): string => {
+  try {
+    const serialized = JSON.stringify({
+      data: value,
+      metadata: {
+        timestamp: Date.now(),
+        namespace: namespace || 'default',
+        version: '1.0'
+      }
+    });
+    return encrypt(serialized);
+  } catch (e) {
+    console.error('Failed to encrypt for storage:', e);
+    throw new Error('Encryption failed');
+  }
+};
+
+/**
+ * Decrypt data from storage
+ * @param encryptedValue Encrypted data string
+ * @returns Original data with metadata
+ */
+export const decryptFromStorage = <T>(encryptedValue: string): { data: T; metadata: any } | null => {
+  try {
+    const decrypted = decrypt(encryptedValue);
+    if (!decrypted) return null;
+    
+    return JSON.parse(decrypted);
+  } catch (e) {
+    console.error('Failed to decrypt from storage:', e);
+    return null;
+  }
+};
+
+/**
+ * Create a secure hash for an API request to prevent tampering
+ * @param data Request data
+ * @param timestamp Request timestamp
+ * @param apiSecret API secret key
+ * @returns Request hash
+ */
+export const createRequestSignature = (
+  data: Record<string, any>,
+  timestamp: number,
+  apiSecret: string
+): string => {
+  // Sort keys for consistent hashing
+  const sortedKeys = Object.keys(data).sort();
+  let dataString = '';
+  
+  // Build string with sorted keys
+  for (const key of sortedKeys) {
+    if (typeof data[key] !== 'function' && typeof data[key] !== 'undefined') {
+      dataString += `${key}=${JSON.stringify(data[key])}&`;
+    }
+  }
+  
+  // Add timestamp
+  dataString += `timestamp=${timestamp}`;
+  
+  // Create HMAC hash using SHA256
+  return CryptoJS.HmacSHA256(dataString, apiSecret).toString();
+};
+
+/**
+ * Securely store sensitive data in localStorage with encryption
+ * @param key Storage key
+ * @param value Value to store
+ * @param expiryMinutes Optional expiry in minutes
+ */
+export const secureLocalStorage = {
+  setItem: (key: string, value: any, expiryMinutes?: number): void => {
+    try {
+      const item = {
+        value,
+        expiry: expiryMinutes ? Date.now() + expiryMinutes * 60 * 1000 : null
+      };
+      
+      localStorage.setItem(key, encryptForStorage(item, 'local_storage'));
+    } catch (e) {
+      console.error('Failed to store encrypted data:', e);
+    }
+  },
+  
+  getItem: <T>(key: string): T | null => {
+    try {
+      const encryptedValue = localStorage.getItem(key);
+      if (!encryptedValue) return null;
+      
+      const result = decryptFromStorage<{ value: T; expiry: number | null }>(encryptedValue);
+      if (!result) return null;
+      
+      // Check expiry
+      if (result.data.expiry && result.data.expiry < Date.now()) {
+        localStorage.removeItem(key);
+        return null;
+      }
+      
+      return result.data.value;
+    } catch (e) {
+      console.error('Failed to retrieve encrypted data:', e);
+      return null;
+    }
+  },
+  
+  removeItem: (key: string): void => {
+    localStorage.removeItem(key);
+  },
+  
+  clear: (): void => {
+    localStorage.clear();
+  }
+};

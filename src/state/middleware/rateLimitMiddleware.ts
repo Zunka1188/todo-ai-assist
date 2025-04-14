@@ -38,7 +38,7 @@ export const rateLimitMiddleware: Middleware = (state, action, next) => {
   
   // Choose appropriate limiter based on action type
   let limiter;
-  let requestInfo = {};
+  let requestInfo: Record<string, any> = {};
   
   if (actionType.includes('AUTH') || actionType.includes('LOGIN') || actionType.includes('REGISTER')) {
     limiter = authLimiter;
