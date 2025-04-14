@@ -1,5 +1,6 @@
+
 import React, { useState, useMemo } from 'react';
-import { ChatMessage, ButtonOption } from '../types';
+import { ChatMessage, MessageAction } from '../types';
 
 export const useChatMessages = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -17,14 +18,14 @@ export const useChatMessages = () => {
     }]);
   };
 
-  const addAssistantMessage = (content: string, imageUrl?: string, buttons?: ButtonOption[]) => {
+  const addAssistantMessage = (content: string, image?: string, actions?: MessageAction[]) => {
     setMessages(prev => [...prev, {
       id: Date.now().toString(),
       role: 'assistant',
       content,
       timestamp: new Date(),
-      imageUrl,
-      buttons
+      image,
+      actions
     }]);
   };
 

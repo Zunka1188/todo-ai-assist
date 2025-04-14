@@ -44,6 +44,14 @@ export interface FoodContext {
   servingSize?: number;
 }
 
+export interface ButtonOption {
+  id: string;
+  label: string;
+  variant?: 'default' | 'outline' | 'ghost';
+  icon?: React.ReactNode;
+  action: () => void;
+}
+
 export interface MessageAction {
   id: string;
   label: string;
@@ -56,8 +64,10 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   image?: string;
+  imageUrl?: string;
   timestamp: Date;
   actions?: MessageAction[];
+  buttons?: ButtonOption[];
 }
 
 export interface ModelPerformanceMetrics {

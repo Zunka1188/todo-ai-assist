@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -21,25 +22,24 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isTyping }
             message.role === 'user' ? "bg-primary text-primary-foreground" : "bg-secondary"
           )}>
             <p>{message.content}</p>
-            {message.imageUrl && (
+            {message.image && (
               <img 
-                src={message.imageUrl} 
+                src={message.image} 
                 alt="Message attachment" 
                 className="mt-2 rounded-md max-w-full h-auto"
               />
             )}
-            {message.buttons && message.buttons.length > 0 && (
+            {message.actions && message.actions.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
-                {message.buttons.map((button) => (
+                {message.actions.map((action) => (
                   <Button
-                    key={button.id}
-                    variant={button.variant || 'default'}
+                    key={action.id}
+                    variant={action.variant || 'default'}
                     size="sm"
-                    onClick={button.action}
+                    onClick={action.action}
                     className="flex items-center gap-1"
                   >
-                    {button.icon}
-                    {button.label}
+                    {action.label}
                   </Button>
                 ))}
               </div>
