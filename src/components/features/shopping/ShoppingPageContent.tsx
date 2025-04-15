@@ -1,11 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, ShoppingBag, ArrowUpDown } from 'lucide-react';
+import { Plus, ShoppingBag, Share2 } from 'lucide-react';
 import HeaderActions from '@/components/ui/header-actions';
 import { useShoppingItemsContext } from './ShoppingItemsContext';
 import ShoppingList from './ShoppingList';
 import AddItemDialog from './AddItemDialog';
-import FilterButtons from './FilterButtons';
 import { useIsMobile } from '@/hooks/use-mobile';
 import SearchInput from '@/components/ui/search-input';
 import ResponsiveContainer from '@/components/ui/responsive-container';
@@ -15,6 +14,7 @@ import ShoppingTabsSection from './ShoppingTabsSection';
 import SortingMenuDropdown from './SortingMenuDropdown';
 import { SortOption } from './useShoppingItems';
 import ImagePreviewDialog from './ImagePreviewDialog';
+import ShareShoppingListDialog from './ShareShoppingListDialog';
 
 const ShoppingPageContent: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,6 +23,7 @@ const ShoppingPageContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [selectedImageItem, setSelectedImageItem] = useState<any>(null);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   
   const { isMobile } = useIsMobile();
   const { 
@@ -71,12 +72,22 @@ const ShoppingPageContent: React.FC = () => {
     }
   };
 
+  const handleOpenShareDialog = () => {
+    setIsShareDialogOpen(true);
+  };
+
   const headerActions = {
     primaryAction: {
       icon: Plus,
       label: "Add Item",
       shortLabel: "Add",
       onClick: () => setIsAddDialogOpen(true)
+    },
+    secondaryAction: {
+      icon: Share2,
+      label: "Share List",
+      shortLabel: "Share",
+      onClick: handleOpenShareDialog
     }
   };
   
@@ -146,6 +157,12 @@ const ShoppingPageContent: React.FC = () => {
         onOpenChange={setIsImagePreviewOpen}
         imageUrl={selectedImageItem?.imageUrl}
         itemName={selectedImageItem?.name}
+      />
+      
+      <ShareShoppingListDialog
+        open={isShareDialogOpen}
+        onOpenChange={setIsShareDialogOpen}
+        listName={`My Shopping List (${notPurchasedItems.length} items)`}
       />
     </ResponsiveContainer>
   );

@@ -3,10 +3,11 @@ import React, { useState } from 'react';
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Image as ImageIcon, Edit, Trash } from 'lucide-react';
+import { MoreHorizontal, Image as ImageIcon, Edit, Trash, Share2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast'; // Import the toast hook
 
 type ShoppingItemButtonProps = {
   name: string;
@@ -15,6 +16,7 @@ type ShoppingItemButtonProps = {
   onEdit?: () => void;
   onDelete?: () => void;
   onImagePreview?: () => void;
+  onShare?: () => void; // Add onShare prop
   quantity?: string;
   repeatOption?: 'none' | 'weekly' | 'monthly';
   imageUrl?: string | null;
@@ -30,6 +32,7 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
   onEdit,
   onDelete,
   onImagePreview,
+  onShare, // Add onShare prop
   quantity,
   repeatOption,
   imageUrl,
@@ -40,6 +43,35 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { isMobile } = useIsMobile();
+  const { toast } = useToast(); // Add toast
+  
+  // Handle share item directly from the dropdown
+  const handleShareItem = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (onShare) {
+      onShare();
+    } else {
+      // Fallback if no onShare prop is provided
+      const shareUrl = `${window.location.origin}/shopping?item=${encodeURIComponent(name)}`;
+      
+      if (navigator.share) {
+        navigator.share({
+          title: `Check out this item: ${name}`,
+          text: notes ? `${name} - ${notes}` : name,
+          url: shareUrl
+        }).catch(err => console.error("Error sharing", err));
+      } else {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          toast({
+            title: "Link copied!",
+            description: "Item link has been copied to clipboard"
+          });
+        });
+      }
+    }
+  };
   
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -155,6 +187,10 @@ const ShoppingItemButton: React.FC<ShoppingItemButtonProps> = ({
             {imageUrl && <DropdownMenuSeparator />}
             {!readOnly && (
               <>
+                <DropdownMenuItem onClick={handleShareItem} aria-label="Share">
+                  <Share2 className="mr-2 h-4 w-4" />
+                  <span>Share</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={onEdit} aria-label="Edit">
                   <Edit className="mr-2 h-4 w-4" />
                   <span>Edit</span>

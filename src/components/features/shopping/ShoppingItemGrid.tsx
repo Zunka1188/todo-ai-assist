@@ -1,59 +1,83 @@
 
 import React from 'react';
+import ShoppingItemButton from './ShoppingItemButton';
 import { cn } from '@/lib/utils';
-import ShoppingItemCard from './ShoppingItemCard';
-import { useIsMobile } from '@/hooks/use-mobile';
-import ContentGrid from '@/components/ui/content-grid';
- 
+import { useToast } from '@/hooks/use-toast';
+
 interface ShoppingItemGridProps {
   items: any[];
-  onToggleItemCompletion: (itemId: string) => void;
-  onEditItem: (itemId: string, item: any) => void;
-  onImagePreview: (item: any) => void;
-  className?: string;
-  readOnly?: boolean;
+  onToggleItemCompletion: (id: string) => void;
+  onEditItem: (id: string, item: any) => void;
+  onImagePreview?: (item: any) => void;
   batchMode?: boolean;
   selectedItems?: string[];
-  onItemSelect?: (itemId: string) => void;
+  onItemSelect?: (id: string) => void;
+  readOnly?: boolean;
+  className?: string;
 }
- 
+
 const ShoppingItemGrid: React.FC<ShoppingItemGridProps> = ({
   items,
   onToggleItemCompletion,
   onEditItem,
   onImagePreview,
-  className,
-  readOnly = false,
   batchMode = false,
   selectedItems = [],
-  onItemSelect = () => {}
+  onItemSelect,
+  readOnly = false,
+  className,
 }) => {
-  const { isMobile } = useIsMobile();
-  
+  const { toast } = useToast();
+
+  // Handle sharing an individual item
+  const handleShareItem = (item: any) => {
+    const shareUrl = `${window.location.origin}/shopping?item=${item.id}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: `Check out this item: ${item.name}`,
+        text: item.notes ? `${item.name} - ${item.notes}` : item.name,
+        url: shareUrl
+      }).catch(err => console.error("Error sharing", err));
+    } else {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        toast({
+          title: "Link copied!",
+          description: "Item link has been copied to clipboard"
+        });
+      });
+    }
+  };
+
+  if (items.length === 0) {
+    return <p className="text-center text-muted-foreground py-4">No items found</p>;
+  }
+
   return (
-    <ContentGrid 
-      className={cn('gap-3', className)}
-      columns={{ 
-        default: 1, 
-        sm: isMobile ? 1 : 2 
-      }}
-      itemCount={items.length}
-    >
+    <div className={cn("grid gap-2", className)}>
       {items.map((item) => (
-        <ShoppingItemCard
+        <ShoppingItemButton
           key={item.id}
-          item={item}
-          onToggleCompletion={() => onToggleItemCompletion(item.id)}
+          name={item.name}
+          quantity={item.amount}
+          completed={item.completed}
+          repeatOption={item.repeatOption}
+          imageUrl={item.imageUrl}
+          notes={item.notes}
+          onClick={batchMode ? 
+            () => onItemSelect?.(item.id) : 
+            () => onToggleItemCompletion(item.id)
+          }
           onEdit={() => onEditItem(item.id, item)}
-          onImagePreview={() => onImagePreview(item)}
+          onDelete={() => onEditItem(item.id, item)}
+          onImagePreview={() => onImagePreview?.(item)}
+          onShare={() => handleShareItem(item)}
           readOnly={readOnly}
-          batchMode={batchMode}
-          isSelected={selectedItems.includes(item.id)}
-          onSelect={() => onItemSelect(item.id)}
+          data-checked={selectedItems.includes(item.id) ? "true" : "false"}
         />
       ))}
-    </ContentGrid>
+    </div>
   );
 };
- 
+
 export default ShoppingItemGrid;
