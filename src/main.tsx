@@ -1,7 +1,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import TestComponent from './components/TestComponent'
+import App from './App'
 import './index.css'
 import './i18n/i18n' // Import i18n configuration
 
@@ -16,7 +16,7 @@ try {
     console.log('Root element found, attempting to render');
     ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
-        <TestComponent />
+        <App />
       </React.StrictMode>,
     );
     console.log('Render call completed');
