@@ -60,7 +60,7 @@ describe('ImagePreviewDialog', () => {
       <ImagePreviewDialog
         open={true}
         onOpenChange={() => {}}
-        imageUrl={null}  // Added null imageUrl prop
+        imageUrl={null}
         itemName="No Image Item"
       />
     );
