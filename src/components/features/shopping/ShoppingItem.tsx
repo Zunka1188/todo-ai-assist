@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { Check, Trash, Edit, ShoppingBag } from 'lucide-react';
+import { Check, Trash, Edit, ShoppingBag, Image } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/use-theme';
 import { Button } from '@/components/ui/button';
+import ShoppingItemImage from './ShoppingItemImage';
 
 interface ShoppingItemProps {
   id: string;
@@ -14,6 +15,7 @@ interface ShoppingItemProps {
   onCheck?: (id: string) => void;
   onDelete?: (id: string) => void;
   onEdit?: (id: string) => void;
+  onImageView?: (id: string) => void;
   quantity?: string; 
   notes?: string;
   repeatOption?: 'none' | 'weekly' | 'monthly';
@@ -30,9 +32,16 @@ const ShoppingItem: React.FC<ShoppingItemProps> = ({
   repeatOption,
   onCheck,
   onDelete,
-  onEdit
+  onEdit,
+  onImageView
 }) => {
   const { theme } = useTheme();
+  
+  const handleImageClick = () => {
+    if (image && onImageView) {
+      onImageView(id);
+    }
+  };
   
   return (
     <div className={cn(
@@ -42,19 +51,12 @@ const ShoppingItem: React.FC<ShoppingItemProps> = ({
       theme === 'dark' && "border-border/50"
     )}>
       <div className="flex items-center flex-1 min-w-0">
-        {image ? (
-          <div className="h-12 w-12 rounded overflow-hidden bg-muted mr-3 flex-shrink-0">
-            <img 
-              src={image} 
-              alt={name} 
-              className="h-full w-full object-cover"
-            />
-          </div>
-        ) : (
-          <div className="h-12 w-12 rounded bg-primary/10 mr-3 flex items-center justify-center flex-shrink-0">
-            <ShoppingBag className="h-6 w-6 text-primary" />
-          </div>
-        )}
+        <ShoppingItemImage
+          imageUrl={image}
+          name={name}
+          onClick={onImageView ? handleImageClick : undefined}
+          className="mr-3"
+        />
         
         <div className="flex-1 min-w-0">
           <p className={cn(

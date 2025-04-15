@@ -74,7 +74,7 @@ const ImagePreviewOptimizer: React.FC<ImagePreviewOptimizerProps> = ({
 
   if (isLoading) {
     return (
-      <div className={`flex items-center justify-center bg-gray-100 ${className}`}>
+      <div className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 ${className}`}>
         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
       </div>
     );
@@ -82,7 +82,7 @@ const ImagePreviewOptimizer: React.FC<ImagePreviewOptimizerProps> = ({
 
   if (hasError || !displayUrl) {
     return (
-      <div className={`flex items-center justify-center bg-gray-100 ${className}`}>
+      <div className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 ${className}`}>
         <ImageIcon className="h-8 w-8 text-gray-400" />
         <span className="text-sm text-gray-500 ml-2">Image not available</span>
       </div>

@@ -61,7 +61,7 @@ export const compressImage = async (
           }
         },
         file.type,
-        0.7
+        0.7 // Quality parameter: 0.7 provides a good balance between quality and size
       );
     };
     
@@ -78,38 +78,27 @@ export const compressImage = async (
 };
 
 /**
- * Uploads an image to the server
+ * Mock implementation for image upload
+ * In a real app, this would upload to a server
  * 
  * @param file The file to upload
- * @param endpoint The API endpoint
  * @returns A promise that resolves to the URL of the uploaded image
  */
-export const uploadImage = async (file: File, endpoint: string = '/api/upload'): Promise<string> => {
+export const uploadImage = async (file: File): Promise<string> => {
   // First compress the image
   const compressedFile = await compressImage(file);
   
-  // Create a FormData object to send to the server
-  const formData = new FormData();
-  formData.append('image', compressedFile);
+  // In a real application, we would upload this to a server
+  // For now, create a local data URL for testing
+  const dataUrl = await getImagePreviewUrl(compressedFile);
   
-  // Send the request
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    body: formData,
-  });
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 500));
   
-  if (!response.ok) {
-    throw new Error(`Upload failed with status: ${response.status}`);
-  }
+  console.log('Image "uploaded" - actual implementation would send to server');
   
-  // Parse the response
-  const data = await response.json();
-  
-  if (!data.imageUrl) {
-    throw new Error('No image URL in response');
-  }
-  
-  return data.imageUrl;
+  // Return the data URL as the "uploaded" URL
+  return dataUrl;
 };
 
 /**

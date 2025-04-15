@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Maximize2 } from 'lucide-react';
+import { Maximize2, ImageIcon } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import ImagePreviewOptimizer from './ImagePreviewOptimizer';
 
 interface FormFieldsProps {
   formData: {
@@ -35,6 +36,27 @@ const FormFields: React.FC<FormFieldsProps> = ({
   showFileInput
 }) => {
   const { isMobile } = useIsMobile();
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(formData.imageUrl || null);
+  
+  // Handle file selection and generate preview
+  const handleImageSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFileChange(e);
+    
+    if (e.target.files && e.target.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImagePreviewUrl(event.target?.result as string);
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+  
+  // Reset image preview if formData.imageUrl changes
+  React.useEffect(() => {
+    if (!formData.file) {
+      setImagePreviewUrl(formData.imageUrl || null);
+    }
+  }, [formData.imageUrl, formData.file]);
 
   return (
     <div className="space-y-4">
@@ -98,18 +120,20 @@ const FormFields: React.FC<FormFieldsProps> = ({
           <Input
             id="image"
             type="file"
-            onChange={handleFileChange}
+            onChange={handleImageSelection}
             accept="image/*"
           />
         )}
         
-        {formData.imageUrl && !formData.file && (
+        {imagePreviewUrl && (
           <div className="mt-2 relative">
-            <div className="max-h-20 rounded-md overflow-hidden">
-              <img 
-                src={formData.imageUrl} 
-                alt="Item preview" 
-                className="w-full object-cover" 
+            <div className="max-h-32 rounded-md overflow-hidden">
+              <ImagePreviewOptimizer
+                imageUrl={imagePreviewUrl}
+                alt="Item preview"
+                className="w-full object-cover"
+                previewable={true}
+                onPreview={toggleFullScreenPreview}
               />
             </div>
             
@@ -123,6 +147,15 @@ const FormFields: React.FC<FormFieldsProps> = ({
             >
               <Maximize2 className="h-4 w-4" />
             </Button>
+          </div>
+        )}
+        
+        {!imagePreviewUrl && (
+          <div className="mt-2 border border-dashed border-gray-300 dark:border-gray-600 rounded-md p-6 flex justify-center">
+            <div className="text-center">
+              <ImageIcon className="mx-auto h-8 w-8 text-gray-400" />
+              <p className="mt-1 text-sm text-gray-500">No image selected</p>
+            </div>
           </div>
         )}
       </div>

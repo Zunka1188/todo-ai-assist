@@ -49,6 +49,13 @@ const ShoppingItemGrid: React.FC<ShoppingItemGridProps> = ({
     }
   };
 
+  // Handle image preview click
+  const handleItemImagePreview = (item: any) => {
+    if (item.imageUrl && onImagePreview) {
+      onImagePreview(item);
+    }
+  };
+
   if (items.length === 0) {
     return <p className="text-center text-muted-foreground py-4">No items found</p>;
   }
@@ -70,7 +77,7 @@ const ShoppingItemGrid: React.FC<ShoppingItemGridProps> = ({
           }
           onEdit={() => onEditItem(item.id, item)}
           onDelete={() => onEditItem(item.id, item)}
-          onImagePreview={() => onImagePreview?.(item)}
+          onImagePreview={() => handleItemImagePreview(item)}
           onShare={() => handleShareItem(item)}
           readOnly={readOnly}
           data-checked={selectedItems.includes(item.id) ? "true" : "false"}

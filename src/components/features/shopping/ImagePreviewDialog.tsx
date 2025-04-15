@@ -1,16 +1,15 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Copy, Download, X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { useIsMobile } from '@/hooks/use-mobile';
-import useErrorHandler from '@/hooks/useErrorHandler';
+import { Maximize2, Download, Share2 } from 'lucide-react';
+import ImagePreviewOptimizer from './ImagePreviewOptimizer';
+import FullScreenPreview from './FullScreenPreview';
 
 interface ImagePreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  imageUrl?: string;
+  imageUrl: string | null | undefined;
   itemName?: string;
 }
 
@@ -18,152 +17,126 @@ const ImagePreviewDialog: React.FC<ImagePreviewDialogProps> = ({
   open,
   onOpenChange,
   imageUrl,
-  itemName = 'Item'
+  itemName
 }) => {
-  const [zoomLevel, setZoomLevel] = useState(100);
-  const [rotation, setRotation] = useState(0);
-  const { toast } = useToast();
-  const { isMobile } = useIsMobile();
-  const { handleError } = useErrorHandler();
-
-  // Handle zoom actions
-  const handleZoomIn = () => {
-    if (zoomLevel < 200) {
-      setZoomLevel(zoomLevel + 25);
-    }
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  
+  const toggleFullScreen = () => {
+    setIsFullScreen(!isFullScreen);
   };
-
-  const handleZoomOut = () => {
-    if (zoomLevel > 50) {
-      setZoomLevel(zoomLevel - 25);
-    }
+  
+  const handleClose = () => {
+    onOpenChange(false);
+    setIsFullScreen(false);
   };
-
-  // Handle rotation
-  const handleRotate = () => {
-    setRotation((rotation + 90) % 360);
-  };
-
-  // Handle image copy
-  const handleCopyImage = async () => {
+  
+  const handleShareImage = () => {
     if (!imageUrl) return;
     
-    try {
-      // Fetch the image and copy to clipboard
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      
-      // Chrome and modern browsers support copying images
-      if (navigator.clipboard && navigator.clipboard.write) {
-        const item = new ClipboardItem({
-          [blob.type]: blob
-        });
-        await navigator.clipboard.write([item]);
-        toast({
-          title: "Image copied",
-          description: "Image copied to clipboard"
-        });
-      } else {
-        // Fallback for browsers that don't support copying images
-        toast({
-          title: "Cannot copy image",
-          description: "Your browser doesn't support copying images",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      handleError(`Failed to copy image: ${error instanceof Error ? error.message : String(error)}`, 'ImagePreview');
+    if (navigator.share) {
+      navigator.share({
+        title: `Item Image: ${itemName || 'Shopping Item'}`,
+        text: `Check out this image of ${itemName || 'my shopping item'}`,
+        url: imageUrl
+      }).catch(err => console.error("Error sharing image:", err));
+    } else {
+      navigator.clipboard.writeText(imageUrl).then(() => {
+        alert("Image URL copied to clipboard!");
+      });
     }
   };
-
-  // Handle image download
+  
   const handleDownload = () => {
     if (!imageUrl) return;
     
-    try {
-      const link = document.createElement('a');
-      link.href = imageUrl;
-      link.download = `${itemName.replace(/\s+/g, '_').toLowerCase()}_image.jpg`;
-      link.click();
-    } catch (error) {
-      handleError(`Failed to download image: ${error instanceof Error ? error.message : String(error)}`, 'ImagePreview');
-    }
+    // Create a temporary link to download the image
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = `${itemName || 'shopping-item'}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
-
-  // Reset zoom and rotation when dialog opens/closes
-  React.useEffect(() => {
-    if (!open) {
-      // Reset on close
-      setZoomLevel(100);
-      setRotation(0);
-    }
-  }, [open]);
-
+  
+  // If in full screen mode, render the full screen component
+  if (open && isFullScreen && imageUrl) {
+    return (
+      <FullScreenPreview
+        imageUrl={imageUrl}
+        onClose={handleClose}
+        onToggle={toggleFullScreen}
+      />
+    );
+  }
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md md:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{itemName} Image</DialogTitle>
-          <Button 
-            className="absolute right-4 top-4" 
-            size="sm" 
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </DialogHeader>
-        
-        <div className="overflow-hidden relative">
-          {imageUrl ? (
-            <div className="flex justify-center min-h-[200px] items-center bg-black/5 rounded-md">
-              <img 
-                src={imageUrl} 
-                alt={itemName}
-                className="max-h-[60vh] object-contain transition-all duration-200"
-                style={{ 
-                  transform: `scale(${zoomLevel / 100}) rotate(${rotation}deg)`,
-                }}
+      <DialogContent className="sm:max-w-lg">
+        <div className="flex flex-col gap-4 py-4">
+          <div className="text-lg font-medium">
+            {itemName || 'Item'} Image
+          </div>
+          
+          <div className="relative max-h-80 overflow-hidden rounded-lg">
+            {imageUrl ? (
+              <ImagePreviewOptimizer
+                imageUrl={imageUrl}
+                alt={itemName || 'Shopping item'}
+                className="w-full object-contain"
               />
-            </div>
-          ) : (
-            <div className="h-60 flex items-center justify-center bg-muted rounded-md">
-              <p className="text-muted-foreground">No image available</p>
-            </div>
-          )}
+            ) : (
+              <div className="flex items-center justify-center h-40 bg-muted">
+                No image available
+              </div>
+            )}
+          </div>
         </div>
         
-        {imageUrl && (
-          <div className="flex flex-wrap gap-2 justify-between">
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleZoomIn} disabled={zoomLevel >= 200}>
-                <ZoomIn className="h-4 w-4 mr-1" />
-                {!isMobile && "Zoom In"}
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleZoomOut} disabled={zoomLevel <= 50}>
-                <ZoomOut className="h-4 w-4 mr-1" />
-                {!isMobile && "Zoom Out"}
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleRotate}>
-                <RotateCcw className="h-4 w-4 mr-1" />
-                {!isMobile && "Rotate"}
-              </Button>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleCopyImage}>
-                <Copy className="h-4 w-4 mr-1" />
-                {!isMobile && "Copy"}
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleDownload}>
-                <Download className="h-4 w-4 mr-1" />
-                {!isMobile && "Download"}
-              </Button>
-            </div>
-          </div>
-        )}
-        
         <DialogFooter>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>Close</Button>
+          {imageUrl && (
+            <div className="flex gap-2 mr-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShareImage}
+                className="flex items-center gap-2"
+              >
+                <Share2 className="h-4 w-4" />
+                Share
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownload}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download
+              </Button>
+            </div>
+          )}
+          
+          <div className="flex gap-2">
+            {imageUrl && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleFullScreen}
+                className="flex items-center gap-2"
+              >
+                <Maximize2 className="h-4 w-4" />
+                Full Screen
+              </Button>
+            )}
+            
+            <Button
+              variant="outline"
+              onClick={handleClose}
+            >
+              Close
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
