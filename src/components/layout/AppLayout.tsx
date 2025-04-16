@@ -68,6 +68,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
   }, [location.pathname]);
 
   const textColorClass = theme === 'light' ? "text-foreground" : "text-white";
+  const primaryColorClass = theme === 'light' ? "text-primary-dark" : "text-primary";
   
   const mobileHeadingClass = isMobile ? "text-[20px]" : "";
   const mobileSubheadingClass = isMobile ? "text-[16px]" : "";
@@ -100,10 +101,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
         </button>
         
         <div className="flex items-center gap-2">
-          {/* Language selector with Globe icon */}
+          {/* Language selector with enhanced Globe icon */}
           <LanguageSelector 
             variant="compact" 
-            icon={<Globe className={cn("h-4 w-4", textColorClass)} />} 
+            icon={<Globe className={cn("h-5 w-5", primaryColorClass)} />} 
+            className="hover:bg-secondary/60"
           />
           
           {/* Existing menu and settings icons */}
