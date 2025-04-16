@@ -7,7 +7,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, HelpCircle, Cloud, MessageSquare, Leaf, Utensils } from 'lucide-react';
+import { Settings, FileText, Menu, Home, Calendar, ShoppingBag, HelpCircle, Cloud, MessageSquare, Leaf, Utensils, Globe, Brain } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   DropdownMenu,
@@ -90,18 +90,23 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
           isIOS && "pt-safe-top"
         )}
       >
-        <div className="flex items-center">
-          <button
-            onClick={() => setChatOpen(true)}
-            className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
-            aria-label="Open chat assistant"
-          >
-            <MessageSquare className={cn("h-5 w-5", textColorClass)} />
-          </button>
-        </div>
+        {/* Left section with AI/Brain button */}
+        <button
+          onClick={() => setChatOpen(true)}
+          className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
+          aria-label="Open AI Assistant"
+        >
+          <Brain className={cn("h-5 w-5", textColorClass)} />
+        </button>
         
         <div className="flex items-center gap-2">
-          <LanguageSelector variant="compact" />
+          {/* Language selector with Globe icon */}
+          <LanguageSelector 
+            variant="compact" 
+            icon={<Globe className={cn("h-4 w-4", textColorClass)} />} 
+          />
+          
+          {/* Existing menu and settings icons */}
           <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
             <DropdownMenuTrigger 
               className="p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation" 
@@ -217,6 +222,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ className, children }) => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          
           <Link to="/settings" 
             className={cn(
               "p-2 rounded-md hover:bg-secondary min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation",
