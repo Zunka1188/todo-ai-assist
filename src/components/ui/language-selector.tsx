@@ -17,11 +17,13 @@ import { cn } from "@/lib/utils";
 interface LanguageSelectorProps {
   variant?: "default" | "compact";
   className?: string;
+  icon?: React.ReactNode;
 }
 
 export function LanguageSelector({ 
   variant = "default", 
-  className 
+  className,
+  icon 
 }: LanguageSelectorProps) {
   const { language, setLanguage, languageList } = useLanguage();
   const { t } = useTranslation();
@@ -40,10 +42,10 @@ export function LanguageSelector({
           aria-label={t("settings.language")}
         >
           {variant === "compact" ? (
-            <Globe className="h-4 w-4" />
+            icon || <Globe className="h-4 w-4" />
           ) : (
             <>
-              <Globe className="h-4 w-4" />
+              {icon || <Globe className="h-4 w-4" />}
               <span className="hidden sm:inline-block capitalize">
                 {languageList[language].label}
               </span>
