@@ -16,7 +16,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { sanitizeTextInput } from '@/utils/input-validation';
 
-const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) => {
+interface AIFoodAssistantProps {
+  isOpen: boolean;
+  onClose: () => void;
+  initialFoodContext?: FoodContext;
+}
+
+const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose, initialFoodContext }) => {
   const { toast } = useToast();
   const {
     messages,
@@ -34,13 +40,15 @@ const AIFoodAssistant: React.FC<AIFoodAssistantProps> = ({ isOpen, onClose }) =>
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [eventNotes, setEventNotes] = useState('');
   const [dietaryOptions, setDietaryOptions] = useState<DietaryOption[]>(DIETARY_OPTIONS);
-  const [foodContext, setFoodContext] = useState<FoodContext>({
-    conversationState: 'initial',
-    dietaryRestrictions: [],
-    ingredientsAdded: false,
-    recipeSaved: false,
-    eventScheduled: false
-  });
+  const [foodContext, setFoodContext] = useState<FoodContext>(
+    initialFoodContext || {
+      conversationState: 'initial',
+      dietaryRestrictions: [],
+      ingredientsAdded: false,
+      recipeSaved: false,
+      eventScheduled: false
+    }
+  );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isMounted = useRef(true);

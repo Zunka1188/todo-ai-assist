@@ -1,13 +1,32 @@
+import { vi } from 'vitest';
+
+export const mockToast = vi.fn();
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({ toast: mockToast }),
+  toast: mockToast,
+  default: { toast: mockToast },
+  ToastProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  __esModule: true,
+}));
+
+export const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom') as any;
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate
+  };
+});
+
 import React, { ReactElement } from 'react';
 import { render as reactTestingLibraryRender, RenderOptions } from '@testing-library/react';
 import { ThemeProvider } from '@/hooks/use-theme';
-import { ToastProvider } from '@/hooks/use-toast';
+// ToastProvider is mocked above using vi.mock. Use the mocked component in the provider tree below.
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { StoreProvider } from './state/useStore';
 import { AuthProvider } from './hooks/use-auth';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { vi } from 'vitest';
 
 // Create a custom render function that includes providers
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
@@ -21,6 +40,7 @@ const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
     }
   });
 
+  const { ToastProvider } = require('@/hooks/use-toast');
   return (
     <AuthProvider>
       <StoreProvider>
@@ -50,31 +70,10 @@ export * from '@testing-library/react';
 export { render };
 
 // Mock utilities
-export const mockUseToast = () => {
-  const mockToast = vi.fn();
-  
-  vi.mock('@/hooks/use-toast', () => ({
-    useToast: () => ({
-      toast: mockToast
-    }),
-    toast: mockToast
-  }));
-  
-  return mockToast;
-};
+// (Declarations and mocks for mockToast, mockNavigate, and actualReactRouterDom are only present at the top of the file. Removed duplicates from here.)
 
-export const mockUseNavigate = () => {
-  const mockNavigate = vi.fn();
-  
-  vi.mock('react-router-dom', async () => {
-    const actual = await vi.importActual('react-router-dom') as any;
-    return {
-      ...actual,
-      useNavigate: () => mockNavigate
-    };
-  });
-  
-  return mockNavigate;
+export const resetMockNavigate = () => {
+  mockNavigate.mockReset();
 };
 
 export const mockLocalStorage = () => {
